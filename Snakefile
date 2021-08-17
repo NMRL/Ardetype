@@ -1,10 +1,12 @@
 configfile: 'config.yaml'
 
+#combine rules to produce desired output
 rule all:
     input: 
         expand('{sample}_mlst_output.csv', sample=config['samples']),
         expand('{sample}.assembly_stats.txt', sample=config['samples'])
 
+#run fastp to trim adapters and quality-trim reads
 rule quality_control:
     input:
         read_1 = expand('data/{sample}_R1_001.fastq.gz', sample=config['samples']),
@@ -16,6 +18,7 @@ rule quality_control:
     shell:
         'fastp --in1 {input.read_1} --in2 {input.read_2} --out1 {output.read_1_tr} --out2 {output.read_2_tr} --thread {threads}'
 
+#assemble reads into contigs
 rule contig_assembly:
     input:
         read_1 = expand('data/{sample}_fastp_R1_001.fastq.gz', sample=config['samples']),
@@ -26,6 +29,7 @@ rule contig_assembly:
     shell:
         'shovill --depth 100 --kmers 31,33,55,77,99,127 --ram 7 --minlen 500 --force --outdir contigs --R1 {input.read_1} --R2 {input.read_2}'
 
+#assemble contigs into scaffolds
 rule scaffold_assembly:
     input:
         reference = 'reference/GCF_900187225.1_51881_G01_genomic.fa',
@@ -35,6 +39,7 @@ rule scaffold_assembly:
     shell:
         'ragtag.py scaffold -o scaffolds -C {input.reference} {input.contigs}'
 
+#generate qc output about scaffold assembly
 rule assembly_qc:
     input:
         scaffolds = expand('scaffolds/ragtag.scaffold.fasta', sample=config['samples'])
@@ -43,6 +48,7 @@ rule assembly_qc:
     shell:
         'statswrapper.sh in={input.scaffolds} > {output.stats}'
 
+#perform mlst typing based on scaffold
 rule mlst:
     input: 
         scaffolds = 'scaffolds/ragtag.scaffold.fasta'
@@ -53,6 +59,4 @@ rule mlst:
         'mlst --csv {input} >> {output.mlst_output}'
 
 #using temp()
-#adding sample id to contigs - bash script
-#adding sample id to scaffolds - bash scripts
-#finding resistance plasmids - Amr++
+#adding sample id to contigs & adding sample id to scaffolds: https://stackoverflow.com/questions/62574413/move-and-rename-files-from-multiple-folders-using-snakemake
