@@ -2,7 +2,8 @@ SAMPLES=['2104093601_S47_L001']
 
 rule all:
     input: 
-        expand('{sample}_mlst_output.csv', sample=SAMPLES)
+        expand('{sample}_mlst_output.csv', sample=SAMPLES),
+        expand('{sample}.assembly_stats.txt', sample=SAMPLES)
 
 rule quality_control:
     input:
@@ -30,28 +31,27 @@ rule scaffold_assembly:
         reference = 'reference/GCF_900187225.1_51881_G01_genomic.fa',
         contigs =  expand("contigs/contigs.fa", sample=SAMPLES)
     output:
-        scaffolds = expand('ragtag_output/ragtag.scaffold.fasta', sample=SAMPLES)
+        scaffolds = '/ragtag_output/ragtag.scaffold.fasta'
     shell:
         'ragtag.py scaffold -C {input.reference} {input.contigs}'
 
-# rule assembly_qc:
-#     input:
-#         reference = 'reference/GCF_900187225.1_51881_G01_genomic.fa',
-#         scaffolds = expand('ragtag_output/ragtag.scaffold.fasta', sample=SAMPLES)
-#     output:
-
-#     shell:
-#         'quast.py -o . -r {input.reference} {input.scaffolds}'
+rule assembly_qc:
+    input:
+        scaffolds = expand('ragtag_output/ragtag.scaffold.fasta', sample=SAMPLES)
+    output:
+        stats = expand('{sample}.assembly_stats.txt', sample=SAMPLES)
+    shell:
+        'statswrapper.sh in={input.scaffolds} > {output.stats}'
 
 rule mlst:
     input: 
-        scaffolds = expand('ragtag_output/ragtag.scaffold.fasta', sample=SAMPLES)
+        scaffolds = 'ragtag_output/ragtag.scaffold.fasta'
     output:
         mlst_output = expand('{sample}_mlst_output.csv', sample=SAMPLES)
     threads: 4
     shell:
         'mlst --csv {input} >> {output.mlst_output}'
 
-# How to add quast?
-# How to to clean-up?
+# How to add quast? - different python version required - explore qc options
+# How to to clean-up? temp()
 # How to input many files?
