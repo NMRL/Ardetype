@@ -1,0 +1,11 @@
+name: snakemake
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - fastp
+  - shovill
+  - ragtag
+  - mlst
+  - bbmap
