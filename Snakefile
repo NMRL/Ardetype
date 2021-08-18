@@ -24,7 +24,7 @@ rule contig_assembly:
         temp('{sample_id}_contigs/contigs.fa')
     threads: 4
     shell:
-        'shovill --depth 100 --kmers 31,33,55,77,99,127 --ram 7 --minlen 500 --force --outdir {wildcards.sample_id}_contigs --R1 {input.read_1} --R2 {input.read_2}'
+        'shovill --depth {config[shovill_params][depth]} --kmers {config[shovill_params][k1]},{config[shovill_params][k2]},{config[shovill_params][k3]},{config[shovill_params][k4]},{config[shovill_params][k5]},{config[shovill_params][k6]} --ram {config[shovill_params][ram]} --minlen {config[shovill_params][minlen]} --force --outdir {wildcards.sample_id}_contigs --R1 {input.read_1} --R2 {input.read_2}'
 
 rule contig_id:
     input:
@@ -72,7 +72,5 @@ rule mlst:
     shell:
         'mlst --csv {input} >> {output.mlst_output}'
 
-#using temp()
-#adding sample id to contigs - bash script
-#adding sample id to scaffolds - bash scripts
-#finding resistance plasmids - Amr++
+# test on multiple samples
+# on a cluster - https://carpentries-incubator.github.io/workflows-snakemake/09-cluster/index.html
