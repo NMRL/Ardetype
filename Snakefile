@@ -3,7 +3,8 @@ configfile: 'config.yaml'
 rule all:
     input: 
         expand('{sample}_mlst_output.csv', sample=config['samples']),
-        expand('{sample}.assembly_stats.txt', sample=config['samples'])
+        expand('{sample}.assembly_stats.txt', sample=config['samples']),
+        expand('benchmarks/{sample}_combined_benchmark.csv', sample=config['samples'])
 
 rule quality_control:
     input:
@@ -11,7 +12,7 @@ rule quality_control:
         read_2 = 'data/{sample_id}_R2_001.fastq.gz'
     threads: 4
     benchmark:
-        'benchmarks/{sample_id}.fastp.benchmark.txt'
+        temp('benchmarks/{sample_id}.fastp.benchmark.txt')
     output: 
         temp('{sample_id}.fastp.json'),
         '{sample_id}.fastp.html',
@@ -28,7 +29,7 @@ rule contig_assembly:
         temp('{sample_id}_contigs/contigs.fa')
     threads: 4
     benchmark:
-        'benchmarks/{sample_id}.shovill.benchmark.txt'
+        temp('benchmarks/{sample_id}.shovill.benchmark.txt')
     shell:
         'shovill --depth {config[shovill_params][depth]} --kmers {config[shovill_params][k1]},{config[shovill_params][k2]},{config[shovill_params][k3]},{config[shovill_params][k4]},{config[shovill_params][k5]},{config[shovill_params][k6]} --ram {config[shovill_params][ram]} --minlen {config[shovill_params][minlen]} --force --outdir {wildcards.sample_id}_contigs --R1 {input.read_1} --R2 {input.read_2}'
 
@@ -48,7 +49,7 @@ rule scaffold_assembly:
     output:
         '{sample_id}_scaffolds/ragtag.scaffold.fasta'
     benchmark:
-        'benchmarks/{sample_id}.ragtag.benchmark.txt'
+        temp('benchmarks/{sample_id}.ragtag.benchmark.txt')
     shell:
         'ragtag.py scaffold -o {wildcards.sample_id}_scaffolds -C {input.reference} {input.contigs}'
 
@@ -68,7 +69,7 @@ rule assembly_qc:
     output:
         stats = '{sample_id}.assembly_stats.txt'
     benchmark:
-        'benchmarks/{sample_id}.bbmap_qc.benchmark.txt'
+        temp('benchmarks/{sample_id}.bbmap_qc.benchmark.txt')
     shell:
         'statswrapper.sh in={input.scaffolds} > {output.stats}'
 
@@ -80,8 +81,20 @@ rule mlst:
         mlst_output = '{sample_id}_mlst_output.csv',
     threads: 4
     benchmark:
-        'benchmarks/{sample_id}.mlst.benchmark.txt'
+        temp('benchmarks/{sample_id}.mlst.benchmark.txt')
     shell:
         'mlst --csv {input} >> {output.mlst_output}'
+
+rule combine_benchmark:
+    input:
+        'benchmarks/{sample_id}.bbmap_qc.benchmark.txt',
+        'benchmarks/{sample_id}.fastp.benchmark.txt',
+        'benchmarks/{sample_id}.mlst.benchmark.txt',
+        'benchmarks/{sample_id}.ragtag.benchmark.txt',
+        'benchmarks/{sample_id}.shovill.benchmark.txt'
+    output:
+        'benchmarks/{sample_id}_combined_benchmark.csv'
+    shell:
+        'python scripts/combine_benchmarks.py -b benchmarks -s {wildcards.sample_id}'
 
 # on a cluster - https://carpentries-incubator.github.io/workflows-snakemake/09-cluster/index.html
