@@ -1,0 +1,14 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+snakemake.yml
+%post
+    conda install -y -c conda-forge mamba
+    mamba env create -f snakemake.yml
+    conda install -c conda-forge -c bioconda -c defaults -n snakemake mlst
+%environment
+    export PATH=/home/jevgenijs/miniconda3/envs/snakemake/bin:$PATH
+%runscript
+    exec "$@"
+
