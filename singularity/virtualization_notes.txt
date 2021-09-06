@@ -1,0 +1,2 @@
+1. Snakemake container with pre-installed tools - from https://github.com/snakemake/snakemake/blob/main/Dockerfile & https://github.com/omegatro/NMRL_Bact_Assembly_Inhouse/blob/main/environment.yaml
+2. Snakefile to run the pipeline.

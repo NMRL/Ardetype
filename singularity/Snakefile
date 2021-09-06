@@ -83,7 +83,7 @@ rule assembly_qc:
 #     benchmark:
 #         temp('benchmarks/{sample_id}.mlst.benchmark.txt')
 #     shell:
-#         'mlst --csv {input} >> {output.mlst_output}'
+#         'mlst --csv {input.scaffolds} >> {output.mlst_output}'
 
 rule combine_benchmark:
     input:

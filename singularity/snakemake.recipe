@@ -4,8 +4,8 @@ From: continuumio/miniconda3
 %files
 snakemake.yml
 %post
-    
-    conda install file
+    conda install -y -c conda-forge mamba
+    mamba env create -f snakemake.yml
 %environment
     export PATH=/home/jevgenijs/miniconda3/envs/snakemake/bin:$PATH
 %runscript
