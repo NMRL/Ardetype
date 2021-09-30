@@ -44,7 +44,7 @@ rule contig_id:
 
 rule scaffold_assembly:
     input:
-        reference = 'reference/GCF_900187225.1_51881_G01_genomic.fa',
+        reference = config['reference'],
         contigs = '{sample_id}_contigs/{sample_id}_contigs.fasta'
     output:
         '{sample_id}_scaffolds/ragtag.scaffold.fasta'

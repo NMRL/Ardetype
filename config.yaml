@@ -1,6 +1,14 @@
 samples:
-    2104093601_S47_L001: 2104093601_S47_L001
-    FDA1163421-S002-001_S1_L001: FDA1163421-S002-001_S1_L001
+    7_S7_L001: 7_S7_L001
+    # 2104093601_S47_L001: 2104093601_S47_L001
+    #FDA1163421-S002-001_S1_L001: FDA1163421-S002-001_S1_L001
+
+reference:
+    # reference/L_monocytogenes_old_GCF_900187225.1_51881_G01_genomic.fa
+    reference/A_baumanii_GCF_008632635.1_ASM863263v1_genomic.fna
+    # reference/L_monocytogenes_GCF_000196035.1_ASM19603v1_genomic_(1).fna
+    # reference/N_meningitidis_GCF_008330805.1_ASM833080v1_genomic.fna
+    # reference/S_enterica_GCF_000006945.2_ASM694v2_genomic.fna
 
 shovill_params:
     depth: 100
