@@ -31,8 +31,8 @@ rule contig_assembly:
     benchmark:
         temp('benchmarks/{sample_id}.shovill.benchmark.txt')
     shell:
-        'shovill --depth {config[shovill_params][depth]} --kmers {config[shovill_params][k1]},{config[shovill_params][k2]},{config[shovill_params][k3]},{config[shovill_params][k4]},{config[shovill_params][k5]},{config[shovill_params][k6]} --ram {config[shovill_params][ram]} --minlen {config[shovill_params][minlen]} --force --outdir {wildcards.sample_id}_contigs --R1 {input.read_1} --R2 {input.read_2}'
-
+        # 'shovill --depth {config[shovill_params][depth]} --kmers {config[shovill_params][k1]},{config[shovill_params][k2]},{config[shovill_params][k3]},{config[shovill_params][k4]},{config[shovill_params][k5]},{config[shovill_params][k6]} --ram {config[shovill_params][ram]} --minlen {config[shovill_params][minlen]} --force --outdir {wildcards.sample_id}_contigs --R1 {input.read_1} --R2 {input.read_2}'
+        'shovill --depth {config[shovill_params][depth]} --ram {config[shovill_params][ram]} --minlen {config[shovill_params][minlen]} --force --outdir {wildcards.sample_id}_contigs --R1 {input.read_1} --R2 {input.read_2}'
 rule contig_id:
     input:
         'data/{sample_id}_fastp_R1_001.fastq.gz',
