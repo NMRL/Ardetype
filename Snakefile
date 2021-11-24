@@ -2,7 +2,7 @@ configfile: 'config.yaml'
 
 import os
 for id in config['samples']:
-    os.system(f'mkdir -p {config["home_dir"]}Bact_assembly_output/{id}_output Bact_assembly_output/{id}_output/benchmarks')
+    os.system(f'mkdir -p {config["home_dir"]}Bact_assembly_output/{id}_output {config["home_dir"]}Bact_assembly_output/{id}_output/benchmarks')
     os.system(f'cp -u {config["input_dir"]}{id}* data/')
 
 rule all:
