@@ -1,8 +1,8 @@
 input_dir:
-    ~/Desktop/NMRL_Bact_Assembly_Inhouse/data/
+    ~/fastq_files/bact_data_test/
 
 home_dir:
-    ~/Desktop/NMRL_Bact_Assembly_Inhouse/
+    ~/
 
 samples:
     # 1_S1_L001: 1_S1_L001
