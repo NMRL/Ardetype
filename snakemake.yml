@@ -363,4 +363,3 @@ dependencies:
   - pip:
     - semver==3.0.0.dev2
     - spython==0.1.15
-prefix: /home/jevgenijs/miniconda3/envs/snakemake

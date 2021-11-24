@@ -8,7 +8,7 @@ snakemake.yml
     mamba env create -f snakemake.yml
     apt-get install -y coreutils
 %environment
-    export PATH=/home/jevgenijs/miniconda3/envs/snakemake/bin:$PATH
+    export PATH=/opt/conda/envs/snakemake/bin:$PATH
 %runscript
     exec "$@"
 
