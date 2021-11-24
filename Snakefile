@@ -1,10 +1,23 @@
 configfile: 'config.yaml'
 
+import os
+os.system('mkdir -p Bact_assembly_output')
+for id in config['samples']:
+    os.system(f'mkdir -p {config["home_dir"]}Bact_assembly_output/{id}_output Bact_assembly_output/{id}_output/benchmarks')
+    os.system(f'cp -u {config["input_dir"]}{id}* data/')
+
 rule all:
     input: 
         #expand('{sample}_mlst_output.csv', sample=config['samples']),
         expand('{sample}.assembly_stats.txt', sample=config['samples']),
         expand('benchmarks/{sample}_combined_benchmark.csv', sample=config['samples'])
+    run:
+        for id in config['samples']:
+            os.system(f'mv {id}* {config["home_dir"]}Bact_assembly_output/{id}_output/')
+            os.system(f'mv data/{id}_fastp* {config["home_dir"]}Bact_assembly_output/{id}_output/')
+            os.system(f'mv benchmarks/{id}* {config["home_dir"]}Bact_assembly_output/{id}_output/benchmarks')
+            os.system(f'rm -r {id}*')
+            os.system(f'rm data/{id}*')
 
 rule quality_control:
     input:
@@ -31,8 +44,8 @@ rule contig_assembly:
     benchmark:
         temp('benchmarks/{sample_id}.shovill.benchmark.txt')
     shell:
-        # 'shovill --depth {config[shovill_params][depth]} --kmers {config[shovill_params][k1]},{config[shovill_params][k2]},{config[shovill_params][k3]},{config[shovill_params][k4]},{config[shovill_params][k5]},{config[shovill_params][k6]} --ram {config[shovill_params][ram]} --minlen {config[shovill_params][minlen]} --force --outdir {wildcards.sample_id}_contigs --R1 {input.read_1} --R2 {input.read_2}'
         'shovill --depth {config[shovill_params][depth]} --ram {config[shovill_params][ram]} --minlen {config[shovill_params][minlen]} --force --outdir {wildcards.sample_id}_contigs --R1 {input.read_1} --R2 {input.read_2}'
+
 rule contig_id:
     input:
         'data/{sample_id}_fastp_R1_001.fastq.gz',
