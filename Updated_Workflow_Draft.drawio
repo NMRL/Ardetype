@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-12-13T11:05:23.696Z" agent="5.0 (X11)" etag="CY4G2QM-XyVNLg4mkOB8" version="15.9.4" type="github">
+<mxfile host="app.diagrams.net" modified="2021-12-13T11:08:16.025Z" agent="5.0 (X11)" etag="MyJr4mHlYAejJJAxWuXJ" version="15.9.4" type="github">
   <diagram id="Fhmb-j94QfxsOFY8xWYQ" name="Page-1">
     <mxGraphModel dx="1422" dy="681" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
@@ -144,7 +144,7 @@
             <mxPoint x="560" y="890" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="q0POvncIThJ6YeY0gYpB-46" value="&lt;div&gt;Find similar sequence&lt;/div&gt;&lt;div&gt;(blast?)&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#99CCFF;" vertex="1" parent="1">
+        <mxCell id="q0POvncIThJ6YeY0gYpB-46" value="&lt;div&gt;Find similar sequence&lt;/div&gt;&lt;div&gt;(blastn/blastx?)&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#99CCFF;" vertex="1" parent="1">
           <mxGeometry x="500" y="380" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="q0POvncIThJ6YeY0gYpB-47" value="&lt;div&gt;Sequences to use in phylogenetic analysis&lt;/div&gt;&lt;div&gt;(fasta)&lt;/div&gt;&lt;div&gt;(8)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFF66;strokeColor=#000000;" vertex="1" parent="1">
