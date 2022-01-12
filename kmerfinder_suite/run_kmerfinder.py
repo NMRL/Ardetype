@@ -1,9 +1,13 @@
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning) #TO AVOID PANDAS CLUTTERING THE OUTPUT
+
 import os, subprocess, re, time, sys, argparse, json, pandas as pd
 from collections import deque
 from pathlib import Path
 
 full_path = Path(os.path.dirname(os.path.realpath(__file__))).parents[0] #KMERFINDER_SUITE DIR
 parser = argparse.ArgumentParser(description='A script infer bacterial species from raw pair-end reads (kmerfinder).') #ARGPARSER OBJECT TO PROVIDE COMMAND-LINE FUNCTIONALITY
+parser.add_argument('-t', '--top_hits', metavar='\b', help = 'Number of top kmerfinder hits to include in assembly report (default = 3).', default=3, required=False)
 req_arg_grp = parser.add_argument_group('required arguments') #TO DISPLAY ARGUMENT UNDER REQUIRED HEADER IN HELP MESSAGE
 req_arg_grp.add_argument('-n', '--num_files', metavar='\b', help = 'Number of samples to be processed in-parallel on different nodes of the cluster', default=None, required=True)
 
@@ -82,27 +86,21 @@ os.system('rm find_bact.*') #REMOVING JOB REPORTS
 
 #AGGREGATING RESULTS IN ONE TABLE
 output_df = pd.DataFrame()
-for id in read_dict.keys(): #ONLY FRASHLY PROCESSED SAMPLES
+for id in read_dict.keys(): #ONLY FRESHLY PROCESSED SAMPLES
     with open(file_dict[id]) as json_file:
         data = json.load(json_file) #OPEN KMERFINDER REPORT
     hits = data['kmerfinder']['results']['species_hits'] #GET HITS DATA
-    #INITIALIZE SEARCH VARIABLES TO FIND MOST CLOSE HIT
-    max_score_row = '' 
-    max_score = 0
-    max_score_hit = ''
-    for key in hits.keys(): #LINEAR TIME SEARCH FOR MOST CLOSE HIT AMONG ALL HITS FOR GIVEN SAMPLE BASED ON SCORE VALUE
-        if float(hits[key]['Score']) > max_score:
-            max_score = float(hits[key]['Score'])
-            max_score_row = hits[key]
-            max_score_hit = key
-    #ADDING REQUIRED INFORMATION TO ROW WITH MOST CLOSE HIT
-    max_score_row['sample_id'] = id #SAMPLE ID
-    max_score_row['accession'] = max_score_hit.split(" ",1)[0].split('.',1)[0] #TRUNCATED ACCESSION TO BE USED BY LOCAL DATABASE
-    for key in max_score_row.keys(): #CONVERTING DATA TO PANDAS-ACCEPTED FORMAT
-        max_score_row[key] = [max_score_row[key]]
-
-    #UPDATING AGGRAGATION DATAFRAME
-    df = pd.DataFrame.from_dict(max_score_row)
-    output_df = output_df.append(df)
+    # CONVERT TO DATAFRAME
+    sample_df = pd.DataFrame()
+    for key in hits.keys(): #COMBINE HITS INTO DATAFRAME & ADD ID + ACCESSION
+        row = hits[key]
+        row['sample_id'] = id
+        row['accession'] = key.split(" ",1)[0].split('.',1)[0]
+        for key in row.keys(): #CONVERTING DATA TO PANDAS-ACCEPTED FORMAT
+            row[key] = [row[key]]
+        df = pd.DataFrame.from_dict(row)
+        sample_df = sample_df.append(df)
+    sample_df['Score'] = sample_df['Score'].astype(int)
+    output_df = output_df.append(sample_df.sort_values('Score', ascending=False).head(int(args.top_hits))) #INCLUDE USER-DEFINED NUMBER OF HITS IN THE REPORT (OR ALL HITS, IF LESS THAN SPECIFIED IS AVAILABLE)
 
 output_df.to_csv(f"/home/groups/nmrl/bact_analysis/kmerfinder_suite/output/{report_time}_assambled_kmerfinder_report.csv",header=True, index=False)
