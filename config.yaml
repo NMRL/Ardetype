@@ -1,8 +1,8 @@
 input_dir:
-    ~/Desktop/NMRL_Bact_Assembly_Inhouse/data/
+    ~/fastq_files/bact_data_test/
 
 home_dir:
-    ~/Desktop/NMRL_Bact_Assembly_Inhouse/
+    ~/
 
 samples:
     # 1_S1_L001: 1_S1_L001
@@ -19,7 +19,7 @@ reference:
     # reference/L_monocytogenes_old_GCF_900187225.1_51881_G01_genomic.fa
     # reference/A_baumanii_GCF_008632635.1_ASM863263v1_genomic.fna
     # reference/L_monocytogenes_GCF_000196035.1_ASM19603v1_genomic.fna
-    reference/NZ_CP049942.1_Proteus_mirabilis_strain_XH1569.fasta
+     reference/NZ_CP049942.1_Proteus_mirabilis_strain_XH1569.fasta
     # reference/N_meningitidis_GCF_008330805.1_ASM833080v1_genomic.fna
     # reference/S_enterica_GCF_000006945.2_ASM694v2_genomic.fna
 

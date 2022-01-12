@@ -1,9 +1,9 @@
 configfile: 'config.yaml'
 
 import os
-os.system('mkdir -p Bact_assembly_output')
+os.system('module load singularity')
 for id in config['samples']:
-    os.system(f'mkdir -p {config["home_dir"]}Bact_assembly_output/{id}_output Bact_assembly_output/{id}_output/benchmarks')
+    os.system(f'mkdir -p {config["home_dir"]}Bact_assembly_output/{id}_output {config["home_dir"]}Bact_assembly_output/{id}_output/benchmarks')
     os.system(f'cp -u {config["input_dir"]}{id}* data/')
 
 rule all:
@@ -64,7 +64,7 @@ rule scaffold_assembly:
     benchmark:
         temp('benchmarks/{sample_id}.ragtag.benchmark.txt')
     shell:
-        'ragtag.py scaffold -o {wildcards.sample_id}_scaffolds -C {input.reference} {input.contigs}'
+        "ragtag.py scaffold -o {wildcards.sample_id}_scaffolds -C {input.reference} {input.contigs}"
 
 rule scaffold_id:
     input:

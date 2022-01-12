@@ -1,0 +1,29 @@
+1. Kmerfinder can be used via container: https://hub.docker.com/r/genomicepidemiology/kmerfinder
+2. Example use case:
+qsub -I -q fast -l -l nodes=1:ppn=12,pmem=2g
+module load singularity
+singularity run kmerfinder_3.0.2.sif -db ./kmerfinder_db/bacteria/bacteria -i file_1.fasta/fastq.gz file2.fasta/fastq.gz -o . > output_file_name
+
+3. json and spa output file naming control is not available directly from kmerfinder, use bash renaming when processing is complete or use standard output redirection to save the results for each sample.
+
+4. Bash script to process single sample
+	1. Use raw fastq files to identify reference sequence using kmerfinder -> Taxonomy output
+		1.1. Use EntrezDirect do download the sequence from ncbi - https://anaconda.org/bioconda/entrez-direct
+	2. Use fastq_screen to filter reads that map to human reference genome only 
+	3. Use fastp to trim remaining reads based on quality & length
+	4. Use bwa to align post-fastp reads to the selected reference - extract coverage with samtools
+	5. Trim primers from the alignment file using ivar
+	6. Use ConsensusFixer to generate consensus sequence from primer-trimmed alignment file
+	7. Perform MLST based on obtained consensus sequence - https://github.com/tseemann/mlst
+	8. Use RGI (https://card.mcmaster.ca/analyze/rgi) on consensus sequence to get resistome profile based on CARD
+	9. Phylogenetic analysis (speculation):
+		9.1. https://github.com/tseemann/barrnap - extract 16S gene sequence coordinates from consensus sequence
+		9.2. https://www.biostars.org/p/321562/ - convert to bed file
+		9.3. extract 16S genes from consensus sequence (source: https://genomics.sschmeier.com/ngs-orthology/index.html)
+		9.4. run blast according to https://genomics.sschmeier.com/ngs-orthology/index.html to extract ortologous genes
+		9.5. perform multiple sequence alignment using muscle (https://drive5.com/muscle5/manual/about_muscle5.html)
+		9.6. infer best substitution model to use with maximum-likelihood method (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4658646/) using MEGAX (https://www.megasoftware.net/)
+		9.7. Construct maximum-likelihood tree using MEGAX(https://www.megasoftware.net/) or clustalW (https://anaconda.org/bioconda/clustalw)
+		9.8. Visualize the tree.
+	10. Combine results into per-sample report - https://multiqc.info/docs/.
+
