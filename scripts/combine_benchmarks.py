@@ -23,9 +23,9 @@ for file in os.listdir(folder_path):
         fastp_df = pd.read_csv(f'{folder_path}/{file}', delimiter='\t')
         output_df_exist.append( fastp_df)
     elif sample_id in file and 'ragtag' in file:
-        output_df_indexes.append('ragtag_df')
+        output_df_indexes.append(f'ragtag_df_{file.split("-",1)[1]}')
         ragtag_df = pd.read_csv(f'{folder_path}/{file}', delimiter='\t')
-        output_df_exist.append( ragtag_df)
+        output_df_exist.append(ragtag_df)
     elif sample_id in file and 'shovill' in file:
         output_df_indexes.append('shovill_df')
         shovill_df = pd.read_csv(f'{folder_path}/{file}', delimiter='\t')
@@ -35,6 +35,8 @@ for file in os.listdir(folder_path):
         mlst_df = pd.read_csv(f'{folder_path}/{file}', delimiter='\t')
         output_df_exist.append( mlst_df)
 total_df = pd.concat(output_df_exist)
+
+
 total_df.columns = ['Runtime_in_seconds', 'Runtime_in_h:m:s', 'RAM_size_MB', 'Virtual_memory_size_MB', 'Unique_Allocated_Memory_MB', 'Shared_Allocated_Memory_MB(Linux)', 'Number_of_MB_read', 'Number_of_MB_written', 'CPU_usage(%)_over time/Runtime_in_seconds', 'CPU_time(seconds)_summed_for_user&system']
 sum_dict = {
     'Runtime_in_seconds': total_df['Runtime_in_seconds'].sum(), 
