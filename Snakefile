@@ -1,5 +1,5 @@
 configfile: 'config.yaml'
-import os, pandas as pd
+import os, pandas as pd, shlex, subprocess
 
 #GODLIKE EXPLAINATION HOW SNAKEMAKE WORKS
 #https://vincebuffalo.com/blog/2020/03/04/understanding-snakemake.html
@@ -79,7 +79,8 @@ rule contig_correction:
     shell:
         "ragtag.py correct {input.reference} {input.contigs} -o {wildcards.sample_id_pattern}-{wildcards.reference_sequence_pattern}-scaffolds"
 
-#GENERATING SCAFFOLDS USING EXISTING GENOME AS REFERENCE
+#GENERATING SCAFFOLDS USING EXISTING GENOME AS REFERENCE 
+#IF SCAFFOLDING FAILS, WHICH IS THE CASE FOR POOR REFERENCE MATCH - GENERATE EMPTY PLACEHOLDER FILE SO THAT PIPELINE IS NOT BROKEN
 rule scaffold_assembly:
     input:
         reference = 'reference/{reference_sequence_pattern}.fasta',
@@ -88,8 +89,9 @@ rule scaffold_assembly:
         '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/ragtag.scaffold.fasta'
     benchmark:
         temp('benchmarks/{sample_id_pattern}-{reference_sequence_pattern}.ragtag.benchmark.txt')
-    shell:
-        "ragtag.py scaffold -o {wildcards.sample_id_pattern}-{wildcards.reference_sequence_pattern}-scaffolds -C {input.reference} {input.contigs}"
+    run:
+        shell("ragtag.py scaffold -o {wildcards.sample_id_pattern}-{wildcards.reference_sequence_pattern}-scaffolds -C {input.reference} {input.contigs}")
+        shell('if [[ -f {sample_id_pattern}-{reference_sequence_pattern}-scaffolds/ragtag.scaffold.fasta ]] ; then touch {output} ; else echo "Scaffolding succesful!" ; fi ')
 
 #RENAMING SCAFFOLDS
 rule scaffold_id:
