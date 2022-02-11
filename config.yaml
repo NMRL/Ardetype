@@ -1,6 +1,5 @@
 home_dir:
     ~/bact_output/
-
 shovill_params:
     depth: 95 #100
     # k1: 31 #31

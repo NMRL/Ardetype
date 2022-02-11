@@ -7,6 +7,7 @@
 #PBS -j oe
 #PBS -A rakus
 
-module load singularity
+eval "$(conda shell.bash hook)" 
+conda activate /mnt/home/jevgen01/.conda/envs/mamba_env/envs/snakemake
 cd ~/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/
-singularity run snakemake.sif snakemake --keep-going --cores 12
+snakemake --keep-going --use-envmodules --cores 12

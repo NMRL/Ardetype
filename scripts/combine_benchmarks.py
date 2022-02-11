@@ -53,5 +53,7 @@ sum_dict = {
 total_df = total_df.append([sum_dict], True)
 output_df_indexes = list(set(output_df_indexes))
 output_df_indexes.append('sum')
+total_df.to_csv(f'{folder_path}/{sample_id}_combined_benchmark.csv', header=True, index=True)
+sys.exit(1)
 total_df.index = output_df_indexes
 total_df.to_csv(f'{folder_path}/{sample_id}_combined_benchmark.csv', header=True, index=True)

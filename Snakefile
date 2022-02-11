@@ -4,16 +4,25 @@ import os, pandas as pd, shlex, subprocess
 #GODLIKE EXPLAINATION HOW SNAKEMAKE WORKS
 #https://vincebuffalo.com/blog/2020/03/04/understanding-snakemake.html
 
+
+#CONFIGURATIONS
+# os.system('module load singularity')
+
 #READ KMERFINDER INPUT
 kmerfinder_output = pd.read_csv('01_13_2022_assambled_kmerfinder_report.csv')
 samples = list(kmerfinder_output['sample_id'])
 reference_list = list(kmerfinder_output['accession'])
+snakemake_sif = 'snakemake.sif'
 
 #GENERATE TARGET LIST
 target_list, scaffold = [], '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta'
 for sample_id_pattern, reference_sequence_pattern in zip(samples, reference_list):
-    benchmark = f'{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta'
-    target_list+=[benchmark]
+    prokka = f'{sample_id_pattern}-prokka'
+    # rgi = f'{sample_id_pattern}.rgi'
+    mlst = f'{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}_mlst_output.csv'
+    target_list+=[mlst]
+    target_list+=[prokka]
+    # target_list+=[rgi]
 
 #GENERATING FOLDERS FOR EACH SAMPLE-REF COMBINATION SPECIFIED IN THE KMERFINDER OUTPUT
 for i in range(len(samples)):
@@ -33,9 +42,12 @@ rule all:
 #READ LENGTH & QUALITY TRIMMING
 rule quality_control:
     input:
+        sif_file = snakemake_sif,
         read_1 = 'data/{sample_id_pattern}_R1_001.fastq.gz',
         read_2 = 'data/{sample_id_pattern}_R2_001.fastq.gz'
     threads: 4
+    envmodules:
+        'singularity'
     benchmark:
         temp('benchmarks/{sample_id_pattern}.fastp.benchmark.txt')
     output: 
@@ -44,26 +56,31 @@ rule quality_control:
         read_1_tr = 'data/{sample_id_pattern}_fastp_R1_001.fastq.gz',
         read_2_tr = 'data/{sample_id_pattern}_fastp_R2_001.fastq.gz'
     shell:
-        'fastp -j {wildcards.sample_id_pattern}.fastp.json -h {wildcards.sample_id_pattern}.fastp.html --in1 {input.read_1} --in2 {input.read_2} --out1 {output.read_1_tr} --out2 {output.read_2_tr} --thread {threads}'
+        'singularity run {input.sif_file} fastp -j {wildcards.sample_id_pattern}.fastp.json -h {wildcards.sample_id_pattern}.fastp.html --in1 {input.read_1} --in2 {input.read_2} --out1 {output.read_1_tr} --out2 {output.read_2_tr} --thread {threads}'
 
 #GENERATING CONTIGS FROM READS
 rule contig_assembly:
     input:
+        sif_file = snakemake_sif,
         read_1 = 'data/{sample_id_pattern}_R1_001.fastq.gz',
         read_2 = 'data/{sample_id_pattern}_R2_001.fastq.gz'
     output:
         temp('{sample_id_pattern}_contigs/contigs.fa')
+    envmodules:
+        'singularity'
     threads: 4
     benchmark:
         temp('benchmarks/{sample_id_pattern}.shovill.benchmark.txt')
     shell:
-        'shovill --depth {config[shovill_params][depth]} --ram {config[shovill_params][ram]} --minlen {config[shovill_params][minlen]} --force --outdir {wildcards.sample_id_pattern}_contigs --R1 {input.read_1} --R2 {input.read_2}'
+        'singularity run {input.sif_file} shovill --depth {config[shovill_params][depth]} --ram {config[shovill_params][ram]} --minlen {config[shovill_params][minlen]} --force --outdir {wildcards.sample_id_pattern}_contigs --R1 {input.read_1} --R2 {input.read_2}'
 
 #RENAMING CONTINGS
 rule contig_id:
     input:
         'data/{sample_id_pattern}_fastp_R1_001.fastq.gz',
         cnt = '{sample_id_pattern}_contigs/contigs.fa'
+    envmodules:
+        'singularity'
     output:
         '{sample_id_pattern}_contigs/{sample_id_pattern}_contigs.fasta'
     shell:
@@ -72,31 +89,41 @@ rule contig_id:
 #APPLYING CONTIG CORRECTIONS
 rule contig_correction:
     input:
+        sif_file = snakemake_sif,
         reference = 'reference/{reference_sequence_pattern}.fasta',
         contigs = '{sample_id_pattern}_contigs/{sample_id_pattern}_contigs.fasta'
+    envmodules:
+        'singularity'
     output:
         '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/ragtag.correct.fasta'
     shell:
-        "ragtag.py correct {input.reference} {input.contigs} -o {wildcards.sample_id_pattern}-{wildcards.reference_sequence_pattern}-scaffolds"
+        "singularity run {input.sif_file} ragtag.py correct {input.reference} {input.contigs} -o {wildcards.sample_id_pattern}-{wildcards.reference_sequence_pattern}-scaffolds"
 
 #GENERATING SCAFFOLDS USING EXISTING GENOME AS REFERENCE 
 #IF SCAFFOLDING FAILS, WHICH IS THE CASE FOR POOR REFERENCE MATCH - GENERATE EMPTY PLACEHOLDER FILE SO THAT PIPELINE IS NOT BROKEN
 rule scaffold_assembly:
     input:
+        sif_file = snakemake_sif,
         reference = 'reference/{reference_sequence_pattern}.fasta',
         contigs = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/ragtag.correct.fasta'
+    envmodules:
+        'singularity'
     output:
         '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/ragtag.scaffold.fasta'
     benchmark:
         temp('benchmarks/{sample_id_pattern}-{reference_sequence_pattern}.ragtag.benchmark.txt')
-    run:
-        shell("ragtag.py scaffold -o {wildcards.sample_id_pattern}-{wildcards.reference_sequence_pattern}-scaffolds -C {input.reference} {input.contigs}")
-        shell('if [[ -f {sample_id_pattern}-{reference_sequence_pattern}-scaffolds/ragtag.scaffold.fasta ]] ; then touch {output} ; else echo "Scaffolding succesful!" ; fi ')
+    shell:
+        """
+        singularity run {input.sif_file} ragtag.py scaffold -o {wildcards.sample_id_pattern}-{wildcards.reference_sequence_pattern}-scaffolds -C {input.reference} {input.contigs}
+        if [[ -f {sample_id_pattern}-{reference_sequence_pattern}-scaffolds/ragtag.scaffold.fasta ]] ; then echo 'Scaffolding succesful!' ; else touch {output} ; fi 
+        """
 
 #RENAMING SCAFFOLDS
 rule scaffold_id:
     input:
         scf = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/ragtag.scaffold.fasta'
+    envmodules:
+        'singularity'
     output:
         '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta'
     shell:
@@ -105,28 +132,86 @@ rule scaffold_id:
 #GENERATING QUALITY CONTROL METRICS FOR SCAFFOLDS
 rule assembly_qc:
     input:
-        # 'data/{sample_id}_fastp_R1_001.fastq.gz',
+        sif_file = snakemake_sif,
         scaffolds = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta'
     output:
         stats = '{sample_id_pattern}-{reference_sequence_pattern}.assembly_stats.txt'
+    envmodules:
+        'singularity'
     benchmark:
         temp('benchmarks/{sample_id_pattern}-{reference_sequence_pattern}.bbmap_qc.benchmark.txt')
     shell:
-        'statswrapper.sh in={input.scaffolds} > {output.stats}'
+        'singularity run {input.sif_file} statswrapper.sh in={input.scaffolds} > {output.stats}'
 
-# rule mlst:
+#PERFORM SEROTYPING
+rule mlst: 
+    input: 
+        mlst_quast_path = 'mlst_quast.sif',
+        scaffolds = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta'
+    output:
+        mlst_output = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}_mlst_output.csv',
+    threads: 4
+    envmodules:
+        'singularity'
+    benchmark:
+        temp('benchmarks/{sample_id_pattern}-{reference_sequence_pattern}.mlst.benchmark.txt')
+    shell:
+        """
+        singularity run {input.mlst_quast_path} mlst --csv {input.scaffolds} >> {output.mlst_output}
+        """
+
+# #PERFORM HOST FILTERING
+# rule kraken2: 
 #     input: 
-#         'data/{sample_id}_fastp_R1_001.fastq.gz',
-#         scaffolds = '{sample_id}-scaffolds/{sample_id}_ragtag.scaffold.fasta'
+#         scaffolds = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta'
 #     output:
-#         mlst_output = '{sample_id}_mlst_output.csv',
+#         mlst_output = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}_mlst_output.csv',
 #     threads: 4
 #     benchmark:
-#         temp('benchmarks/{sample_id}.mlst.benchmark.txt')
+#         temp('benchmarks/{sample_id_pattern}-{reference_sequence_pattern}.mlst.benchmark.txt')
 #     shell:
-#         'mlst --csv {input} >> {output.mlst_output}'
+#         """
+#         singularity run {input.mlst_quast_path} mlst --csv {input.scaffolds} >> {output.mlst_output}
+#         """
 
-   
+
+#PERFORM GENE ANNOTATION
+rule prokka: 
+    input: 
+        rgi_prokka_path = 'rgi_prokka.sif',
+        contigs = '{sample_id_pattern}_contigs/{sample_id_pattern}_contigs.fasta'
+    output:
+        prokka_outdir = directory('{sample_id_pattern}-prokka')
+    threads: 4
+    envmodules:
+        'singularity'
+    benchmark:
+        temp('benchmarks/{sample_id_pattern}.prokka.benchmark.txt')
+    shell:
+        """singularity run {input.rgi_prokka_path} prokka --outdir {output.prokka_outdir} {input.contigs}"""
+        
 
 
-# # on a cluster - https://carpentries-incubator.github.io/workflows-snakemake/09-cluster/index.html
+#PERFORM RESISTANCE GENE EXTRACTION - SWITCH TO OTHER IMAGE
+rule res_gen_id: 
+    input: 
+        rgi_prokka_path = 'rgi_prokka.sif',
+        contigs = '{sample_id_pattern}_contigs/{sample_id_pattern}_contigs.fasta'
+    output:
+        rgi_output = '{sample_id_pattern}.rgi'
+    threads: 4
+    envmodules:
+        'singularity'
+    benchmark:
+        temp('benchmarks/{sample_id_pattern}.rig.benchmark.txt')
+    shell:
+        """
+        singularity run {input.rgi_prokka_path} rgi main --input_sequence {input.contigs} \
+            --output_file {output.rgi_output} --input_type contig --clean
+        """
+# on a cluster - https://carpentries-incubator.github.io/workflows-snakemake/09-cluster/index.html
+#Add KRAKEN2 HOST FILTERING (USE GH38 human assembly)
+#Add prokka to extract genes
+#Add quast to automate qc (for each reference + metaquast based on all references at once (using contigs))
+#Fix benchmarking
+#Add mlst assembly script
