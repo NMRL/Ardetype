@@ -18,11 +18,13 @@ snakemake_sif = 'snakemake.sif'
 target_list, scaffold = [], '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta'
 for sample_id_pattern, reference_sequence_pattern in zip(samples, reference_list):
     prokka = f'{sample_id_pattern}-prokka'
-    # rgi = f'{sample_id_pattern}.rgi'
+    rgi_txt = f'{sample_id_pattern}.rgi.txt'
+    rgi_json = f'{sample_id_pattern}.rgi.json'
     mlst = f'{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}_mlst_output.csv'
     target_list+=[mlst]
     target_list+=[prokka]
-    # target_list+=[rgi]
+    target_list+=[rgi_txt]
+    target_list+=[rgi_json]
 
 #GENERATING FOLDERS FOR EACH SAMPLE-REF COMBINATION SPECIFIED IN THE KMERFINDER OUTPUT
 for i in range(len(samples)):
@@ -192,23 +194,23 @@ rule prokka:
         
 
 
-#PERFORM RESISTANCE GENE EXTRACTION - SWITCH TO OTHER IMAGE
+#PERFORM RESISTANCE GENE EXTRACTION
 rule res_gen_id: 
     input: 
-        rgi_prokka_path = 'rgi_prokka.sif',
         contigs = '{sample_id_pattern}_contigs/{sample_id_pattern}_contigs.fasta'
     output:
-        rgi_output = '{sample_id_pattern}.rgi'
+        rgi_txt_output = '{sample_id_pattern}.rgi.txt',
+        rgi_json_output = '{sample_id_pattern}.rgi.json'
     threads: 4
-    envmodules:
-        'singularity'
+    conda:
+        'rgi_env.yaml'
     benchmark:
         temp('benchmarks/{sample_id_pattern}.rig.benchmark.txt')
     shell:
         """
-        singularity run {input.rgi_prokka_path} rgi main --input_sequence {input.contigs} \
-            --output_file {output.rgi_output} --input_type contig --clean
+        rgi main --input_sequence {input.contigs} --output_file {wildcards.sample_id_pattern}.rgi --input_type contig --clean
         """
+# if [[ -f {sample_id_pattern}.rgi ]] ; then echo 'Gene search succesful!' ; else touch {output.rgi_output} ; fi 
 # on a cluster - https://carpentries-incubator.github.io/workflows-snakemake/09-cluster/index.html
 #Add KRAKEN2 HOST FILTERING (USE GH38 human assembly)
 #Add prokka to extract genes
