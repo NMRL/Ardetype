@@ -23,6 +23,7 @@ for sample_id_pattern, reference_sequence_pattern in zip(samples, reference_list
     rgi_json = f'{sample_id_pattern}.rgi.json'
     mlst = f'{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}_mlst_output.csv'
     kraken2 = f'{sample_id_pattern}_contigs/{sample_id_pattern}_kraken2_report.txt'
+    quast = f'{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/icarus.html'
 
     #TARGET FILES BEING COMBINED IN A LIST
     target_list += [
@@ -30,7 +31,8 @@ for sample_id_pattern, reference_sequence_pattern in zip(samples, reference_list
         prokka,
         rgi_txt,
         rgi_json,
-        kraken2
+        kraken2,
+        quast
         ]
 
 
@@ -64,7 +66,7 @@ rule quality_control:
         temp('benchmarks/{sample_id_pattern}.fastp.benchmark.txt')
     output: 
         temp('{sample_id_pattern}.fastp.json'),
-        '{sample_id_pattern}.fastp.html',
+        temp('{sample_id_pattern}.fastp.html'),
         read_1_tr = 'data/{sample_id_pattern}_fastp_R1_001.fastq.gz',
         read_2_tr = 'data/{sample_id_pattern}_fastp_R2_001.fastq.gz'
     shell:
@@ -89,7 +91,7 @@ rule filter_host:
         "kraken2.yaml"
     shell:
         """ 
-        kraken2 --threads 48 --db /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/ --classified-out data/{wildcards.sample_id_pattern}_host#.fastq --unclassified-out data/{wildcards.sample_id_pattern}_sample#.fastq --report {output.report} --gzip-compressed --paired {input.read_1} {input.read_2}
+        kraken2 --threads 48 --db /mnt/home/groups/nmrl/db/db-kraken2/human_reference/ --classified-out data/{wildcards.sample_id_pattern}_host#.fastq --unclassified-out data/{wildcards.sample_id_pattern}_sample#.fastq --report {output.report} --gzip-compressed --paired {input.read_1} {input.read_2}
         pigz data/{wildcards.sample_id_pattern}_sample_1.fastq
         pigz data/{wildcards.sample_id_pattern}_sample_2.fastq
         """
@@ -98,8 +100,8 @@ rule filter_host:
 rule contig_assembly:
     input:
         sif_file = snakemake_sif,
-        read_1 = 'data/{sample_id_pattern}_R1_001.fastq.gz',
-        read_2 = 'data/{sample_id_pattern}_R2_001.fastq.gz'
+        read_1 = 'data/{sample_id_pattern}_sample_1.fastq.gz',
+        read_2 = 'data/{sample_id_pattern}_sample_2.fastq.gz'
     output:
         temp('{sample_id_pattern}_contigs/contigs.fa')
     envmodules:
@@ -152,23 +154,30 @@ rule scaffold_assembly:
     benchmark:
         temp('benchmarks/{sample_id_pattern}-{reference_sequence_pattern}.ragtag.benchmark.txt')
     shell:
-        """
-        singularity run {input.sif_file} ragtag.py scaffold -o {wildcards.sample_id_pattern}-{wildcards.reference_sequence_pattern}-scaffolds -C {input.reference} {input.contigs}
-        if [[ -f {sample_id_pattern}-{reference_sequence_pattern}-scaffolds/ragtag.scaffold.fasta ]] ; then echo 'Scaffolding succesful!' ; else touch {output} ; fi 
-        """
-
+        """ singularity run {input.sif_file} ragtag.py scaffold -o {wildcards.sample_id_pattern}-{wildcards.reference_sequence_pattern}-scaffolds -C {input.reference} {input.contigs}
+        if [[ -f {sample_id_pattern}-{reference_sequence_pattern}-scaffolds/ragtag.scaffold.fasta ]] ; then echo 'Scaffolding succesful!' ; else touch {output} ; fi """
 
 #RENAMING SCAFFOLDS
 rule scaffold_id:
     input:
         scf = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/ragtag.scaffold.fasta'
-    envmodules:
-        'singularity'
     output:
         '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta'
     shell:
         'cp {input.scf} {output}'
 
+#RUN QUAST
+rule quast_scaffolds:
+    input:
+        sif_file = 'mlst_quast.sif',
+        reference = 'reference/{reference_sequence_pattern}.fasta',
+        scaffold = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta'
+    envmodules:
+        'singularity'
+    output:
+        '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/icarus.html'
+    shell:
+        'singularity run {input.sif_file} quast -r {input.reference} -o {wildcards.sample_id_pattern}-{wildcards.reference_sequence_pattern}-scaffolds {input.scaffold}'
 
 #GENERATING QUALITY CONTROL METRICS FOR SCAFFOLDS
 rule assembly_qc:
@@ -183,6 +192,7 @@ rule assembly_qc:
         temp('benchmarks/{sample_id_pattern}-{reference_sequence_pattern}.bbmap_qc.benchmark.txt')
     shell:
         'singularity run {input.sif_file} statswrapper.sh in={input.scaffolds} > {output.stats}'
+
 
 
 #PERFORM SEROTYPING
@@ -224,17 +234,16 @@ rule res_gen_id:
     input: 
         contigs = '{sample_id_pattern}_contigs/{sample_id_pattern}_contigs.fasta'
     output:
-        rgi_txt_output = '{sample_id_pattern}.rgi.txt',
-        rgi_json_output = '{sample_id_pattern}.rgi.json'
+        temp('{sample_id_pattern}.rgi.txt'),
+        temp('{sample_id_pattern}.rgi.json')
     threads: 4
     conda:
         'rgi_env.yaml'
     benchmark:
         temp('benchmarks/{sample_id_pattern}.rig.benchmark.txt')
     shell:
-        """
-        rgi main --input_sequence {input.contigs} --output_file {wildcards.sample_id_pattern}.rgi --input_type contig --clean
-        """
+        """rgi main --input_sequence {input.contigs} --output_file {wildcards.sample_id_pattern}.rgi --input_type contig --clean"""
+
 
 # on a cluster - https://carpentries-incubator.github.io/workflows-snakemake/09-cluster/index.html
 # Add KRAKEN2 HOST FILTERING (USE GH38 human assembly)
