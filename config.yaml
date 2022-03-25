@@ -1,5 +1,9 @@
 home_dir:
     ~/bact_output/
+target_dir:
+    /home/groups/nmrl/bact_analysis/bact_input/NMRL_2022_01_10_QiagenFXDNA/
+kfinder_threads: 8
+kfinder_db: bacteria
 shovill_params:
     depth: 95 #100
     # k1: 31 #31
