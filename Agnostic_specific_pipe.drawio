@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2022-04-19T10:11:46.329Z" agent="5.0 (X11)" etag="FIBgqtKcMi2kBEb5PjoO" version="17.4.2" type="github">
+<mxfile host="app.diagrams.net" modified="2022-04-19T10:12:30.139Z" agent="5.0 (X11)" etag="b0GCwvIY7bEWIFcohnM4" version="17.4.2" type="github">
   <diagram id="GYhOJoof6raGVxeCeefJ" name="Page-1">
     <mxGraphModel dx="1102" dy="575" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
@@ -46,13 +46,13 @@
         <mxCell id="6KGyysBaEeLL0fUPtLAd-15" value="&amp;nbsp;Specific" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
           <mxGeometry x="470" y="70" width="310" height="480" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-16" value="&lt;div&gt;SeqSero&lt;br&gt;(Salmonella)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-16" value="&lt;div&gt;SeqSero&lt;br&gt;(Salmonella)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
           <mxGeometry x="520" y="80" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-17" value="MTBSeq" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="520" y="240" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-19" value="&lt;div&gt;SISTR&lt;/div&gt;(Salmonella)" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-19" value="&lt;div&gt;SISTR&lt;/div&gt;(Salmonella)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
           <mxGeometry x="520" y="160" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-20" value="&lt;div&gt;AgrVATE/spaTyper/Staphopia-sccmec&lt;/div&gt;&lt;div&gt;(S.aureus)&lt;br&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
@@ -146,7 +146,7 @@
           <mxGeometry x="110" y="550" width="360" height="150" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-65" value="Species-based results" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="570" y="560" width="120" height="60" as="geometry" />
+          <mxGeometry x="570" y="590" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-66" value="&lt;div&gt;AQUAMIS&lt;br&gt;&lt;/div&gt;(2,3,3.1,4, 4.1)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="210" y="560" width="120" height="60" as="geometry" />
