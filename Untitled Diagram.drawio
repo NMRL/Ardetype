@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2022-04-19T09:26:03.957Z" agent="5.0 (X11)" etag="00I_UEJh2eeJVbWXFFMi" version="17.4.2" type="github">
+<mxfile host="app.diagrams.net" modified="2022-04-19T09:42:07.905Z" agent="5.0 (X11)" etag="V_cCW-V0RQ8mKeU_4VCm" version="17.4.2" type="github">
   <diagram id="GYhOJoof6raGVxeCeefJ" name="Page-1">
-    <mxGraphModel dx="418" dy="575" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1218" dy="575" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -190,11 +190,14 @@
         <mxCell id="6KGyysBaEeLL0fUPtLAd-91" value="&lt;div&gt;MOB-Suite&lt;br&gt;&lt;/div&gt;&lt;div&gt;1. Resistance gene&lt;br&gt;&lt;/div&gt;&lt;div&gt;2. Allele&lt;br&gt;&lt;/div&gt;&lt;div&gt;3. Drug class&lt;/div&gt;&lt;div&gt;4. Resistance&lt;/div&gt;&lt;div&gt;5. Percent identity&lt;/div&gt;&lt;div&gt;6. Gene location (contig id)&lt;/div&gt;&lt;div&gt;7. Location (Chromosome/Plasmid)&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="530" y="640" width="150" height="150" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-92" value="&lt;div&gt;hAMRonization&lt;/div&gt;&lt;div&gt;1. &lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-92" value="&lt;div&gt;hAMRonization:&lt;/div&gt;&lt;div&gt;html file, showing # of hits for each amr tool + allowing to compare individual hist between tools and viewing metadata (see link for details)&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="410" y="640" width="120" height="150" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-93" value="&lt;div&gt;V&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
           <mxGeometry x="110" y="630" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-95" value="&lt;div&gt;Species specific information&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="640" width="70" height="150" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
