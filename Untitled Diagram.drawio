@@ -1,1 +1,79 @@
-<mxfile host="app.diagrams.net" modified="2022-04-19T07:40:08.986Z" agent="5.0 (X11)" version="17.4.2" etag="-AABxHS8DaIdypFxJKqS" type="github"><diagram id="GYhOJoof6raGVxeCeefJ">UzV2zq1wL0osyPDNT0nNUTV2VTV2LsrPL4GwciucU3NyVI0MMlNUjV1UjYwMgFjVyA2HrCFY1qAgsSg1rwSLBiADYTaQg2Y1AA==</diagram></mxfile>
+<mxfile host="app.diagrams.net" modified="2022-04-19T08:03:54.944Z" agent="5.0 (X11)" etag="JIZX0vXImGRNg1V8D6vc" version="17.4.2" type="github">
+  <diagram id="GYhOJoof6raGVxeCeefJ" name="Page-1">
+    <mxGraphModel dx="658" dy="575" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-13" value="&lt;div align=&quot;left&quot;&gt;&amp;nbsp;Agnostic&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="280" y="70" width="190" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="6KGyysBaEeLL0fUPtLAd-2" target="6KGyysBaEeLL0fUPtLAd-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-2" value="Demultiplexing" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="80" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="6KGyysBaEeLL0fUPtLAd-3" target="6KGyysBaEeLL0fUPtLAd-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-3" value="AQUAMIS" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="180" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="6KGyysBaEeLL0fUPtLAd-5" target="6KGyysBaEeLL0fUPtLAd-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-5" value="&lt;br&gt;&lt;div&gt;de novo assembly&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="280" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="6KGyysBaEeLL0fUPtLAd-8" target="6KGyysBaEeLL0fUPtLAd-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-8" value="typing" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="380" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-11" value="AMR" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="480" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-15" value="&amp;nbsp;Specific" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="470" y="70" width="370" height="480" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-16" value="&lt;div&gt;SeqSero&lt;br&gt;(Salmonella)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="80" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-17" value="MTBSeq" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="240" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-19" value="&lt;div&gt;SISTR&lt;/div&gt;(Salmonella)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="160" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-20" value="&lt;div&gt;AgrVATE/spaTyper/Staphopia-sccmec&lt;/div&gt;&lt;div&gt;(S.aureus)&lt;br&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="320" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-21" value="&lt;div&gt;emmtyper&lt;/div&gt;(Str.pyogenes)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="400" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-22" value="&lt;div&gt;hicap&lt;/div&gt;&lt;div&gt;(H.influenzae)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="480" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-23" value="&lt;div&gt;hicap&lt;/div&gt;&lt;div&gt;(H.influenzae)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="80" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-24" value="&lt;div&gt;Kleborate&lt;br&gt;&lt;/div&gt;&lt;div&gt;(Klebsiella)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="160" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-25" value="&lt;div&gt;legsta&lt;/div&gt;&lt;div&gt;(Legionella)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="240" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-26" value="LisSero&lt;br&gt;&lt;div&gt;(Listeria)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="320" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-27" value="&lt;div&gt;meningotype&lt;/div&gt;&lt;div&gt;(N.meningitidis)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="400" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-29" value="&lt;div&gt;ngmaster&lt;/div&gt;&lt;div&gt;(N.gonorrhoeae)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="480" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
