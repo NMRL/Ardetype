@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2022-04-19T09:22:21.792Z" agent="5.0 (X11)" etag="LOzRAYpBffPHje2qwcZ3" version="17.4.2" type="github">
+<mxfile host="app.diagrams.net" modified="2022-04-19T09:26:03.957Z" agent="5.0 (X11)" etag="00I_UEJh2eeJVbWXFFMi" version="17.4.2" type="github">
   <diagram id="GYhOJoof6raGVxeCeefJ" name="Page-1">
-    <mxGraphModel dx="1218" dy="575" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="418" dy="575" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -184,13 +184,13 @@
         <mxCell id="6KGyysBaEeLL0fUPtLAd-89" value="Spreadsheet witch seleted metrics from agnostic &amp;amp; specific reports for each sample id" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="170" y="675" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-90" value="&lt;div&gt;AQUAMIS&lt;br&gt;&lt;/div&gt;&lt;div&gt;1. N50 for assembly&lt;/div&gt;&lt;div&gt;2. Num contigs&lt;/div&gt;&lt;div&gt;3. Average coverage depth&lt;/div&gt;&lt;div&gt;4. rMLST/PubMLST&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-90" value="&lt;div&gt;AQUAMIS&lt;br&gt;&lt;/div&gt;&lt;div&gt;1. N50 for assembly (medium contig length)&lt;br&gt;&lt;/div&gt;&lt;div&gt;2. Num contigs&lt;/div&gt;&lt;div&gt;3. Average coverage depth&lt;/div&gt;&lt;div&gt;4. rMLST/PubMLST&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="290" y="640" width="120" height="150" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-91" value="&lt;div&gt;MOB-Suite&lt;br&gt;&lt;/div&gt;&lt;div&gt;1. Resistance gene&lt;br&gt;&lt;/div&gt;&lt;div&gt;2. Allele&lt;br&gt;&lt;/div&gt;&lt;div&gt;3. Drug class&lt;/div&gt;&lt;div&gt;4. Resistance&lt;/div&gt;&lt;div&gt;5. Percent identity&lt;/div&gt;&lt;div&gt;6. Gene location (contig id)&lt;/div&gt;&lt;div&gt;7. Location (Chromosome/Plasmid)&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="530" y="640" width="150" height="150" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-92" value="hAMRonization&lt;br&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-92" value="&lt;div&gt;hAMRonization&lt;/div&gt;&lt;div&gt;1. &lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="410" y="640" width="120" height="150" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-93" value="&lt;div&gt;V&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
