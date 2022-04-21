@@ -1,8 +1,8 @@
 home_dir:
     ~/bact_output/
 target_dir:
-    /home/groups/nmrl/bact_analysis/bact_input/NMRL_2022_01_10_QiagenFXDNA/
-kfinder_threads: 8
+    /home/groups/nmrl/bact_analysis/bact_input/2022-03-07-NMRL-qiagenfxdna-miseqdx-pe150/
+kfinder_threads: 5
 kfinder_db: bacteria
 shovill_params:
     depth: 95 #100

@@ -1,7 +1,7 @@
 configfile: 'config.yaml'
 import os, pandas as pd, shlex, subprocess, shutil
 
-#GODLIKE EXPLAINATION HOW SNAKEMAKE WORKS
+#GODLIKE EXPLAINATION OF HOW SNAKEMAKE WORKS
 #https://vincebuffalo.com/blog/2020/03/04/understanding-snakemake.html
 
 #STATIC PATHS
@@ -17,10 +17,7 @@ aquamis = f'{bact_analysis_path}AQUAMIS/'
 aquamis_scripts = f'{aquamis}scripts/'
 
 #DEV FLAGS
-run_kfinder = False
-
-#PREPARE OUTPUT DIRECTORIES
-
+run_kfinder = True
 
 #RUN KMERFINDER
 if run_kfinder:
@@ -62,7 +59,7 @@ for acc in kmerfinder_output['accession']:
         print(f'{acc}: Attempting export')
         subprocess.call(f'python manage_refseqdb.py --exp-fasta {acc}.csv'.split(' ')) #extract sequence
         try:
-            shutil.move(f'{ref_db}exported_sequences.fasta', f'{home_pipe}reference/{ref_db}{acc}.fasta') # rename
+            shutil.move(f'{ref_db}exported_sequences.fasta', f'{home_pipe}reference/{acc}.fasta') # rename
         except Exception as e:
             print(f'{acc} export failed: {e}')
         os.remove(f'{ref_db}{acc}.csv')
@@ -71,13 +68,6 @@ for acc in kmerfinder_output['accession']:
 os.chdir(aquamis_scripts)
 subprocess.call(f'bash create_sampleSheet.sh --mode illumina --fastxDir {config["target_dir"]} --outDir {config["target_dir"]}'.split(' '))
 sample_list_path = f'{config["target_dir"]}samples.tsv'
-
-#RUN AQUAMIS
-os.chdir(aquamis)   
-subprocess.check_call(['qsub', '-F', f'{sample_list_path} {config["target_dir"]}', 'run_aquamis.sh']) #replace output dir
-
-sys.exit(1)
-os.chdir(home_pipe)
 
 #INIT SAMPLE ID & REFERENCE_SEQUENCE_PATTERN WILDCARDS TO BE USED IN RULES
 scaffold = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta'
@@ -106,8 +96,19 @@ for sample_id_pattern, reference_sequence_pattern in zip(samples, reference_list
 
 
 #GENERATING FOLDERS FOR EACH SAMPLE-REF COMBINATION SPECIFIED IN THE KMERFINDER OUTPUT
+os.system(f'mkdir -p {config["home_dir"]}{config["target_dir"].split("/")[-2]}_output')
+os.system(f'mkdir -p {config["home_dir"]}{config["target_dir"].split("/")[-2]}_output/kmerfinder_output/')
+os.system(f'mkdir -p {config["home_dir"]}{config["target_dir"].split("/")[-2]}_output/aquamis_output/')
 for i in range(len(samples)):
-    os.system(f'mkdir -p {config["home_dir"]}{samples[i]}_output {config["home_dir"]}{samples[i]}_output/benchmarks')
+    os.system(f'mkdir -p  {config["home_dir"]}{config["target_dir"].split("/")[-2]}_output/{samples[i]}/benchmarks')
+
+#RUN AQUAMIS
+#rewrite as rule - hard to lock files to use in further processing
+#os.chdir(aquamis)   
+#subprocess.check_call(['qsub', '-F', f'{sample_list_path} {config["home_dir"]}{config["target_dir"]}_output/aquamis_output/', 'run_aquamis.sh']) #replace output dir
+
+os.chdir(home_pipe)
+os.system(f'mv  {config["target_dir"]}* data/')
 
 
 #FINAL RULE
@@ -117,10 +118,10 @@ rule all:
     run:
         for i in range(len(samples)):
             os.system(f'python scripts/combine_benchmarks.py -b benchmarks -s {samples[i]}')
-            os.system(f'mv {samples[i]}* {config["home_dir"]}{samples[i]}_output/')
-            os.system(f'mv data/{samples[i]}_fastp* {config["home_dir"]}{samples[i]}_output/')
-            os.system(f'mv benchmarks/{samples[i]}* {config["home_dir"]}{samples[i]}_output/benchmarks/')
-
+            os.system(f'mv {samples[i]}* {config["home_dir"]}{config["target_dir"].split("/")[-1]}_output/{config["home_dir"]}{samples[i]}/')
+            os.system(f'mv data/{samples[i]}_fastp* {config["home_dir"]}{config["target_dir"].split("/")[-1]}_output/{config["home_dir"]}{samples[i]}/')
+            os.system(f'mv benchmarks/{samples[i]}* {config["home_dir"]}{config["target_dir"].split("/")[-1]}_output/{config["home_dir"]}{samples[i]}/benchmarks/')
+            os.system(f'mv {kfinder_output}* {config["home_dir"]}{config["target_dir"].split("/")[-1]}_output/kmerfinder_output/')
 
 #READ LENGTH & QUALITY TRIMMING
 rule quality_control:
