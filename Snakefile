@@ -4,7 +4,7 @@ import os, pandas as pd, shlex, subprocess, shutil
 #GODLIKE EXPLAINATION OF HOW SNAKEMAKE WORKS
 #https://vincebuffalo.com/blog/2020/03/04/understanding-snakemake.html
 
-#STATIC PATHS
+#STATIC PATHS - TO BE MOVED TO CONFIG
 bact_analysis_path = f'/home/groups/nmrl/bact_analysis/'
 kfinder = f'{bact_analysis_path}kmerfinder_suite/'
 kfinder_input = f'{kfinder}input_files/'
@@ -12,9 +12,14 @@ kfinder_output = f'{kfinder}output/'
 kfinder_backup = f'{kfinder}backup/'
 home_pipe = f'{bact_analysis_path}NMRL_Bact_Assembly_Inhouse/'
 ref_db = f'/home/groups/nmrl/db/db-refseq/'
-snakemake_sif = 'snakemake.sif'
+snakemake_sif = '/home/groups/nmrl/image_files/snakemake.sif'
+mlst_quast_sif = '/home/groups/nmrl/image_files/mlst_quast.sif'
+rgi_prokka_sif = '/home/groups/nmrl/image_files/rgi_prokka.sif'
 aquamis = f'{bact_analysis_path}AQUAMIS/'
 aquamis_scripts = f'{aquamis}scripts/'
+kraken2_env = f"{home_pipe}/conda_defs/kraken2.yaml"
+rgi_env = f'{home_pipe}/conda_defs/rgi_env.yaml'
+
 
 #DEV FLAGS
 run_kfinder = True
@@ -158,7 +163,7 @@ rule filter_host:
         report_name = '{sample_id_pattern}_contigs/{sample_id_pattern}_kraken2_report.txt'
     threads: 48
     conda:
-        "kraken2.yaml"
+        kraken2_env
     shell:
         """ 
         kraken2 --threads 48 --db /mnt/home/groups/nmrl/db/db-kraken2/human_reference/ --classified-out data/{wildcards.sample_id_pattern}_host#.fastq --unclassified-out data/{wildcards.sample_id_pattern}_sample#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
@@ -239,7 +244,7 @@ rule scaffold_id:
 #RUN QUAST
 rule quast_scaffolds:
     input:
-        sif_file = 'mlst_quast.sif',
+        sif_file = mlst_quast_sif,
         reference = 'reference/{reference_sequence_pattern}.fasta',
         scaffold = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta'
     envmodules:
@@ -268,7 +273,7 @@ rule assembly_qc:
 #PERFORM SEROTYPING
 rule mlst: 
     input: 
-        mlst_quast_path = 'mlst_quast.sif',
+        mlst_quast_path = mlst_quast_sif,
         scaffolds = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta'
     output:
         mlst_output = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}_mlst_output.csv',
@@ -286,7 +291,7 @@ rule mlst:
 #PERFORM GENE ANNOTATION
 rule prokka: 
     input: 
-        rgi_prokka_path = 'rgi_prokka.sif',
+        rgi_prokka_path = rgi_prokka_sif,
         contigs = '{sample_id_pattern}_contigs/{sample_id_pattern}_contigs.fasta'
     output:
         prokka_outdir = directory('{sample_id_pattern}-prokka')
@@ -308,7 +313,7 @@ rule res_gen_id:
         temp('{sample_id_pattern}.rgi.json')
     threads: 4
     conda:
-        'rgi_env.yaml'
+        rgi_env
     benchmark:
         temp('benchmarks/{sample_id_pattern}.rig.benchmark.txt')
     shell:
