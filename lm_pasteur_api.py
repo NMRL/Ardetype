@@ -3,7 +3,7 @@
 # Full Pasteur REST API: https://bigsdb.pasteur.fr/api
 # API Docs: https://bigsdb.readthedocs.io/en/latest/rest.html#db-schemes-scheme-id-sequence
 
-import requests, sys, argparse, base64, json
+import requests, argparse, base64, json
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--file', '-f', type=str, default='contigs.fasta', help='assembly contig filename (FASTA format)')
