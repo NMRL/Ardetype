@@ -14,7 +14,7 @@ home_pipe = f'{bact_analysis_path}NMRL_Bact_Assembly_Inhouse/'
 ref_db = f'/home/groups/nmrl/db/db-refseq/'
 snakemake_sif = '/home/groups/nmrl/image_files/snakemake.sif'
 mlst_quast_sif = '/home/groups/nmrl/image_files/mlst_quast.sif'
-rgi_prokka_sif = '/home/groups/nmrl/image_files/rgi_prokka.sif'
+prokka_sif = '/home/groups/nmrl/image_files/prokka.sif'
 aquamis = f'{bact_analysis_path}AQUAMIS/'
 aquamis_scripts = f'{aquamis}scripts/'
 kraken2_env = f"{home_pipe}/conda_defs/kraken2.yaml"
@@ -291,7 +291,7 @@ rule mlst:
 #PERFORM GENE ANNOTATION
 rule prokka: 
     input: 
-        rgi_prokka_path = rgi_prokka_sif,
+        prokka_path = prokka_sif,
         contigs = '{sample_id_pattern}_contigs/{sample_id_pattern}_contigs.fasta'
     output:
         prokka_outdir = directory('{sample_id_pattern}-prokka')
@@ -301,7 +301,7 @@ rule prokka:
     benchmark:
         temp('benchmarks/{sample_id_pattern}.prokka.benchmark.txt')
     shell:
-        """singularity run {input.rgi_prokka_path} prokka --outdir {output.prokka_outdir} {input.contigs}"""
+        """singularity run {input.prokka_path} prokka --outdir {output.prokka_outdir} {input.contigs}"""
         
 
 #PERFORM RESISTANCE GENE EXTRACTION
