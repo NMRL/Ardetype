@@ -1,0 +1,132 @@
+Date: 2022-04-26
+User: jevgen01
+Scope: Brief description of tools to be incuded in the pipeline
+
+Agnostic
+    MOB Suite
+        Home page: https://github.com/phac-nml/mob-suite
+        Module form: singularity image (creator-defined) (untested)
+        Tasks:
+            1. Extract plasmids from contigs
+            2. Annotate plasmids
+            Estimate capability to spread resistance + scientific components
+        Input:
+            - Contigs.fasta
+        Output:
+            1. Plasmid reconstruction
+                contig_report.txt (contig assignment stats)
+                chromosome.fasta (non-plasmid contigs)
+                plasmid_(X).fasta (for each plasmid)
+                mobtyper_results (table?) (plasmid metadata)
+                repetitive_blast_report (table?) (info on contigs containing only repetitive elements)
+            2. Plasmid typing
+                Replicon type - plasmid_replicon_typing.pdf
+                Relaxase types & MPF types:
+                    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4379921/
+                    https://journals.asm.org/doi/10.1128/MMBR.00020-10
+                    https://academic.oup.com/femsre/article/33/3/657/591359 
+                OriT type -? (possibly https://pubmed.ncbi.nlm.nih.gov/14625590/)
+
+    AMR++
+        Home pages: 
+            https://github.com/meglab-metagenomics/amrplusplus_v2
+            https://megares.meglab.org/amrplusplus/latest/html/v2/
+        Module form:
+            conda environment with nextflow (https://anaconda.org/bioconda/nextflow) 
+            singularity image (https://github.com/meglab-metagenomics/amrplusplus_v2/blob/master/docs/accessing_AMR%2B%2B.md)
+        Tasks: To estimate if sampling depth of the population was enough and to extract count data to be used in downstream statistical analysis.
+        Input: host-filtered metagenomic fastq files
+        Output: rarefaction curves (is sampling deep enough) and count matrixes (for downstream analysis) 
+            https://megares.meglab.org/amrplusplus/latest/html/what_AMR++_produces.html
+
+
+    Resfinder
+        Home page: https://bitbucket.org/genomicepidemiology/resfinder/src/master/
+        Module form: singularity image (https://bitbucket.org/genomicepidemiology/resfinder/src/dev4.2/) + database (https://bitbucket.org/genomicepidemiology/resfinder_db/src/master/)
+        Tasks: Identify resistance genes based on fastq files and give phenotype prediction
+        Input: host-filtered fastq files
+        Output: https://cge.food.dtu.dk/services/ResFinder/output.php
+        Notes:
+            https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8914360/
+
+
+Specific
+    H.influenzae
+        hicap
+            Home page: 
+                https://github.com/scwatts/hicap
+            Module form: singularity image from conda template 
+            Tasks: identify of the cap locus for H. influenzae, describe the structural layout, and perform in silico serotyping (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC149627/)
+            Input: contigs.fasta
+            Output:
+                Summary: a somewhat machine parsable file with detailed summary information
+                Genbank: a genbank file with sequence marked up with cap locus annotations
+                Graphic: a visual representation of the annotated cap locus
+            Notes:
+                https://journals.asm.org/doi/10.1128/JCM.00190-19
+
+    N.meningitidis
+        meningotype
+            Home page: 
+                https://github.com/MDU-PHL/meningotype
+            Module form: depends
+            Tasks: serotyping of n.meningitidis 
+            Input: contigs.fasta
+            Output: text file 
+            Notes: 
+                https://www.cdc.gov/meningococcal/laboratory/pcr-guidance-mening-hflu.html - serogrouping of NM (transition from molecular methods)
+                https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5012890/ - in silico Bexsero antigen sequence typing (BAST) of NM (vaccine coverage monitoring)
+                https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2984153/ - more on BAST ELISA variant
+                https://pubmlst.org/organisms/neisseria-spp - database
+
+    Legionella
+        legsta
+            Home page: https://github.com/tseemann/legsta
+            Module form: singularity image from conda template 
+            Tasks: sequence-based typing (SBT) of L. pneumophila
+            Input: contigs.fasta
+            Output: csv table with SBT and allele for each of the 7 reference genes
+            Notes:
+                https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1153775/
+                https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1933043/
+
+    MTB
+        MTBSeq
+            Home page: https://github.com/ngs-fzb/MTBseq_source
+            Module form: singularity image from conda template
+            Tasks: full characterisation of MTB isolate WGS
+            Input: host-filtered fastq files
+            Output: MTBSeq report
+            Notes: https://github.com/ngs-fzb/MTBseq_source/blob/master/MANUAL.md
+
+    Klebsiella
+        Kleborate
+            Home page: https://github.com/katholt/Kleborate/wiki
+            Module form: singularity image from Docker template (https://hub.docker.com/r/staphb/kleborate)
+            Tasks:
+            Input:
+            Output:
+
+    S.aureus
+        AgrVATE/spaTyper/Staphopia-sccmec
+            Home page:
+            Module form:
+            Tasks:
+            Input:
+            Output:
+
+    Str.pyogenes
+        emmtyper
+            Home page:
+            Module form:
+            Tasks:
+            Input:
+            Output:
+
+    N.gonorrhoeae
+        ngmaster
+            Home page:
+            Module form:
+            Tasks:
+            Input:
+            Output:

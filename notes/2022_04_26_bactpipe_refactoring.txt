@@ -8,7 +8,7 @@ AGNOSTIC RULES
         2.1. Length trimming : fastp - singularity
         2.2. Quality trimming : fastp - singularity
         2.3. AQUAMIS - git repo
-    3. Host filtering : kraken2/hg38(To be updated to CHM13)
+    3. Host filtering : kraken2/hg38(To be updated to CHM13 : https://www.science.org/doi/10.1126/science.abj6987)
     4. De novo assembly
         4.1. Contig assembly : shovill - singularity
         4.2. Contig QC : quast - singularity
