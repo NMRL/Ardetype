@@ -11,10 +11,28 @@ Pipeline can start from:
     a. bcl files - run all
     b. fastq files - run all, except demultiplexing module in core
     c. contigs.fasta - run only shell, relevant tip modules and shape
+Pipeline output structure:
+    bact_output/input_folder_name/bact_core/
+        sample_id_raw fastq(excluding undetermined)
+        sample_id_host_filtered fastq
+        sample_id_contigs.fasta
+        sample_id_contig_based_taxonomy
+        sample_list (AQUAMIS format + majority genus from reads for each sample (kraken2))
 
-If starting from bcl:
-    find sample sheet 
-    qsub bcl2fastq - check for 
+from bcl:
+    input - path to run folder
+    check for sample_sheet
+        if missing - exit with message indicating missing input
+    qsub bcl2fastq
+        if output files are missing after job is finished - exit with message indicating job error
+from fastq:
+    input - path to folder with raw fastq files
+    generate sample_id_list
+    qsub bact_core
+        check output for each sample in id list >
+
+        
+    
 """
 
 ###Arguments template (https://docs.python.org/3/library/argparse.html)
