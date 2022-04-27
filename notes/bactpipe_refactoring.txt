@@ -2,6 +2,10 @@ Date: 2022-04-26
 User: jevgen01
 Scope: Refactoring pipeline according to agnostic-specific concept
 
+Note on software modularity:
+    Agnostic - core structure - to be configured, not to be frequently changed (dependencies complicate module replacement) - read qc + host filtering + de novo assembly
+    Specific - peripheral structure - to be configured/changed/skipped as needed (should depend only on core structure output)
+
 AGNOSTIC RULES
     1. Demultiplexing
     2. Read QC
