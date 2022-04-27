@@ -1,0 +1,40 @@
+configfile: 'config_modular.yaml'
+rule all:
+    input: 
+        config['shell_target']
+    shell:
+        "echo Shell finished"
+
+
+#PERFORM SEROTYPING
+rule mlst: 
+    input: 
+        mlst_quast_path = mlst_quast_sif,
+        scaffolds = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta'
+    output:
+        mlst_output = '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}_mlst_output.csv',
+    threads: 4
+    envmodules:
+        'singularity'
+    benchmark:
+        temp('benchmarks/{sample_id_pattern}-{reference_sequence_pattern}.mlst.benchmark.txt')
+    shell:
+        """
+        singularity run {input.mlst_quast_path} mlst --csv {input.scaffolds} >> {output.mlst_output}
+        """
+
+
+#PERFORM RESISTANCE GENE EXTRACTION
+rule res_gen_id: 
+    input: 
+        contigs = '{sample_id_pattern}_contigs/{sample_id_pattern}_contigs.fasta'
+    output:
+        temp('{sample_id_pattern}.rgi.txt'),
+        temp('{sample_id_pattern}.rgi.json')
+    threads: 4
+    conda:
+        rgi_env
+    benchmark:
+        temp('benchmarks/{sample_id_pattern}.rig.benchmark.txt')
+    shell:
+        """rgi main --input_sequence {input.contigs} --output_file {wildcards.sample_id_pattern}.rgi --input_type contig --clean"""

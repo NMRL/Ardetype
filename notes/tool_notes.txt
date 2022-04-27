@@ -112,8 +112,8 @@ Specific
                     (reference database is distributed inside git repository - gbk files (https://github.com/katholt/Kaptive/wiki/Databases-distributed-with-Kaptive))
                 2. singularity image from Docker template (https://hub.docker.com/r/staphb/kleborate)
             Tasks: 
-                Serotyping (K/O antigens)
-                Resistance gene search, Virulence factor search, MLST, species verification
+                1.&2.Serotyping (K/O antigens)
+                2.Resistance gene search, Virulence factor search, MLST, species verification
             Input:
                 1. contigs.fasta
                 2. contigs.fasta

@@ -1,4 +1,4 @@
-Date: 2022-04-26
+Date: 2022-04-27
 User: jevgen01
 Scope: Refactoring pipeline according to agnostic-specific concept
 
@@ -27,6 +27,8 @@ AGNOSTIC RULES
     8. Plasmid analysis : MOB Suite
         8.1. Plasmid reconstruction
         8.2. Plasmid annotation
+
+
 
 
 SPECIFIC RULES
@@ -68,5 +70,91 @@ FILE LIFE CYCLE
     Resfinder output - store
     AMR++ output - store
 
+EXPECTED SNAKEMAKE DAG
+    DMX_AQUAMIS                                         
+    |
+    RQC
+    |
+    HFT__________
+    |   |   |   |
+    |   |   |   |
+    |   TAX AMR RFD
+    DAM__________________
+    |   |   |   |   |   |
+    |   |   |   |   |   |
+    |   TAX AQC PLA RGI MLST
+    |  /
+    | /
+    SPC(XOR)_________________________________________
+            |   |   |   |   |   |   |   |   |   |   |
+            HI  NM  LP  MT  KP  SA  LM  SE  SP  NG  ...
 
 
+ARCHITECTURE NOTES
+bact_core - core assembly pipeline
+bact_shell - agnostic part of downstream analysis
+bact_tip - specific part of downstream analysis
+bact_shape - reporting part of the pipeline
+
+https://snakemake.readthedocs.io/en/v5.1.4/executable.html#
+Snakefiles are used from python wrapper script
+    https://stackoverflow.com/questions/58597047/using-subprocess-run-to-run-snakemake
+AQUAMIS is run from python wrapper script after bact_root has finished
+All snakefiles use the same config file that defines parameters for assembly, agnostic analysis, specific analysis & reporting
+Wrapper script should check the output of bact_core and start bact_shell and bact tip, when the required files are ready 
+bact_shape should start after core shell and tip are finished
+
+Core of the agnostic analysis implemented as bact_core snakefile
+Tasks:
+    Demultiplexing
+    Read QC
+    Host filtering
+    Denovo assembly
+    Read taxonomic classification
+Input:
+    Sequencing run output(bcl files + Sample sheet)
+Output:
+    Raw reads
+    Host-filtered reads
+    contigs.fasta
+    read_based_taxonomy
+    contig_based_taxonomy
+    sample_list.csv
+
+Downstream agnostic analysis implemented as bact_shell snakefile
+Tasks:
+    AMR++
+    Resfinder
+    Assembly QC
+    RGI
+    Plasmid analysis
+    MLST
+Input:
+    sample_list.csv
+    read_based_taxonomy
+    Host-filtered reads
+Output:
+    tool output based on tasks
+    specific_sample_list.csv
+    
+Specific analysis implemented as bact_tip snakefile
+Tasks:
+    Species specific typing
+Input:
+    contigs.fasta
+    contig_based_taxonomy
+    specific_sample_list.csv
+Output:
+    specific tool-based results for each sample - output in unified format (json? csv? ... - to be determined)
+
+Reporting part of the analysis implemented as bact_shape snakefile
+Tasks:
+    Combine information from different report files into summary report
+    Combine resistance analysis data using hamronization
+Input:
+    AQUAMIS output
+    bact_core output
+    bact_tip output
+    bact_shell output
+Output:
+    summary_report file (format and contents to be determined)

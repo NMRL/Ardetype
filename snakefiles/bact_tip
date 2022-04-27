@@ -1,0 +1,6 @@
+configfile: 'config_modular.yaml'
+rule all:
+    input: 
+        config['tip_target']
+    shell:
+        "echo Tip finished"
