@@ -18,16 +18,17 @@ sistr_sif:
 hamronization_sif:
   /home/groups/nmrl/image_files/hamronization_latest.sif
 
-
 #########################
 # bact_core configuration
 #########################
 core_target:
-  #List of target files supplied by the wrapper
+  #List of target files supplied by the wrapper & wildcard definition strings
+  target_files:
+  wildcard_string:
+
 core_tool_configs:
 #Configuration settings for each tool used by bact_core snakefile
   bam2fastq:
-    run: True
   fastp:
   kraken2:
   shovill:
@@ -36,9 +37,12 @@ core_tool_configs:
 # bact_shell configuration
 #########################
 shell_target:
-  #List of target files specified by wrapper
+  #List of target files supplied by the wrapper & wildcard definition strings
+  target_files:
+  wildcard_string:
 shell_tool_configs:
 #Configuration settings for each tool used by bact_shell snakefile
+  run_shell: True
   quast:
   rgi:
   mlst:
@@ -52,9 +56,12 @@ shell_tool_configs:
 # bact_tip configuration
 #########################
 tip_target:
-  #List of target files specified by wrapper
+  #List of target files supplied by the wrapper & wildcard definition strings
+  target_files:
+  wildcard_string: 
 tip_tool_configs:
 #Configuration settings for each tool used by bact_tip snakefile
+  run_tip: True
   hicup:
     run: True
   meningotype:
@@ -94,7 +101,10 @@ tip_tool_configs:
 # bact_shape configuration
 #########################
 shape_target:
-  #List of target files specified by wrapper
+  #List of target files supplied by the wrapper & wildcard definition strings
+  target_files:
+  wildcard_string:
 shape_tool_configs:
 #Configuration settings for each tool used by bact_shape snakefile
+  run_shape: True
   hamronization:
