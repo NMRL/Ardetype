@@ -1,0 +1,110 @@
+#########################
+# Static tool & environment definition paths
+#########################
+snakemake_sif:
+  /home/groups/nmrl/image_files/snakemake.sif
+mlst_quast_sif:
+  /home/groups/nmrl/image_files/mlst_quast.sif
+rgi_env:
+  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/rgi_env.yaml
+kraken2_env:
+  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/kraken2.yaml
+lissero_sif:
+  /home/groups/nmrl/image_files/lissero_latest.sif
+seqsero_sif:
+  /home/groups/nmrl/image_files/seqsero2_latest.sif
+sistr_sif:
+  /home/groups/nmrl/image_files/sistr_latest.sif
+hamronization_sif:
+  /home/groups/nmrl/image_files/hamronization_latest.sif
+
+#########################
+# bact_core configuration
+#########################
+core_target:
+  #List of target files supplied by the wrapper & wildcard definition strings
+  target_files:
+  wildcard_string:
+
+core_tool_configs:
+#Configuration settings for each tool used by bact_core snakefile
+  bam2fastq:
+  fastp:
+  kraken2:
+  shovill:
+
+#########################
+# bact_shell configuration
+#########################
+shell_target:
+  #List of target files supplied by the wrapper & wildcard definition strings
+  target_files:
+  wildcard_string:
+shell_tool_configs:
+#Configuration settings for each tool used by bact_shell snakefile
+  run_shell: True
+  quast:
+  rgi:
+  mlst:
+  amr_plusplus:
+    run: True
+  resfinder:
+  mob_suite:
+    run: True
+
+#########################
+# bact_tip configuration
+#########################
+tip_target:
+  #List of target files supplied by the wrapper & wildcard definition strings
+  target_files:
+  wildcard_string: 
+tip_tool_configs:
+#Configuration settings for each tool used by bact_tip snakefile
+  run_tip: True
+  hicup:
+    run: True
+  meningotype:
+    run: True
+  legsta:
+    run: True
+  MTBSeq:
+    run: True  
+  Kleborate:
+    run: True  
+  Kaptive:
+    run: True  
+    #?
+  spaTyper:
+    run: True  
+  AgrVATE:
+    run: True  
+    #?
+  spaTYper:
+    run: True  
+  staphopia-sccmec:
+    run: True    
+  emmtyper:
+    run: True  
+  ngmaster:
+    run: True  
+    #?
+  lissero:
+    run: True  
+  seqsero:
+    run: True  
+  sistr:
+    run: True  
+  
+
+#########################
+# bact_shape configuration
+#########################
+shape_target:
+  #List of target files supplied by the wrapper & wildcard definition strings
+  target_files:
+  wildcard_string:
+shape_tool_configs:
+#Configuration settings for each tool used by bact_shape snakefile
+  run_shape: True
+  hamronization:

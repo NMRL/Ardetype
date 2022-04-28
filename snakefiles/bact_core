@@ -1,0 +1,79 @@
+configfile: 'config_modular.yaml'
+rule all:
+    input: 
+        config['core_target']['core_target']
+    shell:
+        "echo Core finished"
+
+
+#READ LENGTH & QUALITY TRIMMING
+rule quality_control:
+    input:
+        sif_file = snakemake_sif,
+        read_1 = 'data/{sample_id_pattern}_R1_001.fastq.gz',
+        read_2 = 'data/{sample_id_pattern}_R2_001.fastq.gz'
+    threads: 4
+    envmodules:
+        'singularity'
+    benchmark:
+        temp('benchmarks/{sample_id_pattern}.fastp.benchmark.txt')
+    output: 
+        temp('{sample_id_pattern}.fastp.json'),
+        temp('{sample_id_pattern}.fastp.html'),
+        read_1_tr = 'data/{sample_id_pattern}_fastp_R1_001.fastq.gz',
+        read_2_tr = 'data/{sample_id_pattern}_fastp_R2_001.fastq.gz'
+    shell:
+        'singularity run {input.sif_file} fastp -j {wildcards.sample_id_pattern}.fastp.json -h {wildcards.sample_id_pattern}.fastp.html --in1 {input.read_1} --in2 {input.read_2} --out1 {output.read_1_tr} --out2 {output.read_2_tr} --thread {threads}'
+
+#RUN KRAKEN2 TO FILTER OUT HOST CONTAMINATION
+rule filter_host:
+    input:
+        #quality-trimmed reads
+        read_1 = 'data/{sample_id_pattern}_fastp_R1_001.fastq.gz',
+        read_2 = 'data/{sample_id_pattern}_fastp_R2_001.fastq.gz'
+    output:
+        #host reads (temp)
+        temp('data/{sample_id_pattern}_host_1.fastq'),
+        temp('data/{sample_id_pattern}_host_2.fastq'),
+        #sample reads 
+        sample_1 = 'data/{sample_id_pattern}_sample_1.fastq.gz',
+        sample_2 = 'data/{sample_id_pattern}_sample_2.fastq.gz',
+        report_name = '{sample_id_pattern}_contigs/{sample_id_pattern}_kraken2_report.txt'
+    threads: 48
+    conda:
+        kraken2_env
+    shell:
+        """ 
+        kraken2 --threads 48 --db /mnt/home/groups/nmrl/db/db-kraken2/human_reference/ --classified-out data/{wildcards.sample_id_pattern}_host#.fastq --unclassified-out data/{wildcards.sample_id_pattern}_sample#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
+        pigz data/{wildcards.sample_id_pattern}_sample_1.fastq
+        pigz data/{wildcards.sample_id_pattern}_sample_2.fastq
+        """
+
+#GENERATING CONTIGS FROM READS
+rule contig_assembly:
+    input:
+        sif_file = snakemake_sif,
+        read_1 = 'data/{sample_id_pattern}_sample_1.fastq.gz',
+        read_2 = 'data/{sample_id_pattern}_sample_2.fastq.gz'
+    output:
+        temp('{sample_id_pattern}_contigs/contigs.fa')
+    envmodules:
+        'singularity'
+    threads: 4
+    benchmark:
+        temp('benchmarks/{sample_id_pattern}.shovill.benchmark.txt')
+    shell:
+        'singularity run {input.sif_file} shovill --depth {config[shovill_params][depth]} --ram {config[shovill_params][ram]} --minlen {config[shovill_params][minlen]} --force --outdir {wildcards.sample_id_pattern}_contigs --R1 {input.read_1} --R2 {input.read_2}'
+
+
+#RENAMING CONTINGS
+rule contig_id:
+    input:
+        'data/{sample_id_pattern}_fastp_R1_001.fastq.gz',
+        cnt = '{sample_id_pattern}_contigs/contigs.fa'
+    envmodules:
+        'singularity'
+    output:
+        '{sample_id_pattern}_contigs/{sample_id_pattern}_contigs.fasta'
+    shell:
+        'cp {input.cnt} {output}'
