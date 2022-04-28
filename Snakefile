@@ -101,11 +101,11 @@ for sample_id_pattern, reference_sequence_pattern in zip(samples, reference_list
 
 
 #GENERATING FOLDERS FOR EACH SAMPLE-REF COMBINATION SPECIFIED IN THE KMERFINDER OUTPUT
-os.system(f'mkdir -p {config["home_dir"]}{config["target_dir"].split("/")[-2]}_output')
-os.system(f'mkdir -p {config["home_dir"]}{config["target_dir"].split("/")[-2]}_output/kmerfinder_output/')
-os.system(f'mkdir -p {config["home_dir"]}{config["target_dir"].split("/")[-2]}_output/aquamis_output/')
-for i in range(len(samples)):
-    os.system(f'mkdir -p  {config["home_dir"]}{config["target_dir"].split("/")[-2]}_output/{samples[i]}/benchmarks')
+# os.system(f'mkdir -p {config["home_dir"]}{config["target_dir"].split("/")[-2]}_output')
+# os.system(f'mkdir -p {config["home_dir"]}{config["target_dir"].split("/")[-2]}_output/kmerfinder_output/')
+# os.system(f'mkdir -p {config["home_dir"]}{config["target_dir"].split("/")[-2]}_output/aquamis_output/')
+# for i in range(len(samples)):
+#     os.system(f'mkdir -p  {config["home_dir"]}{config["target_dir"].split("/")[-2]}_output/{samples[i]}/benchmarks')
 
 #RUN AQUAMIS
 #rewrite as rule - hard to lock files to use in further processing
@@ -114,7 +114,6 @@ for i in range(len(samples)):
 
 os.chdir(home_pipe)
 os.system(f'mv  {config["target_dir"]}* data/')
-
 
 #FINAL RULE
 rule all:

@@ -1,8 +1,8 @@
 #!/bin/bash
 #PBS -N test_assembly
-#PBS -l walltime=24:00:00
-#PBS -l procs=48
-#PBS -l mem=256g
+#PBS -l walltime=01:00:00
+#PBS -l procs=12
+#PBS -l mem=24g
 #PBS -q batch
 #PBS -j oe
 #PBS -A rakus
