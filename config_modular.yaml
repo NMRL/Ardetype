@@ -18,13 +18,14 @@ sistr_sif:
 hamronization_sif:
   /home/groups/nmrl/image_files/hamronization_latest.sif
 
+
 #########################
 # bact_core configuration
 #########################
 core_target:
   #List of target files supplied by the wrapper & wildcard definition strings
   target_files:
-  wildcard_string:
+
 
 core_tool_configs:
 #Configuration settings for each tool used by bact_core snakefile
@@ -39,7 +40,7 @@ core_tool_configs:
 shell_target:
   #List of target files supplied by the wrapper & wildcard definition strings
   target_files:
-  wildcard_string:
+
 shell_tool_configs:
 #Configuration settings for each tool used by bact_shell snakefile
   run_shell: True
@@ -58,7 +59,7 @@ shell_tool_configs:
 tip_target:
   #List of target files supplied by the wrapper & wildcard definition strings
   target_files:
-  wildcard_string: 
+ 
 tip_tool_configs:
 #Configuration settings for each tool used by bact_tip snakefile
   run_tip: True
@@ -103,7 +104,7 @@ tip_tool_configs:
 shape_target:
   #List of target files supplied by the wrapper & wildcard definition strings
   target_files:
-  wildcard_string:
+
 shape_tool_configs:
 #Configuration settings for each tool used by bact_shape snakefile
   run_shape: True
