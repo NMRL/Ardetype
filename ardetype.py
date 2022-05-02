@@ -1,10 +1,10 @@
 """
 This is a wrapper script of ARDETYPE(?) pipeline.
-Date: 2022-04-27
+Date: 2022-05-02
 Version: 0.0
 """
 import os, sys, re, argparse, yaml, subprocess, pandas as pd
-from numpy import isin
+from nbformat import write
 
 ###Architecture
 """
@@ -109,10 +109,11 @@ def parse_arguments():
     #####Optional
     parser.add_argument('-c', '--config', metavar='\b', help = 'Path to the config file (if not supplied, the copy of the template config_modular.yaml will be used)', default="./config_modular.yaml", required=False)
     parser.add_argument('-r', '--skip_reporting', help = 'Use this flag to skip reporting trough bact_shape module (which will run by-default with any other option)', action='store_true')
+    parser.add_argument('-o', '--output_dir', metavar='\b', help = 'Path to the output directory where the results will be stored (./ardetype_output/ by-default).', default="./ardetype_output/", required=False)
 
     ###bact_core arguments
     #####Required
-    req_arg_grp.add_argument('-f', '--fastq', metavar='\b', help = 'Placeholder argument 2 - required', default=None, required=True)
+    req_arg_grp.add_argument('-f', '--fastq', metavar='\b', help = 'Path to directory that contains fastq files to be analysed (all files in subdirectories are included).', default=None, required=True)
     
     #####Optional
 
@@ -198,12 +199,13 @@ def edit_sample_sheet(ss_df, info_dict, col_name):
     return ss_df
 
 
-def check_module_output(): #!
+def check_module_output(target_list):
     """
     Given (list) of paths to expected module output files, returns a dictionary where each file path is matched with the boolean (dict)
     indicating if it is present in the file system.
     """
-
+    return {file: os.path.isfile(file) for file in target_list}
+            
 
 def read_config(config_path):
     """
@@ -212,7 +214,6 @@ def read_config(config_path):
     with open(os.path.abspath(config_path), 'r') as yaml_handle:
         config_dict=yaml.safe_load(yaml_handle)
     return config_dict
-
 
 
 def edit_config(config_dict, param, new_value):
@@ -229,19 +230,24 @@ def edit_config(config_dict, param, new_value):
             edit_config(value, param, new_value)
     
 
-def write_config():
+def write_config(config_dict, config_path):
     """
-    Given a dictionary (dict) and a path to the new config file, check if the structure of the dictionary corresponds to the config template structure
+    Given a dictionary (dict) and a path to the new config file (str), check if the structure of the dictionary corresponds to the config template structure
     (hardcoded or read from file), and if it fits, write the contents to the new config file.
     """
+    template_config_file = read_config('./config_modular.yaml')
+    assert all([key in config_dict for key in template_config_file]), 'Custom config file is missing some of the keys defined in template config file, please use diff to check for difference'
+    with open(config_path, "w+") as config_handle:
+        yaml.dump(config_dict,config_handle)
 
-def submit_module_job():
+def submit_module_job(): #!
     """
     Given snakemake module name (str) and a dictionary (dict) of module-specific parameters and job-specific parameters, 
     edit submition code string (bash template, hardcoded or read from file), 
     create temporary job script (removed after submission) and perform job submition to RTU HPC cluster.
     """
     
+
 ###Templates to run shell command using subprocess
 # subprocess.check_call(['qsub', '-F', f'{read_1} {read_2} {sample_id} {database}', 'job.sh'])
 # subprocess.call(f'bash create_sampleSheet.sh --mode illumina --fastxDir {config["target_dir"]} --outDir {config["target_dir"]}'.split(' '))
@@ -250,12 +256,25 @@ if __name__ == "__main__":
     args = parse_arguments()
     if args.mode == "core":
         file_list = parse_folder(args.fastq,'.fastq.gz')
+
         fastq_formats = "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)"
         try:
             sample_sheet = create_sample_sheet(file_list, fastq_formats, mode=0)
         except AssertionError as msg:
             print(f"Sample sheet generation error: {msg}")
+
+        target_list = ['sample_sheet.csv']
+        template_list = [
+            '_host_filtered_1.fastq.gz',
+            '_host_filtered_2.fastq.gz',
+            '_contings.fasta',
+            '_contig_based_taxonomy'
+        ]
+
+        [target_list.append(f'{args.output_dir}{id}_{tmpl}') for id in sample_sheet['sample_id'] for tmpl in template_list]
+        
         config_file = read_config(args.config)
+        
     else:
         print('Sorry, other options not supported yet.')
         
@@ -270,7 +289,6 @@ if __name__ == "__main__":
                 fail - cannot continue (check_note: missing <file_name> from <step_name> conducted by <module name>)
                 warning - can continue, except for some steps downstream (check_note: missing <file_name> from <step_name> conducted by <module name>, affecting <affected_step_name_1>... steps)
                 ok - can continue (check_note: empty)
-        sample_id_raw fastq (excluding undetermined) - ok/fail
         sample_id_host_filtered fastq - ok/fail
         sample_id_contigs.fasta - ok/fail
         sample_id_contig_based_taxonomy - ok/warning
