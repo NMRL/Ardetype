@@ -3,8 +3,9 @@ This is a wrapper script of ARDETYPE(?) pipeline.
 Date: 2022-05-02
 Version: 0.0
 """
-import os, sys, re, argparse, yaml, subprocess, pandas as pd
-from nbformat import write
+import os, sys, re, argparse, yaml, subprocess, pandas as pd, shutil
+from time import sleep
+from qstat import qstat
 
 ###Architecture
 """
@@ -199,12 +200,12 @@ def edit_sample_sheet(ss_df, info_dict, col_name):
     return ss_df
 
 
-def check_module_output(target_list):
+def check_module_output(file_list):
     """
     Given (list) of paths to expected module output files, returns a dictionary where each file path is matched with the boolean (dict)
     indicating if it is present in the file system.
     """
-    return {file: os.path.isfile(file) for file in target_list}
+    return {file: os.path.isfile(file) for file in file_list}
             
 
 def read_config(config_path):
@@ -233,48 +234,74 @@ def edit_config(config_dict, param, new_value):
 def write_config(config_dict, config_path):
     """
     Given a dictionary (dict) and a path to the new config file (str), check if the structure of the dictionary corresponds to the config template structure
-    (hardcoded or read from file), and if it fits, write the contents to the new config file.
+    (read from file), and if it fits, write the contents to the new config file.
     """
     template_config_file = read_config('./config_modular.yaml')
     assert all([key in config_dict for key in template_config_file]), 'Custom config file is missing some of the keys defined in template config file, please use diff to check for difference'
     with open(config_path, "w+") as config_handle:
         yaml.dump(config_dict,config_handle)
 
-def submit_module_job(): #!
+
+def submit_module_job(module_name, config_path):
     """
-    Given snakemake module name (str) and a dictionary (dict) of module-specific parameters and job-specific parameters, 
-    edit submition code string (bash template, hardcoded or read from file), 
+    Given snakemake module name (str) and path to the config file, edit submition code string (bash template, hardcoded or read from file), 
     create temporary job script (removed after submission) and perform job submition to RTU HPC cluster.
     """
+    modules = {
+        "core":os.path.abspath("./snakefiles/bact_core"),
+        "shell":os.path.abspath("./snakefiles/bact_shell"),
+        "tip":os.path.abspath("./snakefiles/bact_tip"),
+        "shape":os.path.abspath("./snakefiles/bact_shape")
+    }
+    shutil.copy('./ardetype_jobscript.sh', args.output_dir)
+    subprocess.check_call(['qsub', '-F', f'{modules[module_name]} {config_path}', f'{args.output_dir}ardetype_jobscript.sh'])
+    os.remove(f'{args.output_dir}ardetype_jobscript.sh')
     
-
-###Templates to run shell command using subprocess
-# subprocess.check_call(['qsub', '-F', f'{read_1} {read_2} {sample_id} {database}', 'job.sh'])
-# subprocess.call(f'bash create_sampleSheet.sh --mode illumina --fastxDir {config["target_dir"]} --outDir {config["target_dir"]}'.split(' '))
 
 if __name__ == "__main__":
     args = parse_arguments()
     if args.mode == "core":
         file_list = parse_folder(args.fastq,'.fastq.gz')
-
-        fastq_formats = "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)"
         try:
+            fastq_formats = "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)"
             sample_sheet = create_sample_sheet(file_list, fastq_formats, mode=0)
+            os.system(f"mkdir -p {args.output_dir}")
+            sample_sheet.to_csv(f"{args.output_dir}sample_sheet.csv", header=True, index=False)
         except AssertionError as msg:
             print(f"Sample sheet generation error: {msg}")
 
         target_list = ['sample_sheet.csv']
-        template_list = [
-            '_host_filtered_1.fastq.gz',
-            '_host_filtered_2.fastq.gz',
-            '_contings.fasta',
-            '_contig_based_taxonomy'
-        ]
-
-        [target_list.append(f'{args.output_dir}{id}_{tmpl}') for id in sample_sheet['sample_id'] for tmpl in template_list]
+        template_list = ['_host_filtered_1.fastq.gz', '_host_filtered_2.fastq.gz', '_contings.fasta', '_contig_based_taxonomy']
+        [target_list.append(f'{args.output_dir}{id}{tmpl}') for id in sample_sheet['sample_id'] for tmpl in template_list]
         
         config_file = read_config(args.config)
+        edit_config(config_file, "core_target_files", target_list)
+        try:
+            write_config(config_file, f'{args.output_dir}config_core.yaml')
+        except AssertionError as msg:
+            print(f"Configuration file manipulation error: {msg}")
+        submit_module_job('core',f'{args.output_dir}config_core.yaml')
+        #https://pypi.org/project/qstat/ - for checking the output
         
+        wake_up = False 
+        while not wake_up:
+            queue_info, job_info = qstat() #?
+            all_jobs = queue_info + job_info
+            for job in all_jobs:
+                if job['JB_name'] == 'ardetype' and job['@state'] == 'complete':
+                    wake_up = True
+                    break
+            if not wake_up: sleep(30)
+        
+        check_dict = check_module_output(file_list=target_list)
+        id_check_dict = {id:"" for id in sample_sheet['sample_id']} #?
+        for file in check_dict:
+            id_check_dict[file.split("_",1)[0]] += f"|{file}:{check_dict[file]}"
+        
+        sample_sheet = edit_sample_sheet(sample_sheet, id_check_dict, "check_note") #?
+        sample_sheet.to_csv(f"{args.output_dir}sample_sheet.csv", header=True, index=False)
+
+
     else:
         print('Sorry, other options not supported yet.')
         
@@ -285,14 +312,6 @@ if __name__ == "__main__":
     V generate sample_id_list (use aquamis script for sample id generation from different fastq formats)    
     V qsub bact_core
         check output for each sample in id list (add status and check_note column to sample_list to indicate if check is succesful and add more information if it is not): 
-            status:
-                fail - cannot continue (check_note: missing <file_name> from <step_name> conducted by <module name>)
-                warning - can continue, except for some steps downstream (check_note: missing <file_name> from <step_name> conducted by <module name>, affecting <affected_step_name_1>... steps)
-                ok - can continue (check_note: empty)
-        sample_id_host_filtered fastq - ok/fail
-        sample_id_contigs.fasta - ok/fail
-        sample_id_contig_based_taxonomy - ok/warning
-        sample_list (AQUAMIS format + majority genus from reads for each sample (kraken2)) - ok/fail
     bact_core itself will generate template string that contains all wildcards to be used by the bact_core rules
         example: '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta' 
     """

@@ -22,9 +22,8 @@ hamronization_sif:
 #########################
 # bact_core configuration
 #########################
-core_target:
-  #List of target files supplied by the wrapper & wildcard definition strings
-  target_files:
+#List of target files supplied by the wrapper
+core_target_files:
 
 
 core_tool_configs:
