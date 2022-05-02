@@ -3,11 +3,8 @@ This is a wrapper script of ARDETYPE(?) pipeline.
 Date: 2022-04-27
 Version: 0.0
 """
-from asyncio import iscoroutinefunction
 import os, sys, re, argparse, yaml, subprocess, pandas as pd
-from sqlite3 import SQLITE_CREATE_TEMP_TABLE
-from more_itertools import sample
-from unicodedata import name
+from numpy import isin
 
 ###Architecture
 """
@@ -110,7 +107,7 @@ def parse_arguments():
         required=True)
 
     #####Optional
-    parser.add_argument('-c', '--config', metavar='\b', help = 'Path to the config file (if not supplied, the copy of the template config_modular.yaml will be used)', default=None, required=False)
+    parser.add_argument('-c', '--config', metavar='\b', help = 'Path to the config file (if not supplied, the copy of the template config_modular.yaml will be used)', default="./config_modular.yaml", required=False)
     parser.add_argument('-r', '--skip_reporting', help = 'Use this flag to skip reporting trough bact_shape module (which will run by-default with any other option)', action='store_true')
 
     ###bact_core arguments
@@ -200,25 +197,37 @@ def edit_sample_sheet(ss_df, info_dict, col_name):
     ss_df[col_name] = ss_df["sample_id"].map(info_dict)
     return ss_df
 
-    
 
-
-def check_module_output():
+def check_module_output(): #!
     """
     Given (list) of paths to expected module output files, returns a dictionary where each file path is matched with the boolean (dict)
     indicating if it is present in the file system.
     """
 
-def read_config():
+
+def read_config(config_path):
     """
     Given path to a config.yaml file, return a dictionary (dict) form of the yaml file.
     """
+    with open(os.path.abspath(config_path), 'r') as yaml_handle:
+        config_dict=yaml.safe_load(yaml_handle)
+    return config_dict
 
-def edit_config():
+
+
+def edit_config(config_dict, param, new_value):
     """
-    Given a dictionary (dict) that is generated from config yaml file, a (list) of parameter paths that lead to the value to be changed
+    Given a dictionary (dict) that is generated from config yaml file, a parameter that needs to be changes 
     and a new value of the parameter (string), return edited dictionary were the value of specified parameter is changed.
+    (Adjusted from here: https://localcoder.org/recursively-replace-dictionary-values-with-matching-key)
     """
+    if param in config_dict:
+        config_dict[param] = new_value
+    
+    for param, value in config_dict.items():
+        if isinstance(value, dict):
+            edit_config(value, param, new_value)
+    
 
 def write_config():
     """
@@ -233,13 +242,6 @@ def submit_module_job():
     create temporary job script (removed after submission) and perform job submition to RTU HPC cluster.
     """
     
-
-###Template to read config yaml file into dict
-# with open("yaml_path", 'r') as yaml_handle:
-#     config_dict=yaml.safe_load(yaml_handle)
-#     print(config_dict)
-
-
 ###Templates to run shell command using subprocess
 # subprocess.check_call(['qsub', '-F', f'{read_1} {read_2} {sample_id} {database}', 'job.sh'])
 # subprocess.call(f'bash create_sampleSheet.sh --mode illumina --fastxDir {config["target_dir"]} --outDir {config["target_dir"]}'.split(' '))
@@ -253,6 +255,7 @@ if __name__ == "__main__":
             sample_sheet = create_sample_sheet(file_list, fastq_formats, mode=0)
         except AssertionError as msg:
             print(f"Sample sheet generation error: {msg}")
+        config_file = read_config(args.config)
     else:
         print('Sorry, other options not supported yet.')
         
