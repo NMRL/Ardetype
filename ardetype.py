@@ -3,7 +3,9 @@ This is a wrapper script of ARDETYPE(?) pipeline.
 Date: 2022-04-27
 Version: 0.0
 """
+from asyncio import iscoroutinefunction
 import os, sys, re, argparse, yaml, subprocess, pandas as pd
+from sqlite3 import SQLITE_CREATE_TEMP_TABLE
 from more_itertools import sample
 from unicodedata import name
 
@@ -152,7 +154,6 @@ def parse_folder(folder_pth_str, file_fmt_str, substr_lst=None, regstr_lst=None)
     return name_series.tolist()
 
 
-
 def create_sample_sheet(file_lst, generic_str, regex_str=None, mode=0):
     """
     Given (list) of paths to files and a generic part of the file name (e.g. _contigs.fasta or _R[1,2]_001.fastq.gz string, regex expected for fastq), mode value (int 1 for fasta, 0 (default) for fastq)
@@ -161,6 +162,7 @@ def create_sample_sheet(file_lst, generic_str, regex_str=None, mode=0):
     file_series = pd.Series(file_lst, dtype="str") #to fascilitate filtering
     ss_df = pd.DataFrame(dtype="str") #to store sample sheet
     assert mode in [0,1], f"Accepted mode values are 0 for fasta and 1 for fastq: {mode} was given."
+
     if mode == 1:  #If function is used to produce sample sheet from fasta files
         id_extractor = lambda x: os.path.basename(x).replace(generic_str, "") #extract id from string by replacing generic part
         id_series = file_series.apply(id_extractor) 
@@ -170,24 +172,36 @@ def create_sample_sheet(file_lst, generic_str, regex_str=None, mode=0):
         path_series = file_series[file_series.str.contains("|".join(id_series))].reset_index(drop=True) #getting corresponding paths to fastq files
         ss_df['sample_id'], ss_df['fa'] = id_series, path_series #adding to sample sheet dataframe
         return ss_df
+    
     id_extractor = lambda x: re.sub(generic_str,"",os.path.basename(x)) #extract id from string by using regex
     id_series = file_series.apply(id_extractor).drop_duplicates(keep = "first").sort_values().reset_index(drop=True)
+
     if regex_str is not None: #additional sample id filtering based on regex was requested
         id_series = id_series[id_series.str.contains(regex_str)]
         assert len(id_series) > 0, 'After filtering sample ids using regex no sample ids left'
-    read_1_paths, read_2_paths = [], []
-    for id in id_series: #getting corresponding paths to fastq files
-        read_files = file_series[file_series.str.contains(id)].reset_index(drop=True).sort_values().reset_index(drop=True)
-        read_1_paths.append(read_files[0]), read_2_paths.append(read_files[1])
-    ss_df['sample_id'], ss_df['fq1'], ss_df['fq2'] = id_series, read_1_paths, read_2_paths #adding to sample sheet dataframe
+    read_1_dict, read_2_dict = {}, {} #to use python mapping to ensure correspondance between id and path
+
+    for id in id_series:
+        read_files = file_series[file_series.str.contains(id)].reset_index(drop=True).sort_values().reset_index(drop=True) #extract read paths
+        read_1_dict[id] = read_files[0]
+        read_2_dict[id] = read_files[1]
+    ss_df['sample_id'] = id_series #adding to sample sheet dataframe
+    ss_df['fq1'] = ss_df['sample_id'].map(read_1_dict)
+    ss_df['fq2'] = ss_df['sample_id'].map(read_2_dict)
+
     return ss_df
 
 
-def edit_sample_sheet():
+def edit_sample_sheet(ss_df, info_dict, col_name):
     """
-    Given path to a path to the sample sheet file (str) or pandas dataframe (object), a dictionary where each sample id is matched with information to be added (dict),
+    Given sample sheet as pandas dataframe (object), a dictionary where each sample id is matched with information to be added (dict, values to be added as one column),
     and a new column name (str), returns a pandas dataframe (object), that contains new column where new information is added to the corresponding sample id.
     """
+    ss_df[col_name] = ss_df["sample_id"].map(info_dict)
+    return ss_df
+
+    
+
 
 def check_module_output():
     """
@@ -239,15 +253,15 @@ if __name__ == "__main__":
             sample_sheet = create_sample_sheet(file_list, fastq_formats, mode=0)
         except AssertionError as msg:
             print(f"Sample sheet generation error: {msg}")
-        print(sample_sheet)
     else:
         print('Sorry, other options not supported yet.')
         
     
     """
     from fastq:
-    input - path to folder with raw fastq files
-    generate sample_id_list (use aquamis script for sample id generation from different fastq formats)    qsub bact_core
+    V input - path to folder with raw fastq files
+    V generate sample_id_list (use aquamis script for sample id generation from different fastq formats)    
+    V qsub bact_core
         check output for each sample in id list (add status and check_note column to sample_list to indicate if check is succesful and add more information if it is not): 
             status:
                 fail - cannot continue (check_note: missing <file_name> from <step_name> conducted by <module name>)
