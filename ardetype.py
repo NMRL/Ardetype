@@ -4,6 +4,7 @@ Date: 2022-04-27
 Version: 0.0
 """
 import os, sys, re, argparse, yaml, subprocess, pandas as pd
+from more_itertools import sample
 from unicodedata import name
 
 ###Architecture
@@ -127,7 +128,7 @@ def parse_arguments():
 def parse_folder(folder_pth_str, file_fmt_str, substr_lst=None, regstr_lst=None):
     '''
     Given path to the folder (folder_pth_str) and file format (file_fmt_str), returns a list, 
-    containing absolute paths of all files of specified format found in folder and subfolders,
+    containing absolute paths to all files of specified format found in folder and subfolders,
     except for files that contain patterns to exclude (specified in regstr_lst) or substrings to exclude (specified in substr_lst).    
     '''
     name_series = pd.Series(dtype="str") #initialize pandas series to store path values
@@ -135,7 +136,7 @@ def parse_folder(folder_pth_str, file_fmt_str, substr_lst=None, regstr_lst=None)
         new_files = pd.Series(files, dtype="str") #convert file names in new folder to pandas series
         new_files = new_files[new_files.str.contains(file_fmt_str)] #keep only paths to files of specifed format
         new_files = f"{os.path.abspath(root)}/"  + new_files #append absolute path to the file
-        if all((None not in (substr_lst, regstr_lst), len(substr_lst) + len(substr_lst) > 0)): #if both regex and substring filters provided
+        if substr_lst is not None and regstr_lst is not None and (len(substr_lst) + len(substr_lst) > 0): #if both regex and substring filters provided
             new_files = new_files[~new_files.str.contains('|'.join(substr_lst+regstr_lst))].reset_index(drop=True)
         elif regstr_lst is not None and len(regstr_lst) > 0: #if only regex filters provided
             if len(regstr_lst) > 1: #checking single filter case
@@ -151,11 +152,36 @@ def parse_folder(folder_pth_str, file_fmt_str, substr_lst=None, regstr_lst=None)
     return name_series.tolist()
 
 
-def create_sample_sheet(file_lst, generic_str=None, regex_str=None):
+
+def create_sample_sheet(file_lst, generic_str, regex_str=None, mode=0):
     """
-    Given (list) of paths to files and a generic part of the file name (e.g. _contigs.fasta or _R{1,2}_001.fastq.gz string)
-    or sample_id regex pattern (regex string), returns pandas dataframe with sample_id column and one (fa for fasta) or two (fq1 fq2, for fastq) file path columns. 
+    Given (list) of paths to files and a generic part of the file name (e.g. _contigs.fasta or _R[1,2]_001.fastq.gz string, regex expected for fastq), mode value (int 1 for fasta, 0 (default) for fastq)
+    and a sample_id regex pattern to exclude (regex string), returns pandas dataframe with sample_id column and one (fa for fasta) or two (fq1 fq2, for fastq) file path columns. 
     """
+    file_series = pd.Series(file_lst, dtype="str") #to fascilitate filtering
+    ss_df = pd.DataFrame(dtype="str") #to store sample sheet
+    assert mode in [0,1], f"Accepted mode values are 0 for fasta and 1 for fastq: {mode} was given."
+    if mode == 1:  #If function is used to produce sample sheet from fasta files
+        id_extractor = lambda x: os.path.basename(x).replace(generic_str, "") #extract id from string by replacing generic part
+        id_series = file_series.apply(id_extractor) 
+        if regex_str is not None: 
+            id_series = id_series[id_series.str.contains(regex_str)] #additional sample id filtering based on regex was requested
+            assert len(id_series) > 0, 'After filtering sample ids using regex no sample ids left'
+        path_series = file_series[file_series.str.contains("|".join(id_series))].reset_index(drop=True) #getting corresponding paths to fastq files
+        ss_df['sample_id'], ss_df['fa'] = id_series, path_series #adding to sample sheet dataframe
+        return ss_df
+    id_extractor = lambda x: re.sub(generic_str,"",os.path.basename(x)) #extract id from string by using regex
+    id_series = file_series.apply(id_extractor).drop_duplicates(keep = "first").sort_values().reset_index(drop=True)
+    if regex_str is not None: #additional sample id filtering based on regex was requested
+        id_series = id_series[id_series.str.contains(regex_str)]
+        assert len(id_series) > 0, 'After filtering sample ids using regex no sample ids left'
+    read_1_paths, read_2_paths = [], []
+    for id in id_series: #getting corresponding paths to fastq files
+        read_files = file_series[file_series.str.contains(id)].reset_index(drop=True).sort_values().reset_index(drop=True)
+        read_1_paths.append(read_files[0]), read_2_paths.append(read_files[1])
+    ss_df['sample_id'], ss_df['fq1'], ss_df['fq2'] = id_series, read_1_paths, read_2_paths #adding to sample sheet dataframe
+    return ss_df
+
 
 def edit_sample_sheet():
     """
@@ -207,9 +233,13 @@ def submit_module_job():
 if __name__ == "__main__":
     args = parse_arguments()
     if args.mode == "core":
-        fastq_list = parse_folder(args.fastq,'.fastq.gz')
-        print(fastq_list)
-        
+        file_list = parse_folder(args.fastq,'.fastq.gz')
+        fastq_formats = "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)"
+        try:
+            sample_sheet = create_sample_sheet(file_list, fastq_formats, mode=0)
+        except AssertionError as msg:
+            print(f"Sample sheet generation error: {msg}")
+        print(sample_sheet)
     else:
         print('Sorry, other options not supported yet.')
         
