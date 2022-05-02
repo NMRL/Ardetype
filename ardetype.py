@@ -4,6 +4,7 @@ Date: 2022-04-27
 Version: 0.0
 """
 import os, sys, re, argparse, yaml, subprocess, pandas as pd
+from unicodedata import name
 
 ###Architecture
 """
@@ -125,39 +126,29 @@ def parse_arguments():
 
 def parse_folder(folder_pth_str, file_fmt_str, substr_lst=None, regstr_lst=None):
     '''
-    Given path to the folder (str) and file format (str), returns a list, 
-    containing paths of all files of specified format found in folder and subfolders,
-    except for files that contain patterns to exclude (regex string list) or substrings to exclude (list of strings).    
+    Given path to the folder (folder_pth_str) and file format (file_fmt_str), returns a list, 
+    containing absolute paths of all files of specified format found in folder and subfolders,
+    except for files that contain patterns to exclude (specified in regstr_lst) or substrings to exclude (specified in substr_lst).    
     '''
-    file_list = []
+    name_series = pd.Series(dtype="str") #initialize pandas series to store path values
     for (root,dirs,files) in os.walk(folder_pth_str, topdown=True): #get list of file paths (from parent dir & subdir)
-        for name in files:
-            if (substr_lst is not None and regstr_lst is not None) and (len(substr_lst) + len(substr_lst) > 0):
-                if file_fmt_str in name:
-                    name_series = pd.Series([name]) #convert to pandas series for faster substring search
-                    if any(name_series.str.contains('|'.join(substr_lst+regstr_lst))): continue #go to the next file name if it contains any of the substrings or matches one or more regex patterns
-                    file_list.append(os.path.join(root, name)) 
-            elif regstr_lst is not None and len(regstr_lst) > 0:
-                if file_fmt_str in name: 
-                    name_series = pd.Series([name]) #convert to pandas series for faster substring search
-                    if len(regstr_lst) > 1:
-                        if any(name_series.str.contains('|'.join(regstr_lst))): continue #go to the next file name if it contains any of the regex patterns
-                    else:
-                        if any(name_series.str.contains(regstr_lst[0])): continue #if there is only one regex pattern
-                    file_list.append(os.path.join(root, name)) #if flow of excecution is here, patterns were not detected
-            elif substr_lst is not None and len(substr_lst) > 0:
-                if file_fmt_str in name: 
-                    name_series = pd.Series([name]) #convert to pandas series for faster substring search
-                    if len(substr_lst) > 1:
-                        if any(name_series.str.contains('|'.join(substr_lst))): continue #go to the next file name if it contains any of the substrings
-                    else:
-                        if any(name_series.str.contains(substr_lst[0])): continue #if there is only one substring pattern
-                    file_list.append(os.path.join(root, name)) #if flow of excecution is here, patterns were not detected
+        new_files = pd.Series(files, dtype="str") #convert file names in new folder to pandas series
+        new_files = new_files[new_files.str.contains(file_fmt_str)] #keep only paths to files of specifed format
+        new_files = f"{os.path.abspath(root)}/"  + new_files #append absolute path to the file
+        if all((None not in (substr_lst, regstr_lst), len(substr_lst) + len(substr_lst) > 0)): #if both regex and substring filters provided
+            new_files = new_files[~new_files.str.contains('|'.join(substr_lst+regstr_lst))].reset_index(drop=True)
+        elif regstr_lst is not None and len(regstr_lst) > 0: #if only regex filters provided
+            if len(regstr_lst) > 1: #checking single filter case
+                new_files = new_files[~new_files.str.contains('|'.join(regstr_lst))].reset_index(drop=True)
             else:
-                if file_fmt_str in name: file_list.append(os.path.join(root, name))
-    return file_list
-                
-            
+                new_files = new_files[~new_files.str.contains(regstr_lst[0])].reset_index(drop=True)
+        elif substr_lst is not None and len(substr_lst) > 0: #if only substring filters provided
+            if len(substr_lst) > 1: #checking single filter case
+                new_files = new_files[~new_files.str.contains('|'.join(substr_lst))].reset_index(drop=True)
+            else:
+                new_files = new_files[~new_files.str.contains(substr_lst[0])].reset_index(drop=True)
+        name_series = name_series.append(new_files).reset_index(drop=True) #aggregating filtered paths
+    return name_series.tolist()
 
 
 def create_sample_sheet(file_lst, generic_str=None, regex_str=None):
