@@ -22,9 +22,9 @@ hamronization_sif:
 #########################
 # bact_core configuration
 #########################
-#List of target files supplied by the wrapper
+#List of target files and path to output folder supplied by the wrapper
 core_target_files:
-
+output_directory:
 
 core_tool_configs:
 #Configuration settings for each tool used by bact_core snakefile
@@ -32,6 +32,10 @@ core_tool_configs:
   fastp:
   kraken2:
   shovill:
+    minlen: 500
+    ram: 7
+    depth: 100
+
 
 #########################
 # bact_shell configuration

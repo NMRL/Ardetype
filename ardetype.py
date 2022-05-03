@@ -271,35 +271,46 @@ if __name__ == "__main__":
             print(f"Sample sheet generation error: {msg}")
 
         target_list = ['sample_sheet.csv']
-        template_list = ['_host_filtered_1.fastq.gz', '_host_filtered_2.fastq.gz', '_contings.fasta', '_contig_based_taxonomy']
+        template_list = [
+            "_host_filtered_1.fastq.gz",
+            "_host_filtered_2.fastq.gz", 
+            "_contings.fasta",
+            "_bact_reads_classified_1.fastq.gz", 
+            "_bact_reads_classified_2.fastq.gz",
+            "_bact_reads_unclassified_1.fastq.gz",
+            "_bact_reads_unclassified_2.fastq.gz",
+            "_kraken2_contigs_report.txt",
+            "_kraken2_host_filtering_report.txt"
+            ]
         [target_list.append(f'{args.output_dir}{id}{tmpl}') for id in sample_sheet['sample_id'] for tmpl in template_list]
         
         config_file = read_config(args.config)
         edit_config(config_file, "core_target_files", target_list)
+        edit_config(config_file, "output_directory", args.output_dir)
         try:
             write_config(config_file, f'{args.output_dir}config_core.yaml')
         except AssertionError as msg:
             print(f"Configuration file manipulation error: {msg}")
-        submit_module_job('core',f'{args.output_dir}config_core.yaml')
-        #https://pypi.org/project/qstat/ - for checking the output
+        # submit_module_job('core',f'{args.output_dir}config_core.yaml')
+        # #https://pypi.org/project/qstat/ - for checking the output
         
-        wake_up = False 
-        while not wake_up:
-            queue_info, job_info = qstat() #?
-            all_jobs = queue_info + job_info
-            for job in all_jobs:
-                if job['JB_name'] == 'ardetype' and job['@state'] == 'complete':
-                    wake_up = True
-                    break
-            if not wake_up: sleep(30)
+        # wake_up = False 
+        # while not wake_up:
+        #     queue_info, job_info = qstat() #?
+        #     all_jobs = queue_info + job_info
+        #     for job in all_jobs:
+        #         if job['JB_name'] == 'ardetype' and job['@state'] == 'complete':
+        #             wake_up = True
+        #             break
+        #     if not wake_up: sleep(30)
         
-        check_dict = check_module_output(file_list=target_list)
-        id_check_dict = {id:"" for id in sample_sheet['sample_id']} #?
-        for file in check_dict:
-            id_check_dict[file.split("_",1)[0]] += f"|{file}:{check_dict[file]}"
+        # check_dict = check_module_output(file_list=target_list)
+        # id_check_dict = {id:"" for id in sample_sheet['sample_id']} #?
+        # for file in check_dict:
+        #     id_check_dict[file.split("_",1)[0]] += f"|{file}:{check_dict[file]}"
         
-        sample_sheet = edit_sample_sheet(sample_sheet, id_check_dict, "check_note") #?
-        sample_sheet.to_csv(f"{args.output_dir}sample_sheet.csv", header=True, index=False)
+        # sample_sheet = edit_sample_sheet(sample_sheet, id_check_dict, "check_note") #?
+        # sample_sheet.to_csv(f"{args.output_dir}sample_sheet.csv", header=True, index=False)
 
 
     else:
