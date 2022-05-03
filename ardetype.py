@@ -110,7 +110,7 @@ def parse_arguments():
     #####Optional
     parser.add_argument('-c', '--config', metavar='\b', help = 'Path to the config file (if not supplied, the copy of the template config_modular.yaml will be used)', default="./config_modular.yaml", required=False)
     parser.add_argument('-r', '--skip_reporting', help = 'Use this flag to skip reporting trough bact_shape module (which will run by-default with any other option)', action='store_true')
-    parser.add_argument('-o', '--output_dir', metavar='\b', help = 'Path to the output directory where the results will be stored (./ardetype_output/ by-default).', default="./ardetype_output/", required=False)
+    parser.add_argument('-o', '--output_dir', metavar='\b', help = 'Path to the output directory where the results will be stored (ardetype_output/ by-default).', default="ardetype_output/", required=False)
 
     ###bact_core arguments
     #####Required
@@ -274,7 +274,7 @@ if __name__ == "__main__":
         template_list = [
             "_host_filtered_1.fastq.gz",
             "_host_filtered_2.fastq.gz", 
-            "_contings.fasta",
+            "_contigs.fasta",
             "_bact_reads_classified_1.fastq.gz", 
             "_bact_reads_classified_2.fastq.gz",
             "_bact_reads_unclassified_1.fastq.gz",
@@ -283,7 +283,7 @@ if __name__ == "__main__":
             "_kraken2_host_filtering_report.txt"
             ]
         [target_list.append(f'{args.output_dir}{id}{tmpl}') for id in sample_sheet['sample_id'] for tmpl in template_list]
-        
+        target_list.remove("sample_sheet.csv")
         config_file = read_config(args.config)
         edit_config(config_file, "core_target_files", target_list)
         edit_config(config_file, "output_directory", args.output_dir)

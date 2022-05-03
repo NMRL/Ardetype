@@ -1,18 +1,25 @@
-configfile: 'config_modular.yaml'
-
 #imports
 import pandas as pd, os
 
 #read sample sheet
-sample_sheet = pd.read_csv(f"{config['output_dir']}sample_sheet.csv", header=True)
+sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
 #move input files to data folder
-for r1, r2 in zip(sample_sheet["fq1"], sample_sheet["fq2"]):
-    os.system(f"mv {r1} ../data/")
-    os.system(f"mv {r2} ../data/")
+for i,r1 in enumerate(sample_sheet["fq1"]):
+    os.system(f"mv {r1} data/")
+    os.system(f"mv {sample_sheet['fq2'][i]} data/")
 
 #define sample_id_pattern wildcard
-sip_wild = '../data/{sample_id_pattern}(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)"
+sip_wild = 'data/{sample_id_pattern}(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)'
+
+data_contents = os.listdir("data/")
+for idx, id in enumerate(sample_sheet["sample_id"]):
+    for file in data_contents:
+        if id in file:
+            os.system(f"mv data/{file} {os.path.dirname(sample_sheet['fq1'][idx])}")
+
+for target in config["core_target_files"]:
+    print(target)
 
 #AGGREGATION RULE
 rule all:
@@ -24,9 +31,9 @@ rule all:
 #READ LENGTH & QUALITY TRIMMING
 rule quality_control:
     input:
-        sif_file = config['snakemake_sif'],
-        read_1 = expand("{read_1}", read_1=sample_sheet['fq1']),
-        read_2 = expand("{read_2}", read_2=sample_sheet['fq2'])
+        sif_file = config["snakemake_sif"],
+        read_1 = expand("{r_1}", r_1=sample_sheet['fq1']),
+        read_2 = expand("{r_2}", r_2=sample_sheet['fq2'])
     threads: 4
     envmodules:
         'singularity'
@@ -35,8 +42,8 @@ rule quality_control:
     output: 
         temp('{sample_id_pattern}.fastp.json'),
         temp('{sample_id_pattern}.fastp.html'),
-        read_1_tr = f"{config['output_directory']}"+'{sample_id_pattern}_fastp.fastq.gz'),
-        read_2_tr = f"{config['output_directory']}"+'{sample_id_pattern}_fastp.fastq.gz')
+        read_1_tr = config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz',
+        read_2_tr = config['output_directory']+'{sample_id_pattern}_fastp_2.fastq.gz'
     shell:
         'singularity run {input.sif_file} fastp -j {wildcards.sample_id_pattern}.fastp.json -h {wildcards.sample_id_pattern}.fastp.html --in1 {input.read_1} --in2 {input.read_2} --out1 {output.read_1_tr} --out2 {output.read_2_tr} --thread {threads}'
 
@@ -44,41 +51,41 @@ rule quality_control:
 rule filter_host:
     input:
         #quality-trimmed reads
-        read_1 = f"{config['output_directory']}"+'{sample_id_pattern}_fastp.fastq.gz'),
-        read_2 = f"{config['output_directory']}"+'{sample_id_pattern}_fastp.fastq.gz')
+        read_1 = config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz',
+        read_2 = config['output_directory']+'{sample_id_pattern}_fastp_2.fastq.gz',
         output_dir = config['output_directory']
     output:
         #host reads (temp)
-        temp(f"{config['output_directory']}"+'{sample_id_pattern}_host_1.fastq'),
-        temp(f"{config['output_directory']}"+'{sample_id_pattern}_host_2.fastq'),
+        temp(config['output_directory']+'{sample_id_pattern}_host_1.fastq'),
+        temp(config['output_directory']+'{sample_id_pattern}_host_2.fastq'),
         #sample reads 
-        sample_1 = f"{config['output_directory']}"+'{sample_id_pattern}_sample_1.fastq.gz',
-        sample_2 = f"{config['output_directory']}"+'{sample_id_pattern}_sample_2.fastq.gz',
-        report_name = f"{config['output_directory']}"+'{sample_id_pattern}_contigs/{sample_id_pattern}_kraken2_host_filtering_report.txt'
+        sample_1 = config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz',
+        sample_2 = config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz',
+        report_name = config['output_directory']+'{sample_id_pattern}_kraken2_host_filtering_report.txt'
     threads: 48
     conda:
-        kraken2_env
+        config["kraken2_env"]
     shell:
         """ 
-        kraken2 --threads 48 --db /mnt/home/groups/nmrl/db/db-kraken2/human_reference/ --classified-out ../data/{wildcards.sample_id_pattern}_host#.fastq --unclassified-out {input.output_dir}{wildcards.sample_id_pattern}_sample#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
-        pigz ../data/{wildcards.sample_id_pattern}_sample_1.fastq
-        pigz ../data/{wildcards.sample_id_pattern}_sample_2.fastq
+        kraken2 --threads 48 --db /mnt/home/groups/nmrl/db/db-kraken2/human_reference/ --classified-out data/{wildcards.sample_id_pattern}_host#.fastq --unclassified-out {input.output_dir}{wildcards.sample_id_pattern}_host_filtered#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
+        pigz data/{wildcards.sample_id_pattern}_host_filtered_1.fastq
+        pigz data/{wildcards.sample_id_pattern}_host_filtered_2.fastq
         """
 
 #GENERATING CONTIGS FROM READS
 rule contig_assembly:
     input:
-        sif_file = snakemake_sif,
-        read_1 = f"{config['output_directory']}"+'{sample_id_pattern}_sample_1.fastq.gz',
-        read_2 = f"{config['output_directory']}"+'{sample_id_pattern}_sample_2.fastq.gz'
+        sif_file = config["snakemake_sif"],
+        read_1 = config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz',
+        read_2 = config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz',
         output_dir = config["output_directory"]
     output:
-        temp(f"{config['output_directory']}"+'{sample_id_pattern}_contigs/contigs.fa')
+        temp(config['output_directory']+'{sample_id_pattern}_contigs/contigs.fa')
     envmodules:
         'singularity'
     threads: 4
     benchmark:
-        temp(f"{config['output_directory']}"+'benchmarks/{sample_id_pattern}.shovill.benchmark.txt')
+        temp(config['output_directory']+'benchmarks/{sample_id_pattern}.shovill.benchmark.txt')
     shell:
         'singularity run {input.sif_file} shovill --depth {config[core_tool_configs][shovill][depth]} --ram {config[core_tool_configs][shovill][ram]} --minlen {config[core_tool_configs][shovill][minlen]} --force --outdir {input.output_dir}{wildcards.sample_id_pattern}_contigs --R1 {input.read_1} --R2 {input.read_2}'
 
@@ -86,35 +93,34 @@ rule contig_assembly:
 #RENAMING CONTINGS
 rule contig_id:
     input:
-        f"{config['output_directory']}"+'{sample_id_pattern}_fastp.fastq.gz',
-        cnt = f'{config["output_directory"]}'+'{sample_id_pattern}_contigs/contigs.fa'
-        output_dir = config["output_directory"]
+        config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz',
+        cnt = f'{config["output_directory"]}'+'{sample_id_pattern}_contigs/contigs.fa',
     envmodules:
         'singularity'
     output:
-        '{input.output_dir}{sample_id_pattern}_contigs/{sample_id_pattern}_contigs.fasta'
+        contigs = config['output_directory']+'{sample_id_pattern}_contigs.fasta'
     shell:
-        'mv {input.cnt} {output}'
+        'mv {input.cnt} {output.contigs}'
 
 
 #RUN KRAKEN2 TO CLASSIFY BACTERIAL READS USING INHOUSE-BUILT DATABASE
 rule classify_reads:
     input:
         #quality-trimmed reads
-        read_1 = f"{config['output_directory']}"+'{sample_id_pattern}_fastp.fastq.gz',
-        read_2 = f"{config['output_directory']}"+'{sample_id_pattern}_fastp.fastq.gz'
+        read_1 = config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz',
+        read_2 = config['output_directory']+'{sample_id_pattern}_fastp_2.fastq.gz',
         output_dir = config["output_directory"]
     output:
         #classified reads
-        f"{config['output_directory']}"+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
-        f"{config['output_directory']}"+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        config['output_directory']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        config['output_directory']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
         #unclassified reads 
-        f"{config['output_directory']}"+'{sample_id_pattern}_bact_reads_unclassified_1.fastq.gz',
-        f"{config['output_directory']}"+'{sample_id_pattern}_bact_reads_unclassified_2.fastq.gz',
-        report_name = f"{config['output_directory']}"+'{sample_id_pattern}_kraken2_reads_report.txt'
+        config['output_directory']+'{sample_id_pattern}_bact_reads_unclassified_1.fastq.gz',
+        config['output_directory']+'{sample_id_pattern}_bact_reads_unclassified_2.fastq.gz',
+        report_name = config['output_directory']+'{sample_id_pattern}_kraken2_reads_report.txt'
     threads: 48
     conda:
-        kraken2_env
+        config["kraken2_env"]
     shell:
         """ 
         kraken2 --threads 48 --db /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/ --classified-out {input.output_dir}{wildcards.sample_id_pattern}_bact_reads_classified#.fastq --unclassified-out {input.output_dir}{wildcards.sample_id_pattern}_bact_reads_unclassified#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
@@ -129,13 +135,13 @@ rule classify_reads:
 rule classify_contigs:
     input:
         #quality-trimmed reads
-        contigs = f"{config['output_directory']}"+'{sample_id_pattern}_contigs/{sample_id_pattern}_contigs.fasta'
+        contigs = config['output_directory']+'{sample_id_pattern}_contigs.fasta',
         output_dir = config["output_directory"]
     output:
-        report_name = f"{config['output_directory']}"+'{sample_id_pattern}_kraken2_contigs_report.txt'
+        report_name = config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt'
     threads: 48
     conda:
-        kraken2_env
+        config["kraken2_env"]
     shell:
         """ 
         kraken2 --threads 48 --db /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/ --report {output.report_name} {input.contigs}
