@@ -42,7 +42,7 @@ singularity run ${sistr_path} sistr --qc -f csv -o ~/test/sistr/${sample_id::-6}
 # -f output format
 
 #seqsero2
-# singularity run ${seqsero2_path} SeqSero2_package.py -d ~/test/seqsero2/${sample_id::-6} -n ${sample_id::-6} -p 16 -t 2 -i ~/test/$(basename ${read_1}) ~/test/$(basename ${read_2})
+singularity run ${seqsero2_path} SeqSero2_package.py -d ~/test/seqsero2/${sample_id::-6} -n ${sample_id::-6} -p 16 -t 2 -i ~/test/$(basename ${read_1}) ~/test/$(basename ${read_2})
 # -t paired-end reads
 # -n sample name
 # -p threads
@@ -51,4 +51,3 @@ singularity run ${sistr_path} sistr --qc -f csv -o ~/test/sistr/${sample_id::-6}
 mv ~/test/$(basename ${read_1}) ${read_1}
 mv ~/test/$(basename ${read_2}) ${read_2}
 mv ~/test/$(basename ${contigs}) ${contigs}
-

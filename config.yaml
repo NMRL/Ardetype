@@ -1,7 +1,7 @@
 home_dir:
     ~/bact_output/
 target_dir:
-    /home/groups/nmrl/bact_analysis/bact_input/test/
+    /home/groups/nmrl/bact_analysis/bact_input/2022-03-07-nmrl-qfxdna-mi-p150-BA00001_2022-03-09-nmrl-qfxdna-mi-p150-BA00001/
 kfinder_threads: 5
 kfinder_db: bacteria
 shovill_params:
