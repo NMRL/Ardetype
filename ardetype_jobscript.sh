@@ -21,6 +21,6 @@ snakemake --snakefile ${snakefile} --configfile ${config_file} --keep-going --us
 #--rerun-incomplete - to avoid breaking while testing
 #--forceall --rulegraph | dot -Tpdf > dag.pdf - to visualize jobs as graph in pdf format
 #Attempts to run in cluster mode on snakemake 7.6.1 result in:
-    # socket_connect_unix failed: 15137
+    # socket_connect_unix failed: 15137 (CANNOT SUBMIT JOBS FROM WORKING NODES)
     # qsub: cannot connect to server (null) (errno=15137) could not connect to trqauthd
     # Error submitting jobscript (exit code 33):
