@@ -3,9 +3,11 @@ This is a wrapper script of ARDETYPE(?) pipeline.
 Date: 2022-05-02
 Version: 0.0
 """
-import os, sys, re, argparse, yaml, subprocess, pandas as pd, shutil
-from time import sleep
-from qstat import qstat
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+import os, sys, re, argparse, yaml, subprocess, pandas as pd, shutil, time
+from getpass import getuser
+
 
 ###Architecture
 """
@@ -86,10 +88,6 @@ def parse_arguments():
     Parse pre-defined set of arguments from the command line, returning a namespace (object),
     that allows accessing arguments as instance variables of namespace by their full name.
     """    
-    #Useful links:
-    ###Argparse docs (https://docs.python.org/3/library/argparse.html)
-    ###String editing within argparse: https://qa.ostack.cn/qa/?qa=985730/
-
     ###Parsers
     parser = argparse.ArgumentParser(description='This is a wrapper script of ARDETYPE pipeline.', formatter_class=argparse.RawTextHelpFormatter)
     req_arg_grp = parser.add_argument_group('required arguments') #to display argument under required header in help message
@@ -99,10 +97,10 @@ def parse_arguments():
     req_arg_grp.add_argument('-m', '--mode',
         metavar='\b',
         help = """Selecting mode that allows to run specific modules of the pipeline:
-        all - run all modules (starting from fastq files)
-        core - run only bact_core module (starting from fastq files)
-        shell - run only bact_shell module (starting from fasta file)
-        shell_tip - run bact_shell and bact_tip modules (starting from fasta file)
+        all - run all modules (starting from fastq files) (not active)
+        core - run only bact_core module (starting from fastq files) 
+        shell - run only bact_shell module (starting from fasta file) (not active)
+        shell_tip - run bact_shell and bact_tip modules (starting from fasta file) (not active)
          """,
         default=None,
         required=True)
@@ -115,7 +113,6 @@ def parse_arguments():
     ###bact_core arguments
     #####Required
     req_arg_grp.add_argument('-f', '--fastq', metavar='\b', help = 'Path to directory that contains fastq files to be analysed (all files in subdirectories are included).', default=None, required=True)
-    
     #####Optional
 
     ###If no command-line arguments provided - display help and stop script excecution
@@ -245,7 +242,7 @@ def write_config(config_dict, config_path):
 def submit_module_job(module_name, config_path):
     """
     Given snakemake module name (str) and path to the config file, edit submition code string (bash template, hardcoded or read from file), 
-    create temporary job script (removed after submission) and perform job submition to RTU HPC cluster.
+    create temporary job script (removed after submission) and perform job submition to RTU HPC cluster, returning bytestring, representing job id.
     """
     modules = {
         "core":os.path.abspath("./snakefiles/bact_core"),
@@ -253,10 +250,28 @@ def submit_module_job(module_name, config_path):
         "tip":os.path.abspath("./snakefiles/bact_tip"),
         "shape":os.path.abspath("./snakefiles/bact_shape")
     }
-    shutil.copy('./ardetype_jobscript.sh', args.output_dir)
-    subprocess.check_call(['qsub', '-F', f'{modules[module_name]} {config_path}', f'{args.output_dir}ardetype_jobscript.sh'])
-    os.remove(f'{args.output_dir}ardetype_jobscript.sh')
-    
+    shutil.copy('./ardetype_jobscript.sh', f'{args.output_dir}ardetype_jobscript.sh')
+    job_id = subprocess.check_output(['qsub', '-F', f'{modules[module_name]} {config_path}', f'{args.output_dir}ardetype_jobscript.sh'])
+    os.system(f"rm {args.output_dir}ardetype_jobscript.sh")
+    return job_id
+
+
+def check_job_completion(job_id, module_name, job_name="ardetype", sleeping_time=150):
+    """
+    Given job id (bytestring) and sleeping time (in seconds) between checks (int), module name (str) and job name (str),
+    checks if the job is complete every n seconds. Waiting is finished when the job status is C (complete).
+    """
+    search_string = f"{job_id.decode('UTF-8').strip()}.*{job_name}.*{getuser()}.*[RCQ]"
+    print(f'Going to sleep until ardetype/{module_name}/{job_id.decode("UTF-8").strip()} job is finished')
+    while True:
+        qstat = os.popen("qstat").read()
+        check_job = re.search(search_string,qstat).group(0)
+        print(f"{check_job} : {time.ctime(time.time())}")
+        if check_job[-1] == "C":
+            print(f'Finished waiting: ardetype/{module_name}/{job_id.decode("UTF-8").strip()} is complete')
+            break
+        time.sleep(sleeping_time)
+
 
 if __name__ == "__main__":
     args = parse_arguments()
@@ -272,8 +287,6 @@ if __name__ == "__main__":
 
         target_list = ['sample_sheet.csv']
         template_list = [
-            "_host_filtered_1.fastq.gz",
-            "_host_filtered_2.fastq.gz", 
             "_contigs.fasta",
             "_bact_reads_classified_1.fastq.gz", 
             "_bact_reads_classified_2.fastq.gz",
@@ -291,38 +304,16 @@ if __name__ == "__main__":
             write_config(config_file, f'{args.output_dir}config_core.yaml')
         except AssertionError as msg:
             print(f"Configuration file manipulation error: {msg}")
-        # submit_module_job('core',f'{args.output_dir}config_core.yaml')
-        # #https://pypi.org/project/qstat/ - for checking the output
-        
-        # wake_up = False 
-        # while not wake_up:
-        #     queue_info, job_info = qstat() #?
-        #     all_jobs = queue_info + job_info
-        #     for job in all_jobs:
-        #         if job['JB_name'] == 'ardetype' and job['@state'] == 'complete':
-        #             wake_up = True
-        #             break
-        #     if not wake_up: sleep(30)
-        
-        # check_dict = check_module_output(file_list=target_list)
-        # id_check_dict = {id:"" for id in sample_sheet['sample_id']} #?
-        # for file in check_dict:
-        #     id_check_dict[file.split("_",1)[0]] += f"|{file}:{check_dict[file]}"
-        
-        # sample_sheet = edit_sample_sheet(sample_sheet, id_check_dict, "check_note") #?
-        # sample_sheet.to_csv(f"{args.output_dir}sample_sheet.csv", header=True, index=False)
+        job_id = submit_module_job('core',f'{os.path.abspath(args.output_dir)}/config_core.yaml')
+        check_job_completion(job_id,"bact_core",sleeping_time=5)
 
-
+        check_dict = check_module_output(file_list=target_list)
+        id_check_dict = {id:"" for id in sample_sheet['sample_id']}
+        for file in check_dict:
+            split = file.split("/",1)[1]
+            id_check_dict[split.split("_",1)[0]] += f"|{split}:{check_dict[file]}"
+        
+        sample_sheet = edit_sample_sheet(sample_sheet, id_check_dict, "check_note")
+        sample_sheet.to_csv(f"{args.output_dir}sample_sheet.csv", header=True, index=False)
     else:
         print('Sorry, other options not supported yet.')
-        
-    
-    """
-    from fastq:
-    V input - path to folder with raw fastq files
-    V generate sample_id_list (use aquamis script for sample id generation from different fastq formats)    
-    V qsub bact_core
-        check output for each sample in id list (add status and check_note column to sample_list to indicate if check is succesful and add more information if it is not): 
-    bact_core itself will generate template string that contains all wildcards to be used by the bact_core rules
-        example: '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta' 
-    """
