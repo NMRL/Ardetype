@@ -8,11 +8,19 @@
 #PBS -A rakus
 
 eval "$(conda shell.bash hook)"
-conda activate /mnt/home/jevgen01/.conda/envs/mamba_env/envs/snakemake
+DEFAULT_ENV=/mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake
+conda activate $DEFAULT_ENV
 snakefile=${1}
 config_file=${2}
+
 snakemake --snakefile ${snakefile} --configfile ${config_file} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --cores 48 --latency-wait 30
+#-np - dry run (for testing purposes)
 #--keep-going - continue excecution if job fails
 #--use-envmodules - to load singularity
 #--conda-frontend conda - to use conda package manager (snakemake default is mamba)
 #--rerun-incomplete - to avoid breaking while testing
+#--forceall --rulegraph | dot -Tpdf > dag.pdf - to visualize jobs as graph in pdf format
+#Attempts to run in cluster mode on snakemake 7.6.1 result in:
+    # socket_connect_unix failed: 15137
+    # qsub: cannot connect to server (null) (errno=15137) could not connect to trqauthd
+    # Error submitting jobscript (exit code 33):

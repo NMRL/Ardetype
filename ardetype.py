@@ -1,6 +1,6 @@
 """
-This is a wrapper script of ARDETYPE(?) pipeline.
-Date: 2022-05-02
+This is a wrapper script of ARDETYPE pipeline.
+Date: 2022-05-05
 Version: 0.0
 """
 import warnings
@@ -109,7 +109,7 @@ def parse_arguments():
     parser.add_argument('-c', '--config', metavar='\b', help = 'Path to the config file (if not supplied, the copy of the template config_modular.yaml will be used)', default="./config_modular.yaml", required=False)
     parser.add_argument('-r', '--skip_reporting', help = 'Use this flag to skip reporting trough bact_shape module (which will run by-default with any other option)', action='store_true')
     parser.add_argument('-o', '--output_dir', metavar='\b', help = 'Path to the output directory where the results will be stored (ardetype_output/ by-default).', default="ardetype_output/", required=False)
-
+    parser.add_argument('-s', '--install_snakemake', help = 'Use this flag to install mamba and snakemake for the current HPC user, if it is not already installed.', action='store_true')
     ###bact_core arguments
     #####Required
     req_arg_grp.add_argument('-f', '--fastq', metavar='\b', help = 'Path to directory that contains fastq files to be analysed (all files in subdirectories are included).', default=None, required=True)
@@ -239,7 +239,7 @@ def write_config(config_dict, config_path):
         yaml.dump(config_dict,config_handle)
 
 
-def submit_module_job(module_name, config_path):
+def submit_module_job(module_name, config_path, output_dir):
     """
     Given snakemake module name (str) and path to the config file, edit submition code string (bash template, hardcoded or read from file), 
     create temporary job script (removed after submission) and perform job submition to RTU HPC cluster, returning bytestring, representing job id.
@@ -250,16 +250,21 @@ def submit_module_job(module_name, config_path):
         "tip":os.path.abspath("./snakefiles/bact_tip"),
         "shape":os.path.abspath("./snakefiles/bact_shape")
     }
-    shutil.copy('./ardetype_jobscript.sh', f'{args.output_dir}ardetype_jobscript.sh')
-    job_id = subprocess.check_output(['qsub', '-F', f'{modules[module_name]} {config_path}', f'{args.output_dir}ardetype_jobscript.sh'])
-    os.system(f"rm {args.output_dir}ardetype_jobscript.sh")
+    shutil.copy('./ardetype_jobscript.sh', f'{output_dir}ardetype_jobscript.sh')
+
+    try:
+        job_id = subprocess.check_output(['qsub', '-F', f'{modules[module_name]} {config_path}', f'{output_dir}ardetype_jobscript.sh'])
+    except subprocess.CalledProcessError as msg:
+        sys.exit(f"Job submission error: {msg}")
+    os.system(f"rm {output_dir}ardetype_jobscript.sh")
     return job_id
 
 
-def check_job_completion(job_id, module_name, job_name="ardetype", sleeping_time=150):
+def check_job_completion(job_id, module_name, job_name="ardetype", sleeping_time=150, output_dir=None):
     """
     Given job id (bytestring) and sleeping time (in seconds) between checks (int), module name (str) and job name (str),
-    checks if the job is complete every n seconds. Waiting is finished when the job status is C (complete).
+    checks if the job is complete every n seconds. Waiting is finished when the job status is C (complete). Optionally, 
+    path to output directory (str) may be given to move the file with the job standard output to it.
     """
     search_string = f"{job_id.decode('UTF-8').strip()}.*{job_name}.*{getuser()}.*[RCQ]"
     print(f'Going to sleep until ardetype/{module_name}/{job_id.decode("UTF-8").strip()} job is finished')
@@ -271,10 +276,34 @@ def check_job_completion(job_id, module_name, job_name="ardetype", sleeping_time
             print(f'Finished waiting: ardetype/{module_name}/{job_id.decode("UTF-8").strip()} is complete')
             break
         time.sleep(sleeping_time)
+    if output_dir is not None:
+        job_report = f"{job_name}.o{job_id.decode('UTF-8').strip().split('.')[0]}"
+        os.system(f"mv {job_report} {output_dir}/{module_name}_{job_name}_{job_id.decode('UTF-8').strip()}.txt")
+
+
+def install_snakemake():
+    '''Function is used as a wrapper for bash script that checks if snakemake is installed and installs if absent.'''
+    os.system(
+    '''
+    eval "$(conda shell.bash hook)"
+    DEFAULT_ENV=/mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake
+    SEARCH_SNAKEMAKE=$(conda env list | grep ${DEFAULT_ENV})
+    if [ ${SEARCH_SNAKEMAKE} -ef ${DEFAULT_ENV} ]; then
+        echo Running with --install_snakemake flag: Snakemake is already installed for this user
+    else
+        echo Running with --install_snakemake flag:
+        conda install -n mamba_env -c conda-forge mamba
+        mamba create -c conda-forge -c bioconda -n snakemake snakemake
+        conda activate snakemake
+    fi    
+    '''
+    )
 
 
 if __name__ == "__main__":
     args = parse_arguments()
+    if args.install_snakemake:
+        install_snakemake()
     if args.mode == "core":
         file_list = parse_folder(args.fastq,'.fastq.gz')
         try:
@@ -294,7 +323,7 @@ if __name__ == "__main__":
             "_bact_reads_unclassified_2.fastq.gz",
             "_kraken2_contigs_report.txt",
             "_kraken2_host_filtering_report.txt"
-            ]
+        ]
         [target_list.append(f'{args.output_dir}{id}{tmpl}') for id in sample_sheet['sample_id'] for tmpl in template_list]
         target_list.remove("sample_sheet.csv")
         config_file = read_config(args.config)
@@ -304,8 +333,8 @@ if __name__ == "__main__":
             write_config(config_file, f'{args.output_dir}config_core.yaml')
         except AssertionError as msg:
             print(f"Configuration file manipulation error: {msg}")
-        job_id = submit_module_job('core',f'{os.path.abspath(args.output_dir)}/config_core.yaml')
-        check_job_completion(job_id,"bact_core",sleeping_time=5)
+        job_id = submit_module_job('core',f'{os.path.abspath(args.output_dir)}/config_core.yaml', args.output_dir)
+        check_job_completion(job_id,"bact_core",sleeping_time=5,output_dir=args.output_dir)
 
         check_dict = check_module_output(file_list=target_list)
         id_check_dict = {id:"" for id in sample_sheet['sample_id']}
