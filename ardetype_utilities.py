@@ -182,9 +182,9 @@ def install_snakemake():
 
 def run_module_cluster(module_name, config_path, cluster_config, job_count):
     '''
-    Given snakemake module name (str) and path to the config file (str), path to the cluster config file (str),
-    number of jobs to run in parallel (int) and path to the directory where log file should be stored (str), 
-    runs module on the login node of the HPC cluster, allowing the snakemake to do job submissions to the computing nodes automatically.     
+    Given snakemake module name (str) and path to the config file (str), path to the cluster config file (str)
+    and the number of jobs to run in parallel (int)  runs module on the login node of the HPC cluster, 
+    allowing the snakemake to do job submissions to the computing nodes automatically.     
     '''
     modules = {
         "core":os.path.abspath("./snakefiles/bact_core"),
