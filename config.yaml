@@ -1,7 +1,7 @@
 home_dir:
     ~/bact_output/
 target_dir:
-    /home/groups/nmrl/bact_analysis/bact_input/2022-03-07-NMRL-qiagenfxdna-miseqdx-pe150/
+    /home/groups/nmrl/bact_analysis/bact_input/2022-05-05-mtb_second/
 kfinder_threads: 5
 kfinder_db: bacteria
 shovill_params:

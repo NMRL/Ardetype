@@ -1,0 +1,66 @@
+__default__:
+  jobname: "default"
+  nodes: 1
+  ppn: 1
+  pmem: "1000mb"
+  walltime: "00:05:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+  outdir: "ardetype_job_logs/"
+
+
+quality_control:
+  jobname: "ardetype.quality_control"
+  nodes: 1
+  ppn: 12
+  pmem: "1500mb"
+  walltime: "00:05:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+  outdir: "ardetype_job_logs/"
+
+filter_host:
+  jobname: "ardetype.filter_host"
+  nodes: 1
+  ppn: 12
+  pmem: "21333mb"
+  walltime: "00:40:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+  outdir: "ardetype_job_logs/"
+
+classify_reads:
+  jobname: "ardetype.classify_reads"
+  nodes: 1
+  ppn: 12
+  pmem: "42667mb"
+  walltime: "00:40:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+  outdir: "ardetype_job_logs/"
+
+classify_contigs:
+  jobname: "ardetype.classify_contigs"
+  nodes: 1
+  ppn: 49
+  pmem: "10667mb"
+  walltime: "00:40:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+  outdir: "ardetype_job_logs/"
+
+contig_assembly:
+  jobname: "ardetype.contig_assembly"
+  nodes: 1
+  ppn: 12
+  pmem: "1500mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+  outdir: "ardetype_job_logs/"

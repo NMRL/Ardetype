@@ -1,0 +1,74 @@
+###Architecture
+"""
+Pipeline can start from:
+    a. fastq files - run all, except demultiplexing module in core, run all or just perform assembly
+    b. contigs.fasta - run only shell, relevant tip modules and shape
+        shell + tip(+shape) - downstream agnostic + specific (option to report)
+        shell(+shape) - downstream agnostic (option to report)
+        tip(+shape) - downstream specific (option to report)
+    
+    *path to config file should be supplied as required argument
+        template config file will be stored in github repository
+        to use default settings - make a copy of the template (the file will be altered by the script)
+            edit configurations in the copy of the template if customization required
+            !As many options for as many tools should be accessible from config file
+
+Pipeline output structure:
+    bact_output/input_folder_name/
+        bact_core/
+            sample_id_raw fastq(excluding undetermined)
+            sample_id_host_filtered fastq
+            sample_id_contigs.fasta
+            sample_id_contig_based_taxonomy
+            sample_list (AQUAMIS format + majority genus from reads for each sample (kraken2))
+        bact_shell/
+            amr_pp/
+            resfinder/
+            kraken2_contigs/
+            quast/
+            mob_suite/
+            rgi/
+            mlst/
+        bact_tip/
+            based on kraken2_contigs output
+            specific molecular typing for detected bacterial species
+        bact_shape/
+            hamronization/
+            ...
+
+from fastq:
+    input - path to folder with raw fastq files
+    generate sample_id_list (use aquamis script for sample id generation from different fastq formats)    qsub bact_core
+        check output for each sample in id list (add status and check_note column to sample_list to indicate if check is succesful and add more information if it is not): 
+            status:
+                fail - cannot continue (check_note: missing <file_name> from <step_name> conducted by <module name>)
+                warning - can continue, except for some steps downstream (check_note: missing <file_name> from <step_name> conducted by <module name>, affecting <affected_step_name_1>... steps)
+                ok - can continue (check_note: empty)
+        sample_id_raw fastq (excluding undetermined) - ok/fail
+        sample_id_host_filtered fastq - ok/fail
+        sample_id_contigs.fasta - ok/fail
+        sample_id_contig_based_taxonomy - ok/warning
+        sample_list (AQUAMIS format + majority genus from reads for each sample (kraken2)) - ok/fail
+    bact_core itself will generate template string that contains all wildcards to be used by the bact_core rules
+        example: '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta' 
+
+from contigs.fasta:
+    input - path to contig file in fasta format named in format <sample_id>_contigs.fasta 
+    OR 
+    path to folder, containing multiple files named in format<sample_id>_contigs.fasta
+    generate sample_id_list
+        check file name format
+            print warnings for files that does not match specified format
+            if no file match format - exit with corresponding error message
+            else create aquamis format table
+                three columns with sample id and paths to 1st and 2nd fastq file:
+                    sample	fq1	fq2
+    bact_shell and other modules themselves will generate template strings that contains all wildcards to be used by the bact_shell, bact_tip & bact_shape rules
+        example: '{sample_id_pattern}-{reference_sequence_pattern}-scaffolds/{sample_id_pattern}-{reference_sequence_pattern}-ragtag.scaffold.fasta' 
+    if shell: qsub shell
+    if tip: qsub tip
+    check results
+        if results contain minimum reportable amount of data and reporting option selected
+            qsub shape
+            check results
+"""
