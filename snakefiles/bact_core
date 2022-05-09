@@ -38,8 +38,8 @@ rule quality_control:
     envmodules:
         'singularity'
     output: 
-        temp('{sample_id_pattern}.fastp.json'),
-        temp('{sample_id_pattern}.fastp.html'),
+        config['output_directory']+'{sample_id_pattern}.fastp.json',
+        config['output_directory']+'{sample_id_pattern}.fastp.html',
         read_1_tr = temp(config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz'),
         read_2_tr = temp(config['output_directory']+'{sample_id_pattern}_fastp_2.fastq.gz')
     shell:
