@@ -1,4 +1,4 @@
-import os, sys, yaml, subprocess, pandas as pd, shutil, time, re
+import os, sys, yaml, subprocess, pandas as pd, shutil, time, re, argparse
 from getpass import getuser
 
 def parse_folder(folder_pth_str, file_fmt_str, substr_lst=None, regstr_lst=None):
@@ -201,3 +201,45 @@ def run_module_cluster(module_name, config_path, cluster_config, job_count):
         subprocess.check_call(shell_command, shell=True)
     except subprocess.CalledProcessError as msg:
         sys.exit(f"Module process running error: {msg}")
+
+
+def parse_arguments():
+    """
+    Parse pre-defined set of arguments from the command line, returning a namespace (object),
+    that allows accessing arguments as instance variables of namespace by their full name.
+    """    
+    ###Parsers
+    parser = argparse.ArgumentParser(description='This is a wrapper script of ARDETYPE pipeline.', formatter_class=argparse.RawTextHelpFormatter)
+    req_arg_grp = parser.add_argument_group('required arguments') #to display argument under required header in help message
+    
+    ###generic arguments
+    #####Required
+    req_arg_grp.add_argument('-m', '--mode',
+        metavar='\b',
+        help = """Selecting mode that allows to run specific modules of the pipeline:
+        all - run all modules (starting from fastq files) (not active)
+        core - run only bact_core module (starting from fastq files) 
+        shell - run only bact_shell module (starting from fasta file) (not active)
+        shell_tip - run bact_shell and bact_tip modules (starting from fasta file) (not active)
+         """,
+        default=None,
+        required=True)
+
+    #####Optional
+    parser.add_argument('-c', '--config', metavar='\b', help = 'Path to the config file (if not supplied, the copy of the template config_modular.yaml will be used)', default="./config_modular.yaml", required=False)
+    parser.add_argument('-r', '--skip_reporting', help = 'Use this flag to skip reporting trough bact_shape module (which will run by-default with any other option)', action='store_true')
+    parser.add_argument('-o', '--output_dir', metavar='\b', help = 'Path to the output directory where the results will be stored (ardetype_output/ by-default).', default="ardetype_output/", required=False)
+    parser.add_argument('-s', '--install_snakemake', help = 'Use this flag to install mamba and snakemake for the current HPC user, if it is not already installed.', action='store_true')
+    parser.add_argument('-j', '--module_jobs', help='Use this flag to run modules as individual jobs on HPC (without submitting subjobs to computational nodes)', action='store_true')
+    ###bact_core arguments
+
+    #####Required
+    req_arg_grp.add_argument('-f', '--fastq', metavar='\b', help = 'Path to directory that contains fastq files to be analysed (all files in subdirectories are included).', default=None, required=True)
+    #####Optional
+
+    ###If no command-line arguments provided - display help and stop script excecution
+    if len(sys.argv)==1: 
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    args = parser.parse_args()
+    return args
