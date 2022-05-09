@@ -92,6 +92,8 @@ def read_config(config_path):
     return config_dict
 
 
+#ADD CONFIG VALIDATION FUNCTION
+
 def edit_config(config_dict, param, new_value):
     """
     Given a dictionary (dict) that is generated from config yaml file, a parameter that needs to be changes 
@@ -183,7 +185,7 @@ def install_snakemake():
 def run_module_cluster(module_name, config_path, cluster_config, job_count):
     '''
     Given snakemake module name (str) and path to the config file (str), path to the cluster config file (str)
-    and the number of jobs to run in parallel (int)  runs module on the login node of the HPC cluster, 
+    and the number of jobs to run in parallel (int) runs module on the login node of the HPC cluster, 
     allowing the snakemake to do job submissions to the computing nodes automatically.     
     '''
     modules = {
@@ -234,7 +236,7 @@ def parse_arguments():
     ###bact_core arguments
 
     #####Required
-    req_arg_grp.add_argument('-f', '--fastq', metavar='\b', help = 'Path to directory that contains fastq files to be analysed (all files in subdirectories are included).', default=None, required=True)
+    req_arg_grp.add_argument('-i', '--input', metavar='\b', help = 'Path to directory that contains files to be analysed (all files in subdirectories are included).', default=None, required=True)
     #####Optional
 
     ###If no command-line arguments provided - display help and stop script excecution

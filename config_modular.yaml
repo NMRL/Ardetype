@@ -40,9 +40,7 @@ core_tool_configs:
 #########################
 # bact_shell configuration
 #########################
-shell_target:
-  #List of target files supplied by the wrapper & wildcard definition strings
-  target_files:
+shell_target_files:
 
 shell_tool_configs:
 #Configuration settings for each tool used by bact_shell snakefile
