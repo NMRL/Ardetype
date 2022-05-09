@@ -1,7 +1,7 @@
 """
 This is a wrapper script of ARDETYPE pipeline.
-Date: 2022-05-06
-Version: 0.0
+Date: 2022-05-09
+Version: 0.1
 """
 import warnings, os, sys,  argparse
 from ardetype_utilities import *
@@ -55,8 +55,8 @@ if __name__ == "__main__":
         install_snakemake()
     if args.mode == "core":
         file_list = parse_folder(args.fastq,'.fastq.gz')
+        fastq_formats = "(_S[0-9]*_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_S[0-9]*_R[1,2]_001_unclassified_out)"
         try:
-            fastq_formats = "(_S[0-9]*_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_S[0-9]*_R[1,2]_001_unclassified_out)"
             sample_sheet = create_sample_sheet(file_list, fastq_formats, mode=0)
             os.system(f"mkdir -p {args.output_dir}")
             sample_sheet.to_csv(f"{args.output_dir}sample_sheet.csv", header=True, index=False)
@@ -97,7 +97,8 @@ if __name__ == "__main__":
 
         for file in check_dict:
             split = file.split("/",1)[1]
-            id_check_dict[split.split("_",1)[0]] += f"|{split}:{check_dict[file]}"
+            for tmpl in template_list: split = re.sub(tmpl,"",split)
+            id_check_dict[split] += f"|{split}:{check_dict[file]}"
         
         sample_sheet = edit_sample_sheet(sample_sheet, id_check_dict, "check_note")
         sample_sheet.to_csv(f"{args.output_dir}sample_sheet.csv", header=True, index=False)
