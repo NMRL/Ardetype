@@ -31,6 +31,7 @@ core_tool_configs:
   bam2fastq:
   fastp:
   kraken2:
+    threads: 12
   shovill:
     minlen: 500
     ram: 7

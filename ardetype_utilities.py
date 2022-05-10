@@ -155,10 +155,10 @@ def write_config(config_dict, config_path):
         yaml.dump(config_dict,config_handle)
 
 
-def submit_module_job(module_name, config_path, output_dir):
+def submit_module_job(module_name, config_path, output_dir, jobscript_path='./ardetype_jobscript.sh'):
     """
-    Given snakemake module name (str) and path to the config file, edit submition code string (bash template, hardcoded or read from file), 
-    create temporary job script (removed after submission) and perform job submition to RTU HPC cluster, returning bytestring, representing job id.
+    Given snakemake module name (str), path to the job_script and path to the config file 
+    perform job submition to RTU HPC cluster, returning bytestring, representing job id.
     """
     modules = {
         "core":os.path.abspath("./snakefiles/bact_core"),
@@ -166,7 +166,7 @@ def submit_module_job(module_name, config_path, output_dir):
         "tip":os.path.abspath("./snakefiles/bact_tip"),
         "shape":os.path.abspath("./snakefiles/bact_shape")
     }
-    shutil.copy('./ardetype_jobscript.sh', f'{output_dir}ardetype_jobscript.sh')
+    shutil.copy(jobscript_path, f'{output_dir}ardetype_jobscript.sh')
 
     try:
         job_id = subprocess.check_output(['qsub', '-F', f'{modules[module_name]} {config_path}', f'{output_dir}ardetype_jobscript.sh'])
@@ -234,11 +234,27 @@ def run_module_cluster(module_name, config_path, cluster_config, job_count):
     shell_command = f'''
     eval "$(conda shell.bash hook)";
     conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake; 
-    snakemake --jobs {job_count} --cluster-config {cluster_config} --cluster-cancel qdel --configfile {config_path} --snakefile {modules[module_name]} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command} -np'''
+    snakemake --jobs {job_count} --cluster-config {cluster_config} --cluster-cancel qdel --configfile {config_path} --snakefile {modules[module_name]} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command} --forceall -np'''
     try:
         subprocess.check_call(shell_command, shell=True)
     except subprocess.CalledProcessError as msg:
         sys.exit(f"Module process running error: {msg}")
+
+
+def remove_invalid_samples(sample_sheet, module_name, output_dir):
+    '''
+    Given sample_sheet (DataFrame) and module_name (str), overwrites sample sheet in the specified output_dir (str), 
+    removing samples that lack files, required by the module. If all samples are removed, returns None (float).
+    '''
+    module_requests = {
+        "shell":"_contigs.fasta:True"
+    }
+
+    sample_sheet = sample_sheet[sample_sheet['check_note_core'].str.contains(module_requests[module_name])]
+    if sample_sheet.empty:
+        return 1
+    else:
+        sample_sheet.to_csv(f"{output_dir}sample_sheet.csv", header=True, index=False)
 
 
 def parse_arguments():

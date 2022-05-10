@@ -43,7 +43,7 @@ rule quality_control:
         read_1_tr = temp(config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz'),
         read_2_tr = temp(config['output_directory']+'{sample_id_pattern}_fastp_2.fastq.gz')
     shell:
-        'singularity run {input.sif_file} fastp -j {wildcards.sample_id_pattern}.fastp.json -h {wildcards.sample_id_pattern}.fastp.html --in1 {input.read_1} --in2 {input.read_2} --out1 {output.read_1_tr} --out2 {output.read_2_tr} --thread {threads}'
+        'singularity run {input.sif_file} fastp -j {config[output_directory]}{wildcards.sample_id_pattern}.fastp.json -h {config[output_directory]}{wildcards.sample_id_pattern}.fastp.html --in1 {input.read_1} --in2 {input.read_2} --out1 {output.read_1_tr} --out2 {output.read_2_tr} --thread {threads}'
 
 #RUN KRAKEN2 TO FILTER OUT HOST CONTAMINATION
 rule filter_host:
@@ -59,12 +59,12 @@ rule filter_host:
         sample_1 = temp(config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz'),
         sample_2 = temp(config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz'),
         report_name = config['output_directory']+'{sample_id_pattern}_kraken2_host_filtering_report.txt'
-    threads: 48
+    threads: config["core_tool_configs"]["kraken2"]["threads"]
     conda:
         config["kraken2_env"]
     shell:
         """ 
-        kraken2 --threads 48 --db /mnt/home/groups/nmrl/db/db-kraken2/human_reference/ --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_host#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
+        kraken2 --threads {threads} --db /mnt/home/groups/nmrl/db/db-kraken2/human_reference/ --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_host#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_1.fastq
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_2.fastq
         """
@@ -113,12 +113,12 @@ rule classify_reads:
         config['output_directory']+'{sample_id_pattern}_bact_reads_unclassified_1.fastq.gz',
         config['output_directory']+'{sample_id_pattern}_bact_reads_unclassified_2.fastq.gz',
         report_name = config['output_directory']+'{sample_id_pattern}_kraken2_reads_report.txt'
-    threads: 48
+    threads: config["core_tool_configs"]["kraken2"]["threads"]
     conda:
         config["kraken2_env"]
     shell:
         """ 
-        kraken2 --threads 48 --db /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/ --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
+        kraken2 --threads {threads} --db /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/ --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified_2.fastq
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified_1.fastq
@@ -133,10 +133,10 @@ rule classify_contigs:
         contigs = config['output_directory']+'{sample_id_pattern}_contigs.fasta'
     output:
         report_name = config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt'
-    threads: 48
+    threads: config["core_tool_configs"]["kraken2"]["threads"]
     conda:
         config["kraken2_env"]
     shell:
         """ 
-        kraken2 --threads 48 --db /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/ --report {output.report_name} {input.contigs}
+        kraken2 --threads {threads} --db /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/ --report {output.report_name} {input.contigs}
         """

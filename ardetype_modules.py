@@ -49,12 +49,12 @@ def run_core(args):
     for file in check_dict:
         split = os.path.basename(file)
         for tmpl in template_list: split = re.sub(tmpl,"",split)
-        id_check_dict[split] += f"|{split}:{check_dict[file]}"
+        id_check_dict[split] += f"|{file}:{check_dict[file]}"
         
     sample_sheet = edit_sample_sheet(sample_sheet, id_check_dict, "check_note_core")
     sample_sheet.to_csv(f"{args.output_dir}sample_sheet.csv", header=True, index=False)
     if args.mode == "all":
-        return check_dict
+        return sample_sheet
 
 def run_shell(args):
     """This is a function that runs bact_shell module of the pipeline, after receiving a namespace (object) with command line arguments"""
@@ -106,12 +106,12 @@ def run_shell(args):
     for file in check_dict:
         split = os.path.basename(file)
         for tmpl in template_list: split = re.sub(tmpl,"",split)
-        id_check_dict[split] += f"|{split}:{check_dict[file]}"
+        id_check_dict[split] += f"|{file}:{check_dict[file]}"
         
     sample_sheet = edit_sample_sheet(sample_sheet, id_check_dict, "check_note_shell")
     sample_sheet.to_csv(f"{args.output_dir}sample_sheet.csv", header=True, index=False)
     if args.mode == "all":
-        return check_dict
+        return sample_sheet
 
 def run_tip(args):
     """This is a function that runs bact_tip module of the pipeline, after receiving a namespace (object) with command line arguments"""

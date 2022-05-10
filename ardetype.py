@@ -1,11 +1,11 @@
+from os import remove
 from ardetype_modules import run_core, run_shell, run_tip, run_shape
-from ardetype_utilities import install_snakemake, parse_arguments
-import os
+from ardetype_utilities import install_snakemake, parse_arguments, remove_invalid_samples
 
 """
 This is a wrapper script of ARDETYPE pipeline.
-Date: 2022-05-09
-Version: 0.1
+Date: 2022-05-10
+Version: 0.2
 """
 
 if __name__ == "__main__":
@@ -15,9 +15,11 @@ if __name__ == "__main__":
     if args.mode == "all":
         try:
             print(f"\nStarting bact_core: read QC, host filtering, taxonomic classification and contig assembly.\n")
-            core_check_dict = run_core(args)
+            core_sample_sheet = run_core(args)
+            samples_cleared = remove_invalid_samples(core_sample_sheet,"shell",args.output_dir)
             print(f"\nStarting bact_shell:\n")
-            shell_check_dict = run_shell(args)
+            assert samples_cleared is None, "\nNo samples can be processed by bact_shell module - required files are missing.\n"
+            shell_sample_sheet = run_shell(args)
         except AssertionError as msg:
             print(f"{msg}")
         
@@ -29,7 +31,7 @@ if __name__ == "__main__":
             print(f"{msg}")
     elif args.mode == "shell":
         run_shell(args)
-    elif args.mode == "tip":
-        run_tip(args)
+    # elif args.mode == "tip":
+    #     run_tip(args)
     # if not args.skip_reporting:
     #     run_shape(args)
