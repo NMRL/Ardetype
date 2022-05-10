@@ -1,4 +1,4 @@
-from ardetype_utilities import parse_folder, create_sample_sheet, read_config, edit_config, write_config, submit_module_job, run_module_cluster, check_job_completion, check_module_output, edit_sample_sheet
+from ardetype_utilities import parse_folder, create_sample_sheet, read_config, edit_config, write_config, submit_module_job, run_module_cluster, check_job_completion, check_module_output, edit_sample_sheet, validate_config
 import os, warnings, re, pandas as pd
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -24,13 +24,15 @@ def run_core(args):
         "_kraken2_host_filtering_report.txt"
     ]
     [target_list.append(f'{args.output_dir}{id}{tmpl}') for id in sample_sheet['sample_id'] for tmpl in template_list]
+
     config_file = read_config(args.config)
-    edit_config(config_file, "core_target_files", target_list)
-    edit_config(config_file, "output_directory", args.output_dir)
-    try:
-        write_config(config_file, f'{args.output_dir}config.yaml')
-    except AssertionError as msg:
-        print(f"bact_core : configuration file manipulation error : {msg}")
+    edit_result = edit_config(config_file, "core_target_files", target_list)
+    assert edit_result == 0, f"bact_core: editing of the config file failed while trying to set 'core_target_files' value"
+    edit_result = edit_config(config_file, "output_directory", args.output_dir)
+    assert edit_result == 0, f"bact_core: editing of the config file failed while trying to set 'output_directory' value"
+    validation_code = validate_config(config_file)
+    assert validation_code == 0, f"bact_core: validation of the config file failed with code {validation_code}"
+    write_config(config_file, f'{args.output_dir}config.yaml')
 
     config_file_path = f'{os.path.abspath(args.output_dir)}/config.yaml'
     cluster_config_path = 'cluster.yaml'
@@ -51,7 +53,8 @@ def run_core(args):
         
     sample_sheet = edit_sample_sheet(sample_sheet, id_check_dict, "check_note_core")
     sample_sheet.to_csv(f"{args.output_dir}sample_sheet.csv", header=True, index=False)
-
+    if args.mode == "all":
+        return check_dict
 
 def run_shell(args):
     """This is a function that runs bact_shell module of the pipeline, after receiving a namespace (object) with command line arguments"""
@@ -80,12 +83,13 @@ def run_shell(args):
     ]
     [target_list.append(f'{args.output_dir}{id}{tmpl}') for id in sample_sheet['sample_id'] for tmpl in template_list]
     config_file = read_config(args.config)
-    edit_config(config_file, "shell_target_files", target_list)
-    edit_config(config_file, "output_directory", args.output_dir)
-    try:
-        write_config(config_file, f'{args.output_dir}config.yaml')
-    except AssertionError as msg:
-        print(f"Configuration file manipulation error: {msg}")
+    edit_result = edit_config(config_file, "shell_target_files", target_list)
+    assert edit_result == 0, f"bact_shell: editing of the config file failed while trying to set 'shell_target_files' value"
+    edit_result = edit_config(config_file, "output_directory", args.output_dir)
+    assert edit_result == 0, f"bact_shell: editing of the config file failed while trying to set 'output_directory' value"
+    validation_code = validate_config(config_file)
+    assert validation_code == 0, f"bact_shell: validation of the config file failed with code {validation_code}"
+    write_config(config_file, f'{args.output_dir}config.yaml')
 
     config_file_path = f'{os.path.abspath(args.output_dir)}/config.yaml'
     cluster_config_path = 'cluster.yaml'
@@ -106,7 +110,8 @@ def run_shell(args):
         
     sample_sheet = edit_sample_sheet(sample_sheet, id_check_dict, "check_note_shell")
     sample_sheet.to_csv(f"{args.output_dir}sample_sheet.csv", header=True, index=False)
-
+    if args.mode == "all":
+        return check_dict
 
 def run_tip(args):
     """This is a function that runs bact_tip module of the pipeline, after receiving a namespace (object) with command line arguments"""

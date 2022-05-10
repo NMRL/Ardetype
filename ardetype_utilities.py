@@ -92,29 +92,65 @@ def read_config(config_path):
     return config_dict
 
 
-#ADD CONFIG VALIDATION FUNCTION
-
 def edit_config(config_dict, param, new_value):
     """
     Given a dictionary (dict) that is generated from config yaml file, a parameter that needs to be changes 
     and a new value of the parameter (string), return edited dictionary were the value of specified parameter is changed.
     (Adjusted from here: https://localcoder.org/recursively-replace-dictionary-values-with-matching-key)
+    Return 0 if key was found and value changed, 1 otherwise.
     """
     if param in config_dict:
         config_dict[param] = new_value
+        return 0 #this return is reached if key was found and value was changed
     
     for param, value in config_dict.items():
         if isinstance(value, dict):
             edit_config(value, param, new_value)
+    return 1 #this return is reached only when all recursive calls are made and key is not found
+
+
+def get_all_keys(input_dict, key_set=set()):
+    """
+    Given a nested dictionary (dict), return a (set) of all keys in that dictionary. 
+    When called multiple times without passing new set object, all keys get saved to the same set.
+    Default function call example: 
+        get_all_keys(input_dict, set()) - returns all keys in input_dict, overwrites the content of key_set, if function was called before.
+    Accumulating function call example: 
+        get_all_keys(input_dict):
+            if function is called for the first time - default behavior
+            if function called multiple times - adds all keys in input_dict to the content of key_set 
+            (assign key_set value to a variable when calling a function in order not to lose the reference to it)
+    """
+    for key, value in input_dict.items(): #start at the top level
+        key_set.add(key) #add top keys
+        if isinstance(value, dict): #if nested subdict detected
+            get_all_keys(value, key_set) #make a recursive call
+    return key_set #return is reached only when there are no recursive calls, hence all nested structure was parsed
+
     
+def validate_config(config_dict, template_config_path='./config_modular.yaml'):
+    """
+    Given a dictionary (dict), return 0 if the structure of the dictionary corresponds to the config template structure (read from file),
+    return 1 if some keys are missing in the dictionary, return 2 if some new keys are found in the dictionary.
+    """
+    template_config_file = read_config(template_config_path)
+    valid_key_dict = {key:0 for key in get_all_keys(template_config_file, set())}
+    found_keys = list(get_all_keys(config_dict, set()))
+    for key in found_keys:
+        if key not in valid_key_dict:
+            return 2
+        else:
+            valid_key_dict[key] += 1
+    if all(valid_key_dict.values()):
+        return 0
+    else:
+        return 1
+
 
 def write_config(config_dict, config_path):
     """
-    Given a dictionary (dict) and a path to the new config file (str), check if the structure of the dictionary corresponds to the config template structure
-    (read from file), and if it fits, write the contents to the new config file.
+    Given a dictionary (dict) and a path to the new config file (str) write the contents to the new config file.
     """
-    template_config_file = read_config('./config_modular.yaml')
-    assert all([key in config_dict for key in template_config_file]), 'Custom config file is missing some of the keys defined in template config file, please use diff to check for difference'
     with open(config_path, "w+") as config_handle:
         yaml.dump(config_dict,config_handle)
 

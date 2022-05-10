@@ -13,18 +13,23 @@ if __name__ == "__main__":
     if args.install_snakemake:
         install_snakemake()
     if args.mode == "all":
-        print(f"\nStarting bact_core: read QC, host filtering, taxonomic classification and contig assembly.\n")
-        run_core(args)
-        assert os.path.isfile(f"{args.output_dir}/sample_sheet.csv"), f'Cannot find sample sheet in {args.output_dir} after bact_core stage is complete'
-        print(f"\nStarting bact_shell:\n")
-        run_shell(args)
-        assert os.path.isfile(f"{args.output_dir}/sample_sheet.csv"), f'Cannot find sample sheet in {args.output_dir} after bact_shell stage is complete'
+        try:
+            print(f"\nStarting bact_core: read QC, host filtering, taxonomic classification and contig assembly.\n")
+            core_check_dict = run_core(args)
+            print(f"\nStarting bact_shell:\n")
+            shell_check_dict = run_shell(args)
+        except AssertionError as msg:
+            print(f"{msg}")
+        
         # run_tip(args)
     elif args.mode == "core":
-        run_core(args)
+        try:
+            run_core(args)
+        except AssertionError as msg:
+            print(f"{msg}")
     elif args.mode == "shell":
         run_shell(args)
     elif args.mode == "tip":
         run_tip(args)
-    if not args.skip_reporting:
-        run_shape(args)
+    # if not args.skip_reporting:
+    #     run_shape(args)
