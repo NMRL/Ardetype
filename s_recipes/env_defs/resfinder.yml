@@ -1,0 +1,2 @@
+name: resfinder
+prefix: /home/$(whoami)/miniconda3/envs/resfinder
