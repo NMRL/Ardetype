@@ -1,5 +1,6 @@
 from ardetype_modules import run_core, run_shell, run_tip, run_shape
 from ardetype_utilities import install_snakemake, parse_arguments, remove_invalid_samples
+import os
 
 """
 This is a wrapper script of ARDETYPE pipeline.
@@ -10,6 +11,7 @@ Version: 0.2
 if __name__ == "__main__":
 
     args = parse_arguments()
+    args.output_dir = f"{os.path.abspath(args.output_dir)}/"
 
     if args.install_snakemake:
         install_snakemake()

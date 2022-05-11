@@ -54,13 +54,11 @@ shell_tool_configs:
   rgi:
   mlst:
   amr_plusplus:
-    run: True
+    threads: 24
   resfinder:
     length: 0.6
     coverage: 0.9
     resfinder_db: /mnt/home/groups/nmrl/db/db-resfinder/
-  mob_suite:
-    run: True
 
 #########################
 # bact_tip configuration

@@ -14,6 +14,9 @@ for ctg in sample_sheet["fa"]:
 #define sample_id_pattern wildcard
 sip_wild = 'data/{sample_id_pattern}_contigs.fasta'
 ctg_series = sample_sheet['fa'].apply(lambda x: f"data/{os.path.basename(x)}")
+if 'fq1' in sample_sheet.columns:
+    read_1_series = sample_sheet['fq1']
+    read_2_series = sample_sheet['fq2']
 
 #AGGREGATION RULE
 rule all:
@@ -49,19 +52,44 @@ rule resfinder:
         cp -r {config[shell_tool_configs][resfinder][resfinder_db]} ~/
         cp {input.contigs} ~/ 
         singularity run {input.resfinder_sif} run_resfinder.py -ifa ~/$CONTIG_FILENAME -acq -l {config[shell_tool_configs][resfinder][length]} -t {config[shell_tool_configs][resfinder][coverage]} -db_res ~/db-resfinder/db_resfinder -o ~/resfinder_output
-        mv ~/resfinder_output/* {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/
+        mv -n ~/resfinder_output/* {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/
         rm -r ~/db-resfinder ~/resfinder_output ~/$CONTIG_FILENAME
         """
 
 
 #AMR++
-# rule amrpp:
-#     input:
-#     output:
-#     conda:
-#         config["nextflow_env"]
-#     shell:
-        
+if 'fq1' in sample_sheet.columns:
+    rule amrpp:
+        input:
+            read_1 = expand("{r_1}", r_1=read_1_series),
+            read_2 = expand("{r_2}", r_2=read_2_series)
+        output:
+            config['output_directory']+"{sample_id_pattern}_amrpp/ResistomeResults/AMR_analytic_matrix.csv",
+        threads: config["shell_tool_configs"]["amr_plusplus"]["threads"]
+        conda:
+            config["nextflow_env"]
+        shell:
+            """
+            module load singularity
+            mkdir -p {config[output_directory]}{wildcards.sample_id_pattern}_amrpp/RunResistome/
+            mkdir -p {config[output_directory]}{wildcards.sample_id_pattern}_amrpp/RunRarefaction/
+            mkdir -p {config[output_directory]}{wildcards.sample_id_pattern}_amrpp/ResistomeResults/
+
+            read_1_filename=$(basename {input.read_1})
+            read_2_filename=$(basename {input.read_2})
+            mkdir -p /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/data/raw/{wildcards.sample_id_pattern}
+            cp {input.read_1} /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/data/raw/{wildcards.sample_id_pattern}/
+            cp {input.read_2} /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/data/raw/{wildcards.sample_id_pattern}/
+
+            cd /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/
+            nextflow run main_AmrPlusPlus_v2.nf --threads {threads} -profile singularity --output "nextflow_output_{wildcards.sample_id_pattern}/" -w "work_dir_{wildcards.sample_id_pattern}/" --reads "data/raw/{wildcards.sample_id_pattern}/*_R{{1,2}}_001.fastq.gz"
+            
+            mv -n nextflow_output_{wildcards.sample_id_pattern}/RunResistome/* {config[output_directory]}{wildcards.sample_id_pattern}_amrpp/RunResistome/
+            mv -n nextflow_output_{wildcards.sample_id_pattern}/RunRarefaction/* {config[output_directory]}{wildcards.sample_id_pattern}_amrpp/RunRarefaction/
+            mv -n nextflow_output_{wildcards.sample_id_pattern}/ResistomeResults/* {config[output_directory]}{wildcards.sample_id_pattern}_amrpp/ResistomeResults/
+            rm -r data/raw/{wildcards.sample_id_pattern} work_dir_{wildcards.sample_id_pattern}/ nextflow_output_{wildcards.sample_id_pattern}/
+            """
+
 
 #MLST
 rule mlst: 

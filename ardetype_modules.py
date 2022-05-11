@@ -1,6 +1,7 @@
 from ardetype_utilities import parse_folder, create_sample_sheet, read_config, edit_config, write_config, submit_module_job, run_module_cluster, check_job_completion, check_module_output, edit_sample_sheet, validate_config
 import os, warnings, re, pandas as pd
 warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=UserWarning)
 
 
 def run_core(args):
@@ -59,6 +60,7 @@ def run_core(args):
 def run_shell(args):
     """This is a function that runs bact_shell module of the pipeline, after receiving a namespace (object) with command line arguments"""
     fasta_patterns = '_contigs.fasta'
+    fastq_patterns = "(_S[0-9]*_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)"
     if args.mode == "all":
         file_list = parse_folder(args.output_dir, fasta_patterns)
         sample_sheet = pd.read_csv(f"{args.output_dir}/sample_sheet.csv")
@@ -68,10 +70,23 @@ def run_shell(args):
         edit_sample_sheet(sample_sheet, fasta_dict, "fa")
         sample_sheet.to_csv(f"{args.output_dir}sample_sheet.csv", header=True, index=False)
     else:
-        file_list = parse_folder(args.input, fasta_patterns)
+        fasta_list = parse_folder(args.input, fasta_patterns)
+        fastq_list = parse_folder(args.input, fastq_patterns)
+
         try:
-            sample_sheet = create_sample_sheet(file_list, fasta_patterns, mode=1)
             os.system(f"mkdir -p {args.output_dir}")
+            if len(fastq_list) >= 2:
+                file_series = pd.Series(fastq_list, dtype="str") #to fascilitate filtering
+                id_extractor = lambda x: re.sub(fastq_patterns,"",os.path.basename(x)) #extract id from string by using regex
+                id_series = file_series.apply(id_extractor).drop_duplicates(keep = "first").sort_values().reset_index(drop=True)
+                read_1_dict, read_2_dict = {}, {} #to use python mapping to ensure correspondance between id and path
+                for id in id_series:
+                    read_files = file_series[file_series.str.contains(id)].reset_index(drop=True).sort_values().reset_index(drop=True) #extract read paths
+                    read_1_dict[id] = read_files[0]
+                    read_2_dict[id] = read_files[1]
+                sample_sheet = create_sample_sheet(fasta_list, fasta_patterns, mode=1)
+                sample_sheet['fq1'] = sample_sheet['sample_id'].map(read_1_dict)
+                sample_sheet['fq2'] = sample_sheet['sample_id'].map(read_2_dict)
             sample_sheet.to_csv(f"{args.output_dir}sample_sheet.csv", header=True, index=False)
         except AssertionError as msg:
             print(f"bact_shell: sample sheet generation error : {msg}")
@@ -84,7 +99,9 @@ def run_shell(args):
         "_resfinder/ResFinder_Hit_in_genome_seq.fsa",
         "_resfinder/ResFinder_Resistance_gene_seq.fsa",
         "_resfinder/ResFinder_results_tab.txt",
-        "_resfinder/ResFinder_results.txt"
+        "_resfinder/ResFinder_results.txt",
+        "_amrpp/ResistomeResults/AMR_analytic_matrix.csv"
+
     ]
     [target_list.append(f'{args.output_dir}{id}{tmpl}') for id in sample_sheet['sample_id'] for tmpl in template_list]
     config_file = read_config(args.config)
@@ -109,9 +126,11 @@ def run_shell(args):
     id_check_dict = {id:"" for id in sample_sheet['sample_id']}
 
     for file in check_dict:
-        split = file.rsplit("/",2)
+        split = file.rsplit("/",3)
         if "resfinder" in split[-2]:
             split = f"{split[-2]}/{split[-1]}"
+        elif "ResistomeResults" in split[-2]:
+            split = f"{split[-3]}/{split[-2]}/{split[-1]}"
         else:
             split = split[-1]
         for tmpl in template_list: split = re.sub(tmpl,"",split)

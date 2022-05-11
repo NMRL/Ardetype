@@ -97,3 +97,15 @@ resfinder:
   queue: "batch"
   jobout: "oe"
   outdir: "ardetype_job_logs/"
+
+
+amrpp:
+  jobname: "ardetype.amrpp"
+  nodes: 1
+  ppn: 25
+  pmem: "1500mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+  outdir: "ardetype_job_logs/"
