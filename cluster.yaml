@@ -86,3 +86,14 @@ mlst:
   queue: "batch"
   jobout: "oe"
   outdir: "ardetype_job_logs/"
+
+resfinder:
+  jobname: "ardetype.resfinder"
+  nodes: 1
+  ppn: 12
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+  outdir: "ardetype_job_logs/"

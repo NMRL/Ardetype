@@ -7,6 +7,8 @@ mlst_quast_sif:
   /home/groups/nmrl/image_files/mlst_quast.sif
 rgi_env:
   /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/rgi_env.yaml
+nextflow_env:
+  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/nextflow.yaml
 kraken2_env:
   /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/kraken2.yaml
 lissero_sif:
@@ -17,6 +19,8 @@ sistr_sif:
   /home/groups/nmrl/image_files/sistr_latest.sif
 hamronization_sif:
   /home/groups/nmrl/image_files/hamronization_latest.sif
+resfinder_sif:
+  /mnt/home/groups/nmrl/image_files/resfinder.sif
 
 
 #########################
@@ -52,6 +56,9 @@ shell_tool_configs:
   amr_plusplus:
     run: True
   resfinder:
+    length: 0.6
+    coverage: 0.9
+    resfinder_db: /mnt/home/groups/nmrl/db/db-resfinder/
   mob_suite:
     run: True
 

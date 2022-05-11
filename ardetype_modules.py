@@ -80,6 +80,11 @@ def run_shell(args):
         ".rgi.txt",
         ".rgi.json",
         "_mlst_output.csv",
+        "_resfinder/pheno_table.txt",
+        "_resfinder/ResFinder_Hit_in_genome_seq.fsa",
+        "_resfinder/ResFinder_Resistance_gene_seq.fsa",
+        "_resfinder/ResFinder_results_tab.txt",
+        "_resfinder/ResFinder_results.txt"
     ]
     [target_list.append(f'{args.output_dir}{id}{tmpl}') for id in sample_sheet['sample_id'] for tmpl in template_list]
     config_file = read_config(args.config)
@@ -104,7 +109,11 @@ def run_shell(args):
     id_check_dict = {id:"" for id in sample_sheet['sample_id']}
 
     for file in check_dict:
-        split = os.path.basename(file)
+        split = file.rsplit("/",2)
+        if "resfinder" in split[-2]:
+            split = f"{split[-2]}/{split[-1]}"
+        else:
+            split = split[-1]
         for tmpl in template_list: split = re.sub(tmpl,"",split)
         id_check_dict[split] += f"|{file}:{check_dict[file]}"
         

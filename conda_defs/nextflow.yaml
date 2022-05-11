@@ -1,0 +1,28 @@
+name: nextflow
+channels:
+  - bioconda
+  - r
+  - defaults
+  - conda-forge
+dependencies:
+  - _libgcc_mutex=0.1=main
+  - c-ares=1.17.1=h27cfd23_0
+  - ca-certificates=2022.4.26=h06a4308_0
+  - coreutils=8.25=1
+  - curl=7.78.0=h1ccaba5_0
+  - krb5=1.19.2=hac12032_0
+  - libcurl=7.78.0=h0b77cf5_0
+  - libedit=3.1.20210910=h7f8727e_0
+  - libev=4.33=h7f8727e_1
+  - libgcc=7.2.0=h69d50b8_2
+  - libgcc-ng=9.1.0=hdf63c60_0
+  - libnghttp2=1.46.0=hce63b2e_0
+  - libssh2=1.9.0=h1ba5d50_1
+  - libstdcxx-ng=9.1.0=hdf63c60_0
+  - ncurses=6.3=h7f8727e_2
+  - nextflow=21.04.0=h4a94de4_0
+  - openjdk=8.0.152=h7b6447c_3
+  - openssl=1.1.1o=h7f8727e_0
+  - zlib=1.2.11=h7b6447c_3
+prefix: /mnt/home/jevgen01/.conda/envs/nextflow
+

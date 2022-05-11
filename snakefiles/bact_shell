@@ -28,9 +28,40 @@ rule all:
 
 
 #MOB-SUITE
-#RESFINDER
-#AMR++
 
+
+#RESFINDER
+rule resfinder:
+    input:
+        resfinder_sif = config['resfinder_sif'],
+        contigs = expand("{ctg}", ctg=ctg_series),
+    output:
+        config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt",
+        config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_Hit_in_genome_seq.fsa",
+        config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_Resistance_gene_seq.fsa",
+        config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_results_tab.txt",
+        config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_results.txt"
+    envmodules:
+        'singularity'
+    shell:
+        """
+        CONTIG_FILENAME=$(basename {input.contigs})
+        cp -r {config[shell_tool_configs][resfinder][resfinder_db]} ~/
+        cp {input.contigs} ~/ 
+        singularity run {input.resfinder_sif} run_resfinder.py -ifa ~/$CONTIG_FILENAME -acq -l {config[shell_tool_configs][resfinder][length]} -t {config[shell_tool_configs][resfinder][coverage]} -db_res ~/db-resfinder/db_resfinder -o ~/resfinder_output
+        mv ~/resfinder_output/* {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/
+        rm -r ~/db-resfinder ~/resfinder_output ~/$CONTIG_FILENAME
+        """
+
+
+#AMR++
+# rule amrpp:
+#     input:
+#     output:
+#     conda:
+#         config["nextflow_env"]
+#     shell:
+        
 
 #MLST
 rule mlst: 
