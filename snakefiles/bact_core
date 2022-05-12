@@ -1,39 +1,37 @@
-localrules: all
+localrules: all, contig_id
 
 #imports
 import pandas as pd, os
 
 #read sample sheet
-os.chdir('/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/')
+os.chdir(config['home_dir'])
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
 #move input files to data folder
 for i,r1 in enumerate(sample_sheet["fq1"]):
-    os.system(f"mv -n {r1} data/")
-    os.system(f"mv -n {sample_sheet['fq2'][i]} data/")
+    os.system(f"mv -n {r1} {config['work_dir']}")
+    os.system(f"mv -n {sample_sheet['fq2'][i]} {config['work_dir']}")
 
 #define sample_id_pattern wildcard
-sip_wild = 'data/{sample_id_pattern}(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|*_R[1,2]_001_unclassified_out)'
-read_1_series = sample_sheet['fq1'].apply(lambda x: f"data/{os.path.basename(x)}")
-read_2_series = sample_sheet['fq2'].apply(lambda x: f"data/{os.path.basename(x)}")
+sip_wild = config['work_dir']+'{sample_id_pattern}(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|*_R[1,2]_001_unclassified_out)'
 
 #AGGREGATION RULE
 rule all:
     input: 
         config["core_target_files"]
     run:
-        data_contents = os.listdir("data/")
+        data_contents = os.listdir(config['work_dir'])
         for idx, id in enumerate(sample_sheet["sample_id"]):
             for file in data_contents:
                 if id in file:
-                    os.system(f"mv data/{file} {os.path.dirname(sample_sheet['fq1'][idx])}")
+                    os.system(f"mv {config['work_dir']}{file} {os.path.dirname(sample_sheet['fq1'][idx])}")
 
 #READ LENGTH & QUALITY TRIMMING
 rule quality_control:
     input:
         sif_file = config["snakemake_sif"],
-        read_1 = expand("{r_1}", r_1=read_1_series),
-        read_2 = expand("{r_2}", r_2=read_2_series)
+        read_1 = config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz',
+        read_2 = config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz'
     threads: 4
     envmodules:
         'singularity'
@@ -64,7 +62,7 @@ rule filter_host:
         config["kraken2_env"]
     shell:
         """ 
-        kraken2 --threads {threads} --db /mnt/home/groups/nmrl/db/db-kraken2/human_reference/ --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_host#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
+        kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][human_db]} --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_host#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_1.fastq
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_2.fastq
         """
@@ -118,7 +116,7 @@ rule classify_reads:
         config["kraken2_env"]
     shell:
         """ 
-        kraken2 --threads {threads} --db /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/ --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
+        kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][bact_db]} --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified_2.fastq
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified_1.fastq
@@ -138,5 +136,5 @@ rule classify_contigs:
         config["kraken2_env"]
     shell:
         """ 
-        kraken2 --threads {threads} --db /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/ --report {output.report_name} {input.contigs}
+        kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][bact_db]} --report {output.report_name} {input.contigs}
         """

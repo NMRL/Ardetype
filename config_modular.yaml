@@ -21,6 +21,12 @@ hamronization_sif:
   /home/groups/nmrl/image_files/hamronization_latest.sif
 resfinder_sif:
   /mnt/home/groups/nmrl/image_files/resfinder.sif
+amrpp_repo:
+  /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/
+home_dir:
+  /mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/
+work_dir:
+  data/
 
 
 #########################
@@ -36,6 +42,8 @@ core_tool_configs:
   fastp:
   kraken2:
     threads: 12
+    human_db: /mnt/home/groups/nmrl/db/db-kraken2/human_reference/
+    bact_db: /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/
   shovill:
     minlen: 500
     ram: 7

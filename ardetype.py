@@ -21,7 +21,6 @@ if __name__ == "__main__":
             print(f"\nStarting bact_core: read QC, host filtering, taxonomic classification and contig assembly.\n")
             core_sample_sheet = run_core(args)
             samples_cleared = remove_invalid_samples(core_sample_sheet,"shell",args.output_dir)
-
             print(f"\nStarting bact_shell:\n")
             assert samples_cleared is None, "\nNo samples can be processed by bact_shell module - required files are missing.\n"
             shell_sample_sheet = run_shell(args)

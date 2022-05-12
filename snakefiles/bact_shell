@@ -4,26 +4,24 @@ localrules: all
 import pandas as pd, os
 
 #read sample sheet
-os.chdir('/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/')
+os.chdir(config['home_dir'])
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
 #move input files to data folder
-for ctg in sample_sheet["fa"]:
-    os.system(f"mv -n {ctg} data/")
+for ctg, r1, r2 in zip(sample_sheet["fa"],sample_sheet['fq1'],sample_sheet['fq2']):
+    os.system(f"mv -n {ctg} {config['work_dir']}")
+    os.system(f"mv -n {r1} {config['work_dir']}")
+    os.system(f"mv -n {r2} {config['work_dir']}")
 
 #define sample_id_pattern wildcard
-sip_wild = 'data/{sample_id_pattern}_contigs.fasta'
-ctg_series = sample_sheet['fa'].apply(lambda x: f"data/{os.path.basename(x)}")
-if 'fq1' in sample_sheet.columns:
-    read_1_series = sample_sheet['fq1']
-    read_2_series = sample_sheet['fq2']
+sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
 
 #AGGREGATION RULE
 rule all:
     input: 
         config['shell_target_files']
     run:
-        data_contents = os.listdir("data/")
+        data_contents = os.listdir(config['work_dir'])
         for idx, id in enumerate(sample_sheet["sample_id"]):
             for file in data_contents:
                 if id in file:
@@ -37,7 +35,7 @@ rule all:
 rule resfinder:
     input:
         resfinder_sif = config['resfinder_sif'],
-        contigs = expand("{ctg}", ctg=ctg_series),
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
     output:
         config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt",
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_Hit_in_genome_seq.fsa",
@@ -49,11 +47,11 @@ rule resfinder:
     shell:
         """
         CONTIG_FILENAME=$(basename {input.contigs})
-        cp -r {config[shell_tool_configs][resfinder][resfinder_db]} ~/
+        cp -r {config[shell_tool_configs][resfinder][resfinder_db]} ~/db-resfinder_{wildcards.sample_id_pattern}/
         cp {input.contigs} ~/ 
-        singularity run {input.resfinder_sif} run_resfinder.py -ifa ~/$CONTIG_FILENAME -acq -l {config[shell_tool_configs][resfinder][length]} -t {config[shell_tool_configs][resfinder][coverage]} -db_res ~/db-resfinder/db_resfinder -o ~/resfinder_output
-        mv -n ~/resfinder_output/* {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/
-        rm -r ~/db-resfinder ~/resfinder_output ~/$CONTIG_FILENAME
+        singularity run {input.resfinder_sif} run_resfinder.py -ifa ~/$CONTIG_FILENAME -acq -l {config[shell_tool_configs][resfinder][length]} -t {config[shell_tool_configs][resfinder][coverage]} -db_res  ~/db-resfinder_{wildcards.sample_id_pattern}/db_resfinder -o ~/resfinder_output_{wildcards.sample_id_pattern}
+        mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/* {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/
+        rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$CONTIG_FILENAME
         """
 
 
@@ -61,10 +59,10 @@ rule resfinder:
 if 'fq1' in sample_sheet.columns:
     rule amrpp:
         input:
-            read_1 = expand("{r_1}", r_1=read_1_series),
-            read_2 = expand("{r_2}", r_2=read_2_series)
+            read_1 = config['work_dir']+'{sample_id_pattern}_R1_001.fastq.gz',
+            read_2 = config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz'
         output:
-            config['output_directory']+"{sample_id_pattern}_amrpp/ResistomeResults/AMR_analytic_matrix.csv",
+            config['output_directory']+"{sample_id_pattern}_amrpp/ResistomeResults/AMR_analytic_matrix.csv"
         threads: config["shell_tool_configs"]["amr_plusplus"]["threads"]
         conda:
             config["nextflow_env"]
@@ -77,12 +75,12 @@ if 'fq1' in sample_sheet.columns:
 
             read_1_filename=$(basename {input.read_1})
             read_2_filename=$(basename {input.read_2})
-            mkdir -p /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/data/raw/{wildcards.sample_id_pattern}
-            cp {input.read_1} /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/data/raw/{wildcards.sample_id_pattern}/
-            cp {input.read_2} /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/data/raw/{wildcards.sample_id_pattern}/
+            mkdir -p {config[amrpp_repo]}data/raw/{wildcards.sample_id_pattern}
+            cp {input.read_1} {config[amrpp_repo]}data/raw/{wildcards.sample_id_pattern}/
+            cp {input.read_2} {config[amrpp_repo]}data/raw/{wildcards.sample_id_pattern}/
 
-            cd /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/
-            nextflow run main_AmrPlusPlus_v2.nf --threads {threads} -profile singularity --output "nextflow_output_{wildcards.sample_id_pattern}/" -w "work_dir_{wildcards.sample_id_pattern}/" --reads "data/raw/{wildcards.sample_id_pattern}/*_R{{1,2}}_001.fastq.gz"
+            cd {config[amrpp_repo]}
+            nextflow run main_AmrPlusPlus_v2.nf --threads {threads} -profile singularity --output "nextflow_output_{wildcards.sample_id_pattern}/" -w "work_dir_{wildcards.sample_id_pattern}/" --reads "{config[work_dir]}/raw/{wildcards.sample_id_pattern}/*_R{{1,2}}_001.fastq.gz"
             
             mv -n nextflow_output_{wildcards.sample_id_pattern}/RunResistome/* {config[output_directory]}{wildcards.sample_id_pattern}_amrpp/RunResistome/
             mv -n nextflow_output_{wildcards.sample_id_pattern}/RunRarefaction/* {config[output_directory]}{wildcards.sample_id_pattern}_amrpp/RunRarefaction/
@@ -95,7 +93,7 @@ if 'fq1' in sample_sheet.columns:
 rule mlst: 
     input: 
         mlst_quast_path = config['mlst_quast_sif'],
-        contigs = expand("{ctg}", ctg=ctg_series)
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
         mlst_output = config['output_directory']+'{sample_id_pattern}_mlst_output.csv',
     threads: 4
@@ -110,7 +108,7 @@ rule mlst:
 #RGI
 rule res_gen_id: 
     input: 
-        contigs = expand("{ctg}", ctg=ctg_series)
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
         config['output_directory']+'{sample_id_pattern}.rgi.txt',
         config['output_directory']+'{sample_id_pattern}.rgi.json'

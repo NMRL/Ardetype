@@ -22,8 +22,8 @@ read_1=${2}
 read_2=${3}
 sample_id=$(basename ${contigs})
 
-#rgi
-rgi main --input_sequence ${contigs} --output_file ~/salmonella_test/rgi/${sample_id::-6}.rgi --input_type contig --clean
+# #rgi
+# rgi main --input_sequence ${contigs} --output_file ~/salmonella_test/rgi/${sample_id::-6}.rgi --input_type contig --clean
 
 #hamronize rgi
 mkdir ~/salmonella_test/rgi/hamronized/
