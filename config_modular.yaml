@@ -32,14 +32,10 @@ work_dir:
 #########################
 # bact_core configuration
 #########################
-#List of target files and path to output folder supplied by the wrapper
 core_target_files:
 output_directory:
 
 core_tool_configs:
-#Configuration settings for each tool used by bact_core snakefile
-  bam2fastq:
-  fastp:
   kraken2:
     threads: 12
     human_db: /mnt/home/groups/nmrl/db/db-kraken2/human_reference/
@@ -57,10 +53,7 @@ shell_target_files:
 
 shell_tool_configs:
 #Configuration settings for each tool used by bact_shell snakefile
-  run_shell: True
   quast:
-  rgi:
-  mlst:
   amr_plusplus:
     threads: 24
   resfinder:
@@ -71,56 +64,37 @@ shell_tool_configs:
 #########################
 # bact_tip configuration
 #########################
-tip_target:
-  #List of target files supplied by the wrapper & wildcard definition strings
-  target_files:
+tip_target_files:
  
 tip_tool_configs:
 #Configuration settings for each tool used by bact_tip snakefile
-  run_tip: True
   hicup:
-    run: True
   meningotype:
-    run: True
   legsta:
-    run: True
   MTBSeq:
-    run: True  
   Kleborate:
-    run: True  
   Kaptive:
-    run: True  
     #?
   spaTyper:
-    run: True  
   AgrVATE:
-    run: True  
     #?
   spaTYper:
-    run: True  
   staphopia-sccmec:
-    run: True    
   emmtyper:
-    run: True  
   ngmaster:
-    run: True  
     #?
   lissero:
-    run: True  
   seqsero:
-    run: True  
   sistr:
-    run: True  
+ 
   
 
 #########################
 # bact_shape configuration
 #########################
-shape_target:
+shape_target_files:
   #List of target files supplied by the wrapper & wildcard definition strings
-  target_files:
 
 shape_tool_configs:
 #Configuration settings for each tool used by bact_shape snakefile
-  run_shape: True
   hamronization:

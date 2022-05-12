@@ -104,7 +104,10 @@ def run_shell(args):
         "_amrpp/ResistomeResults/AMR_analytic_matrix.csv"
     ]
     [target_list.append(f'{args.output_dir}{id}{tmpl}') for id in sample_sheet['sample_id'] for tmpl in template_list]
-    config_file = read_config(args.config)
+    if args.mode == "all":
+        config_file = read_config(f"{args.output_dir}config.yaml")
+    else:
+        config_file = read_config(args.config)
     edit_result = edit_config(config_file, "shell_target_files", target_list)
     assert edit_result == 0, f"bact_shell: editing of the config file failed while trying to set 'shell_target_files' value"
     edit_result = edit_config(config_file, "output_directory", args.output_dir)
