@@ -1,0 +1,6 @@
+name: krona
+channels:
+  - bioconda
+dependencies:
+  - krona
+  - krakentools
