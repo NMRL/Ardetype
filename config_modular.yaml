@@ -5,6 +5,8 @@ snakemake_sif:
   /home/groups/nmrl/image_files/snakemake.sif
 mlst_quast_sif:
   /home/groups/nmrl/image_files/mlst_quast.sif
+krona_sif:
+  /home/groups/nmrl/image_files/krona.sif
 rgi_env:
   /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/rgi_env.yaml
 nextflow_env:
