@@ -121,7 +121,7 @@ rule classify_reads:
         """ 
         kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][bact_db]} --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
         singularity run {input.sif_file} kreport2krona.py -r {output.report_name} -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.krona
-        singularity run {input.sif_file} ktImportText {wildcards.sample_id_pattern}_kraken2_reads_report.krona -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.html
+        singularity run {input.sif_file} ktImportText {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.krona -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.html
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified_2.fastq
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified_1.fastq
@@ -145,6 +145,6 @@ rule classify_contigs:
     shell:
         """ 
         kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][bact_db]} --report {output.report_name} {input.contigs}
-        singularity run {input.sif_file} kreport2krona.py -r {output.report_name} -o {wildcards.sample_id_pattern}_kraken2_contigs_report.krona
-        singularity run {input.sif_file} ktImportText {wildcards.sample_id_pattern}_kraken2_contigs_report.krona -o {wildcards.sample_id_pattern}_kraken2_contigs_report.html
+        singularity run {input.sif_file} kreport2krona.py -r {output.report_name} -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.krona
+        singularity run {input.sif_file} ktImportText {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.krona -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.html
         """

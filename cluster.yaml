@@ -57,9 +57,9 @@ classify_contigs:
 contig_assembly:
   jobname: "ardetype.contig_assembly"
   nodes: 1
-  ppn: 12
+  ppn: 24
   pmem: "1500mb"
-  walltime: "00:30:00"
+  walltime: "00:40:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"

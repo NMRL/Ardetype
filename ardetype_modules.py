@@ -3,11 +3,98 @@ import os, warnings, re, pandas as pd
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 
+class Module():
+    modules = {
+        "core" : {
+            "targets":[
+                "_contigs.fasta",
+                "_bact_reads_classified_1.fastq.gz", 
+                "_bact_reads_classified_2.fastq.gz",
+                "_bact_reads_unclassified_1.fastq.gz",
+                "_bact_reads_unclassified_2.fastq.gz",
+                "_kraken2_contigs_report.txt",
+                "_kraken2_host_filtering_report.txt"
+            ],
+            "patterns":{
+                "input_fastq":".fastq.gz",
+                "sample_sheet":"(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)"
+            }
+        },
+        "shell" : {
+            "targets":[
+                ".rgi.txt",
+                ".rgi.json",
+                "_mlst_output.csv",
+                "_resfinder/pheno_table.txt",
+                "_resfinder/ResFinder_Hit_in_genome_seq.fsa",
+                "_resfinder/ResFinder_Resistance_gene_seq.fsa",
+                "_resfinder/ResFinder_results_tab.txt",
+                "_resfinder/ResFinder_results.txt",
+                "_amrpp/ResistomeResults/AMR_analytic_matrix.csv"
+            ],
+            "patterns":{
+                "input_fastq":".fastq.gz",
+                "input_fasta":"_contigs.fasta",
+                "sample_sheet":"(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_contigs.fasta)"
+            }
+        }
+    }
+
+    def __init__(self, args) -> None:
+        self.run_mode = args.module_jobs
+        self.job_id = None
+        self.module_name = args.mode
+        self.chained = 1 if self.module_name in ['all'] else 0
+        self.input_path = args.input
+        self.output_path = args.output_dir
+        self.target_list = None
+        self.sample_sheet = None
+        self.config_file_path = f'{os.path.abspath(self.output_path)}/config.yaml'
+        self.cluster_config_path = 'cluster.yaml'
+        self.config_edit_result = 0
+        self.config_validation_code = 0
+        self.config_file = read_config(args.config)
+        self.fastq_input_list = None
+        self.fasta_input_list = None
+        self.sample_sheet = None
+    
+    def fill_fastq_list(self):
+        '''Methods fills self.fastq_input_list using self.input_path and self.module_name'''
+
+
+    def fill_fasta_list(self):
+        '''Methods fills self.fasta_input_list using self.input_path and self.module_name'''
+
+
+    def fill_sample_sheet(self):
+        '''Method creates a new sample_sheet.csv file in the self.output_dir directory, to be used by the module
+        and initializes self.sample_sheet instance variable of the Module object'''
+        if self.module_name == 'core':
+            try:
+                sample_sheet = create_sample_sheet(self.fastq_input_list, Module.modules[self.module_name]['patterns']['input_fastq'], mode=0)
+                os.system(f"mkdir -p {self.output_path}")
+                sample_sheet.to_csv(f"{self.output_path}sample_sheet.csv", header=True, index=False)
+            except AssertionError as msg:
+                print(f"bact_core : sample sheet generation error : {msg}")
+        elif self.module_name == 'shell':
+            if self.chained:
+                pass
+            else:
+                pass
+
+
+    def fill_target_list(self) -> None:
+        '''Method fills self.target_list using data stored in self.sample_sheet instance variable'''
+        self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in Module.modules[self.module_name]['targets']]
+
+
+
+
 
 def run_core(args):
     """This is a function that runs bact_core module of the pipeline, after receiving a namespace (object) with command line arguments"""
     file_list = parse_folder(args.input,'.fastq.gz')
-    fastq_patterns = "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_R[1,2]_001_unclassified_out)"
+    fastq_patterns = "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)"
     try:
         sample_sheet = create_sample_sheet(file_list, fastq_patterns, mode=0)
         os.system(f"mkdir -p {args.output_dir}")

@@ -43,8 +43,8 @@ core_tool_configs:
     human_db: /mnt/home/groups/nmrl/db/db-kraken2/human_reference/
     bact_db: /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/
   shovill:
-    minlen: 500
-    ram: 7
+    minlen: 1
+    ram: 36
     depth: 100
 
 
@@ -62,6 +62,7 @@ shell_tool_configs:
     length: 0.6
     coverage: 0.9
     resfinder_db: /mnt/home/groups/nmrl/db/db-resfinder/
+
 
 #########################
 # bact_tip configuration

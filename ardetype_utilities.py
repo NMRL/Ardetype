@@ -85,7 +85,7 @@ def check_module_output(file_list):
 
 def read_config(config_path):
     """
-    Given path to a config.yaml file, return a dictionary (dict) form of the yaml file.
+    Given path to a config.yaml file, returns a dictionary (dict) form of the yaml file.
     """
     with open(os.path.abspath(config_path), 'r') as yaml_handle:
         config_dict=yaml.safe_load(yaml_handle)
@@ -94,8 +94,8 @@ def read_config(config_path):
 
 def edit_config(config_dict, param, new_value):
     """
-    Given a dictionary (dict) that is generated from config yaml file, a parameter that needs to be changes 
-    and a new value of the parameter (string), return edited dictionary were the value of specified parameter is changed.
+    Given a dictionary (dict) that is generated from config yaml file, a parameter that needs to be changed (str) 
+    and a new value of the parameter (string), returns edited dictionary were the value of specified parameter is changed.
     (Adjusted from here: https://localcoder.org/recursively-replace-dictionary-values-with-matching-key)
     Return 0 if key was found and value changed, 1 otherwise.
     """
