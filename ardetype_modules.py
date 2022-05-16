@@ -188,7 +188,8 @@ def run_shell(args):
         "_resfinder/ResFinder_Resistance_gene_seq.fsa",
         "_resfinder/ResFinder_results_tab.txt",
         "_resfinder/ResFinder_results.txt",
-        "_amrpp/ResistomeResults/AMR_analytic_matrix.csv"
+        "_amrpp/ResistomeResults/AMR_analytic_matrix.csv",
+        "_mob_typer.tab"
     ]
     [target_list.append(f'{args.output_dir}{id}{tmpl}') for id in sample_sheet['sample_id'] for tmpl in template_list]
     if args.mode == "all":

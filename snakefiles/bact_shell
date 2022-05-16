@@ -29,13 +29,38 @@ rule all:
 
 
 #MOB-SUITE
+rule mob_recon:
+    input:
+        mob_suite_sif = config['mob_suite_sif'],
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_mob_recon/chromosome.fasta',
+        config['output_directory']+'{sample_id_pattern}_mob_recon/contig_report.txt'
+    envmodules:
+        'singularity'
+    shell:
+        """
+        singularity run {input.mob_suite_sif} mob_recon --infile {input.contigs} --force --outdir {config[output_directory]}{wildcards.sample_id_pattern}_mob_recon/
+        """
 
+rule mob_typer:
+    input:
+        mob_suite_sif = config['mob_suite_sif'],
+        recons = config['output_directory']+'{sample_id_pattern}_mob_recon/chromosome.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_mob_typer.tab'
+    envmodules:
+        'singularity'
+    shell:
+        """
+        singularity run {input.mob_suite_sif} mob_typer --infile {input.recons} --out_file {config[output_directory]}{wildcards.sample_id_pattern}_mob_typer.tab
+        """
 
 #RESFINDER
 rule resfinder:
     input:
         resfinder_sif = config['resfinder_sif'],
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
         config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt",
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_Hit_in_genome_seq.fsa",

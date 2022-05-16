@@ -234,7 +234,7 @@ def run_module_cluster(module_name, config_path, cluster_config, job_count):
     shell_command = f'''
     eval "$(conda shell.bash hook)";
     conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake; 
-    snakemake --jobs {job_count} --cluster-config {cluster_config} --cluster-cancel qdel --configfile {config_path} --snakefile {modules[module_name]} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command}'''
+    snakemake --jobs {job_count} --cluster-config {cluster_config} --cluster-cancel qdel --configfile {config_path} --snakefile {modules[module_name]} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command} -np'''
     try:
         subprocess.check_call(shell_command, shell=True)
     except subprocess.CalledProcessError as msg:

@@ -23,6 +23,8 @@ hamronization_sif:
   /home/groups/nmrl/image_files/hamronization_latest.sif
 resfinder_sif:
   /mnt/home/groups/nmrl/image_files/resfinder.sif
+mob_suite_sif:
+  /mnt/home/groups/nmrl/image_files/mob_suite_3.0.3.sif
 amrpp_repo:
   /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/
 home_dir:

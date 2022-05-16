@@ -109,3 +109,25 @@ amrpp:
   queue: "batch"
   jobout: "oe"
   outdir: "ardetype_job_logs/"
+
+
+mob_recon:
+  jobname: "ardetype.mob_recon"
+  nodes: 1
+  ppn: 12
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+mob_typer:
+  jobname: "ardetype.mob_typer"
+  nodes: 1
+  ppn: 12
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
