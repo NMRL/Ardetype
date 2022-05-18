@@ -49,7 +49,6 @@ def create_sample_sheet(file_lst, generic_str, regex_str=None, mode=0):
     
     id_extractor = lambda x: re.sub(generic_str,"",os.path.basename(x)) #extract id from string by using regex
     id_series = file_series.apply(id_extractor).drop_duplicates(keep = "first").sort_values().reset_index(drop=True)
-
     if regex_str is not None: #additional sample id filtering based on regex was requested
         id_series = id_series[id_series.str.contains(regex_str)]
         assert len(id_series) > 0, 'After filtering sample ids using regex no sample ids left'
@@ -59,10 +58,10 @@ def create_sample_sheet(file_lst, generic_str, regex_str=None, mode=0):
         read_files = file_series[file_series.str.contains(id)].reset_index(drop=True).sort_values().reset_index(drop=True) #extract read paths
         read_1_dict[id] = read_files[0]
         read_2_dict[id] = read_files[1]
+        
     ss_df['sample_id'] = id_series #adding to sample sheet dataframe
     ss_df['fq1'] = ss_df['sample_id'].map(read_1_dict)
     ss_df['fq2'] = ss_df['sample_id'].map(read_2_dict)
-
     return ss_df
 
 
@@ -234,7 +233,7 @@ def run_module_cluster(module_name, config_path, cluster_config, job_count):
     shell_command = f'''
     eval "$(conda shell.bash hook)";
     conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake; 
-    snakemake --jobs {job_count} --cluster-config {cluster_config} --cluster-cancel qdel --configfile {config_path} --snakefile {modules[module_name]} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command} -np'''
+    snakemake --jobs {job_count} --cluster-config {cluster_config} --cluster-cancel qdel --configfile {config_path} --snakefile {modules[module_name]} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command}'''
     try:
         subprocess.check_call(shell_command, shell=True)
     except subprocess.CalledProcessError as msg:
@@ -252,9 +251,10 @@ def remove_invalid_samples(sample_sheet, module_name, output_dir):
 
     sample_sheet = sample_sheet[sample_sheet['check_note_core'].str.contains(module_requests[module_name])]
     if sample_sheet.empty:
-        return 1
+        return None
     else:
         sample_sheet.to_csv(f"{output_dir}sample_sheet.csv", header=True, index=False)
+        return sample_sheet
 
 
 def parse_arguments():

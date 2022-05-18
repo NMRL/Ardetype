@@ -8,6 +8,7 @@ os.chdir(config['home_dir'])
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
 #move input files to data folder
+os.makedirs(config['work_dir'], exist_ok = True)
 for ctg, r1, r2 in zip(sample_sheet["fa"],sample_sheet['fq1'],sample_sheet['fq2']):
     os.system(f"mv -n {ctg} {config['work_dir']}")
     os.system(f"mv -n {r1} {config['work_dir']}")

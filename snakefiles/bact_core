@@ -25,6 +25,7 @@ rule all:
             for file in data_contents:
                 if id in file:
                     os.system(f"mv {config['work_dir']}{file} {os.path.dirname(sample_sheet['fq1'][idx])}")
+        os.mkdirs(config['work_dir'])
 
 #READ LENGTH & QUALITY TRIMMING
 rule quality_control:
