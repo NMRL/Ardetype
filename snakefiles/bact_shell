@@ -143,3 +143,16 @@ rule res_gen_id:
         config["rgi_env"]
     shell:
         """rgi main --input_sequence {input.contigs} --output_file {config[output_directory]}{wildcards.sample_id_pattern}.rgi --input_type contig --clean"""
+
+
+#QUAST
+rule quast:
+    input:
+        sif_file = config['mlst_quast_sif'],
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_quast/icarus.html'
+    shell:
+        'singularity run {input.sif_file} quast -o {config[output_directory]}{wildcards.sample_id_pattern}_quast {input.contigs}'

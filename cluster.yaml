@@ -131,3 +131,13 @@ mob_typer:
   account: "rakus"
   queue: "batch"
   jobout: "oe"
+
+quast:
+  jobname: "ardetype.quast"
+  nodes: 1
+  ppn: 5
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"

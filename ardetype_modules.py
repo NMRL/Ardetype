@@ -1,5 +1,5 @@
 from ardetype_utilities import parse_folder, create_sample_sheet, read_config, edit_config, write_config, submit_module_job, run_module_cluster, check_job_completion, check_module_output, edit_sample_sheet, validate_config
-import os, warnings, re
+import os, warnings, re, pandas as pd
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 
@@ -32,7 +32,8 @@ class Module():
                 "_resfinder/ResFinder_Resistance_gene_seq.fsa",
                 "_resfinder/ResFinder_results_tab.txt",
                 "_resfinder/ResFinder_results.txt",
-                "_amrpp/ResistomeResults/AMR_analytic_matrix.csv"
+                "_amrpp/ResistomeResults/AMR_analytic_matrix.csv",
+                "_quast/icarus.html"
             ],
             "patterns":{
                 "inputs":[".fastq.gz", "_contigs.fasta"],
@@ -56,12 +57,14 @@ class Module():
         self.input_dict = {}
         self.sample_sheet = None
 
+
     def fill_input_dict(self):
         '''Methods fills self.input_dict using self.input_path and self.module_name by
         mapping each file format to the list of files of that format, found in the self.input_path'''
         for format in Module.modules[self.module_name]['patterns']['inputs']:
             self.input_dict[format] = parse_folder(self.input_path, format)
    
+
     def fill_sample_sheet(self):
         '''
         Method initializes self.sample_sheet to pandas dataframe, using self.input_dict and self.module_name (restricted to fastq & fasta inputs)
@@ -72,6 +75,7 @@ class Module():
             self.sample_sheet = create_sample_sheet(self.input_dict[".fastq.gz"],Module.modules[self.module_name]['patterns']['sample_sheet'],mode=0)
             fasta_dict = {re.sub("_contigs.fasta","",os.path.basename(contig)):contig for contig in self.input_dict["_contigs.fasta"]}
             self.sample_sheet = edit_sample_sheet(self.sample_sheet,fasta_dict,'fa')
+
 
     def add_fasta_samples(self):
         '''Adds fa column with fasta files to the self.sample_sheet dataframe'''

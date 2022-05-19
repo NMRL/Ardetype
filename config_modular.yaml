@@ -57,7 +57,6 @@ shell_target_files:
 
 shell_tool_configs:
 #Configuration settings for each tool used by bact_shell snakefile
-  quast:
   amr_plusplus:
     threads: 24
   resfinder:
