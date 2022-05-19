@@ -125,9 +125,3 @@ if __name__ == "__main__":
         shell.run_module(job_count=num_jobs)
         shell.check_module_output()
         shell.write_sample_sheet()
-
-    # elif args.mode == "tip":
-    #     tip = Module(args, 'report')
-
-    # if not args.skip_reporting:
-    #   report = Module(args, 'report')
