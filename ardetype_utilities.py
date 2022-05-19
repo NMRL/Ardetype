@@ -1,5 +1,5 @@
-import os, sys, yaml, subprocess, pandas as pd, shutil, time, re, argparse
-from getpass import getuser
+import os, sys, yaml, pandas as pd, re, argparse, json
+
 
 def parse_folder(folder_pth_str, file_fmt_str, substr_lst=None, regstr_lst=None):
     '''
@@ -65,35 +65,35 @@ def create_sample_sheet(file_lst, generic_str, regex_str=None, mode=0):
     return ss_df
 
 
-def edit_sample_sheet(ss_df, info_dict, col_name):
+def map_new_column(ss_df, info_dict, id_column, col_name):
     """
-    Given sample sheet as pandas dataframe (object), a dictionary where each sample id is matched with information to be added (dict, values to be added as one column),
-    and a new column name (str), returns a pandas dataframe (object), that contains new column where new information is added to the corresponding sample id.
+    Given a pandas dataframe (object), a dictionary where each row in id_column is matched with information to be added (dict, values to be added as one column),
+    and a new column name (str), returns a pandas dataframe (object), that contains new column where new information is added to the corresponding row of id_column.
     """
-    ss_df[col_name] = ss_df["sample_id"].map(info_dict)
+    ss_df[col_name] = ss_df[id_column].map(info_dict)
     return ss_df
 
 
-def check_module_output(file_list):
+def check_file_existance(file_list):
     """
-    Given (list) of paths to expected module output files, returns a dictionary where each file path is matched with the boolean (dict)
+    Given (list) of paths files, returns a dictionary where each file path is matched with the boolean (dict)
     indicating if it is present in the file system.
     """
     return {file: os.path.isfile(file) for file in file_list}
             
 
-def read_config(config_path):
+def read_yaml(yaml_path):
     """
-    Given path to a config.yaml file, returns a dictionary (dict) form of the yaml file.
+    Given path to a yaml file, returns a dictionary (dict) form of the yaml file.
     """
-    with open(os.path.abspath(config_path), 'r') as yaml_handle:
-        config_dict=yaml.safe_load(yaml_handle)
-    return config_dict
+    with open(os.path.abspath(yaml_path), 'r') as yaml_handle:
+        yaml_dict=yaml.safe_load(yaml_handle)
+    return yaml_dict
 
 
-def edit_config(config_dict, param, new_value):
+def edit_nested_dict(config_dict, param, new_value):
     """
-    Given a dictionary (dict) that is generated from config yaml file, a parameter that needs to be changed (str) 
+    Given a nested dictionary (dict), a parameter that needs to be changed (str),
     and a new value of the parameter (string), returns edited dictionary were the value of specified parameter is changed.
     (Adjusted from here: https://localcoder.org/recursively-replace-dictionary-values-with-matching-key)
     Return 0 if key was found and value changed, 1 otherwise.
@@ -104,7 +104,7 @@ def edit_config(config_dict, param, new_value):
     
     for param, value in config_dict.items():
         if isinstance(value, dict):
-            edit_config(value, param, new_value)
+            edit_nested_dict(value, param, new_value)
     return 1 #this return is reached only when all recursive calls are made and key is not found
 
 
@@ -127,14 +127,14 @@ def get_all_keys(input_dict, key_set=set()):
     return key_set #return is reached only when there are no recursive calls, hence all nested structure was parsed
 
     
-def validate_config(config_dict, template_config_path='./config_modular.yaml'):
+def validate_yaml(input_dict, template_yaml_path='./config_modular.yaml'):
     """
-    Given a dictionary (dict), return 0 if the structure of the dictionary corresponds to the config template structure (read from file),
+    Given a dictionary (dict), return 0 if the structure of the dictionary corresponds to the yaml template structure (read from file),
     return 1 if some keys are missing in the dictionary, return 2 if some new keys are found in the dictionary.
     """
-    template_config_file = read_config(template_config_path)
-    valid_key_dict = {key:0 for key in get_all_keys(template_config_file, set())}
-    found_keys = list(get_all_keys(config_dict, set()))
+    template_yaml_path = read_yaml(template_yaml_path)
+    valid_key_dict = {key:0 for key in get_all_keys(template_yaml_path, set())}
+    found_keys = list(get_all_keys(input_dict, set()))
     for key in found_keys:
         if key not in valid_key_dict:
             return 2
@@ -146,55 +146,12 @@ def validate_config(config_dict, template_config_path='./config_modular.yaml'):
         return 1
 
 
-def write_config(config_dict, config_path):
+def write_yaml(input_dict, yaml_path):
     """
     Given a dictionary (dict) and a path to the new config file (str) write the contents to the new config file.
     """
-    with open(config_path, "w+") as config_handle:
-        yaml.dump(config_dict,config_handle)
-
-
-def submit_module_job(module_name, config_path, output_dir, jobscript_path='./ardetype_jobscript.sh'):
-    """
-    Given snakemake module name (str), path to the job_script and path to the config file 
-    perform job submition to RTU HPC cluster, returning bytestring, representing job id.
-    """
-    modules = {
-        "core":os.path.abspath("./snakefiles/bact_core"),
-        "shell":os.path.abspath("./snakefiles/bact_shell"),
-        "tip":os.path.abspath("./snakefiles/bact_tip"),
-        "shape":os.path.abspath("./snakefiles/bact_shape")
-    }
-    shutil.copy(jobscript_path, f'{output_dir}ardetype_jobscript.sh')
-
-    try:
-        job_id = subprocess.check_output(['qsub', '-F', f'{modules[module_name]} {config_path}', f'{output_dir}ardetype_jobscript.sh'])
-    except subprocess.CalledProcessError as msg:
-        sys.exit(f"Job submission error: {msg}")
-    os.system(f"rm {output_dir}ardetype_jobscript.sh")
-    return job_id
-
-
-def check_job_completion(job_id, module_name, job_name="ardetype", sleeping_time=150, output_dir=None):
-    """
-    Given job id (bytestring) and sleeping time (in seconds) between checks (int), module name (str) and job name (str),
-    checks if the job is complete every n seconds. Waiting is finished when the job status is C (complete). Optionally, 
-    path to output directory (str) may be given to move the file with the job standard output to it.
-    """
-    job_id = job_id.decode('UTF-8').strip()
-    search_string = f"{job_id}.*{job_name}.*{getuser()}.*[RCQ]"
-    print(f'Going to sleep until ardetype/{module_name}/{job_id} job is finished')
-    while True:
-        qstat = os.popen("qstat").read()
-        check_job = re.search(search_string,qstat).group(0)
-        print(f"{check_job} : {time.ctime(time.time())}")
-        if check_job[-1] == "C":
-            print(f'Finished waiting: ardetype/{module_name}/{job_id} is complete')
-            break
-        time.sleep(sleeping_time)
-    if output_dir is not None:
-        job_report = f"{job_name}.o{job_id.split('.')[0]}"
-        os.system(f"mv {job_report} {output_dir}/{module_name}_{job_name}_{job_id}.txt")
+    with open(yaml_path, "w+") as yaml_handle:
+        yaml.dump(input_dict,yaml_handle)
 
 
 def install_snakemake():
@@ -217,44 +174,12 @@ def install_snakemake():
     )
 
 
-def run_module_cluster(module_name, config_path, cluster_config, job_count):
+def read_json_dict(json_path):
     '''
-    Given snakemake module name (str) and path to the config file (str), path to the cluster config file (str)
-    and the number of jobs to run in parallel (int) runs module on the login node of the HPC cluster, 
-    allowing the snakemake to do job submissions to the computing nodes automatically.     
+    Given path to a json file, returns python (dict) object.
     '''
-    modules = {
-        "core":os.path.abspath("./snakefiles/bact_core"),
-        "shell":os.path.abspath("./snakefiles/bact_shell"),
-        "tip":os.path.abspath("./snakefiles/bact_tip"),
-        "shape":os.path.abspath("./snakefiles/bact_shape")
-    }
-    qsub_command = '"qsub -N {cluster.jobname} -l nodes={cluster.nodes}:ppn={cluster.ppn},pmem={cluster.pmem},walltime={cluster.walltime} -q {cluster.queue} -j {cluster.jobout} -o {cluster.outdir} -V"'
-    shell_command = f'''
-    eval "$(conda shell.bash hook)";
-    conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake; 
-    snakemake --jobs {job_count} --cluster-config {cluster_config} --cluster-cancel qdel --configfile {config_path} --snakefile {modules[module_name]} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command}'''
-    try:
-        subprocess.check_call(shell_command, shell=True)
-    except subprocess.CalledProcessError as msg:
-        sys.exit(f"Module process running error: {msg}")
-
-
-def remove_invalid_samples(sample_sheet, module_name, output_dir):
-    '''
-    Given sample_sheet (DataFrame) and module_name (str), overwrites sample sheet in the specified output_dir (str), 
-    removing samples that lack files, required by the module. If all samples are removed, returns None (float).
-    '''
-    module_requests = {
-        "shell":"_contigs.fasta:True"
-    }
-
-    sample_sheet = sample_sheet[sample_sheet['check_note_core'].str.contains(module_requests[module_name])]
-    if sample_sheet.empty:
-        return None
-    else:
-        sample_sheet.to_csv(f"{output_dir}sample_sheet.csv", header=True, index=False)
-        return sample_sheet
+    with open(json_path) as json_file:
+        return json.load(json_file)
 
 
 def parse_arguments():
@@ -285,6 +210,7 @@ def parse_arguments():
     parser.add_argument('-o', '--output_dir', metavar='\b', help = 'Path to the output directory where the results will be stored (ardetype_output/ by-default).', default="ardetype_output/", required=False)
     parser.add_argument('-s', '--install_snakemake', help = 'Use this flag to install mamba and snakemake for the current HPC user, if it is not already installed.', action='store_true')
     parser.add_argument('-j', '--module_jobs', help='Use this flag to run modules as individual jobs on HPC (without submitting subjobs to computational nodes)', action='store_true')
+    parser.add_argument('-n', '--num_jobs', metavar='\b', help = 'Maximum number of jobs to be run in-parallel on different nodes of HPC (12 by-default).', default=12, required=False)
     ###bact_core arguments
 
     #####Required

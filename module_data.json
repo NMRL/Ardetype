@@ -1,0 +1,46 @@
+{
+    "cluster_config":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/cluster.yaml",
+    "snakefiles":{
+        "core":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/snakefiles/bact_core",
+        "shell":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/snakefiles/bact_shell",
+        "tip":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/snakefiles/bact_tip",
+        "shape":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/snakefiles/bact_shape"
+    },
+    "core" : {
+        "targets":[
+            "_contigs.fasta",
+            "_bact_reads_classified_1.fastq.gz", 
+            "_bact_reads_classified_2.fastq.gz",
+            "_bact_reads_unclassified_1.fastq.gz",
+            "_bact_reads_unclassified_2.fastq.gz",
+            "_kraken2_contigs_report.txt",
+            "_kraken2_host_filtering_report.txt"
+        ],
+        "patterns":{
+            "inputs":[".fastq.gz"],
+            "sample_sheet":"(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)"
+        },
+        "job_name":"bact_core",
+        "requests":null
+    },
+    "shell" : {
+        "targets":[
+            ".rgi.txt",
+            ".rgi.json",
+            "_mlst_output.csv",
+            "_resfinder/pheno_table.txt",
+            "_resfinder/ResFinder_Hit_in_genome_seq.fsa",
+            "_resfinder/ResFinder_Resistance_gene_seq.fsa",
+            "_resfinder/ResFinder_results_tab.txt",
+            "_resfinder/ResFinder_results.txt",
+            "_amrpp/ResistomeResults/AMR_analytic_matrix.csv",
+            "_quast/icarus.html"
+        ],
+        "patterns":{
+            "inputs":[".fastq.gz", "_contigs.fasta"],
+            "sample_sheet":"(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_contigs.fasta)"
+        },
+        "job_name":"bact_shell",
+        "requests":"_contigs.fasta:True"
+    }
+}

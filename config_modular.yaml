@@ -30,7 +30,7 @@ amrpp_repo:
 home_dir:
   /mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/
 work_dir:
-  ./data/
+  data/
 
 
 #########################

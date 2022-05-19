@@ -13,7 +13,7 @@ conda activate $DEFAULT_ENV
 snakefile=${1}
 config_file=${2}
 
-snakemake --snakefile ${snakefile} --configfile ${config_file} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --cores 12 --latency-wait 30
+snakemake --snakefile ${snakefile} --configfile ${config_file} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --cores 12 --latency-wait 30 -np
 #-np - dry run (for testing purposes)
 #--keep-going - continue excecution if job fails
 #--use-envmodules - to load singularity
