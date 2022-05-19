@@ -59,10 +59,13 @@ if __name__ == "__main__":
             snakefile_path=module_data['snakefiles']['shell'],
             cluster_config_path=module_data['cluster_config']
             )
-        shell.fill_input_dict()
+            
+        #Connecting core to shell
         shell.receive_sample_sheet(core.supply_sample_sheet())
         samples_cleared = shell.remove_invalid_samples(connect_from_module_name='core')
         if samples_cleared == 1: raise Exception('Missing files requested by bact_shell.')
+
+        shell.fill_input_dict()
         shell.add_fasta_samples()
         shell.write_sample_sheet()
         shell.fill_target_list()
