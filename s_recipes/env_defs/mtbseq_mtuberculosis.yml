@@ -1,6 +1,5 @@
-name: krona
+name: mtbseq_mtuberculosis
 channels:
   - bioconda
 dependencies:
-  - krona
-  - krakentools
+  - mtbseq

@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    env_defs/mtbseq_mtuberculosis.yml mtbseq_mtuberculosis.yml
+%post
+    conda env create --name mtbseq_mtuberculosis --file mtbseq_mtuberculosis.yml
+%environment
+    export PATH=/opt/conda/envs/mtbseq_mtuberculosis/bin:$PATH
+%runscript
+    exec "$@"
