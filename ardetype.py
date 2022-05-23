@@ -19,7 +19,7 @@ if __name__ == "__main__":
         install_snakemake()
 
     if args.mode == "all":
-        #Running bact_core
+        #Defining modules
         core = Module(
             module_name='core',
             input_path=args.input,
@@ -33,19 +33,6 @@ if __name__ == "__main__":
             snakefile_path=module_data['snakefiles']['core'],
             cluster_config_path=module_data['cluster_config']
             )
-        core.fill_input_dict()
-        core.fill_sample_sheet()
-        core.make_output_dir()
-        core.write_sample_sheet()
-        core.fill_target_list()
-        core.add_module_targets()
-        core.add_output_dir()
-        core.write_module_config()
-        core.run_module(job_count=num_jobs)
-        core.check_module_output()
-        core.write_sample_sheet()
-
-        #Running bact_shell
         shell = Module(
             module_name='shell', 
             input_path=core.output_path, 
@@ -59,12 +46,40 @@ if __name__ == "__main__":
             snakefile_path=module_data['snakefiles']['shell'],
             cluster_config_path=module_data['cluster_config']
             )
-            
+        tip = Module(
+            module_name='tip', 
+            input_path=args.input,
+            module_config=args.config, 
+            output_path=args.output_dir, 
+            run_mode=args.module_jobs,
+            job_name=module_data['tip']['job_name'],
+            patterns=module_data['tip']['patterns'],
+            targets=module_data['tip']['targets'],
+            requests=module_data['tip']['requests'],
+            snakefile_path=module_data['snakefiles']['tip'],
+            cluster_config_path=module_data['cluster_config']
+        )
+
+        #Running core
+        core.fill_input_dict()
+        core.fill_sample_sheet()
+        core.make_output_dir()
+        core.write_sample_sheet()
+        core.fill_target_list()
+        core.add_module_targets()
+        core.add_output_dir()
+        core.write_module_config()
+        core.run_module(job_count=num_jobs)
+        core.check_module_output()
+        core.add_taxonomy_column()
+        core.write_sample_sheet()
+          
         #Connecting core to shell
         shell.receive_sample_sheet(core.supply_sample_sheet())
         samples_cleared = shell.remove_invalid_samples(connect_from_module_name='core')
         if samples_cleared == 1: raise Exception('Missing files requested by bact_shell.')
 
+        #Running shell
         shell.fill_input_dict()
         shell.add_fasta_samples()
         shell.write_sample_sheet()
@@ -75,6 +90,21 @@ if __name__ == "__main__":
         shell.check_module_output()
         shell.write_sample_sheet()
 
+        #Connecting core to tip
+        tip.receive_sample_sheet(core.supply_sample_sheet())
+        samples_cleared = tip.remove_invalid_samples(connect_from_module_name='core')
+        if samples_cleared == 1: raise Exception('Missing files requested by bact_shell.')
+
+        #Running tip
+        tip.fill_input_dict()
+        tip.add_fasta_samples()
+        tip.write_sample_sheet()
+        tip.fill_target_list()
+        tip.add_module_targets()
+        tip.write_module_config()
+        tip.run_module(job_count=num_jobs)
+        tip.check_module_output()
+        tip.write_sample_sheet()
 
     elif args.mode == 'core':
         core = Module(
@@ -100,6 +130,7 @@ if __name__ == "__main__":
         core.write_module_config()
         core.run_module(job_count=num_jobs)
         core.check_module_output()
+        core.add_taxonomy_column()
         core.write_sample_sheet()
 
 

@@ -1,7 +1,7 @@
 localrules: all, contig_id
 
 #imports
-import pandas as pd, os
+import pandas as pd, os, json
 
 #read sample sheet
 os.chdir(config['home_dir'])
@@ -14,12 +14,13 @@ for i,r1 in enumerate(sample_sheet["fq1"]):
     os.system(f"mv -n {sample_sheet['fq2'][i]} {config['work_dir']}")
 
 #define sample_id_pattern wildcard
-sip_wild = config['work_dir']+'{sample_id_pattern}(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|*_R[1,2]_001_unclassified_out)'
+sip_wild = config['work_dir']+'{sample_id_pattern}(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)'
 
 #AGGREGATION RULE
 rule all:
     input: 
-        config["core_target_files"]
+        config["core_target_files"],
+        file_list = expand(config['output_directory']+'{sample_id}_kraken2_contigs_report.txt', sample_id=sample_sheet['sample_id'])
     run:
         data_contents = os.listdir(config['work_dir'])
         for idx, id in enumerate(sample_sheet["sample_id"]):
@@ -27,6 +28,15 @@ rule all:
                 if id in file:
                     os.system(f"mv {config['work_dir']}{file} {os.path.dirname(sample_sheet['fq1'][idx])}")
         os.makedirs(config['work_dir'], exist_ok = True)
+        total_dict = {}
+        for file in input.file_list:
+            df = pd.read_table(file, header=None)[[0,3,5]]
+            df.columns = ['read_%','taxid','name']
+            df = df[df['taxid'] == "S"].reset_index(drop=True)
+            top_hit = df.loc[df["read_%"] ==df["read_%"].max()]['name'][0].strip()
+            total_dict[os.path.basename(file).replace("_kraken2_contigs_report.txt","")] = top_hit
+        with open(config['output_directory']+'core_aggregated_taxonomy.json', "w+") as json_handle:
+            json.dump(total_dict, json_handle)
 
 #READ LENGTH & QUALITY TRIMMING
 rule quality_control:
@@ -150,3 +160,4 @@ rule classify_contigs:
         singularity run {input.sif_file} kreport2krona.py -r {output.report_name} -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.krona
         singularity run {input.sif_file} ktImportText {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.krona -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.html
         """
+

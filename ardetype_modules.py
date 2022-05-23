@@ -11,11 +11,13 @@ class Module:
     def __init__(self, module_name, input_path, module_config, output_path, run_mode, job_name, patterns, targets, requests, snakefile_path, cluster_config_path) -> None:
         self.run_mode = run_mode
         self.job_id = None
+        self.taxonomy_dict = None
         self.module_name = module_name
         self.input_path = input_path
         self.output_path = output_path
         self.target_list = None
         self.sample_sheet = None
+        self.aggr_taxonomy_path = f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json'
         self.config_file_path = f'{os.path.abspath(self.output_path)}/config.yaml'
         self.cluster_config_path = cluster_config_path
         self.config_file = read_yaml(module_config) if isinstance(module_config, str) else module_config
@@ -32,7 +34,7 @@ class Module:
         '''Fills self.input_dict using self.input_path and self.module_name by
         mapping each file format to the list of files of that format, found in the self.input_path'''
         for format in self.patterns['inputs']:
-            self.input_dict[format] = parse_folder(self.input_path, format)
+            self.input_dict[format] = parse_folder(self.input_path,substr_lst=['reads_unclassified', 'reads_classified'], file_fmt_str=format)
    
 
     def fill_sample_sheet(self):
@@ -49,7 +51,10 @@ class Module:
 
     def fill_target_list(self):
         '''Method fills self.target_list using data stored in self.sample_sheet instance variable'''
-        self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
+        if 'taxonomy' not in self.sample_sheet.columns:
+            self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
+        else:
+            self.target_list = [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
 
 
     def make_output_dir(self):
@@ -116,7 +121,10 @@ class Module:
         Given supplier module name, removes samples that lack files, required by the current module.
         If all samples are removed, returns 1 (int).
         '''
-        self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(self.requests)]
+        if self.requests['check'] is not None:
+            self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(self.requests['check'])]
+        if self.requests['taxonomy'] is not None:
+            self.sample_sheet = self.sample_sheet[self.sample_sheet['taxonomy'].str.contains("("+"|".join(self.requests['taxonomy'])+")")]
         if self.sample_sheet.empty:
             return 1
 
@@ -164,7 +172,7 @@ class Module:
         shell_command = f'''
         eval "$(conda shell.bash hook)";
         conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake; 
-        snakemake --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command} --forceall -np'''
+        snakemake --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command} '''
         try:
             subprocess.check_call(shell_command, shell=True)
         except subprocess.CalledProcessError as msg:
@@ -178,3 +186,10 @@ class Module:
             self.check_job_completion()
         else:
             self.run_module_cluster(job_count)
+
+        
+    def add_taxonomy_column(self):
+        '''Reads taxonomy information from self.aggr_taxonomy_path into self.taxonomy_dict 
+        and adds taxonomy information as new column to the self.sample_sheet.'''
+        self.taxonomy_dict = read_json_dict(self.aggr_taxonomy_path)
+        self.sample_sheet = map_new_column(self.sample_sheet,self.taxonomy_dict,'sample_id','taxonomy')
