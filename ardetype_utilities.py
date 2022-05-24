@@ -1,4 +1,4 @@
-import os, sys, yaml, pandas as pd, re, argparse, json
+import os, sys, yaml, pandas as pd, re, argparse, json, base64, requests
 
 
 def parse_folder(folder_pth_str, file_fmt_str, substr_lst=None, regstr_lst=None):
@@ -181,6 +181,31 @@ def read_json_dict(json_path):
     with open(json_path) as json_file:
         return json.load(json_file)
 
+
+def type_contigs_api(contigs_path: str, organism: str):
+    '''
+    Given path to a fasta file and the full name of the organism, sends POST request to the corresponding API.
+    If returned status code is valid, returns dictionary, containing response details, else returns dictionary with status code and corresponding text.
+    If no api is available for given organism returns 2.
+    '''
+    organisms = {
+        'Listeria monocytogenes': "https://bigsdb.pasteur.fr/api/db/pubmlst_listeria_seqdef/schemes/2/sequence",
+        'Neisseria gonorrhoeae': "https://rest.pubmlst.org/db/pubmlst_neisseria_seqdef/schemes/71/sequence"
+    }
+    try:
+        url = organisms[organism]
+    except KeyError:
+        return 2
+    with open(contigs_path, 'r') as x: 
+        fasta = x.read()
+    req_start = '{"base64":true,"details":true,"sequence":"'
+    req_stop = '"}'
+    payload = req_start + base64.b64encode(fasta.encode()).decode() + req_stop
+    response = requests.post(url, data=payload)
+    if response.status_code == requests.codes.ok:
+        return response.json()
+    else:
+        return {"status_code": response.status_code, "text": response.text}
 
 def parse_arguments():
     """

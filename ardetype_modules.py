@@ -8,7 +8,7 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 class Module:
     '''Class represents single module of the ardetype pipeline'''
 
-    def __init__(self, module_name: str, input_path: str, module_config, output_path: str, run_mode: bool, job_name: str, patterns:dict, targets: list, requests:dict, snakefile_path: str, cluster_config_path: str) -> None:
+    def __init__(self, module_name: str, input_path: str, module_config, output_path: str, run_mode: bool, job_name: str, patterns: dict, targets: list, requests: dict, snakefile_path: str, cluster_config_path: str) -> None:
         self.run_mode = run_mode
         self.job_id = None
         self.taxonomy_dict = None

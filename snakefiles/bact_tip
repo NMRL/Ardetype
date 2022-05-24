@@ -108,9 +108,31 @@ rule emmtyper_spyogenes:
     output:
     run:
 
-    
-rule ngmaster_ngonorrhoeae:
+
+rule seqsero_senterica:
+    input:
+        read_1 = config['output_directory']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        read_2 = config['output_directory']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz'
+    output:
+    run:
+
+
+rule sistr_senterica:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
-    run:   
+    run:
+
+
+rule pasteur_lmonocytogenes:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+    run:
+
+
+rule publmst_ngonorrhoe:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+    run:
