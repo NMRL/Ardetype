@@ -1,11 +1,14 @@
 localrules: all
 
 #imports
+sys.path.insert(0, '/mnt/home/jevgen01/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse')
 import pandas as pd, os
+from ardetype_utilities import type_contigs_api
 
 #read sample sheet
 os.chdir(config['home_dir'])
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
+
 
 #move input files to data folder
 os.makedirs(config['work_dir'], exist_ok = True)
@@ -18,10 +21,14 @@ for sample_id, ctg, r1, r2, taxonomy in zip(sample_sheet['sample_id'], sample_sh
 #define sample_id_pattern wildcard
 sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
 
+#aggregate_targets:
+tip_targets = []
+for bact in config['tip_target_files']: tip_targets += config['tip_target_files'][bact]
+
 #AGGREGATION RULE
 rule all:
     input: 
-        config['shell_target_files']
+        tip_targets
     run:
         data_contents = os.listdir(config['work_dir'])
         for idx, id in enumerate(sample_sheet["sample_id"]):
@@ -34,6 +41,7 @@ rule hicap_hinfluenzae:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
+        outputs = expand(f"{work_dir}{hicap_output}", hicap_output = config['tip_target_files']["Haemophilus influenzae"])
     run:
 
 
@@ -41,6 +49,7 @@ rule meningotype_nmeningitidis:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
+        outputs = expand(f"{work_dir}{mtype_output}", mtype_output = config['tip_target_files']["Neisseria meningitidis"])
     run:
 
 
@@ -48,6 +57,7 @@ rule legsta_lpneumophila:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
+        outputs = expand(f"{work_dir}{legsta_output}", legsta_output = config['tip_target_files']["Legionella pneumophila"])
     run:
 
 
@@ -129,10 +139,21 @@ rule pasteur_lmonocytogenes:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
     run:
+        #MLST typing through API:
 
 
 rule publmst_ngonorrhoe:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
+
     run:
+        #
+        #MLST typing through API:
+            #read_taxonomy_information
+            #run typing function
+            #receive typing dict
+            #validate typing dict
+            #dump to json output file if valid
+            #dump to json error file if not valid
+            #

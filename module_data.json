@@ -52,34 +52,37 @@
     "tip" : {
         "targets":{
             "Neisseria meningitidis":[
-
+                "_meningtotype.tsv"
             ],
             "Legionella pneumophila":[
-
+                "_legsta.csv"
             ],
             "Haemophilus influenzae":[
-
+                "_hicap.tsv"
             ],
             "Mycobacterium tuberculosis":[
-
+                null
             ],
             "Klebsiella pneumoniae":[
-
+                "_kleborate.tsv"
             ],
             "Staphylococcus aureus":[
-
+                "_agrvate_summary.tab",
+                "_spatyper.txt",
+                "sccmec.tsv"
             ],
             "Streptococcus pyogenes":[
-
+                "_emmtyper.tsv"
             ],
             "Neisseria gonorrhoeae":[
-
+                "_ngmast.json"
             ],
             "Listeria monocytogenes":[
-
+                "_pasteur_mlst.json"
             ],
             "Salmonella enterica":[
-                
+                "_sistr.csv",
+                "SeqSero_result.tsv"
             ]
         }
         ,
@@ -98,7 +101,9 @@
                 "Klebsiella pneumoniae",
                 "Staphylococcus aureus",
                 "Streptococcus pyogenes",
-                "Neisseria gonorrhoeae"
+                "Neisseria gonorrhoeae",
+                "Listeria monocytogenes",
+                "Salmonella enterica"
             ]
         }
     }
