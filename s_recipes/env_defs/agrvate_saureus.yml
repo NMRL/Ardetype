@@ -1,0 +1,5 @@
+name: agrvate_saureus
+channels:
+  - bioconda
+dependencies:
+  - agrvate

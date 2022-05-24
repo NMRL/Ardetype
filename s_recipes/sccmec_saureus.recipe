@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    env_defs/sccmec_saureus.yml sccmec_saureus.yml
+%post
+    conda env create --name sccmec_saureus --file sccmec_saureus.yml
+%environment
+    export PATH=/opt/conda/envs/sccmec_saureus/bin:$PATH
+%runscript
+    exec "$@"

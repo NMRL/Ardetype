@@ -1,0 +1,7 @@
+name: sccmec_saureus
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - staphopia-sccmec
+

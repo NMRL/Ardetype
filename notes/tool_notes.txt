@@ -53,7 +53,7 @@ Agnostic
 
 
 Specific
-    H.influenzae
+    H.influenzae - I
         hicap
             Home page: 
                 https://github.com/scwatts/hicap
@@ -67,7 +67,7 @@ Specific
             Notes:
                 https://journals.asm.org/doi/10.1128/JCM.00190-19
 
-    N.meningitidis
+    N.meningitidis - I
         meningotype
             Home page: 
                 https://github.com/MDU-PHL/meningotype
@@ -81,7 +81,7 @@ Specific
                 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2984153/ - more on BAST ELISA variant
                 https://pubmlst.org/organisms/neisseria-spp - database
 
-    Legionella
+    Legionella - I
         legsta
             Home page: https://github.com/tseemann/legsta
             Module form: singularity image from conda template 
@@ -92,7 +92,7 @@ Specific
                 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1153775/
                 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1933043/
 
-    MTB
+    MTB - I
         MTBSeq
             Home page: https://github.com/ngs-fzb/MTBseq_source
             Module form: singularity image from conda template
@@ -101,7 +101,7 @@ Specific
             Output: MTBSeq report
             Notes: https://github.com/ngs-fzb/MTBseq_source/blob/master/MANUAL.md
 
-    Klebsiella
+    Klebsiella - I
         1. Kaptive (typing only)
         2. Kleborate (typing + extra)
             Home pages: 
@@ -124,7 +124,7 @@ Specific
                 1. https://github.com/katholt/Kaptive/wiki/How-does-Kaptive-work%3F
                 2. https://github.com/katholt/Kleborate/wiki/Background
 
-    S.aureus
+    S.aureus - I
         1. AgrVATE
         2. spaTyper
         3. Staphopia-sccmec
@@ -155,7 +155,7 @@ Specific
                 3. About SCCmec typing http://www.pjmonline.org/wp-content/uploads/archive/vol6022011095.pdf - see SCCmes_typing_saureus.pdf
                 S.aureus-centered database (https://staphopia.emory.edu/) & pipeline (https://peerj.com/articles/5261/)
 
-    Str.pyogenes
+    Str.pyogenes - I
         emmtyper
             Home page: https://github.com/MDU-PHL/emmtyper
             Module form: singularity container from conda template 
