@@ -8,7 +8,7 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 class Module:
     '''Class represents single module of the ardetype pipeline'''
 
-    def __init__(self, module_name, input_path, module_config, output_path, run_mode, job_name, patterns, targets, requests, snakefile_path, cluster_config_path) -> None:
+    def __init__(self, module_name: str, input_path: str, module_config, output_path: str, run_mode: bool, job_name: str, patterns:dict, targets: list, requests:dict, snakefile_path: str, cluster_config_path: str) -> None:
         self.run_mode = run_mode
         self.job_id = None
         self.taxonomy_dict = None
@@ -49,12 +49,13 @@ class Module:
             self.sample_sheet = map_new_column(self.sample_sheet,fasta_dict,'sample_id','fa')
 
 
-    def fill_target_list(self):
+    def fill_target_list(self, taxonomy_based=False):
         '''Method fills self.target_list using data stored in self.sample_sheet instance variable'''
-        if 'taxonomy' not in self.sample_sheet.columns:
-            self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
-        else:
+        if taxonomy_based:
             self.target_list = [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
+        else:
+            self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
+            
 
 
     def make_output_dir(self):
@@ -172,7 +173,7 @@ class Module:
         shell_command = f'''
         eval "$(conda shell.bash hook)";
         conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake; 
-        snakemake --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command} '''
+        snakemake --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command} --forceall -np'''
         try:
             subprocess.check_call(shell_command, shell=True)
         except subprocess.CalledProcessError as msg:
