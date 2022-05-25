@@ -5,8 +5,8 @@ import os
 
 """
 This is a wrapper script of ARDETYPE pipeline.
-Date: 2022-05-19
-Version: 0.4
+Date: 2022-05-25
+Version: 0.6
 """
 
 if __name__ == "__main__":
@@ -49,7 +49,7 @@ if __name__ == "__main__":
         tip = Module(
             module_name='tip', 
             input_path=args.input,
-            module_config=args.config, 
+            module_config=shell.config_file, 
             output_path=args.output_dir, 
             run_mode=args.module_jobs,
             job_name=module_data['tip']['job_name'],
@@ -91,15 +91,15 @@ if __name__ == "__main__":
         shell.write_sample_sheet()
 
         # Connecting core to tip
-        tip.receive_sample_sheet(core.supply_sample_sheet())
+        tip.receive_sample_sheet(shell.supply_sample_sheet())
         samples_cleared = tip.remove_invalid_samples(connect_from_module_name='core')
         if samples_cleared == 1: raise Exception('Missing files requested by bact_tip.')
 
-        #Running tip
-        tip.fill_input_dict()
+        # Running tip
+        tip.fill_input_dict(substring_list=None)
         tip.add_fasta_samples()
         tip.write_sample_sheet()
-        tip.fill_target_list()
+        tip.fill_target_list(taxonomy_based=True)
         tip.add_module_targets()
         tip.write_module_config()
         tip.run_module(job_count=num_jobs)
