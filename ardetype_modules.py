@@ -123,10 +123,10 @@ class Module:
         If all samples are removed, returns 1 (int).
         '''
         if self.requests['check'] is not None:
-            if isinstance(self.requests,str): 
+            if isinstance(self.requests['check'],str): 
                 self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(self.requests['check'])]
             else:
-                for request in self.requests:
+                for request in self.requests['check']:
                     self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(request)]
         if self.requests['taxonomy'] is not None:
             self.sample_sheet = self.sample_sheet[self.sample_sheet['taxonomy'].str.contains("("+"|".join(self.requests['taxonomy'])+")")]
