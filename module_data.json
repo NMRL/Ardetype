@@ -60,9 +60,6 @@
             "Haemophilus influenzae":[
                 "_hicap.tsv"
             ],
-            "Mycobacterium tuberculosis":[
-                null
-            ],
             "Klebsiella pneumoniae":[
                 "_kleborate.tsv"
             ],
@@ -78,11 +75,12 @@
                 "_ngmast.json"
             ],
             "Listeria monocytogenes":[
-                "_pasteur_mlst.json"
+                "_pasteur_mlst.json",
+                "_lissero.tsv"
             ],
             "Salmonella enterica":[
                 "_sistr.csv",
-                "SeqSero_result.tsv"
+                "_SeqSero.tsv"
             ]
         }
         ,
@@ -92,12 +90,15 @@
         },
         "job_name":"bact_tip",
         "requests":{
-            "check":"_contigs.fasta:True",
+            "check":[
+                "_contigs.fasta:True",
+                "_bact_reads_classified_1.fastq.gz:True",
+                "_bact_reads_classified_2.fastq.gz:True"
+            ],
             "taxonomy":[
                 "Neisseria meningitidis",
                 "Legionella pneumophila",
                 "Haemophilus influenzae",
-                "Mycobacterium tuberculosis",
                 "Klebsiella pneumoniae",
                 "Staphylococcus aureus",
                 "Streptococcus pyogenes",

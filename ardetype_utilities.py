@@ -154,6 +154,14 @@ def write_yaml(input_dict, yaml_path):
         yaml.dump(input_dict,yaml_handle)
 
 
+def write_json(input_dict, json_path):
+    """
+    Given a dictionary (dict) and a path to the json file (str) writes the contents to file.
+    """
+    with open(json_path, "w+") as json_handle:
+        json.dump(input_dict,json_handle)
+
+
 def install_snakemake():
     '''Function is used as a wrapper for bash script that checks if snakemake is installed and installs if absent.'''
     os.system(
