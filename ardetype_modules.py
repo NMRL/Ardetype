@@ -33,7 +33,7 @@ class Module:
 
     def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified']):
         '''Fills self.input_dict using self.input_path and self.module_name by
-        mapping each file format to the list of files of that format, found in the self.input_path'''
+        mapping each file format to the list of files of that format, found in the self.input_path, excluding files that contain substrings in their names (supply None to avoid excluding files)'''
         for format in self.patterns['inputs']:
             self.input_dict[format] = parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
    
@@ -181,7 +181,7 @@ class Module:
         shell_command = f'''
         eval "$(conda shell.bash hook)";
         conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake; 
-        snakemake --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command}'''
+        snakemake --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command} -np'''
         try:
             subprocess.check_call(shell_command, shell=True)
         except subprocess.CalledProcessError as msg:

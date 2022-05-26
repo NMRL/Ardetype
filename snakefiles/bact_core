@@ -41,7 +41,7 @@ rule all:
 #READ LENGTH & QUALITY TRIMMING
 rule quality_control:
     input:
-        sif_file = config["snakemake_sif"],
+        sif_file = config["fastp_sif"],
         read_1 = config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz',
         read_2 = config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz'
     threads: 4
@@ -82,7 +82,7 @@ rule filter_host:
 #GENERATING CONTIGS FROM READS
 rule contig_assembly:
     input:
-        sif_file = config["snakemake_sif"],
+        sif_file = config["shovill_sif"],
         read_1 = config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz',
         read_2 = config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz',
     output:
@@ -91,7 +91,7 @@ rule contig_assembly:
         'singularity'
     threads: 12
     shell:
-        'singularity run {input.sif_file} shovill --depth {config[core_tool_configs][shovill][depth]} --ram {config[core_tool_configs][shovill][ram]} --minlen {config[core_tool_configs][shovill][minlen]} --force --outdir {config[output_directory]}{wildcards.sample_id_pattern}_contigs --R1 {input.read_1} --R2 {input.read_2}'
+        'singularity run {input.sif_file} shovill {config[core_tool_configs][shovill][modules]} --depth {config[core_tool_configs][shovill][depth]} --ram {config[core_tool_configs][shovill][ram]} --minlen {config[core_tool_configs][shovill][minlen]} --force --outdir {config[output_directory]}{wildcards.sample_id_pattern}_contigs --R1 {input.read_1} --R2 {input.read_2}'
 
 
 #RENAMING CONTINGS
