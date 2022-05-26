@@ -102,7 +102,7 @@ rule lpgenomics_lpneumophila:
     envmodules:
         'singularity'
     output:
-        config['output_directory']+"${sample_id_pattern}-predictResults.txt"
+        config['output_directory']+"{sample_id_pattern}-predictResults.txt"
     shell:
         """
         cd {input.repository}
@@ -116,10 +116,11 @@ rule lpgenomics_lpneumophila:
         bash pipeline.sh --reference=supportFiles/Phila_NC_002942.fna --gff=supportFiles/NC_002942.gff --r1=$R1_FASTQ --r2=$R2_FASTQ --isolate={wildcards.sample_id_pattern} --output=./{wildcards.sample_id_pattern}_output
         if [ -f ./{wildcards.sample_id_pattern}_output/predict/$(basename {output}) ]; then
             mv ./{wildcards.sample_id_pattern}_output/predict/$(basename {output}) {output}
+            mv ./{wildcards.sample_id_pattern}_output/ {config[output_directory]}{wildcards.sample_id_pattern}_legionella_seqrogroup_prediction/
         else
             touch {output}
         fi
-        rm -r lpgenomics_temp/{wildcards.sample_id_pattern}_output $R1_FASTQ $R2_FASTQ {wildcards.sample_id_pattern}.lock
+        rm -r lpgenomics_temp/{wildcards.sample_id_pattern}.lock $R1_FASTQ $R2_FASTQ
         rmdir --ignore-fail-on-non-empty lpgenomics_temp/
         """
     
@@ -182,7 +183,7 @@ rule spatyper_saureus:
         """
         mkdir -p ~/spatyper/
         cp {input.contigs} ~/spatyper/
-        singularity run {input.sif_file} spatyper -f ~/spatyper/$(basename {input.contigs}) --output ~/spatyper/$(basename {output})
+        singularity run {input.sif_file} spaTyper -f ~/spatyper/$(basename {input.contigs}) --output ~/spatyper/$(basename {output})
         if [ -f ~/spatyper/$(basename {output}) ]; then
             mv ~/spatyper/$(basename {output})  {output}
         else
@@ -256,8 +257,8 @@ rule seqsero_senterica:
         else
             touch {output}
         fi
-        rm -r ~/sistr/{wildcards.sample_id_pattern}*
-        rmdir --ignore-fail-on-non-empty ~/sistr/
+        rm -r ~/seqsero/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/seqsero/
         """
 
 
@@ -275,7 +276,7 @@ rule sistr_senterica:
         cp {input.contigs} ~/sistr/
         singularity run {input.sif_file} sistr --qc -f csv -o ~/sistr/$(basename {output}) ~/sistr/$(basename {input.contigs})
         if [ -f ~/sistr/$(basename {output})]; then
-            mv ~/sistr/$(basename {output}) {config[output_directory]}
+            mv ~/sistr/$(basename {output}) {output}
         else
             touch {output}
         fi
@@ -307,11 +308,11 @@ rule pasteurmlst_lmonocytogenes:
     output:
         config['output_directory']+'{sample_id_pattern}_pasteur_mlst.json'
     run:
-        api_output = type_contigs_api('{input.contigs}', 'Listeria monocytogenes')
+        api_output = type_contigs_api(input.contigs, 'Listeria monocytogenes')
         if isinstance(api_output, dict):
-            write_json(api_output, '{output}')
+            write_json(api_output, output[0])
         else:
-            os.system("touch {output}")
+            os.system(f"touch {output[0]}")
 
 rule publmst_ngonorrhoe:
     input:
@@ -319,8 +320,8 @@ rule publmst_ngonorrhoe:
     output:
         config['output_directory']+'{sample_id_pattern}_ngmast.json'
     run:
-        api_output = type_contigs_api('{input.contigs}', 'Neisseria gonorrhoeae')
+        api_output = type_contigs_api(input.contigs, 'Neisseria gonorrhoeae')
         if isinstance(api_output, dict):
-            write_json(api_output, '{output}')
+            write_json(api_output, output[0])
         else:
-            os.system("touch {output}")
+            os.system(f"touch {output[0]}")

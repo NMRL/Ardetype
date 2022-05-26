@@ -55,7 +55,8 @@
                 "_meningtotype.tsv"
             ],
             "Legionella pneumophila":[
-                "_legsta.csv"
+                "_legsta.csv",
+                "-predictResults.txt"
             ],
             "Haemophilus influenzae":[
                 "_hicap.tsv"
@@ -81,9 +82,6 @@
             "Salmonella enterica":[
                 "_sistr.csv",
                 "_SeqSero.tsv"
-            ],
-            "Fluoribacter dumoffii":[
-                "_meningtotype.tsv"
             ]
         }
         ,
@@ -107,8 +105,7 @@
                 "Streptococcus pyogenes",
                 "Neisseria gonorrhoeae",
                 "Listeria monocytogenes",
-                "Salmonella enterica",
-                "Fluoribacter dumoffii"
+                "Salmonella enterica"
             ]
         }
     }

@@ -5,8 +5,7 @@ home_dir:
   /mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/
 work_dir:
   data/
-pigz_sif:
-  /home/groups/nmrl/image_files/pigz_latest.sif
+
 
 ##############
 # bact_core
@@ -64,6 +63,8 @@ sistr_senterica_sif:
   /home/groups/nmrl/image_files/sistr_senterica.sif
 spatyper_saureus_sif:
   /home/groups/nmrl/image_files/spatyper_saureus.sif
+pigz_sif:
+  /mnt/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/image_files/pigz_latest.sif
 
 
 
@@ -75,6 +76,15 @@ spatyper_saureus_sif:
 core_target_files:
 output_directory:
 
+#####################
+# Configuration notes
+#####################
+# Tools that use contigs as input may perform differently (or fail) if short contigs are included (excluded) from the assembly or read correction module is turned on/off.
+# For example, Sequence-Based-Typing with legsta for Legionella pneumophila will need all contigs to determine sequence type (ST) - shovill minlen 1.
+# On the other hand, Pasteur and Pubmlst database APIs will only accept assemblies that contain less than 5000 contings in total, so shovill minlen should be changed accordingly.
+# Serogroup detection for Listeria monocytogenes by lissero will fail, if blast will not be able to identify any matches in the contigs, which is guaranteed to happen if contigs are from another species
+# but may also happen if contigs do not cover regions of interest (e.g. sequencing failed to genes requered by the tool).
+
 core_tool_configs:
   kraken2:
     threads: 12
@@ -84,6 +94,7 @@ core_tool_configs:
     minlen: 1
     ram: 36
     depth: 100
+    modules: --noreadcorr
 
 
 #########################

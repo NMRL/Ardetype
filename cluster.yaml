@@ -141,3 +141,158 @@ quast:
   account: "rakus"
   queue: "batch"
   jobout: "oe"
+
+
+hicap_hinfluenzae:
+  jobname: "ardetype.hicap"
+  nodes: 1
+  ppn: 8
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+meningotype_nmeningitidis:
+  jobname: "ardetype.meningotype"
+  nodes: 1
+  ppn: 8
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+legsta_lpneumophila:
+  jobname: "ardetype.legsta"
+  nodes: 1
+  ppn: 8
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+lpgenomics_lpneumophila:
+  jobname: "ardetype.lpgenomics"
+  nodes: 1
+  ppn: 24
+  pmem: "1000mb"
+  walltime: "01:00:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+kleborate_kpneumoniae:
+  jobname: "ardetype.kleborate"
+  nodes: 1
+  ppn: 8
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+agrvate_saureus:
+  jobname: "ardetype.agrvate"
+  nodes: 1
+  ppn: 8
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+spatyper_saureus:
+  jobname: "ardetype.spatyper"
+  nodes: 1
+  ppn: 8
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+sccmec_saureus:
+  jobname: "ardetype.sccmec"
+  nodes: 1
+  ppn: 10
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+emmtyper_spyogenes:
+  jobname: "ardetype.emmtyper"
+  nodes: 1
+  ppn: 8
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+seqsero_senterica:
+  jobname: "ardetype.seqsero"
+  nodes: 1
+  ppn: 12
+  pmem: "1500mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+sistr_senterica:
+  jobname: "ardetype.sistr"
+  nodes: 1
+  ppn: 10
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+lissero_lmonocytogenes:
+  jobname: "ardetype.lissero"
+  nodes: 1
+  ppn: 10
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+pasteurmlst_lmonocytogenes:
+  jobname: "ardetype.pasteurmlst"
+  nodes: 1
+  ppn: 5
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+publmst_ngonorrhoe:
+  jobname: "ardetype.publmst"
+  nodes: 1
+  ppn: 5
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
