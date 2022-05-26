@@ -1,5 +1,6 @@
 from ardetype_utilities import *
 import os, warnings, re, sys, subprocess, shutil, time
+from itertools import chain
 from getpass import getuser
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -8,7 +9,7 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 class Module:
     '''Class represents single module of the ardetype pipeline'''
 
-    def __init__(self, module_name: str, input_path: str, module_config, output_path: str, run_mode: bool, job_name: str, patterns:dict, targets: list, requests:dict, snakefile_path: str, cluster_config_path: str) -> None:
+    def __init__(self, module_name: str, input_path: str, module_config, output_path: str, run_mode: bool, job_name: str, patterns: dict, targets: list, requests: dict, snakefile_path: str, cluster_config_path: str) -> None:
         self.run_mode = run_mode
         self.job_id = None
         self.taxonomy_dict = None
@@ -30,11 +31,11 @@ class Module:
         self.snakefile_path = snakefile_path
 
 
-    def fill_input_dict(self):
+    def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified']):
         '''Fills self.input_dict using self.input_path and self.module_name by
         mapping each file format to the list of files of that format, found in the self.input_path'''
         for format in self.patterns['inputs']:
-            self.input_dict[format] = parse_folder(self.input_path,substr_lst=['reads_unclassified', 'reads_classified'], file_fmt_str=format)
+            self.input_dict[format] = parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
    
 
     def fill_sample_sheet(self):
@@ -96,7 +97,10 @@ class Module:
         id_check_dict = {id:"" for id in self.sample_sheet['sample_id']}
         for file in check_dict:
             two_dirs_up = os.path.basename(os.path.dirname(os.path.dirname(file)))+"/"+os.path.basename(os.path.dirname(file))+"/"+os.path.basename(file)
-            id = os.path.basename(re.sub("("+"|".join(self.targets)+")","",two_dirs_up))
+            if isinstance(self.targets, list):
+                id = os.path.basename(re.sub("("+"|".join(self.targets)+")","",two_dirs_up))
+            elif isinstance(self.targets, dict):
+                id = os.path.basename(re.sub("("+"|".join(chain.from_iterable(self.targets.values()))+")","",two_dirs_up))
             id_check_dict[id] += f"|{file}:{check_dict[file]}"
         self.sample_sheet = map_new_column(self.sample_sheet, id_check_dict, 'sample_id', f"check_note_{self.module_name}")
 
@@ -123,7 +127,11 @@ class Module:
         If all samples are removed, returns 1 (int).
         '''
         if self.requests['check'] is not None:
-            self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(self.requests['check'])]
+            if isinstance(self.requests['check'],str): 
+                self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(self.requests['check'])]
+            else:
+                for request in self.requests['check']:
+                    self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(request)]
         if self.requests['taxonomy'] is not None:
             self.sample_sheet = self.sample_sheet[self.sample_sheet['taxonomy'].str.contains("("+"|".join(self.requests['taxonomy'])+")")]
         if self.sample_sheet.empty:
@@ -173,7 +181,7 @@ class Module:
         shell_command = f'''
         eval "$(conda shell.bash hook)";
         conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake; 
-        snakemake --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command} --forceall -np'''
+        snakemake --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command}'''
         try:
             subprocess.check_call(shell_command, shell=True)
         except subprocess.CalledProcessError as msg:

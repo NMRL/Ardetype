@@ -1,36 +1,73 @@
 #########################
 # Static tool & environment definition paths
 #########################
-snakemake_sif:
-  /home/groups/nmrl/image_files/snakemake.sif
-mlst_quast_sif:
-  /home/groups/nmrl/image_files/mlst_quast.sif
-krona_sif:
-  /home/groups/nmrl/image_files/krona.sif
-rgi_env:
-  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/rgi_env.yaml
-nextflow_env:
-  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/nextflow.yaml
-kraken2_env:
-  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/kraken2.yaml
-lissero_sif:
-  /home/groups/nmrl/image_files/lissero_latest.sif
-seqsero_sif:
-  /home/groups/nmrl/image_files/seqsero2_latest.sif
-sistr_sif:
-  /home/groups/nmrl/image_files/sistr_latest.sif
-hamronization_sif:
-  /home/groups/nmrl/image_files/hamronization_latest.sif
-resfinder_sif:
-  /mnt/home/groups/nmrl/image_files/resfinder.sif
-mob_suite_sif:
-  /mnt/home/groups/nmrl/image_files/mob_suite_3.0.3.sif
-amrpp_repo:
-  /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/
 home_dir:
   /mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/
 work_dir:
   data/
+
+
+##############
+# bact_core
+##############
+kraken2_env:
+  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/kraken2.yaml
+krona_sif:
+  /home/groups/nmrl/image_files/krona.sif
+snakemake_sif:
+  /home/groups/nmrl/image_files/snakemake.sif
+
+##############
+# bact_shell
+##############
+amrpp_repo:
+  /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/
+hamronization_sif:
+  /home/groups/nmrl/image_files/hamronization_latest.sif
+mlst_quast_sif:
+  /home/groups/nmrl/image_files/mlst_quast.sif
+mob_suite_sif:
+  /mnt/home/groups/nmrl/image_files/mob_suite_3.0.3.sif
+nextflow_env:
+  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/nextflow.yaml
+resfinder_sif:
+  /mnt/home/groups/nmrl/image_files/resfinder.sif
+rgi_env:
+  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/rgi_env.yaml
+
+
+##############
+# bact_tip
+##############
+agrvate_saureus_sif:
+  /home/groups/nmrl/image_files/agrvate_saureus.sif
+emmtyper_spyogenes_sif:
+  /home/groups/nmrl/image_files/emmtyper_spyogenes.sif
+hicap_hinfluenzae_sif:
+  /home/groups/nmrl/image_files/hicap_hinfluenzae.sif
+kleborate_kpneumoniae_sif:
+  /home/groups/nmrl/image_files/kleborate_kpneumoniae.sif
+legsta_lpneumophila_sif:
+  /home/groups/nmrl/image_files/legsta_lpneumophila.sif
+lissero_lmonocytogenes_sif:
+  /home/groups/nmrl/image_files/lissero_lmonocytogenes.sif
+lpgenomics_repo:
+  /mnt/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/
+meningotype_nmeningitidis_sif:
+  /home/groups/nmrl/image_files/meningotype_nmeningitidis.sif  
+sccmec_saureus_sif:
+  /home/groups/nmrl/image_files/sccmec_saureus.sif
+seqsero2_senterica_sif:
+  /home/groups/nmrl/image_files/seqsero2_senterica.sif
+sistr_senterica_sif:
+  /home/groups/nmrl/image_files/sistr_senterica.sif
+spatyper_saureus_sif:
+  /home/groups/nmrl/image_files/spatyper_saureus.sif
+pigz_sif:
+  /mnt/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/image_files/pigz_latest.sif
+
+
+
 
 
 #########################
@@ -38,6 +75,15 @@ work_dir:
 #########################
 core_target_files:
 output_directory:
+
+#####################
+# Configuration notes
+#####################
+# Tools that use contigs as input may perform differently (or fail) if short contigs are included (excluded) from the assembly or read correction module is turned on/off.
+# For example, Sequence-Based-Typing with legsta for Legionella pneumophila will need all contigs to determine sequence type (ST) - shovill minlen 1.
+# On the other hand, Pasteur and Pubmlst database APIs will only accept assemblies that contain less than 5000 contings in total, so shovill minlen should be changed accordingly.
+# Serogroup detection for Listeria monocytogenes by lissero will fail, if blast will not be able to identify any matches in the contigs, which is guaranteed to happen if contigs are from another species
+# but may also happen if contigs do not cover regions of interest (e.g. sequencing failed to genes requered by the tool).
 
 core_tool_configs:
   kraken2:
@@ -48,6 +94,7 @@ core_tool_configs:
     minlen: 1
     ram: 36
     depth: 100
+    modules: --noreadcorr
 
 
 #########################
@@ -72,25 +119,23 @@ tip_target_files:
  
 tip_tool_configs:
 #Configuration settings for each tool used by bact_tip snakefile
-  hicup:
-  meningotype:
-  legsta:
-  MTBSeq:
-  Kleborate:
-  Kaptive:
-    #?
-  spaTyper:
-  AgrVATE:
-    #?
-  spaTYper:
-  staphopia-sccmec:
-  emmtyper:
-  ngmaster:
-    #?
-  lissero:
-  seqsero:
-  sistr:
- 
+  agrvate_saureus:
+  emmtyper_spyogenes:
+  hicap_hinfluenzae:
+  kaptive_kpneumoniae:
+  kleborate_kpneumoniae:
+  legsta_lpneumophila:
+  lissero_lmonocytogenes:
+  lissero_lmonocytogenes:
+  lpgenomics_lpneumophila:
+  meningotype_nmeningitidis:
+  pasteurmlst_lmonocytogenes:
+  publmst_ngonorrhoe:
+  sccmec_saureus:
+  seqsero_senterica:
+    threads: 16
+  sistr_senterica:
+  spatyper_saureus:
   
 
 #########################

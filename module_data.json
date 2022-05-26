@@ -52,28 +52,36 @@
     "tip" : {
         "targets":{
             "Neisseria meningitidis":[
-
+                "_meningtotype.tsv"
             ],
             "Legionella pneumophila":[
-
+                "_legsta.csv",
+                "-predictResults.txt"
             ],
             "Haemophilus influenzae":[
-
-            ],
-            "Mycobacterium tuberculosis":[
-
+                "_hicap.tsv"
             ],
             "Klebsiella pneumoniae":[
-
+                "_kleborate.tsv"
             ],
             "Staphylococcus aureus":[
-
+                "_agrvate_summary.tab",
+                "_spatyper.txt",
+                "_sccmec.tsv"
             ],
             "Streptococcus pyogenes":[
-
+                "_emmtyper.tsv"
             ],
             "Neisseria gonorrhoeae":[
-
+                "_ngmast.json"
+            ],
+            "Listeria monocytogenes":[
+                "_pasteur_mlst.json",
+                "_lissero.tsv"
+            ],
+            "Salmonella enterica":[
+                "_sistr.csv",
+                "_SeqSero.tsv"
             ]
         }
         ,
@@ -83,16 +91,21 @@
         },
         "job_name":"bact_tip",
         "requests":{
-            "check":"_contigs.fasta:True",
+            "check":[
+                "_contigs.fasta:True",
+                "_bact_reads_classified_1.fastq.gz:True",
+                "_bact_reads_classified_2.fastq.gz:True"
+            ],
             "taxonomy":[
                 "Neisseria meningitidis",
                 "Legionella pneumophila",
                 "Haemophilus influenzae",
-                "Mycobacterium tuberculosis",
                 "Klebsiella pneumoniae",
                 "Staphylococcus aureus",
                 "Streptococcus pyogenes",
-                "Neisseria gonorrhoeae"
+                "Neisseria gonorrhoeae",
+                "Listeria monocytogenes",
+                "Salmonella enterica"
             ]
         }
     }
