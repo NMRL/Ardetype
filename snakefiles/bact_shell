@@ -10,9 +10,9 @@ sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 #move input files to data folder
 os.makedirs(config['work_dir'], exist_ok = True)
 for ctg, r1, r2 in zip(sample_sheet["fa"],sample_sheet['fq1'],sample_sheet['fq2']):
-    os.system(f"mv -n {ctg} {config['work_dir']}")
-    os.system(f"mv -n {r1} {config['work_dir']}")
-    os.system(f"mv -n {r2} {config['work_dir']}")
+    os.system(f"[ -f {ctg} ] && mv -n {ctg} {config['work_dir']}")
+    os.system(f"[ -f {r1} ] && mv -n {r1} {config['work_dir']}")
+    os.system(f"[ -f {r2} ] && mv -n {r2} {config['work_dir']}")
 
 #define sample_id_pattern wildcard
 sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
@@ -26,7 +26,7 @@ rule all:
         for idx, id in enumerate(sample_sheet["sample_id"]):
             for file in data_contents:
                 if id in file:
-                    os.system(f"mv {config['work_dir']}{file} {os.path.dirname(sample_sheet['fa'][idx])}")
+                    os.system(f"[ -f {config['work_dir']}{file} ] && mv {config['work_dir']}{file} {os.path.dirname(sample_sheet['fa'][idx])}")
 
 
 #MOB-SUITE

@@ -75,17 +75,19 @@ pigz_sif:
 #########################
 # bact_core configuration
 #########################
+
+###Filled by the wrapper
 core_target_files:
 output_directory:
 
 #####################
 # Configuration notes
 #####################
-# Tools that use contigs as input may perform differently (or fail) if short contigs are included (excluded) from the assembly or read correction module is turned on/off.
+# Tools that use contigs as input may perform differently (or fail) if short contigs (shovull minlen option) are included (excluded) from the assembly or read correction module is turned on/off.
 # For example, Sequence-Based-Typing with legsta for Legionella pneumophila will need all contigs to determine sequence type (ST) - shovill minlen 1.
 # On the other hand, Pasteur and Pubmlst database APIs will only accept assemblies that contain less than 5000 contings in total, so shovill minlen should be changed accordingly.
 # Serogroup detection for Listeria monocytogenes by lissero will fail, if blast will not be able to identify any matches in the contigs, which is guaranteed to happen if contigs are from another species
-# but may also happen if contigs do not cover regions of interest (e.g. sequencing failed to genes requered by the tool).
+# but may also happen if contigs do not cover regions of interest (e.g. sequencing failed on genes required by the tool).
 
 core_tool_configs:
   kraken2:
@@ -102,6 +104,8 @@ core_tool_configs:
 #########################
 # bact_shell configuration
 #########################
+
+###Filled by the wrapper
 shell_target_files:
 
 shell_tool_configs:
@@ -117,6 +121,8 @@ shell_tool_configs:
 #########################
 # bact_tip configuration
 #########################
+
+###Filled by the wrapper
 tip_target_files:
  
 tip_tool_configs:
@@ -144,8 +150,6 @@ tip_tool_configs:
 # bact_shape configuration
 #########################
 shape_target_files:
-  #List of target files supplied by the wrapper & wildcard definition strings
 
 shape_tool_configs:
-#Configuration settings for each tool used by bact_shape snakefile
   hamronization:

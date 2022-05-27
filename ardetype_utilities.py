@@ -35,14 +35,16 @@ def create_sample_sheet(file_lst, generic_str, regex_str=None, mode=0):
     """
     file_series = pd.Series(file_lst, dtype="str") #to fascilitate filtering
     ss_df = pd.DataFrame(dtype="str") #to store sample sheet
-    assert mode in [0,1], f"Accepted mode values are 0 for fasta and 1 for fastq: {mode} was given."
+    if mode not in [0,1]:
+        raise Exception(f"utilities/create_sample_sheet: Accepted mode values are 0 for fasta and 1 for fastq: {mode} was given.") 
 
     if mode == 1:  #If function is used to produce sample sheet from fasta files
         id_extractor = lambda x: os.path.basename(x).replace(generic_str, "") #extract id from string by replacing generic part
         id_series = file_series.apply(id_extractor) 
         if regex_str is not None: 
             id_series = id_series[id_series.str.contains(regex_str)] #additional sample id filtering based on regex was requested
-            assert len(id_series) > 0, 'After filtering sample ids using regex no sample ids left'
+            if len(id_series) == 0:
+                raise Exception('utilities/create_sample_sheet: After filtering sample ids using regex no sample ids left')
         path_series = file_series[file_series.str.contains("|".join(id_series))].reset_index(drop=True) #getting corresponding paths to fastq files
         ss_df['sample_id'], ss_df['fa'] = id_series, path_series #adding to sample sheet dataframe
         return ss_df
@@ -51,7 +53,8 @@ def create_sample_sheet(file_lst, generic_str, regex_str=None, mode=0):
     id_series = file_series.apply(id_extractor).drop_duplicates(keep = "first").sort_values().reset_index(drop=True)
     if regex_str is not None: #additional sample id filtering based on regex was requested
         id_series = id_series[id_series.str.contains(regex_str)]
-        assert len(id_series) > 0, 'After filtering sample ids using regex no sample ids left'
+        if len(id_series) == 0:
+            raise Exception('utilities/create_sample_sheet: After filtering sample ids using regex no sample ids left')
     read_1_dict, read_2_dict = {}, {} #to use python mapping to ensure correspondance between id and path
 
     for id in id_series:
@@ -133,16 +136,16 @@ def validate_yaml(input_dict, template_yaml_path='./config_modular.yaml'):
     return 1 if some keys are missing in the dictionary, return 2 if some new keys are found in the dictionary.
     """
     template_yaml_path = read_yaml(template_yaml_path)
-    valid_key_dict = {key:0 for key in get_all_keys(template_yaml_path, set())}
-    found_keys = list(get_all_keys(input_dict, set()))
+    valid_key_dict = {key:0 for key in get_all_keys(template_yaml_path, set())} #initializing to add 1 to all valid keys
+    found_keys = list(get_all_keys(input_dict, set())) #get list of all keys
     for key in found_keys:
-        if key not in valid_key_dict:
+        if key not in valid_key_dict: #if undefined key is found
             return 2
-        else:
-            valid_key_dict[key] += 1
-    if all(valid_key_dict.values()):
+        else:   
+            valid_key_dict[key] += 1 #if valid key is found - set its check value to 1 (True)
+    if all(valid_key_dict.values()): #if all defined keys are found
         return 0
-    else:
+    else:   #if some defined keys are missing
         return 1
 
 
@@ -167,9 +170,9 @@ def install_snakemake():
     os.system(
     '''
     eval "$(conda shell.bash hook)"
-    DEFAULT_ENV=/mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake
-    SEARCH_SNAKEMAKE=$(conda env list | grep ${DEFAULT_ENV})
-    if [ ${SEARCH_SNAKEMAKE} -ef ${DEFAULT_ENV} ]; then
+    DEFAULT_ENV=/mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake$
+    SEARCH_SNAKEMAKE=$(conda env list | grep -oP "${DEFAULT_ENV}")
+    if [ ${SEARCH_SNAKEMAKE} -ef ${DEFAULT_ENV::-1} ]; then
         echo Running with --install_snakemake flag: Snakemake is already installed for this user
     else
         echo Running with --install_snakemake flag:
@@ -196,61 +199,65 @@ def type_contigs_api(contigs_path: str, organism: str):
     If returned status code is valid, returns dictionary, containing response details, else returns dictionary with status code and corresponding text.
     If no api is available for given organism returns 2.
     '''
+    #this dictionary is the main interface for typing option selection - one organism - one option
     organisms = {
         'Listeria monocytogenes': "https://bigsdb.pasteur.fr/api/db/pubmlst_listeria_seqdef/schemes/2/sequence",
         'Neisseria gonorrhoeae': "https://rest.pubmlst.org/db/pubmlst_neisseria_seqdef/schemes/71/sequence"
     }
     try:
-        url = organisms[organism]
+        url = organisms[organism] #trying to get url for the organism requested by the user
     except KeyError:
-        return 2
-    with open(contigs_path, 'r') as x: 
+        return 2 #if url is not defined
+    with open(contigs_path, 'r') as x: #if url is obtained
         fasta = x.read()
-    req_start = '{"base64":true,"details":true,"sequence":"'
+    req_start = '{"base64":true,"details":true,"sequence":"' #request wrapper as defined in API example
     req_stop = '"}'
-    payload = req_start + base64.b64encode(fasta.encode()).decode() + req_stop
-    response = requests.post(url, data=payload)
-    if response.status_code == requests.codes.ok:
-        return response.json()
-    else:
-        return {"status_code": response.status_code, "text": response.text}
+    payload = req_start + base64.b64encode(fasta.encode()).decode() + req_stop #request + contig sequences
+    response = requests.post(url, data=payload) #sending request to the API and saving responce to a variable
+    if response.status_code == requests.codes.ok:   #if responce status code is valid (e.g. not 404)
+        return response.json()  #return dictionary with the response contents
+    else: #if return code indicates failure
+        return {"status_code": response.status_code, "text": response.text} #return dictionary with corresponding status code
 
-def parse_arguments():
+def parse_arguments(): #to be generalized
     """
     Parse pre-defined set of arguments from the command line, returning a namespace (object),
     that allows accessing arguments as instance variables of namespace by their full name.
-    """    
-    ###Parsers
+    """
+
+    ###Argument parsers
     parser = argparse.ArgumentParser(description='This is a wrapper script of ARDETYPE pipeline.', formatter_class=argparse.RawTextHelpFormatter)
     req_arg_grp = parser.add_argument_group('required arguments') #to display argument under required header in help message
     
-    ###generic arguments
     #####Required
     req_arg_grp.add_argument('-m', '--mode',
         metavar='\b',
         help = """Selecting mode that allows to run specific modules of the pipeline:
-        all - run all modules (starting from fastq files) (not active)
+        all - run all modules (starting from fastq files)
         core - run only bact_core module (starting from fastq files) 
-        shell - run only bact_shell module (starting from fasta file) (not active)
-        shell_tip - run bact_shell and bact_tip modules (starting from fasta file) (not active)
-         """,
+        shell - run only bact_shell module (starting from fasta & fastq file)
+        """,
         default=None,
         required=True)
-
-    #####Optional
-    parser.add_argument('-c', '--config', metavar='\b', help = 'Path to the config file (if not supplied, the copy of the template config_modular.yaml will be used)', default="./config_modular.yaml", required=False)
-    parser.add_argument('-r', '--skip_reporting', help = 'Use this flag to skip reporting trough bact_shape module (which will run by-default with any other option)', action='store_true')
-    parser.add_argument('-o', '--output_dir', metavar='\b', help = 'Path to the output directory where the results will be stored (ardetype_output/ by-default).', default="ardetype_output/", required=False)
-    parser.add_argument('-s', '--install_snakemake', help = 'Use this flag to install mamba and snakemake for the current HPC user, if it is not already installed.', action='store_true')
-    parser.add_argument('-j', '--module_jobs', help='Use this flag to run modules as individual jobs on HPC (without submitting subjobs to computational nodes)', action='store_true')
-    parser.add_argument('-n', '--num_jobs', metavar='\b', help = 'Maximum number of jobs to be run in-parallel on different nodes of HPC (12 by-default).', default=12, required=False)
-    ###bact_core arguments
-
-    #####Required
     req_arg_grp.add_argument('-i', '--input', metavar='\b', help = 'Path to directory that contains files to be analysed (all files in subdirectories are included).', default=None, required=True)
-    #####Optional
 
-    ###If no command-line arguments provided - display help and stop script excecution
+    #####Optional
+    ###Arguments
+    parser.add_argument('-c', '--config', metavar='\b', help = 'Path to the config file (if not supplied, the copy of the template config_modular.yaml will be used)', default="./config_modular.yaml", required=False)
+    parser.add_argument('-o', '--output_dir', metavar='\b', help = 'Path to the output directory where the results will be stored (ardetype_output/ by-default).', default="ardetype_output/", required=False)
+    parser.add_argument('-n', '--num_jobs', metavar='\b', help = 'Maximum number of jobs to be run in-parallel on different nodes of HPC (12 by-default).', default=12, required=False)
+    
+    ###Flags
+    # parser.add_argument('-r', '--skip_reporting', help = 'Flag to skip reporting trough bact_shape module (which will run by-default with any other option)', action='store_true') #will be used for shape module
+    parser.add_argument('-s', '--install_snakemake', help = 'Flag to install mamba and snakemake for the current HPC user, if it is not already installed.', action='store_true')
+    parser.add_argument('-j', '--submit_modules', help='''Flag to run modules as individual jobs on HPC (without submitting subjobs to computational nodes):
+     snakemake option flags (-t -f -g) do not apply to this run mode. Please modify ardetype_jobscript.sh to ensure desired behavior.''', action='store_true')
+    parser.add_argument('-t', '--dry_run', help='Flag to test-run all snakemake rules in all modules (-np option)', action='store_true')
+    parser.add_argument('-f', '--force_all', help='Flag to rerun all snakemake rules in all modules (--forceall option)', action='store_true')
+    parser.add_argument('-g', '--rule_graph', help='Flag to visualize snakemage job graphs for all modules and save as pdf file (--rulegraph option)', action='store_true')
+
+
+    ###If no arguments provided - display help and stop the script
     if len(sys.argv)==1: 
         parser.print_help(sys.stderr)
         sys.exit(1)

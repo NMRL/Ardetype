@@ -10,8 +10,8 @@ sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 #move input files to data folder
 os.makedirs(config['work_dir'], exist_ok = True)
 for i,r1 in enumerate(sample_sheet["fq1"]):
-    os.system(f"mv -n {r1} {config['work_dir']}")
-    os.system(f"mv -n {sample_sheet['fq2'][i]} {config['work_dir']}")
+    os.system(f"[ -f {r1} ] && mv -n {r1} {config['work_dir']}")
+    os.system(f"[ -f {sample_sheet['fq2'][i]} ] && mv -n {sample_sheet['fq2'][i]} {config['work_dir']}")
 
 #define sample_id_pattern wildcard
 sip_wild = config['work_dir']+'{sample_id_pattern}(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)'
@@ -26,7 +26,7 @@ rule all:
         for idx, id in enumerate(sample_sheet["sample_id"]):
             for file in data_contents:
                 if id in file:
-                    os.system(f"mv {config['work_dir']}{file} {os.path.dirname(sample_sheet['fq1'][idx])}")
+                    os.system(f"[ -f {config['work_dir']}{file} ] && mv {config['work_dir']}{file} {os.path.dirname(sample_sheet['fq1'][idx])}")
         os.makedirs(config['work_dir'], exist_ok = True)
         total_dict = {}
         for file in input.file_list:
