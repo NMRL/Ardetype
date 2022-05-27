@@ -11,7 +11,7 @@ work_dir:
 # bact_core
 ##############
 kraken2_env:
-  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/kraken2.yaml
+  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/config_files/conda_defs/kraken2.yaml
 krona_sif:
   /home/groups/nmrl/image_files/krona.sif
 shovill_sif:
@@ -31,11 +31,11 @@ mlst_quast_sif:
 mob_suite_sif:
   /mnt/home/groups/nmrl/image_files/mob_suite_3.0.3.sif
 nextflow_env:
-  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/nextflow.yaml
+  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/config_files/conda_defs/nextflow.yaml
 resfinder_sif:
   /mnt/home/groups/nmrl/image_files/resfinder.sif
 rgi_env:
-  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/conda_defs/rgi_env.yaml
+  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/config_files/conda_defs/rgi_env.yaml
 
 
 ##############
