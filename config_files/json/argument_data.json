@@ -1,0 +1,21 @@
+{
+    "description":"This is a wrapper script of ARDETYPE pipeline.",
+    "required_arguments":[
+        ["-m", "--mode", "Selecting mode that allows to run specific modules of the pipeline:\nall - run all modules (starting from fastq files)\ncore - run only bact_core module (starting from fastq files)\nshell - run only bact_shell module (starting from fasta & fastq file)."],
+        ["-i", "--input", "Path to directory that contains files to be analysed (all files in subdirectories are included)."]
+    ],
+    "optional":{
+        "arguments":[
+            ["-c", "--config", "Path to the config file (if not supplied, the copy of the template config_modular.yaml will be used).", "./config_files/yaml/config_modular.yaml"],
+            ["-o", "--output_dir", "Path to the output directory where the results will be stored (ardetype_output/ by-default).", "ardetype_output/"],
+            ["-n", "--num_jobs", "Maximum number of jobs to be run in-parallel on different nodes of HPC (12 by-default).", 12]
+        ],
+        "flags":[
+            ["-s", "--install_snakemake", "Flag to install mamba and snakemake for the current HPC user, if it is not already installed."],
+            ["-j", "--submit_modules", "Flag to run modules as individual jobs on HPC (without submitting subjobs to computational nodes):\nsnakemake option flags (-t -f -g) do not apply to this run mode. Please modify ardetype_jobscript.sh to ensure desired behavior."],
+            ["-t", "--dry_run", "Flag to test-run all snakemake rules in all modules (-np option)."],
+            ["-f", "--force_all", "Flag to rerun all snakemake rules in all modules (--forceall option).', action='store_true"],
+            ["-g", "--rule_graph", "Flag to visualize snakemage job graphs for all modules and save as pdf file (--rulegraph option)."]
+        ]
+    }
+}

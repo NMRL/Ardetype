@@ -6,7 +6,7 @@ from pathlib import Path
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
-module_data = read_json_dict(f'{os.path.dirname(Path(__file__).absolute())}/module_data.json')
+module_data = read_json_dict(f'{os.path.dirname(Path(__file__).absolute())}/config_files/json/module_data.json')
 
 ####################
 # Class definition

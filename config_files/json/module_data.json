@@ -1,5 +1,5 @@
 {
-    "cluster_config":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/cluster.yaml",
+    "cluster_config":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/config_files/yaml/cluster.yaml",
     "snakefiles":{
         "core":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/snakefiles/bact_core",
         "shell":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/snakefiles/bact_shell",

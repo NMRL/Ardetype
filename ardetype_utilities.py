@@ -130,7 +130,7 @@ def get_all_keys(input_dict, key_set=set()):
     return key_set #return is reached only when there are no recursive calls, hence all nested structure was parsed
 
     
-def validate_yaml(input_dict, template_yaml_path='./config_modular.yaml'):
+def validate_yaml(input_dict, template_yaml_path='./config_files/yaml/config_modular.yaml'):
     """
     Given a dictionary (dict), return 0 if the structure of the dictionary corresponds to the yaml template structure (read from file),
     return 1 if some keys are missing in the dictionary, return 2 if some new keys are found in the dictionary.
@@ -219,45 +219,48 @@ def type_contigs_api(contigs_path: str, organism: str):
     else: #if return code indicates failure
         return {"status_code": response.status_code, "text": response.text} #return dictionary with corresponding status code
 
-def parse_arguments(): #to be generalized
+
+def parse_arguments(arg_dict:dict):
     """
     Parse pre-defined set of arguments from the command line, returning a namespace (object),
-    that allows accessing arguments as instance variables of namespace by their full name.
+    that allows accessing arguments as instance variables of namespace by their full name. 
+    Expected arg_dict structure:
+    {
+        'description':'',
+        'required_arguments':[
+            ['--r1','--first_required','r1_help message'],
+            ...
+        ],
+        'optional':{
+            'arguments':[
+                ['--o1','--first_optional','o1_help message', 'o1_default_value'],
+                ...
+            ],
+            'flags':[
+                ['--f1','--first_flag','f1_help message'],
+                ...
+            ]
+        }
+    }
     """
 
-    ###Argument parsers
-    parser = argparse.ArgumentParser(description='This is a wrapper script of ARDETYPE pipeline.', formatter_class=argparse.RawTextHelpFormatter)
-    req_arg_grp = parser.add_argument_group('required arguments') #to display argument under required header in help message
+    #Argument parsers
+    parser = argparse.ArgumentParser(description=arg_dict['description'], formatter_class=argparse.RawTextHelpFormatter)
+    req_arg_grp = parser.add_argument_group('Required arguments') #to display argument under required header in help message
     
-    #####Required
-    req_arg_grp.add_argument('-m', '--mode',
-        metavar='\b',
-        help = """Selecting mode that allows to run specific modules of the pipeline:
-        all - run all modules (starting from fastq files)
-        core - run only bact_core module (starting from fastq files) 
-        shell - run only bact_shell module (starting from fasta & fastq file)
-        """,
-        default=None,
-        required=True)
-    req_arg_grp.add_argument('-i', '--input', metavar='\b', help = 'Path to directory that contains files to be analysed (all files in subdirectories are included).', default=None, required=True)
+    #Required
+    for req_arg in arg_dict['required_arguments']: 
+        req_arg_grp.add_argument(req_arg[0], req_arg[1], metavar='\b', help=req_arg[2],default=None, required=True)
 
-    #####Optional
-    ###Arguments
-    parser.add_argument('-c', '--config', metavar='\b', help = 'Path to the config file (if not supplied, the copy of the template config_modular.yaml will be used)', default="./config_modular.yaml", required=False)
-    parser.add_argument('-o', '--output_dir', metavar='\b', help = 'Path to the output directory where the results will be stored (ardetype_output/ by-default).', default="ardetype_output/", required=False)
-    parser.add_argument('-n', '--num_jobs', metavar='\b', help = 'Maximum number of jobs to be run in-parallel on different nodes of HPC (12 by-default).', default=12, required=False)
+    #Optional
+    #Arguments
+    for opt_arg in arg_dict['optional']['arguments']: 
+        parser.add_argument(opt_arg[0], opt_arg[1], metavar='\b', help=opt_arg[2], default=opt_arg[3], required=False)
     
-    ###Flags
-    # parser.add_argument('-r', '--skip_reporting', help = 'Flag to skip reporting trough bact_shape module (which will run by-default with any other option)', action='store_true') #will be used for shape module
-    parser.add_argument('-s', '--install_snakemake', help = 'Flag to install mamba and snakemake for the current HPC user, if it is not already installed.', action='store_true')
-    parser.add_argument('-j', '--submit_modules', help='''Flag to run modules as individual jobs on HPC (without submitting subjobs to computational nodes):
-     snakemake option flags (-t -f -g) do not apply to this run mode. Please modify ardetype_jobscript.sh to ensure desired behavior.''', action='store_true')
-    parser.add_argument('-t', '--dry_run', help='Flag to test-run all snakemake rules in all modules (-np option)', action='store_true')
-    parser.add_argument('-f', '--force_all', help='Flag to rerun all snakemake rules in all modules (--forceall option)', action='store_true')
-    parser.add_argument('-g', '--rule_graph', help='Flag to visualize snakemage job graphs for all modules and save as pdf file (--rulegraph option)', action='store_true')
+    #Flags
+    for flag in arg_dict['optional']['flags']: parser.add_argument(flag[0], flag[1], help = flag[2], action='store_true')
 
-
-    ###If no arguments provided - display help and stop the script
+    #If no arguments provided - display help and stop the script
     if len(sys.argv)==1: 
         parser.print_help(sys.stderr)
         sys.exit(1)
