@@ -2,7 +2,7 @@ localrules: all
 
 #imports
 import sys, pandas as pd, os, json
-sys.path.insert(0, '/mnt/home/jevgen01/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse')
+sys.path.insert(0, '/mnt/home/jevgen01/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/subscripts/')
 from ardetype_utilities import type_contigs_api, write_json
 
 #read sample sheet
