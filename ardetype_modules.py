@@ -4,9 +4,14 @@ from itertools import chain
 from getpass import getuser
 from pathlib import Path
 
+#Suppressing pandas warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
+
+
+#Reading data used to build module objects
 module_data = read_json_dict(f'{os.path.dirname(Path(__file__).absolute())}/config_files/json/module_data.json')
+
 
 ####################
 # Class definition
@@ -218,9 +223,9 @@ class Module:
         os.system(f'mv {os.path.abspath(self.config_file["work_dir"])}/* {os.path.abspath(self.input_path)}/')
 
 
-###########
-# Wrappers
-###########
+###############################################
+# Defining wrapper functions to call from main
+###############################################
 
 def run_all(args, num_jobs):
     '''Wrapper function to run all modules sequentially.'''
