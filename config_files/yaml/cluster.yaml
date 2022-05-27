@@ -26,7 +26,7 @@ quality_control:
   account: "rakus"
   queue: "batch"
   jobout: "oe"
-  outdir: "ardetype_job_logs/"
+
 
 filter_host:
   jobname: "ardetype.filter_host"
@@ -37,7 +37,7 @@ filter_host:
   account: "rakus"
   queue: "batch"
   jobout: "oe"
-  outdir: "ardetype_job_logs/"
+
 
 classify_reads:
   jobname: "ardetype.classify_reads"
@@ -48,7 +48,7 @@ classify_reads:
   account: "rakus"
   queue: "batch"
   jobout: "oe"
-  outdir: "ardetype_job_logs/"
+
 
 classify_contigs:
   jobname: "ardetype.classify_contigs"
@@ -59,7 +59,7 @@ classify_contigs:
   account: "rakus"
   queue: "batch"
   jobout: "oe"
-  outdir: "ardetype_job_logs/"
+
 
 contig_assembly:
   jobname: "ardetype.contig_assembly"
@@ -70,7 +70,7 @@ contig_assembly:
   account: "rakus"
   queue: "batch"
   jobout: "oe"
-  outdir: "ardetype_job_logs/"
+
 
 
 ##############
@@ -85,7 +85,7 @@ res_gen_id:
   account: "rakus"
   queue: "batch"
   jobout: "oe"
-  outdir: "ardetype_job_logs/"
+
 
 mlst:
   jobname: "ardetype.mlst"
@@ -96,7 +96,7 @@ mlst:
   account: "rakus"
   queue: "batch"
   jobout: "oe"
-  outdir: "ardetype_job_logs/"
+
 
 resfinder:
   jobname: "ardetype.resfinder"
@@ -107,7 +107,7 @@ resfinder:
   account: "rakus"
   queue: "batch"
   jobout: "oe"
-  outdir: "ardetype_job_logs/"
+
 
 
 amrpp:
@@ -119,7 +119,7 @@ amrpp:
   account: "rakus"
   queue: "batch"
   jobout: "oe"
-  outdir: "ardetype_job_logs/"
+
 
 
 mob_recon:

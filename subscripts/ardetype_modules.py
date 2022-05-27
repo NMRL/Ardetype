@@ -3,6 +3,7 @@ import os, warnings, re, sys, subprocess, shutil, time
 from itertools import chain
 from getpass import getuser
 from pathlib import Path
+sys.path.insert(0, os.path.dirname(Path(__file__).absolute()))
 
 #Suppressing pandas warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -10,7 +11,7 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 
 
 #Reading data used to build module objects
-module_data = read_json_dict(f'{os.path.dirname(Path(__file__).absolute())}/config_files/json/module_data.json')
+module_data = read_json_dict(f'{os.path.dirname(Path(__file__).parents[0].absolute())}/config_files/json/module_data.json')
 
 
 ####################
@@ -202,7 +203,7 @@ class Module:
             sys.exit(f"Module process running error: {msg}")
 
 
-    def run_module(self, job_count, jobscript_path='./ardetype_jobscript.sh'):
+    def run_module(self, job_count, jobscript_path='./subscripts/ardetype_jobscript.sh'):
         '''Runs module on hpc as job or as snakemake submitter (on login node), based on self.run_mode value (True - job, False - submitter)'''
         if self.run_mode:
             self.submit_module_job(jobscript_path)

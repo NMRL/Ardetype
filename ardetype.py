@@ -1,3 +1,6 @@
+import sys, os
+from pathlib import Path
+sys.path.insert(0, f'{os.path.dirname(str(Path(__file__).absolute()))}/subscripts/')
 from ardetype_modules import run_all, run_core, run_shell
 from ardetype_utilities import install_snakemake, parse_arguments, read_json_dict
 
