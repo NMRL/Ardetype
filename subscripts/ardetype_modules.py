@@ -158,8 +158,7 @@ class Module:
     def save_removed(self):
         '''Generates a csv file in self.output_path folder, containing information about samples that were
         filtered as invalid by the module (see remove_invalid_samples). Does nothing if self.removed_samples is empty.'''
-        if not self.removed_samples.empty:
-            self.removed_samples.to_csv(f"{self.output_path}removed_samples_{self.module_name}.csv", header=True, index=False)
+        if not self.removed_samples.empty: self.removed_samples.to_csv(f"{self.output_path}removed_samples_{self.module_name}.csv", header=True, index=False)
             
 
     def submit_module_job(self, jobscript_path):
@@ -316,7 +315,6 @@ def run_all(args, num_jobs):
     #Connecting core to shell
     shell.receive_sample_sheet(core.supply_sample_sheet())
     samples_cleared = shell.remove_invalid_samples(connect_from_module_name='core')
-    print(shell.removed_samples)
     shell.save_removed()
     if samples_cleared == 1: raise Exception('Missing files requested by bact_shell.')
 
@@ -336,7 +334,6 @@ def run_all(args, num_jobs):
     # Connecting core to tip
     tip.receive_sample_sheet(shell.supply_sample_sheet())
     samples_cleared = tip.remove_invalid_samples(connect_from_module_name='core')
-    print(tip.removed_samples)
     tip.save_removed()
     if samples_cleared == 1: raise Exception('Missing files requested by bact_tip.')
 
