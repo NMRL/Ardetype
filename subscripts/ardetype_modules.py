@@ -59,9 +59,9 @@ class Module:
         Initializes self.sample_sheet to pandas dataframe, using self.input_dict and self.module_name (restricted to fastq & fasta inputs).
         '''
         if len(self.input_dict) < 2: #only one file extension is used - assumed fastq.gz
-            self.sample_sheet = create_sample_sheet(self.input_dict[".fastq.gz"],self.patterns['sample_sheet'],mode=0)
+            self.sample_sheet = create_sample_sheet(self.input_dict["_R[1,2]_001.fastq.gz"],self.patterns['sample_sheet'],mode=0)
         else: #fastq & fasta assumed
-            self.sample_sheet = create_sample_sheet(self.input_dict[".fastq.gz"],self.patterns['sample_sheet'],mode=0)
+            self.sample_sheet = create_sample_sheet(self.input_dict["_R[1,2]_001.fastq.gz"],self.patterns['sample_sheet'],mode=0)
             fasta_dict = {re.sub("_contigs.fasta","",os.path.basename(contig)):contig for contig in self.input_dict["_contigs.fasta"]}
             self.sample_sheet = map_new_column(self.sample_sheet,fasta_dict,'sample_id','fa')
 
@@ -242,8 +242,8 @@ class Module:
         os.makedirs(os.path.abspath(self.config_file['work_dir']), exist_ok=True)
         input_files = [s_id+f_ext for (s_id,f_ext) in product(self.sample_sheet['sample_id'], self.patterns['inputs'])]
         for file in input_files:
-            os.system(f'[ -f {os.path.abspath(self.input_path)}/{file} ] && mv -n {os.path.abspath(self.input_path)}/{file} {os.path.abspath(self.config_file["work_dir"])}')
-            os.system(f'[ -f {self.output_path}{file} ] && mv -n {self.output_path}{file} {os.path.abspath(self.config_file["work_dir"])}')
+            os.system(f'mv -n {os.path.abspath(self.input_path)}/{file} {os.path.abspath(self.config_file["work_dir"])} 2> /dev/null')
+            os.system(f'mv -n {self.output_path}{file} {os.path.abspath(self.config_file["work_dir"])} 2> /dev/null')
 
 
     def fold_output(self):
