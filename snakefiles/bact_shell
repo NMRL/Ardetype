@@ -1,21 +1,9 @@
 localrules: all
 
-#imports
-import pandas as pd, os
-
-#read sample sheet
-os.chdir(config['home_dir'])
-sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
-
-#move input files to data folder
-os.makedirs(config['work_dir'], exist_ok = True)
-for ctg, r1, r2 in zip(sample_sheet["fa"],sample_sheet['fq1'],sample_sheet['fq2']):
-    os.system(f"[ -f {ctg} ] && mv -n {ctg} {config['work_dir']}")
-    os.system(f"[ -f {r1} ] && mv -n {r1} {config['work_dir']}")
-    os.system(f"[ -f {r2} ] && mv -n {r2} {config['work_dir']}")
-
-#define sample_id_pattern wildcard
+#define sample_id_pattern wildcard and accessing sample_sheet
+import pandas as pd
 sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
 #AGGREGATION RULE
 rule all:

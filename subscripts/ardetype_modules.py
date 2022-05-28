@@ -1,6 +1,6 @@
 from ardetype_utilities import *
 import os, warnings, re, sys, subprocess, shutil, time
-from itertools import chain
+from itertools import chain, product
 from getpass import getuser
 from pathlib import Path
 sys.path.insert(0, os.path.dirname(Path(__file__).absolute()))
@@ -224,6 +224,15 @@ class Module:
         os.system(f'mv {os.path.abspath(self.config_file["work_dir"])}/* {os.path.abspath(self.input_path)}/')
 
 
+    def files_to_wd(self):
+        '''Function is used to move all input files from input and output directories to working directory before running snakemake.'''
+        os.chdir(os.path.abspath(self.config_file['home_dir']))
+        os.makedirs(os.path.abspath(self.config_file['work_dir']), exist_ok=True)
+        input_files = [s_id+f_ext for (s_id,f_ext) in product(self.sample_sheet['sample_id'], self.patterns['inputs'])]
+        for file in input_files:
+            os.system(f'[ -f {os.path.abspath(self.input_path)}/{file} ] && mv -n {os.path.abspath(self.input_path)}/{file} {os.path.abspath(self.config_file["work_dir"])}')
+            os.system(f'[ -f {self.output_path}{file} ] && mv -n {self.output_path}{file} {os.path.abspath(self.config_file["work_dir"])}')
+
 ###############################################
 # Defining wrapper functions to call from main
 ###############################################
@@ -264,7 +273,7 @@ def run_all(args, num_jobs):
         )
     tip = Module(
         module_name='tip', 
-        input_path=args.input,
+        input_path=core.output_path,
         module_config=shell.config_file, 
         output_path=args.output_dir, 
         run_mode=args.submit_modules,
@@ -288,6 +297,7 @@ def run_all(args, num_jobs):
     core.add_module_targets()
     core.add_output_dir()
     core.write_module_config()
+    core.files_to_wd()
     core.run_module(job_count=num_jobs)
     core.check_module_output()
     core.add_taxonomy_column()
@@ -305,9 +315,11 @@ def run_all(args, num_jobs):
     shell.fill_target_list()
     shell.add_module_targets()
     shell.write_module_config()
+    shell.files_to_wd()
     shell.run_module(job_count=num_jobs)
     shell.check_module_output()
     shell.write_sample_sheet()
+
 
     # Connecting core to tip
     tip.receive_sample_sheet(shell.supply_sample_sheet())
@@ -321,6 +333,7 @@ def run_all(args, num_jobs):
     tip.fill_target_list(taxonomy_based=True)
     tip.add_module_targets()
     tip.write_module_config()
+    tip.files_to_wd()
     tip.run_module(job_count=num_jobs)
     tip.check_module_output()
     tip.write_sample_sheet()
@@ -352,10 +365,12 @@ def run_core(args, num_jobs):
     core.add_module_targets()
     core.add_output_dir()
     core.write_module_config()
+    core.files_to_wd()
     core.run_module(job_count=num_jobs)
     core.check_module_output()
     core.add_taxonomy_column()
     core.write_sample_sheet()
+    
     if core.dry_run != "" or core.rule_graph != "": core.clear_working_directory()
 
 def run_shell(args, num_jobs):
@@ -384,6 +399,7 @@ def run_shell(args, num_jobs):
     shell.add_module_targets()
     shell.add_output_dir()
     shell.write_module_config()
+    shell.files_to_wd()
     shell.run_module(job_count=num_jobs)
     shell.check_module_output()
     shell.write_sample_sheet()
