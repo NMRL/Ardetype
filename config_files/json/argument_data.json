@@ -2,7 +2,7 @@
     "description":"This is a wrapper script of ARDETYPE pipeline.",
     "required_arguments":[
         ["-m", "--mode", "Selecting mode that allows to run specific modules of the pipeline:\nall - run all modules (starting from fastq files)\ncore - run only bact_core module (starting from fastq files)\nshell - run only bact_shell module (starting from fasta & fastq file)."],
-        ["-i", "--input", "Path to directory that contains files to be analysed (all files in subdirectories are included)."]
+        ["-i", "--input", "Path to directory that contains files to be analysed (files are NOT parsed from subfolders)."]
     ],
     "optional":{
         "arguments":[
@@ -14,8 +14,9 @@
             ["-s", "--install_snakemake", "Flag to install mamba and snakemake for the current HPC user, if it is not already installed."],
             ["-j", "--submit_modules", "Flag to run modules as individual jobs on HPC (without submitting subjobs to computational nodes):\nsnakemake option flags (-t -f -g) do not apply to this run mode. Please modify ardetype_jobscript.sh to ensure desired behavior."],
             ["-t", "--dry_run", "Flag to test-run all snakemake rules in all modules (-np option)."],
-            ["-f", "--force_all", "Flag to rerun all snakemake rules in all modules (--forceall option).', action='store_true"],
-            ["-g", "--rule_graph", "Flag to visualize snakemage job graphs for all modules and save as pdf file (--rulegraph option)."]
+            ["-f", "--force_all", "Flag to rerun all snakemake rules in all modules (--forceall option)."],
+            ["-g", "--rule_graph", "Flag to visualize snakemage job graphs for all modules and save as pdf file (--rulegraph option)."],
+            ["-p", "--pack_output", "Flag to combine output for each sample in separate folder, named after sample_id. \nBetter to use this flag when you are sure the output is complete & valid, or might have to move files out of the folders manually to do a rerun.\nSuggested use: run the pipeline - check output, rerun if needed, then use dry-run flag + pack_output flag to structure the output."]
         ]
     }
 }
