@@ -43,7 +43,7 @@ class Module:
         self.dry_run = "-np" if dry_run else "" #to store dry-run flag if it is supplied, else empty string is stored
         self.force_all = "--forceall" if force_all else "" #to store forceall flag if it is supplied, else empty string is stored
         self.rule_graph = f"--rulegraph | dot -Tpdf > {self.module_name}.pdf" if rule_graph else "" #to store rule_graph flag if it is supplied, else empty string is stored
-
+        self.removed_samples = pd.DataFrame() #to store dataframe containing information about samples that were deemed invalid by the module
 
     def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified']):
         '''Fills self.input_dict using self.input_path and self.module_name by
@@ -142,15 +142,25 @@ class Module:
         '''
         if self.requests['check'] is not None: #if module requires certain file types to run rules that are not taxonomy-specific
             if isinstance(self.requests['check'],str): #if only one requirement is provided as string
+                self.removed_samples = self.sample_sheet[~self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(self.requests['check'])].reset_index(drop=True)
                 self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(self.requests['check'])].reset_index(drop=True)
             else:
                 for request in self.requests['check']: #if many requirements are provided as list of stings
+                    self.removed_samples = self.sample_sheet[~self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(request)].reset_index(drop=True)
                     self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(request)].reset_index(drop=True)
         if self.requests['taxonomy'] is not None:   #if module can run only certain taxonomy-specific rules (but not others) and accepted species are supplied as list of strings
+            self.removed_samples = self.removed_samples.append(self.sample_sheet[~self.sample_sheet['taxonomy'].str.contains("("+"|".join(self.requests['taxonomy'])+")")].reset_index(drop=True))
             self.sample_sheet = self.sample_sheet[self.sample_sheet['taxonomy'].str.contains("("+"|".join(self.requests['taxonomy'])+")")].reset_index(drop=True)
         if self.sample_sheet.empty: #if all samples were removed by filtering - e.g. files are missing and/or no taxonomy-based rules are available for detected organisms
             return 1
 
+
+    def save_removed(self):
+        '''Generates a csv file in self.output_path folder, containing information about samples that were
+        filtered as invalid by the module (see remove_invalid_samples). Does nothing if self.removed_samples is empty.'''
+        if not self.removed_samples.empty:
+            self.removed_samples.to_csv(f"{self.output_path}removed_samples_{self.module_name}.csv", header=True, index=False)
+            
 
     def submit_module_job(self, jobscript_path):
         """
@@ -306,6 +316,8 @@ def run_all(args, num_jobs):
     #Connecting core to shell
     shell.receive_sample_sheet(core.supply_sample_sheet())
     samples_cleared = shell.remove_invalid_samples(connect_from_module_name='core')
+    print(shell.removed_samples)
+    shell.save_removed()
     if samples_cleared == 1: raise Exception('Missing files requested by bact_shell.')
 
     #Running shell
@@ -324,6 +336,8 @@ def run_all(args, num_jobs):
     # Connecting core to tip
     tip.receive_sample_sheet(shell.supply_sample_sheet())
     samples_cleared = tip.remove_invalid_samples(connect_from_module_name='core')
+    print(tip.removed_samples)
+    tip.save_removed()
     if samples_cleared == 1: raise Exception('Missing files requested by bact_tip.')
 
     # Running tip

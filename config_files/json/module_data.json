@@ -87,7 +87,7 @@
         }
         ,
         "patterns":{
-            "inputs":[".fastq.gz", "_contigs.fasta"],
+            "inputs":["_bact_reads_classified_1.fastq.gz", "_bact_reads_classified_2.fastq.gz", "_contigs.fasta"],
             "sample_sheet":"(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_contigs.fasta)"
         },
         "job_name":"bact_tip",
