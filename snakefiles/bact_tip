@@ -14,11 +14,7 @@ rule all:
     input: 
         config['tip_target_files']
     run:
-        data_contents = os.listdir(config['work_dir'])
-        for idx, id in enumerate(sample_sheet["sample_id"]):
-            for file in data_contents:
-                if id in file:
-                    os.system(f"[ -f {config['work_dir']}{file} ] && mv {config['work_dir']}{file} {os.path.dirname(sample_sheet['fa'][idx])}")
+        print('bact_tip finished')
 
 
 rule hicap_hinfluenzae:

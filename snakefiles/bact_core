@@ -11,12 +11,6 @@ rule all:
         config["core_target_files"],
         file_list = expand(config['output_directory']+'{sample_id}_kraken2_contigs_report.txt', sample_id=sample_sheet['sample_id'])
     run:
-        data_contents = os.listdir(config['work_dir'])
-        for idx, id in enumerate(sample_sheet["sample_id"]):
-            for file in data_contents:
-                if id in file:
-                    os.system(f"[ -f {config['work_dir']}{file} ] && mv {config['work_dir']}{file} {os.path.dirname(sample_sheet['fq1'][idx])}")
-        os.makedirs(config['work_dir'], exist_ok = True)
         total_dict = {}
         for file in input.file_list:
             df = pd.read_table(file, header=None)[[0,3,5]]
@@ -26,6 +20,7 @@ rule all:
             total_dict[os.path.basename(file).replace("_kraken2_contigs_report.txt","")] = top_hit
         with open(config['output_directory']+'core_aggregated_taxonomy.json', "w+") as json_handle:
             json.dump(total_dict, json_handle)
+        print('bact_core finished')
 
 #READ LENGTH & QUALITY TRIMMING
 rule quality_control:
