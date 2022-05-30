@@ -178,7 +178,7 @@ def install_snakemake():
         echo Running with --install_snakemake flag:
         conda create -n mamba_env -c conda-forge mamba
         conda activate mamba_env
-        mamba create -c conda-forge -c bioconda -n snakemake snakemake
+        mamba create -c conda-forge -c bioconda -n snakemake snakemake=7.6.1
         conda activate snakemake
     fi    
     '''
