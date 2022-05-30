@@ -6,8 +6,8 @@ from ardetype_utilities import install_snakemake, parse_arguments, read_json_dic
 
 """
 This is a wrapper script of ARDETYPE pipeline.
-Date: 2022-05-27
-Version: 0.9
+Date: 2022-05-30
+Version: 1.0
 """
 
 if __name__ == "__main__":
