@@ -86,8 +86,8 @@ if 'fq1' in sample_sheet.columns:
             read_1_filename=$(basename {input.read_1})
             read_2_filename=$(basename {input.read_2})
             mkdir -p {config[amrpp_repo]}data/raw/{wildcards.sample_id_pattern}
-            cp {input.read_1} {config[amrpp_repo]}data/raw/{wildcards.sample_id_pattern}/
-            cp {input.read_2} {config[amrpp_repo]}data/raw/{wildcards.sample_id_pattern}/
+            cp $(realpath {input.read_1}) {config[amrpp_repo]}data/raw/{wildcards.sample_id_pattern}/
+            cp $(realpath {input.read_2}) {config[amrpp_repo]}data/raw/{wildcards.sample_id_pattern}/
 
             cd {config[amrpp_repo]}
             nextflow run main_AmrPlusPlus_v2.nf --threads {threads} -profile singularity --output "nextflow_output_{wildcards.sample_id_pattern}/" -w "work_dir_{wildcards.sample_id_pattern}/" --reads "{config[work_dir]}/raw/{wildcards.sample_id_pattern}/*_R{{1,2}}_001.fastq.gz"

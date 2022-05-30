@@ -371,7 +371,7 @@ def run_all(args, num_jobs):
     tip.run_module(job_count=num_jobs)
     tip.check_module_output()
     tip.write_sample_sheet()
-    if tip.dry_run != "" or tip.rule_graph != "": tip.clear_working_directory()
+    tip.clear_working_directory()
     if tip.pack_output: tip.fold_output()
 
 
@@ -407,7 +407,7 @@ def run_core(args, num_jobs):
     core.check_module_output()
     core.add_taxonomy_column()
     core.write_sample_sheet()
-    if core.dry_run != "" or core.rule_graph != "": core.clear_working_directory()
+    core.clear_working_directory()
     if core.pack_output: core.fold_output()
 
 def run_shell(args, num_jobs):
@@ -441,5 +441,5 @@ def run_shell(args, num_jobs):
     shell.run_module(job_count=num_jobs)
     shell.check_module_output()
     shell.write_sample_sheet()
-    if shell.dry_run != "" or shell.rule_graph != "": shell.clear_working_directory()
+    shell.clear_working_directory()
     if shell.pack_output: shell.fold_output()
