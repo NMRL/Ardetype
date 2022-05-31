@@ -185,7 +185,7 @@ class Module:
             self.job_id = subprocess.check_output(['qsub', '-F', f'{self.snakefile_path} {self.config_file_path}', f'{self.output_path}ardetype_jobscript.sh'])
             os.system(f"rm {self.output_path}ardetype_jobscript.sh") #cleanup
         except subprocess.CalledProcessError as msg:
-            raise Exception(f"Job submission error: {msg}")
+            raise Exception(f"{self.module_name} job submission error: {msg}")
         
 
     def check_job_completion(self, sleeping_time=5):
@@ -224,7 +224,7 @@ class Module:
         try:
             subprocess.check_call(shell_command, shell=True)
         except subprocess.CalledProcessError as msg:
-            sys.exit(f"Module process running error: {msg}")
+            raise Exception(f"{self.module_name} module process running error: {msg}")
 
 
     def run_module(self, job_count, jobscript_path='./subscripts/ardetype_jobscript.sh'):
@@ -244,7 +244,7 @@ class Module:
 
 
     def clear_working_directory(self):
-        """Moves all files from working directory to input directory after performing dry run or plotting job graph."""
+        """Moves all files from working directory to source directory stored in self.cleanup_dict."""
         for key in self.cleanup_dict: os.system(f"mv -n {key} {self.cleanup_dict[key]} 2> /dev/null")
             
 
@@ -346,13 +346,17 @@ def run_all(args, num_jobs):
     core.add_output_dir()
     core.write_module_config()
     core.files_to_wd()
-    core.run_module(job_count=num_jobs)
+    try:
+        core.run_module(job_count=num_jobs)
+    except Exception as e:
+        core.clear_working_directory() #to avoid manually moving files back to input
+        raise e
     core.check_module_output()
     try:
         core.add_taxonomy_column()
-    except FileNotFoundError as error:
+    except FileNotFoundError as e: #it should be raised in dry-run mode as rule all of bact_core is not executed
         if core.dry_run == "" and core.rule_graph == "":
-            raise error
+            raise e
     core.write_sample_sheet()
     core.clear_working_directory()
 
@@ -360,7 +364,7 @@ def run_all(args, num_jobs):
     #Connecting core to shell
     shell.receive_sample_sheet(core.supply_sample_sheet())
     if shell.dry_run == "" and shell.rule_graph == "": 
-        samples_cleared = shell.remove_invalid_samples(connect_from_module_name='core')
+        samples_cleared = shell.remove_invalid_samples(connect_from_module_name='core') #in dry run mode none of the rules are executed, hence all samples will be removed, causing error
         shell.save_removed()
         if samples_cleared == 1: 
             if core.pack_output: core.fold_output()
@@ -374,7 +378,11 @@ def run_all(args, num_jobs):
     shell.add_module_targets()
     shell.write_module_config()
     shell.files_to_wd()
-    shell.run_module(job_count=num_jobs)
+    try:
+        shell.run_module(job_count=num_jobs)
+    except Exception as e:
+        shell.clear_working_directory()
+        raise e
     shell.check_module_output()
     shell.write_sample_sheet()
     shell.clear_working_directory()
@@ -395,7 +403,11 @@ def run_all(args, num_jobs):
     tip.add_module_targets()
     tip.write_module_config()
     tip.files_to_wd()
-    tip.run_module(job_count=num_jobs)
+    try:
+        tip.run_module(job_count=num_jobs)
+    except Exception as e:
+        tip.clear_working_directory()
+        raise e
     tip.check_module_output()
     tip.write_sample_sheet()
     tip.clear_working_directory()
@@ -432,7 +444,11 @@ def run_core(args, num_jobs):
     core.add_output_dir()
     core.write_module_config()
     core.files_to_wd()
-    core.run_module(job_count=num_jobs)
+    try:
+        core.run_module(job_count=num_jobs)
+    except Exception as e:
+        core.clear_working_directory()
+        raise e
     core.check_module_output()
     try:
         core.add_taxonomy_column()
@@ -466,7 +482,7 @@ def run_shell(args, num_jobs):
     )
     shell.fill_input_dict()
     shell.fill_sample_sheet()
-    if shell.unfold_output: shell.unfold_output()
+    if shell.unpack_output: shell.unfold_output()
     shell.make_output_dir()
     shell.write_sample_sheet()
     shell.fill_target_list()
@@ -474,7 +490,11 @@ def run_shell(args, num_jobs):
     shell.add_output_dir()
     shell.write_module_config()
     shell.files_to_wd()
-    shell.run_module(job_count=num_jobs)
+    try:
+        shell.run_module(job_count=num_jobs)
+    except Exception as e:
+        shell.clear_working_directory()
+        raise e
     shell.check_module_output()
     shell.write_sample_sheet()
     shell.clear_working_directory()
