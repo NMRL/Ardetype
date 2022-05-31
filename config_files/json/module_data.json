@@ -17,7 +17,7 @@
                 "_kraken2_host_filtering_report.txt"
         ],
         "patterns":{
-            "inputs":[".fastq.gz"],
+            "inputs":["001.fastq.gz"],
             "sample_sheet":"(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)"
         },
         "job_name":"bact_core",
@@ -41,8 +41,8 @@
             "_mob_typer.tab"
         ],
         "patterns":{
-            "inputs":[".fastq.gz", "_contigs.fasta"],
-            "sample_sheet":"(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_contigs.fasta)"
+            "inputs":["001.fastq.gz", "_contigs.fasta"],
+            "sample_sheet":"(_R[1,2]_001.fastq.gz|_contigs.fasta)"
         },
         "job_name":"bact_shell",
         "requests":{

@@ -1,6 +1,6 @@
 from ardetype_utilities import *
 import os, warnings, re, sys, subprocess, shutil, time
-from itertools import chain, product
+from itertools import chain
 from getpass import getuser
 from pathlib import Path
 sys.path.insert(0, os.path.dirname(Path(__file__).absolute()))
@@ -21,7 +21,7 @@ module_data = read_json_dict(f'{os.path.dirname(Path(__file__).parents[0].absolu
 class Module:
     '''Class represents single module of the ardetype pipeline'''
 
-    def __init__(self, module_name: str, input_path: str, module_config, output_path: str, run_mode: bool, job_name: str, patterns: dict, targets: list, requests: dict, snakefile_path: str, cluster_config_path: str, dry_run: bool, force_all: bool, rule_graph: bool, pack_output:bool) -> None:
+    def __init__(self, module_name: str, input_path: str, module_config, output_path: str, run_mode: bool, job_name: str, patterns: dict, targets: list, requests: dict, snakefile_path: str, cluster_config_path: str, dry_run: bool, force_all: bool, rule_graph: bool, pack_output:bool, unpack_output:bool) -> None:
         self.run_mode = run_mode #If true, snakemake will be run as single job, else - will run as job submitter on the login node
         self.job_id = None  #Will be added if self.run_mode is True and job was submitted to HPC; filled by submit_module_job
         self.taxonomy_dict = None   #Required if module creates different targets for different samples based on taxonomy information; filled by add_taxonomy_column
@@ -43,15 +43,19 @@ class Module:
         self.dry_run = "-np" if dry_run else "" #to store dry-run flag if it is supplied, else empty string is stored
         self.force_all = "--forceall" if force_all else "" #to store forceall flag if it is supplied, else empty string is stored
         self.rule_graph = f"--rulegraph | dot -Tpdf > {self.module_name}.pdf" if rule_graph else "" #to store rule_graph flag if it is supplied, else empty string is stored
+        self.unpack_output = unpack_output #used to move files outside sample folders and do a rerun; used by unfold_output
         self.removed_samples = pd.DataFrame() #to store dataframe containing information about samples that were deemed invalid by the module
         self.pack_output = pack_output #switch to control putting output files into one folder named after sample_id; used by fold_output
+        self.cleanup_dict = {} #to map origin paths of input files to path in working directory; filled by move_to_wd; used by clear_working_directory
 
     def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified']):
         '''Fills self.input_dict using self.input_path and self.module_name by
         mapping each file format to the list of files of that format, found in the self.input_path, 
-        excluding files that contain substrings in their names (supply None to avoid excluding files).'''
+        excluding files that contain substrings in their names (supply None to avoid excluding files).
+        If some files of required format are missing, raises an exception, indicating missing file format.'''
         for format in self.patterns['inputs']: 
             self.input_dict[format] = parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
+            if not self.input_dict[format]: raise Exception(f'Missing {format} files in input directory')
    
 
     def fill_sample_sheet(self):
@@ -59,16 +63,16 @@ class Module:
         Initializes self.sample_sheet to pandas dataframe, using self.input_dict and self.module_name (restricted to fastq & fasta inputs).
         '''
         if len(self.input_dict) < 2: #only one file extension is used - assumed fastq.gz
-            self.sample_sheet = create_sample_sheet(self.input_dict[".fastq.gz"],self.patterns['sample_sheet'],mode=0)
+            self.sample_sheet = create_sample_sheet(self.input_dict["001.fastq.gz"],self.patterns['sample_sheet'],mode=0)
         else: #fastq & fasta assumed
-            self.sample_sheet = create_sample_sheet(self.input_dict[".fastq.gz"],self.patterns['sample_sheet'],mode=0)
+            self.sample_sheet = create_sample_sheet(self.input_dict["001.fastq.gz"],self.patterns['sample_sheet'],mode=0)
             fasta_dict = {re.sub("_contigs.fasta","",os.path.basename(contig)):contig for contig in self.input_dict["_contigs.fasta"]}
             self.sample_sheet = map_new_column(self.sample_sheet,fasta_dict,'sample_id','fa')
 
 
     def fill_target_list(self, taxonomy_based=False):
         '''Fills self.target_list using data stored in self.sample_sheet instance variable.'''
-        if taxonomy_based:#specific targets for each species 
+        if taxonomy_based:#specific targets for each species
             self.target_list = [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
         else:#only non-specific targets
             self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
@@ -137,24 +141,31 @@ class Module:
         self.sample_sheet = map_new_column(self.sample_sheet,fasta_dict,'sample_id','fa')
 
 
-    def remove_invalid_samples(self, connect_from_module_name):
+    def remove_invalid_samples(self, connect_from_module_name, taxonomy_only=False):
         '''
         Removes samples that lack files, required by the current module, given supplier module name.
         If all samples are removed, returns 1 (int).
         '''
-        if self.requests['check'] is not None: #if module requires certain file types to run rules that are not taxonomy-specific
-            if isinstance(self.requests['check'],str): #if only one requirement is provided as string
-                self.removed_samples = self.sample_sheet[~self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(self.requests['check'])].reset_index(drop=True)
-                self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(self.requests['check'])].reset_index(drop=True)
-            else:
-                for request in self.requests['check']: #if many requirements are provided as list of stings
-                    self.removed_samples = self.sample_sheet[~self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(request)].reset_index(drop=True)
-                    self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(request)].reset_index(drop=True)
-        if self.requests['taxonomy'] is not None:   #if module can run only certain taxonomy-specific rules (but not others) and accepted species are supplied as list of strings
-            self.removed_samples = self.removed_samples.append(self.sample_sheet[~self.sample_sheet['taxonomy'].str.contains("("+"|".join(self.requests['taxonomy'])+")")].reset_index(drop=True))
-            self.sample_sheet = self.sample_sheet[self.sample_sheet['taxonomy'].str.contains("("+"|".join(self.requests['taxonomy'])+")")].reset_index(drop=True)
-        if self.sample_sheet.empty: #if all samples were removed by filtering - e.g. files are missing and/or no taxonomy-based rules are available for detected organisms
-            return 1
+        if not taxonomy_only:
+            if self.requests['check'] is not None: #if module requires certain file types to run rules that are not taxonomy-specific
+                if isinstance(self.requests['check'],str): #if only one requirement is provided as string
+                    self.removed_samples = self.sample_sheet[~self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(self.requests['check'])].reset_index(drop=True)
+                    self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(self.requests['check'])].reset_index(drop=True)
+                else:
+                    for request in self.requests['check']: #if many requirements are provided as list of stings
+                        self.removed_samples = self.sample_sheet[~self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(request)].reset_index(drop=True)
+                        self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(request)].reset_index(drop=True)
+            if self.requests['taxonomy'] is not None:   #if module can run only certain taxonomy-specific rules (but not others) and accepted species are supplied as list of strings
+                self.removed_samples = self.removed_samples.append(self.sample_sheet[~self.sample_sheet['taxonomy'].str.contains("("+"|".join(self.requests['taxonomy'])+")")].reset_index(drop=True))
+                self.sample_sheet = self.sample_sheet[self.sample_sheet['taxonomy'].str.contains("("+"|".join(self.requests['taxonomy'])+")")].reset_index(drop=True)
+            if self.sample_sheet.empty: #if all samples were removed by filtering - e.g. files are missing and/or no taxonomy-based rules are available for detected organisms
+                return 1
+        else:
+            if self.requests['taxonomy'] is not None:   #if module can run only certain taxonomy-specific rules (but not others) and accepted species are supplied as list of strings
+                self.removed_samples = self.removed_samples.append(self.sample_sheet[~self.sample_sheet['taxonomy'].str.contains("("+"|".join(self.requests['taxonomy'])+")")].reset_index(drop=True))
+                self.sample_sheet = self.sample_sheet[self.sample_sheet['taxonomy'].str.contains("("+"|".join(self.requests['taxonomy'])+")")].reset_index(drop=True)
+            if self.sample_sheet.empty: #if all samples were removed by filtering - e.g. files are missing and/or no taxonomy-based rules are available for detected organisms
+                return 1
 
 
     def save_removed(self):
@@ -208,7 +219,8 @@ class Module:
         shell_command = f'''
         eval "$(conda shell.bash hook)";
         conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake; 
-        snakemake --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 --cluster {qsub_command} {self.force_all} {self.dry_run} {self.rule_graph}'''
+        snakemake --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.rule_graph} {self.dry_run} --cluster {qsub_command} '''
+        print(shell_command)
         try:
             subprocess.check_call(shell_command, shell=True)
         except subprocess.CalledProcessError as msg:
@@ -233,34 +245,33 @@ class Module:
 
     def clear_working_directory(self):
         """Moves all files from working directory to input directory after performing dry run or plotting job graph."""
-        os.system(f'mv {os.path.abspath(self.config_file["work_dir"])}/* {os.path.abspath(self.input_path)}/ 2> /dev/null')
-
+        for key in self.cleanup_dict: os.system(f"mv -n {key} {self.cleanup_dict[key]} 2> /dev/null")
+            
 
     def files_to_wd(self):
         '''Moves all input files from input and output directories to working directory before running snakemake.'''
-        os.chdir(os.path.abspath(self.config_file['home_dir']))
         os.makedirs(os.path.abspath(self.config_file['work_dir']), exist_ok=True)
-        input_files = []
-        for (s_id,f_ext) in product(self.sample_sheet['sample_id'], self.patterns['inputs']):
-            if f_ext == '.fastq.gz':
-               if s_id+'_R1_001'+f_ext not in input_files:
-                  input_files.append(s_id+'_R1_001'+f_ext)
-               if s_id+'_R2_001'+f_ext not in input_files:
-                  input_files.append(s_id+'_R2_001'+f_ext)
-            else:
-                  input_files.append(s_id+f_ext)
-        for file in input_files:
-            os.system(f'mv -n {os.path.abspath(self.input_path)}/{file} {os.path.abspath(self.config_file["work_dir"])} 2> /dev/null')
-            os.system(f'mv -n {self.output_path}{file} {os.path.abspath(self.config_file["work_dir"])} 2> /dev/null ')
+        for format in self.input_dict:
+            map_dict = {}
+            for source_path in self.input_dict[format]:
+                map_dict[f"{self.config_file['work_dir']}/{os.path.basename(source_path)}"] = source_path
+                os.system(f"mv -n {source_path} {os.path.abspath(self.config_file['work_dir'])} 2> /dev/null")
+            self.cleanup_dict.update(map_dict)
 
 
     def fold_output(self):
         '''Creates a folder for each sample_id in self.sample_sheet and self.removed_samples.
         Structures the pipeline output by putting all tartets for each sample into curresponding folder.'''
-        full_sample_list = self.sample_sheet['sample_id'].tolist() + self.removed_samples['sample_id'].tolist()
+        full_sample_list = self.sample_sheet['sample_id'].tolist() 
+        if not self.removed_samples.empty: full_sample_list += self.removed_samples['sample_id'].to_list()
         for sample_id in full_sample_list: 
-            os.makedirs(f'{self.output_path}{sample_id}', exist_ok=True)
-            os.system(f'mv -n {self.output_path}{sample_id}* {self.output_path}{sample_id}/ 2> /dev/null')
+            os.makedirs(f'{self.output_path}folded_{sample_id}_output', exist_ok=True)
+            os.system(f'mv -n {self.output_path}{sample_id}* {self.output_path}folded_{sample_id}_output/ 2> /dev/null')
+
+
+    def unfold_output(self):
+        '''Moves target files outside of folders created by fold_output method in order to avoid having to move file out manually to do a rerun.'''
+        for id in self.sample_sheet['sample_id']: os.system(f'mv -n {self.output_path}folded_{id}_output/* {self.output_path} 2> /dev/null')
 
 
 ###############################################
@@ -279,6 +290,7 @@ def run_all(args, num_jobs):
             force_all=args.force_all,
             rule_graph=args.rule_graph,
             pack_output=args.pack_output,
+            unpack_output=args.unpack_output,
             job_name=module_data['core']['job_name'],
             patterns=module_data['core']['patterns'],
             targets=module_data['core']['targets'],
@@ -296,6 +308,7 @@ def run_all(args, num_jobs):
         force_all=args.force_all,
         rule_graph=args.rule_graph,
         pack_output=args.pack_output,
+        unpack_output=args.unpack_output,
         job_name=module_data['shell']['job_name'],
         patterns=module_data['shell']['patterns'],
         targets=module_data['shell']['targets'],
@@ -313,6 +326,7 @@ def run_all(args, num_jobs):
         force_all=args.force_all,
         rule_graph=args.rule_graph,
         pack_output=args.pack_output,
+        unpack_output=args.unpack_output,
         job_name=module_data['tip']['job_name'],
         patterns=module_data['tip']['patterns'],
         targets=module_data['tip']['targets'],
@@ -324,6 +338,7 @@ def run_all(args, num_jobs):
     #Running core
     core.fill_input_dict()
     core.fill_sample_sheet()
+    if core.unfold_output: core.unfold_output()
     core.make_output_dir()
     core.write_sample_sheet()
     core.fill_target_list()
@@ -333,14 +348,23 @@ def run_all(args, num_jobs):
     core.files_to_wd()
     core.run_module(job_count=num_jobs)
     core.check_module_output()
-    core.add_taxonomy_column()
+    try:
+        core.add_taxonomy_column()
+    except FileNotFoundError as error:
+        if core.dry_run == "" and core.rule_graph == "":
+            raise error
     core.write_sample_sheet()
-          
+    core.clear_working_directory()
+
+  
     #Connecting core to shell
     shell.receive_sample_sheet(core.supply_sample_sheet())
-    samples_cleared = shell.remove_invalid_samples(connect_from_module_name='core')
-    shell.save_removed()
-    if samples_cleared == 1: raise Exception('Missing files requested by bact_shell.')
+    if shell.dry_run == "" and shell.rule_graph == "": 
+        samples_cleared = shell.remove_invalid_samples(connect_from_module_name='core')
+        shell.save_removed()
+        if samples_cleared == 1: 
+            if core.pack_output: core.fold_output()
+            raise Exception('Missing files requested by bact_shell.')
 
     #Running shell
     shell.fill_input_dict()
@@ -353,12 +377,15 @@ def run_all(args, num_jobs):
     shell.run_module(job_count=num_jobs)
     shell.check_module_output()
     shell.write_sample_sheet()
+    shell.clear_working_directory()
 
     # Connecting core to tip
     tip.receive_sample_sheet(shell.supply_sample_sheet())
     samples_cleared = tip.remove_invalid_samples(connect_from_module_name='core')
     tip.save_removed()
-    if samples_cleared == 1: raise Exception('Missing files requested by bact_tip.')
+    if samples_cleared == 1: 
+        if shell.pack_output: shell.fold_output()
+        raise Exception('Missing files requested by bact_tip.')
 
     # Running tip
     tip.fill_input_dict(substring_list=None)
@@ -387,6 +414,7 @@ def run_core(args, num_jobs):
         force_all=args.force_all,
         rule_graph=args.rule_graph,
         pack_output=args.pack_output,
+        unpack_output=args.unpack_output,
         job_name=module_data['core']['job_name'],
         patterns=module_data['core']['patterns'],
         targets=module_data['core']['targets'],
@@ -396,6 +424,7 @@ def run_core(args, num_jobs):
     )
     core.fill_input_dict()
     core.fill_sample_sheet()
+    if core.unfold_output: core.unfold_output()
     core.make_output_dir()
     core.write_sample_sheet()
     core.fill_target_list()
@@ -405,10 +434,15 @@ def run_core(args, num_jobs):
     core.files_to_wd()
     core.run_module(job_count=num_jobs)
     core.check_module_output()
-    core.add_taxonomy_column()
+    try:
+        core.add_taxonomy_column()
+    except FileNotFoundError as error:
+        if core.dry_run == "" and core.rule_graph == "":
+            raise error
     core.write_sample_sheet()
     core.clear_working_directory()
     if core.pack_output: core.fold_output()
+
 
 def run_shell(args, num_jobs):
     '''Wrapper function to run only shell module.'''
@@ -422,6 +456,7 @@ def run_shell(args, num_jobs):
         force_all=args.force_all,
         rule_graph=args.rule_graph,
         pack_output=args.pack_output,
+        unpack_output=args.unpack_output,
         job_name=module_data['shell']['job_name'],
         patterns=module_data['shell']['patterns'],
         targets=module_data['shell']['targets'],
@@ -431,6 +466,7 @@ def run_shell(args, num_jobs):
     )
     shell.fill_input_dict()
     shell.fill_sample_sheet()
+    if shell.unfold_output: shell.unfold_output()
     shell.make_output_dir()
     shell.write_sample_sheet()
     shell.fill_target_list()
