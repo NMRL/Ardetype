@@ -48,6 +48,7 @@ class Module:
         self.pack_output = pack_output #switch to control putting output files into one folder named after sample_id; used by fold_output
         self.cleanup_dict = {} #to map origin paths of input files to path in working directory; filled by move_to_wd; used by clear_working_directory
 
+
     def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified']):
         '''Fills self.input_dict using self.input_path and self.module_name by
         mapping each file format to the list of files of that format, found in the self.input_path, 
@@ -77,7 +78,6 @@ class Module:
         else:#only non-specific targets
             self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
             
-
 
     def make_output_dir(self):
         '''Creates output directory (if not present in the file system) using self.output_path.'''

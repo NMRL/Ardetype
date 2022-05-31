@@ -100,7 +100,7 @@ rule lpgenomics_lpneumophila:
         bash pipeline.sh --reference=supportFiles/Phila_NC_002942.fna --gff=supportFiles/NC_002942.gff --r1=$R1_FASTQ --r2=$R2_FASTQ --isolate={wildcards.sample_id_pattern} --output=./{wildcards.sample_id_pattern}_output
         if [ -f ./{wildcards.sample_id_pattern}_output/predict/$(basename {output}) ]; then
             mv ./{wildcards.sample_id_pattern}_output/predict/$(basename {output}) {output}
-            mv ./{wildcards.sample_id_pattern}_output/ {config[output_directory]}{wildcards.sample_id_pattern}_legionella_seqrogroup_prediction/
+            mv ./{wildcards.sample_id_pattern}_output/ {config[output_directory]}{wildcards.sample_id_pattern}_legionella_serogroup_prediction/
         else
             touch {output}
         fi
