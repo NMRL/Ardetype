@@ -217,7 +217,7 @@ class Module:
         if os.path.basename(self.cluster_config_path) == 'cluster.yaml':
             job_submission_command = '"qsub -N {cluster.jobname} -l nodes={cluster.nodes}:ppn={cluster.ppn},pmem={cluster.pmem},walltime={cluster.walltime} -q {cluster.queue} -j {cluster.jobout} -o {cluster.outdir} -V"'
         elif os.path.basename(self.cluster_config_path) == 'cluster_slurm.yaml':
-            job_submission_command = '"sbatch --job-name {cluster.jobname} -N {cluster.nodes} -ntasks={cluster.ppn} --mem-per-cpu={cluster.mempc} -t {cluster.time} -o {cluster.outdir}{cluster.output} -e {cluster.outdir}{cluster.error} --export=ALL"'
+            job_submission_command = '"sbatch --job-name {cluster.jobname} -N {cluster.nodes} --ntasks={cluster.ppn} --mem-per-cpu={cluster.mempc} -t {cluster.time} -o {cluster.outdir}{cluster.output} -e {cluster.outdir}{cluster.error} --export=ALL"'
         #shell command run by the wrapper (includes qsub command as substring); to run in dry-run mode, add -np at the end of the snakemake command
         shell_command = f'''
         eval "$(conda shell.bash hook)";
