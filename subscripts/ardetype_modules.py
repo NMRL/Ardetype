@@ -213,13 +213,16 @@ class Module:
         Runs module on the login node of the HPC cluster, given number of jobs to run in parallel (int).
         Allows the snakemake to do job submissions to the computing nodes automatically.     
         '''
-        #qsub command to be used by snakmake to automatically submit jobs to HPC; stuff in curly brackets are snakemake arguments, not python variables
-        qsub_command = '"qsub -N {cluster.jobname} -l nodes={cluster.nodes}:ppn={cluster.ppn},pmem={cluster.pmem},walltime={cluster.walltime} -q {cluster.queue} -j {cluster.jobout} -o {cluster.outdir} -V"'
+        #job_submission command to be used by snakmake to automatically submit jobs to HPC; stuff in curly brackets are snakemake arguments, not python variables
+        if os.path.basename(self.cluster_config_path) == 'cluster.yaml':
+            job_submission_command = '"qsub -N {cluster.jobname} -l nodes={cluster.nodes}:ppn={cluster.ppn},pmem={cluster.pmem},walltime={cluster.walltime} -q {cluster.queue} -j {cluster.jobout} -o {cluster.outdir} -V"'
+        elif os.path.basename(self.cluster_config_path) == 'cluster_slurm.yaml':
+            job_submission_command = '"sbatch --job-name {cluster.jobname} -N {cluster.nodes} -ntasks={cluster.ppn} --mem-per-cpu={cluster.mempc} -t {cluster.time} -o {cluster.outdir}{cluster.output} -e {cluster.outdir}{cluster.error} --export=ALL"'
         #shell command run by the wrapper (includes qsub command as substring); to run in dry-run mode, add -np at the end of the snakemake command
         shell_command = f'''
         eval "$(conda shell.bash hook)";
         conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake; 
-        snakemake --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.rule_graph} {self.dry_run} --cluster {qsub_command} '''
+        snakemake --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.rule_graph} {self.dry_run} --cluster {job_submission_command} '''
         print(shell_command)
         try:
             subprocess.check_call(shell_command, shell=True)
