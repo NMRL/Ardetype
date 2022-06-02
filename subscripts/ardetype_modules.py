@@ -63,6 +63,7 @@ class Module:
         '''
         Initializes self.sample_sheet to pandas dataframe, using self.input_dict and self.module_name (restricted to fastq & fasta inputs).
         '''
+        ###Development - create sample sheet from paired or unpaired files; update sample sheet with paired or unpaired files
         if len(self.input_dict) < 2: #only one file extension is used - assumed fastq.gz
             self.sample_sheet = create_sample_sheet(self.input_dict["001.fastq.gz"],self.patterns['sample_sheet'],mode=0)
         else: #fastq & fasta assumed
@@ -113,6 +114,7 @@ class Module:
     def check_module_output(self):
         '''Checks if output files are generated according to self.module_name and adds check_note_{self.module_name} column 
         to the self.sample_sheet dataframe, where boolean value is stored for each expected file.'''
+        ###Development - Automatically scale dirs_up depending on input structure - currently two dirs up max
         check_dict = check_file_existance(file_list=self.target_list)
         id_check_dict = {id:"" for id in self.sample_sheet['sample_id']}
         for file in check_dict:
