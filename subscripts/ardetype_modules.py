@@ -59,11 +59,10 @@ class Module:
             if not self.input_dict[format]: raise Exception(f'Missing {format} files in input directory')
    
 
-    def fill_sample_sheet(self):
+    def create_sample_sheet(self):
         '''
         Initializes self.sample_sheet to pandas dataframe, using self.input_dict and self.module_name (restricted to fastq & fasta inputs).
         '''
-        ###Development - create sample sheet from paired or unpaired files; update sample sheet with paired or unpaired files
         if len(self.input_dict) < 2: #only one file extension is used - assumed fastq.gz
             self.sample_sheet = create_sample_sheet(self.input_dict["001.fastq.gz"],self.patterns['sample_sheet'],mode=0)
         else: #fastq & fasta assumed
