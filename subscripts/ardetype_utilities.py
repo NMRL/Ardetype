@@ -1,4 +1,3 @@
-from operator import mul
 import os, sys, yaml, pandas as pd, re, argparse, json, base64, requests, numpy as np
 
 
@@ -220,7 +219,44 @@ def type_contigs_api(contigs_path: str, organism: str):
     else: #if return code indicates failure
         return {"status_code": response.status_code, "text": response.text} #return dictionary with corresponding status code
 
-  
+
+def check_file_multiplicity(file_path_list:list):
+    '''
+    Function checks if list of file paths contains files that are multiplicated files (e.g. paired fastq files).
+    Returns integer, indicating multiplicity of files in the list. Raises an error if multiplicity is greater than 1000.
+    Assumes the same multiplicity for all files in the list (e.g. list sould only contain path to pair-end or single-end fastq, but not both)
+    '''
+    get_file_names = np.vectorize(lambda x: os.path.basename(x))
+    file_names = get_file_names(np.array(file_path_list))
+    current_array = np.array(list(file_names[0]))
+    current_multiplicity, current_order = 1, 0
+    for name in file_names[1:]:
+        array = np.array(list(name))
+        try:
+            comparison_arr = array == current_array
+            if comparison_arr.sum() == len(current_array):
+                return current_multiplicity
+
+            comparison = comparison_arr.sum() >= len(current_array) - 3
+            if comparison:
+                diff_index = np.where(~comparison_arr)[0][0]
+                diff_num = abs(int(current_array[diff_index]) - int(array[diff_index])) == 1
+                if diff_num:
+                    current_multiplicity += 1
+                    current_array = array                   
+                else:
+                    return current_multiplicity
+            else:
+                return current_multiplicity
+        except ValueError:
+            if int("".join(array[diff_index:diff_index+current_order+1])) // 10 == 0:
+                current_order += 1
+                current_multiplicity += 1
+                current_array = array
+            else:
+                return current_multiplicity
+    return current_multiplicity
+    
 
 def parse_arguments(arg_dict:dict):
     """
