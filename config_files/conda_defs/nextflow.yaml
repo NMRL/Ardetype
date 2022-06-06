@@ -24,5 +24,4 @@ dependencies:
   - openjdk=8.0.152=h7b6447c_3
   - openssl=1.1.1o=h7f8727e_0
   - zlib=1.2.11=h7b6447c_3
-prefix: /mnt/home/jevgen01/.conda/envs/nextflow
 
