@@ -60,5 +60,4 @@ dependencies:
   - xopen=0.7.3=py_0
   - xz=5.2.5=h516909a_1
   - zlib=1.2.11=h7f8727e_4
-prefix: /mnt/home/jevgen01/.conda/envs/kraken2
 
