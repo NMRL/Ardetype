@@ -1,10 +1,10 @@
 # ARDETYPE (v.1.0)
 
-NGS data processing pipeline is designed to perform species-agnostic and species-specific analysis of short paired-end (PE) bacterial reads.
+NGS data processing pipeline designed to perform species-agnostic and species-specific analysis of short paired-end (PE) bacterial reads.
 
-Pipeline is structured in terms of modules. Each module corresponds to a Snakemake script (snakefile) and a python module object.<br> Snakefiles are used to define data processing rules. 
+Pipeline is structured in terms of modules. Each module corresponds to a Snakemake script (snakefile) and a python module object. Snakefiles are used to define data processing rules. 
 
-Module class objects store information about inputs and expected outputs for these rules, handle file placement operations,<br> module configuration, information transfer between modules, and other processes that are not directly involved in running analysis on files.
+Module class objects store information about inputs and expected outputs for these rules, handle file placement operations, module configuration, information transfer between modules, and other processes that are not directly involved in running analysis on files.
 
 |Module      |Type     |Description                                                         |Tools                                             |
 |:----------:|--------:|:-------------------------------------------------------------------|:------------------------------------------------:|
@@ -23,7 +23,7 @@ Pipeline is designed to be run by NMRL users on RTU HPC, where HPC-level configu
 |Resfinder4         |[Database](https://bitbucket.org/genomicepidemiology/resfinder_db/src)|
 
 ## Installation
-To install from scratch, you will need an access to a Linux system with **root access** and installed [singularity](https://sylabs.io/guides/3.0/user-guide/installation.html) to build containers. <br> [WSL](https://docs.microsoft.com/en-us/windows/wsl/install) or [Virtual Machine](https://www.arcserve.com/blog/dead-simple-guide-installing-linux-virtual-machine-windows) should also work. 
+To install from scratch, you will need an access to a Linux system with **root access** and installed [singularity](https://sylabs.io/guides/3.0/user-guide/installation.html) to build containers. [WSL](https://docs.microsoft.com/en-us/windows/wsl/install) or [Virtual Machine](https://www.arcserve.com/blog/dead-simple-guide-installing-linux-virtual-machine-windows) should also work. 
 
 Clone the repository to your local machine and use [singularity recipe files](https://github.com/NMRL/NMRL_Bact_Assembly_Inhouse/tree/ardetype/config_files/s_recipes) to build containers,<br>then copy to HPC cluster so that they can be accessed by the pipeline scripts.
 
