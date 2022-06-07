@@ -309,3 +309,22 @@ rule publmst_ngonorrhoe:
             write_json(api_output, output[0])
         else:
             os.system(f"touch {output[0]}")
+
+
+rule ectyper_ecoli:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        sif_file = config['ectyper_ecoli_sif']
+    output:
+        config['output_directory']+'{sample_id_pattern}_ectyper.tsv'
+    envmodules:
+        'singularity'
+    shell:
+        """
+        mkdir -p ~/ectyper/
+        cp {input.contigs} ~/ectyper/
+        singularity run {input.sif_file} ectyper ~/ectyper/$(basename {input.contigs}) -o ~/ectyper/
+        mv ~/ectyper/output.tsv {output}
+        rm -r ~/ectyper/$(basename {input.contigs})
+        rmdir --ignore-fail-on-non-empty ~/ectyper/
+        """

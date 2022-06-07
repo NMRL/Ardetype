@@ -65,6 +65,8 @@ sistr_senterica_sif:
   /home/groups/nmrl/image_files/sistr_senterica.sif
 spatyper_saureus_sif:
   /home/groups/nmrl/image_files/spatyper_saureus.sif
+ectyper_ecoli_sif:
+  /home/groups/nmrl/image_files/ectyper_ecoli.sif
 pigz_sif:
   /mnt/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/image_files/pigz_latest.sif
 
