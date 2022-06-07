@@ -310,3 +310,13 @@ publmst_ngonorrhoe:
   queue: "batch"
   jobout: "oe"
 
+
+ectyper_ecoli:
+  jobname: "ardetype.ectyper"
+  nodes: 1
+  ppn: 10
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
