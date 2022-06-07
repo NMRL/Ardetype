@@ -1,8 +1,9 @@
 name: rgi
 channels:
-  - conda-forge
   - bioconda
+  - r
   - defaults
+  - conda-forge
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=1_gnu
@@ -74,7 +75,7 @@ dependencies:
   - libzlib=1.2.11=h36c2ea0_1013
   - lxml=4.6.5=py38hf1fe3a4_0
   - lz4-c=1.9.3=h9c3ff4c_1
-  - matplotlib-base=3.5.1=py38hf4fb855_0
+  - matplotlib-base
   - munkres=1.1.4=pyh9f0ad1d_0
   - ncurses=6.1=hf484d3e_1002
   - numpy=1.22.2=py38h6ae9a64_0
@@ -118,7 +119,7 @@ dependencies:
   - soupsieve=2.3.1=pyhd8ed1ab_0
   - sqlite=3.32.3=hcee41ef_1
   - statsmodels=0.13.2=py38h6c62de6_0
-  - tbb=2021.5.0=h4bd325d_0
+  - tbb
   - tk=8.6.11=h27826a3_1
   - unicodedata2=14.0.0=py38h497a2fe_0
   - urllib3=1.25.11=py_0

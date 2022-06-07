@@ -86,6 +86,9 @@
             ],
             "Acinetobacter baumannii" :[
                 "_kleborate.tsv"
+            ],
+            "Escherichia coli" :[
+                "_ectyper.tsv"
             ]
         }
         ,

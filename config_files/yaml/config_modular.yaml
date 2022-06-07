@@ -36,6 +36,8 @@ resfinder_sif:
   /mnt/home/groups/nmrl/image_files/resfinder.sif
 rgi_env:
   /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/config_files/conda_defs/rgi_env.yaml
+hamronization_sif:
+  /mnt/home/groups/nmrl/image_files/hamronization_latest.sif
 
 
 ##############
@@ -65,6 +67,8 @@ sistr_senterica_sif:
   /home/groups/nmrl/image_files/sistr_senterica.sif
 spatyper_saureus_sif:
   /home/groups/nmrl/image_files/spatyper_saureus.sif
+ectyper_ecoli_sif:
+  /home/groups/nmrl/image_files/ectyper_ecoli.sif
 pigz_sif:
   /mnt/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/image_files/pigz_latest.sif
 

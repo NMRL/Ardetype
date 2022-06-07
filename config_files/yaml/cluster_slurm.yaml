@@ -309,3 +309,14 @@ publmst_ngonorrhoe:
   account: "rakus"
   error: "ardetype.publmst-%j.out"
   output: "ardetype.publmst-%j.err"
+
+
+ectyper_ecoli:
+  jobname: "ardetype.ectyper"
+  nodes: 1
+  npn: 10
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.ectyper-%j.out"
+  output: "ardetype.ectyper-%j.err"
