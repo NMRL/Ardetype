@@ -36,6 +36,8 @@ resfinder_sif:
   /mnt/home/groups/nmrl/image_files/resfinder.sif
 rgi_env:
   /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/config_files/conda_defs/rgi_env.yaml
+hamronization_sif:
+  /mnt/home/groups/nmrl/image_files/hamronization_latest.sif
 
 
 ##############
