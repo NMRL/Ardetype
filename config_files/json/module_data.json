@@ -83,6 +83,9 @@
             "Salmonella enterica":[
                 "_sistr.csv",
                 "_SeqSero.tsv"
+            ],
+            "Acinetobacter baumannii" :[
+                "_kleborate.tsv"
             ]
         }
         ,
@@ -106,7 +109,8 @@
                 "Streptococcus pyogenes",
                 "Neisseria gonorrhoeae",
                 "Listeria monocytogenes",
-                "Salmonella enterica"
+                "Salmonella enterica",
+                "Acinetobacter baumannii"
             ]
         }
     }
