@@ -89,6 +89,9 @@
             ],
             "Escherichia coli" :[
                 "_ectyper.tsv"
+            ],
+            "Streptococcus pneumoniae" :[
+                "_seroba.tsv"
             ]
         }
         ,

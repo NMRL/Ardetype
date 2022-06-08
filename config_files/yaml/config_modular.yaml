@@ -76,6 +76,10 @@ spatyper_saureus_sif:
   /home/groups/nmrl/image_files/spatyper_saureus.sif
 ectyper_ecoli_sif:
   /home/groups/nmrl/image_files/ectyper_ecoli.sif
+seroba_spneumoniae_sif:
+  /home/groups/nmrl/image_files/seroba_spneumoniae.sif
+seroba_spneumoniae_database:
+  /home/groups/nmrl/db/db-seroba
 pigz_sif:
   /mnt/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/image_files/pigz_latest.sif
 
@@ -155,6 +159,8 @@ tip_tool_configs:
     threads: 16
   sistr_senterica:
   spatyper_saureus:
+  ectyper_ecoli:
+  seroba_spneumoniae:
   
 
 #########################

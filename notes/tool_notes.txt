@@ -192,6 +192,7 @@ Specific
             Notes:
                 Full list of serotypes: https://www.pneumogen.net/gps/serotypes.html
                 Database: https://github.com/phe-bioinformatics/PneumoCaT
+                Article: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5028725/
 
 
     E.Coli

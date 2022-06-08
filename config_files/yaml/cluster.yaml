@@ -320,3 +320,14 @@ ectyper_ecoli:
   account: "rakus"
   queue: "batch"
   jobout: "oe"
+
+
+seroba_spneumoniae:
+  jobname: "ardetype.seroba"
+  nodes: 1
+  ppn: 20
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"

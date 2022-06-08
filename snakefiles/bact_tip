@@ -323,8 +323,38 @@ rule ectyper_ecoli:
         """
         mkdir -p ~/ectyper/
         cp {input.contigs} ~/ectyper/
-        singularity run {input.sif_file} ectyper ~/ectyper/$(basename {input.contigs}) -o ~/ectyper/
+        singularity run {input.sif_file} ectyper -i ~/ectyper/$(basename {input.contigs}) -o ~/ectyper/
         mv ~/ectyper/output.tsv {output}
         rm -r ~/ectyper/$(basename {input.contigs})
         rmdir --ignore-fail-on-non-empty ~/ectyper/
+        """
+
+
+rule seroba_spneumoniae:
+    input:
+        read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        read_2 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        sif_file = config['seroba_spneumoniae_sif']
+    output:
+        config['output_directory']+'{sample_id_pattern}_seroba.tsv'
+    envmodules:
+        'singularity'
+    shell:
+        """
+        mkdir -p ~/seroba/
+        cp -r {config[seroba_spneumoniae_database]} ~/db_seroba_{wildcards.sample_id_pattern}
+        cp {input.read_1} ~/seroba/
+        cp {input.read_2} ~/seroba/
+        singularity run {input.sif_file} seroba runSerotyping --coverage 20 ~/db_seroba_{wildcards.sample_id_pattern} ~/seroba/$(basename {input.read_1}) ~/seroba/$(basename {input.read_2}) ~/seroba/{wildcards.sample_id_pattern}
+        if [ -f ~/seroba/{wildcards.sample_id_pattern}/summary.tsv ]; then
+            mv ~/seroba/{wildcards.sample_id_pattern}/summary.tsv {output}
+            mv ~/seroba/{wildcards.sample_id_pattern}/detailed_serogroup_info.txt {config[output_directory]}{wildcards.sample_id_pattern}_seroba_full.txt
+        else
+            touch {output}
+        fi
+        rm -r ~/seroba/{wildcards.sample_id_pattern}*
+        rm -r ~/db_seroba_{wildcards.sample_id_pattern}
+        if [ -d ~/seroba/ ]; then
+            rmdir --ignore-fail-on-non-empty ~/seroba/
+        fi
         """
