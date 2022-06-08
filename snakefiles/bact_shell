@@ -1,16 +1,32 @@
 localrules: all
 
 #define sample_id_pattern wildcard and accessing sample_sheet
-import pandas as pd
+import pandas as pd, os
+from bs4 import BeautifulSoup
 sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
 #AGGREGATION RULE
 rule all:
     input: 
-        config['shell_target_files']
+        config['shell_target_files'],
+        hamr_sif = config['hamronization_sif'],
+        hamr_resfinder = expand(config['output_directory']+'{sample_id}_resfinder/{sample_id}_resfinder.hamr.tab', sample_id=sample_sheet['sample_id']),
+        hamr_amrpp = expand(config['output_directory']+"{sample_id}_amrpp/{sample_id}_amrplusplus.hamr.tab", sample_id=sample_sheet['sample_id']),
+        hamr_rgi = expand(config['output_directory']+'{sample_id}.rgi.hamr.tab', sample_id=sample_sheet['sample_id'])
     run:
-        print('bact_shell finished')
+        os.system(f'''
+        module load singularity
+        singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).html" -t interactive {input.hamr_resfinder} {input.hamr_amrpp} {input.hamr_rgi}
+        echo bact_shell finished
+        ''')
+        with open(f"{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).html", "r+") as report:
+            contents = report.read()
+            html_string = str(BeautifulSoup(contents, features='lxml').prettify())
+            for i in sample_sheet['sample_id']:
+                html_string = html_string.replace('}, {"input_file_name": '+ f'"{i}.amr.alignment"'+', "amrplusplus: config 0": ',  ', "amrplusplus: config 0": ')
+            html_string = html_string.replace(': config 0',"")
+            report.write(html_string)
 
 
 #MOB-SUITE
@@ -44,6 +60,7 @@ rule mob_typer:
 #RESFINDER
 rule resfinder:
     input:
+        hamr_sif = config['hamronization_sif'],
         resfinder_sif = config['resfinder_sif'],
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
@@ -51,7 +68,8 @@ rule resfinder:
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_Hit_in_genome_seq.fsa",
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_Resistance_gene_seq.fsa",
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_results_tab.txt",
-        config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_results.txt"
+        config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_results.txt",
+        config['output_directory']+'{sample_id_pattern}_resfinder/{sample_id_pattern}_resfinder.hamr.tab'
     envmodules:
         'singularity'
     shell:
@@ -60,6 +78,7 @@ rule resfinder:
         cp -r {config[shell_tool_configs][resfinder][resfinder_db]} ~/db-resfinder_{wildcards.sample_id_pattern}/
         cp {input.contigs} ~/ 
         singularity run {input.resfinder_sif} run_resfinder.py -ifa ~/$CONTIG_FILENAME -acq -l {config[shell_tool_configs][resfinder][length]} -t {config[shell_tool_configs][resfinder][coverage]} -db_res  ~/db-resfinder_{wildcards.sample_id_pattern}/db_resfinder -o ~/resfinder_output_{wildcards.sample_id_pattern}
+        singularity run {input.hamr_sif} resfinder4 ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config[resfinder_version]} --reference_database_version {config[resfinder_db_version]} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab
         mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/* {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/
         rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$CONTIG_FILENAME
         """
@@ -69,11 +88,15 @@ rule resfinder:
 if 'fq1' in sample_sheet.columns:
     rule amrpp:
         input:
+            hamr_sif = config['hamronization_sif'],
             read_1 = config['work_dir']+'{sample_id_pattern}_R1_001.fastq.gz',
             read_2 = config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz'
         output:
-            config['output_directory']+"{sample_id_pattern}_amrpp/ResistomeResults/AMR_analytic_matrix.csv"
+            config['output_directory']+"{sample_id_pattern}_amrpp/ResistomeResults/AMR_analytic_matrix.csv",
+            config['output_directory']+"{sample_id_pattern}_amrpp/{sample_id_pattern}_amrplusplus.hamr.tab"
         threads: config["shell_tool_configs"]["amr_plusplus"]["threads"]
+        envmodules:
+            'singularity'
         conda:
             config["nextflow_env"]
         shell:
@@ -92,6 +115,8 @@ if 'fq1' in sample_sheet.columns:
             cd {config[amrpp_repo]}
             nextflow run main_AmrPlusPlus_v2.nf --threads {threads} -profile singularity --output "nextflow_output_{wildcards.sample_id_pattern}/" -w "work_dir_{wildcards.sample_id_pattern}/" --reads "{config[amrpp_repo]}data/raw/{wildcards.sample_id_pattern}/*_R{{1,2}}_001.fastq.gz"
             
+            singularity run {input.hamr_sif} amrplusplus nextflow_output_{wildcards.sample_id_pattern}/RunResistome/{wildcards.sample_id_pattern}.gene.tsv --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config[amrplusplus_version]} --reference_database_version {config[amrplusplus_db_version]} > {config[output_directory]}{wildcards.sample_id_pattern}_amrpp/{wildcards.sample_id_pattern}_amrplusplus.hamr.tab
+
             mv -n nextflow_output_{wildcards.sample_id_pattern}/RunResistome/* {config[output_directory]}{wildcards.sample_id_pattern}_amrpp/RunResistome/
             mv -n nextflow_output_{wildcards.sample_id_pattern}/RunRarefaction/* {config[output_directory]}{wildcards.sample_id_pattern}_amrpp/RunRarefaction/
             mv -n nextflow_output_{wildcards.sample_id_pattern}/ResistomeResults/* {config[output_directory]}{wildcards.sample_id_pattern}_amrpp/ResistomeResults/
@@ -118,15 +143,20 @@ rule mlst:
 #RGI
 rule res_gen_id: 
     input: 
+        hamr_sif = config['hamronization_sif'],
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
         config['output_directory']+'{sample_id_pattern}.rgi.txt',
-        config['output_directory']+'{sample_id_pattern}.rgi.json'
+        config['output_directory']+'{sample_id_pattern}.rgi.json',
+        config['output_directory']+'{sample_id_pattern}.rgi.hamr.tab'
     threads: 4
     conda:
         config["rgi_env"]
     shell:
-        """rgi main --input_sequence {input.contigs} --output_file {config[output_directory]}{wildcards.sample_id_pattern}.rgi --input_type contig --clean"""
+        """
+        rgi main --input_sequence {input.contigs} --output_file {config[output_directory]}{wildcards.sample_id_pattern}.rgi --input_type contig --clean
+        singularity run {input.hamr_sif} rgi {config[output_directory]}{wildcards.sample_id_pattern}.rgi.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config[rgi_version]} --reference_database_version {config[rgi_db_version]} > {config[output_directory]}{wildcards.sample_id_pattern}.rgi.hamr.tab
+        """
 
 
 #QUAST

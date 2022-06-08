@@ -180,3 +180,26 @@ Specific
                     https://pubmlst.org/species-id/species-identification-via-api
                     https://rest.pubmlst.org/db/pubmlst_neisseria_isolates/schemes/116
                     https://pubmlst.org/bigsdb?db=pubmlst_neisseria_seqdef&page=schemeInfo&scheme_id=71
+
+
+    S.pneumoniae
+        SeroBA
+            Home page: https://github.com/sanger-pathogens/seroba#conda
+            Module form: singularity container from conda template 
+            Tasks: S.pneumoniae serotyping
+            Input: contigs.fasta
+            Output: stdout in txt format
+            Notes:
+                Full list of serotypes: https://www.pneumogen.net/gps/serotypes.html
+                Database: https://github.com/phe-bioinformatics/PneumoCaT
+
+
+    E.Coli
+        ECTyper
+            Home page: https://github.com/phac-nml/ecoli_serotyping
+            Module form: singularity container from conda template 
+            Tasks: E.Coli serotyping
+            Input: contigs.fasta
+            Output: tab
+            Notes:
+                added to pipe

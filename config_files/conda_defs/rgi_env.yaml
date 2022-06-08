@@ -34,7 +34,7 @@ dependencies:
   - fribidi=1.0.10=h36c2ea0_0
   - giflib=5.2.1=h36c2ea0_2
   - htslib=1.9=h4da6232_3
-  - icu=69.1=h9c3ff4c_0
+  - icu
   - idna=2.10=pyh9f0ad1d_0
   - jbig=2.1=h7f98852_2003
   - jpeg=9e=h7f98852_0

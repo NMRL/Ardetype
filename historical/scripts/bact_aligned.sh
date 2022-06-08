@@ -29,6 +29,9 @@ singularity run $fastq_sif_path bwa mem ${reference} -v 3 ${read_1} ${read_2}| s
 # produce vcf from bam
 singularity run $fastq_sif_path freebayes -f ${reference} ~/${read_1::-9}_sorted.bam | singularity run $fastq_sif_path vcffilter -f "( QUAL > 20 )" AND "( DP > 25 )" > ~/${read_1::-9}.vcf
 
+#bamqc
+singularity run $qualimap_sif_path qualimap bamqc -bam ~/${read_1::-9}_sorted.bam -outdir ~/ --java-mem-size=4G
+
 #generate consensus with bcftools 
 singularity run $fastq_sif_path bgzip -c ~/${read_1::-9}.vcf > ~/${read_1::-9}.vcf.gz
 singularity run $fastq_sif_path tabix -p vcf ~/${read_1::-9}.vcf.gz
