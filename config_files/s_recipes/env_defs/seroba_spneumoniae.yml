@@ -1,5 +1,0 @@
-name: seroba_spneumoniae
-channels:
-  - bioconda
-dependencies:
-  - seroba
