@@ -18,7 +18,7 @@ Pipeline is designed to be run by NMRL users on RTU HPC, where HPC-level configu
 |-------------------|------------|
 |HPC                |Torque/PBS, Conda, Singularity          |
 |Conda              |Snakemake (should be installed for each user using -s flag to the ardetype.py script)            |
-|Python             |numpy==1.22.3, pandas==1.4.2, PyYAML==6.0, requests==2.27.1           |
+|Python             |numpy==1.22.3, pandas==1.4.2, PyYAML==6.0, requests==2.27.1, bs4==0.0.1           |
 |Kraken2            |[Pre-built](https://ccb.jhu.edu/software/kraken2/downloads.shtml) or custom databases for human and bacteria|
 |Resfinder4         |[Database](https://bitbucket.org/genomicepidemiology/resfinder_db/src)|
 
