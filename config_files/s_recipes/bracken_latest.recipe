@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    env_defs/bracken_latest.yml bracken_latest.yml
+%post
+    conda env create --name bracken_latest --file bracken_latest.yml
+%environment
+    export PATH=/opt/conda/envs/bracken_latest/bin:$PATH
+%runscript
+    exec "$@"
