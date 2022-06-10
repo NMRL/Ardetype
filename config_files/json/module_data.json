@@ -116,7 +116,9 @@
                 "Neisseria gonorrhoeae",
                 "Listeria monocytogenes",
                 "Salmonella enterica",
-                "Acinetobacter baumannii"
+                "Acinetobacter baumannii",
+                "Escherichia coli",
+                "Streptococcus pneumoniae"
             ]
         }
     }

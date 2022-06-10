@@ -43,7 +43,7 @@ classify_reads:
   jobname: "ardetype.classify_reads"
   nodes: 1
   ppn: 12
-  pmem: "42667mb"
+  pmem: "21333mb"
   walltime: "00:40:00"
   account: "rakus"
   queue: "batch"
@@ -54,7 +54,7 @@ classify_contigs:
   jobname: "ardetype.classify_contigs"
   nodes: 1
   ppn: 12
-  pmem: "42667mb"
+  pmem: "21333mb"
   walltime: "00:40:00"
   account: "rakus"
   queue: "batch"

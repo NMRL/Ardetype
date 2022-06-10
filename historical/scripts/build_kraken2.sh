@@ -12,6 +12,6 @@ conda activate kraken2
 # cd ~/enterovirus/vipr_refseq_enteroviruses/
 # kraken2-build --add-to-library 62231528082-GenomicFastaResults_kraken2.fasta --db vipr_enterovir
 # kraken2-build --build --db vipr_enterovir --threads 32
-kraken2-build --download-taxonomy --db viral --use-ftp
-kraken2-build --download-library viral --db viral --use-ftp
-kraken2-build --build --db viral --threads 32
+# kraken2-build --download-taxonomy --db viral --use-ftp
+# kraken2-build --download-library viral --db viral --use-ftp
+kraken2-build --build --db ~/refseq_yeast --threads 32

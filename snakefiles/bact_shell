@@ -15,9 +15,12 @@ rule all:
         hamr_amrpp = expand(config['output_directory']+"{sample_id}_amrpp/{sample_id}_amrplusplus.hamr.tab", sample_id=sample_sheet['sample_id']),
         hamr_rgi = expand(config['output_directory']+'{sample_id}.rgi.hamr.tab', sample_id=sample_sheet['sample_id'])
     run:
+        input.hamr_resfinder = [ path for path in input.hamr_resfinder if not os.path.getsize(path) == 0]
+        input.hamr_amrpp = [ path for path in input.hamr_amrpp if not os.path.getsize(path) == 0]
+        input.hamr_rgi = [ path for path in input.hamr_rgi if not os.path.getsize(path) == 0]
         os.system(f'''
         module load singularity
-        singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).html" -t interactive {input.hamr_resfinder} {input.hamr_amrpp} {input.hamr_rgi}
+        singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).html" -t interactive {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_amrpp)} {" ".join(input.hamr_rgi)}
         echo bact_shell finished
         ''')
         with open(f"{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).html", "r+") as report:
@@ -150,6 +153,8 @@ rule res_gen_id:
         config['output_directory']+'{sample_id_pattern}.rgi.json',
         config['output_directory']+'{sample_id_pattern}.rgi.hamr.tab'
     threads: 4
+    envmodules:
+        "singularity"
     conda:
         config["rgi_env"]
     shell:
