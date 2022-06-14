@@ -235,14 +235,14 @@ rule seqsero_senterica:
         mkdir -p ~/seqsero/
         cp {input.read_1} ~/seqsero/
         cp {input.read_2} ~/seqsero/
-        singularity run {input.sif_file} SeqSero2_package.py -d ~/seqsero/{wildcards.sample_id_pattern} -n {wildcards.sample_id_pattern} -p {threads} -t 2 -i ~/seqsero/{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq.gz ~/seqsero/{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq.gz
+        singularity run {input.sif_file} SeqSero2_package.py -d ~/seqsero/{wildcards.sample_id_pattern} -n {wildcards.sample_id_pattern} -p {threads} -t 2 -i ~/seqsero/{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq.gz ~/seqsero/{wildcards.sample_id_pattern}_bact_reads_classified_2.fastq.gz
         if [ -f ~/seqsero/{wildcards.sample_id_pattern}/SeqSero_result.tsv ]; then
             mv ~/seqsero/{wildcards.sample_id_pattern}/SeqSero_result.tsv  {output}
         else
             touch {output}
         fi
-        rm -r ~/seqsero/{wildcards.sample_id_pattern}*
-        rmdir --ignore-fail-on-non-empty ~/seqsero/
+        # rm -r ~/seqsero/{wildcards.sample_id_pattern}*
+        # rmdir --ignore-fail-on-non-empty ~/seqsero/
         """
 
 
@@ -259,7 +259,7 @@ rule sistr_senterica:
         mkdir -p ~/sistr/
         cp {input.contigs} ~/sistr/
         singularity run {input.sif_file} sistr --qc -f csv -o ~/sistr/$(basename {output}) ~/sistr/$(basename {input.contigs})
-        if [ -f ~/sistr/$(basename {output})]; then
+        if [ -f ~/sistr/$(basename {output}) ]; then
             mv ~/sistr/$(basename {output}) {output}
         else
             touch {output}
