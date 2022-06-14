@@ -221,8 +221,8 @@ rule emmtyper_spyogenes:
 
 rule seqsero_senterica:
     input:
-        read_1 = config['output_directory']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
-        read_2 = config['output_directory']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        read_2 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
         sif_file = config['seqsero2_senterica_sif']
     threads:
         config['tip_tool_configs']['seqsero_senterica']['threads']
@@ -346,9 +346,8 @@ rule seroba_spneumoniae:
         cp {input.read_1} ~/seroba/
         cp {input.read_2} ~/seroba/
         singularity run {input.sif_file} seroba runSerotyping --coverage 20 ~/db_seroba_{wildcards.sample_id_pattern} ~/seroba/$(basename {input.read_1}) ~/seroba/$(basename {input.read_2}) ~/seroba/{wildcards.sample_id_pattern}
-        if [ -f ~/seroba/{wildcards.sample_id_pattern}/summary.tsv ]; then
-            mv ~/seroba/{wildcards.sample_id_pattern}/summary.tsv {output}
-            mv ~/seroba/{wildcards.sample_id_pattern}/detailed_serogroup_info.txt {config[output_directory]}{wildcards.sample_id_pattern}_seroba_full.txt
+        if [ -f ~/seroba/{wildcards.sample_id_pattern}/pred.tsv ]; then
+            mv ~/seroba/{wildcards.sample_id_pattern}/pred.tsv {output}
         else
             touch {output}
         fi
