@@ -241,8 +241,8 @@ rule seqsero_senterica:
         else
             touch {output}
         fi
-        # rm -r ~/seqsero/{wildcards.sample_id_pattern}*
-        # rmdir --ignore-fail-on-non-empty ~/seqsero/
+        rm -r ~/seqsero/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/seqsero/
         """
 
 
