@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    env_defs/ectyper_ecoli.yml ectyper_ecoli.yml
+%post
+    conda env create --name ectyper_ecoli --file ectyper_ecoli.yml
+%environment
+    export PATH=/opt/conda/envs/ectyper_ecoli/bin:$PATH
+%runscript
+    exec "$@"

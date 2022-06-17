@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+env_defs/fastp.yml /fastp.yml
+%post
+    conda env create --name fastp --file fastp.yml
+%environment
+    export PATH=/opt/conda/envs/fastp/bin:$PATH
+%runscript
+    exec "$@"

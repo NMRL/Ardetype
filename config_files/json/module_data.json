@@ -1,0 +1,125 @@
+{
+    "cluster_config":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/config_files/yaml/cluster.yaml",
+    "snakefiles":{
+        "core":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/snakefiles/bact_core",
+        "shell":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/snakefiles/bact_shell",
+        "tip":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/snakefiles/bact_tip",
+        "shape":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/snakefiles/bact_shape"
+    },
+    "core" : {
+        "targets":[
+                "_contigs.fasta",
+                "_bact_reads_classified_1.fastq.gz", 
+                "_bact_reads_classified_2.fastq.gz",
+                "_bact_reads_unclassified_1.fastq.gz",
+                "_bact_reads_unclassified_2.fastq.gz",
+                "_kraken2_contigs_report.txt",
+                "_kraken2_host_filtering_report.txt"
+        ],
+        "patterns":{
+            "inputs":["001.fastq.gz"],
+            "sample_sheet":"(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)"
+        },
+        "job_name":"bact_core",
+        "requests":{
+            "check":null,
+            "taxonomy":null
+        }
+    },
+    "shell" : {
+        "targets":[
+            ".rgi.txt",
+            ".rgi.json",
+            "_mlst_output.csv",
+            "_resfinder/pheno_table.txt",
+            "_resfinder/ResFinder_Hit_in_genome_seq.fsa",
+            "_resfinder/ResFinder_Resistance_gene_seq.fsa",
+            "_resfinder/ResFinder_results_tab.txt",
+            "_resfinder/ResFinder_results.txt",
+            "_amrpp/ResistomeResults/AMR_analytic_matrix.csv",
+            "_quast/icarus.html",
+            "_mob_typer.tab"
+        ],
+        "patterns":{
+            "inputs":["001.fastq.gz", "_contigs.fasta"],
+            "sample_sheet":"(_R[1,2]_001.fastq.gz|_contigs.fasta)"
+        },
+        "job_name":"bact_shell",
+        "requests":{
+            "check":"_contigs.fasta:True",
+            "taxonomy":null
+        }
+    },
+    "tip" : {
+        "targets":{
+            "Neisseria meningitidis":[
+                "_meningtotype.tsv"
+            ],
+            "Legionella pneumophila":[
+                "_legsta.csv",
+                "-predictResults.txt"
+            ],
+            "Haemophilus influenzae":[
+                "_hicap.tsv"
+            ],
+            "Klebsiella pneumoniae":[
+                "_kleborate.tsv"
+            ],
+            "Staphylococcus aureus":[
+                "_agrvate_summary.tab",
+                "_spatyper.txt",
+                "_sccmec.tsv"
+            ],
+            "Streptococcus pyogenes":[
+                "_emmtyper.tsv"
+            ],
+            "Neisseria gonorrhoeae":[
+                "_ngmast.json"
+            ],
+            "Listeria monocytogenes":[
+                "_pasteur_mlst.json",
+                "_lissero.tsv"
+            ],
+            "Salmonella enterica":[
+                "_sistr.csv",
+                "_SeqSero.tsv"
+            ],
+            "Acinetobacter baumannii" :[
+                "_kleborate.tsv"
+            ],
+            "Escherichia coli" :[
+                "_ectyper.tsv"
+            ],
+            "Streptococcus pneumoniae" :[
+                "_seroba.tsv"
+            ]
+        }
+        ,
+        "patterns":{
+            "inputs":["_bact_reads_classified_1.fastq.gz", "_bact_reads_classified_2.fastq.gz", "_contigs.fasta"],
+            "sample_sheet":"(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_contigs.fasta)"
+        },
+        "job_name":"bact_tip",
+        "requests":{
+            "check":[
+                "_contigs.fasta:True",
+                "_bact_reads_classified_1.fastq.gz:True",
+                "_bact_reads_classified_2.fastq.gz:True"
+            ],
+            "taxonomy":[
+                "Neisseria meningitidis",
+                "Legionella pneumophila",
+                "Haemophilus influenzae",
+                "Klebsiella pneumoniae",
+                "Staphylococcus aureus",
+                "Streptococcus pyogenes",
+                "Neisseria gonorrhoeae",
+                "Listeria monocytogenes",
+                "Salmonella enterica",
+                "Acinetobacter baumannii",
+                "Escherichia coli",
+                "Streptococcus pneumoniae"
+            ]
+        }
+    }
+}

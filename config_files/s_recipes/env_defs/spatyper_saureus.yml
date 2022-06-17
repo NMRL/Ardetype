@@ -1,0 +1,5 @@
+name: spatyper_saureus
+channels:
+  - bioconda
+dependencies:
+  - spatyper

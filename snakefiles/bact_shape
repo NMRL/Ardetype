@@ -1,0 +1,6 @@
+configfile: 'config_modular.yaml'
+rule all:
+    input: 
+        config['shape_target']
+    shell:
+        "echo Shell finished"

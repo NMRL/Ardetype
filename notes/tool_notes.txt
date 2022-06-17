@@ -1,0 +1,206 @@
+Date: 2022-04-27
+User: jevgen01
+Scope: Brief description of tools to be incuded in the pipeline
+
+One resource for containers: https://hub.docker.com/r/biocontainers/biocontainers
+
+Agnostic
+    MOB Suite
+        Home page: https://github.com/phac-nml/mob-suite
+        Module form: singularity image (creator-defined) (untested)
+        Tasks:
+            1. Extract plasmids from contigs
+            2. Annotate plasmids
+            Estimate capability to spread resistance + scientific components
+        Input:
+            - Contigs.fasta
+        Output:
+            1. Plasmid reconstruction
+                contig_report.txt (contig assignment stats)
+                chromosome.fasta (non-plasmid contigs)
+                plasmid_(X).fasta (for each plasmid)
+                mobtyper_results (table?) (plasmid metadata)
+                repetitive_blast_report (table?) (info on contigs containing only repetitive elements)
+            2. Plasmid typing
+                Replicon type - plasmid_replicon_typing.pdf
+                Relaxase types & MPF types:
+                    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4379921/
+                    https://journals.asm.org/doi/10.1128/MMBR.00020-10
+                    https://academic.oup.com/femsre/article/33/3/657/591359 
+                OriT type - ? (possibly https://pubmed.ncbi.nlm.nih.gov/14625590/)
+
+    AMR++
+        Home pages: 
+            https://github.com/meglab-metagenomics/amrplusplus_v2
+            https://megares.meglab.org/amrplusplus/latest/html/v2/
+        Module form:
+            conda environment with nextflow (https://anaconda.org/bioconda/nextflow) 
+            singularity image (https://github.com/meglab-metagenomics/amrplusplus_v2/blob/master/docs/accessing_AMR%2B%2B.md)
+        Tasks: To estimate if sampling depth of the population was enough and to extract count data to be used in downstream statistical analysis.
+        Input: host-filtered metagenomic fastq files
+        Output: rarefaction curves (is sampling deep enough) and count matrixes (for downstream analysis) 
+        (https://megares.meglab.org/amrplusplus/latest/html/what_AMR++_produces.html)
+
+
+    Resfinder
+        Home page: https://bitbucket.org/genomicepidemiology/resfinder/src/master/
+        Module form: singularity image (https://bitbucket.org/genomicepidemiology/resfinder/src/dev4.2/) + database (https://bitbucket.org/genomicepidemiology/resfinder_db/src/master/)
+        Tasks: Identify resistance genes based on fastq files and give phenotype prediction
+        Input: host-filtered fastq files
+        Output: https://cge.food.dtu.dk/services/ResFinder/output.php
+        Notes:
+            https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8914360/
+
+
+Specific
+    H.influenzae - I
+        hicap
+            Home page: 
+                https://github.com/scwatts/hicap
+            Module form: singularity image from conda template 
+            Tasks: identify of the cap locus for H. influenzae, describe the structural layout, and perform in silico serotyping (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC149627/)
+            Input: contigs.fasta
+            Output:
+                Summary: a somewhat machine parsable file with detailed summary information
+                Genbank: a genbank file with sequence marked up with cap locus annotations
+                Graphic: a visual representation of the annotated cap locus
+            Notes:
+                https://journals.asm.org/doi/10.1128/JCM.00190-19
+
+    N.meningitidis - I
+        meningotype
+            Home page: 
+                https://github.com/MDU-PHL/meningotype
+            Module form: depends
+            Tasks: serotyping of n.meningitidis 
+            Input: contigs.fasta
+            Output: text file 
+            Notes: 
+                https://www.cdc.gov/meningococcal/laboratory/pcr-guidance-mening-hflu.html - serogrouping of NM (transition from molecular methods)
+                https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5012890/ - in silico Bexsero antigen sequence typing (BAST) of NM (vaccine coverage monitoring)
+                https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2984153/ - more on BAST ELISA variant
+                https://pubmlst.org/organisms/neisseria-spp - database
+
+    Legionella - I
+        legsta
+            Home page: https://github.com/tseemann/legsta
+            Module form: singularity image from conda template 
+            Tasks: sequence-based typing (SBT) of L. pneumophila
+            Input: contigs.fasta
+            Output: csv table with SBT and allele for each of the 7 reference genes
+            Notes:
+                https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1153775/
+                https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1933043/
+
+    MTB - I
+        MTBSeq
+            Home page: https://github.com/ngs-fzb/MTBseq_source
+            Module form: singularity image from conda template
+            Tasks: full characterisation of MTB isolate WGS
+            Input: host-filtered fastq files
+            Output: MTBSeq report
+            Notes: https://github.com/ngs-fzb/MTBseq_source/blob/master/MANUAL.md
+
+    Klebsiella - I
+        1. Kaptive (typing only)
+        2. Kleborate (typing + extra)
+            Home pages: 
+                1. https://github.com/katholt/Kaptive
+                2. https://github.com/katholt/Kleborate/wiki
+            Module form: 
+                1. singularity image from conda template (https://anaconda.org/bioconda/kaptive) + git clone from home (https://github.com/katholt/Kaptive/wiki/Installation)
+                    (reference database is distributed inside git repository - gbk files (https://github.com/katholt/Kaptive/wiki/Databases-distributed-with-Kaptive))
+                2. singularity image from Docker template (https://hub.docker.com/r/staphb/kleborate)
+            Tasks: 
+                1.&2.Serotyping (K/O antigens)
+                2.Resistance gene search, Virulence factor search, MLST, species verification
+            Input:
+                1. contigs.fasta
+                2. contigs.fasta
+            Output:
+                1. tsv/json file with contents defined in Output files section in https://github.com/katholt/Kaptive/wiki/How-to-run
+                2. stdout to be redirected into tabular file format https://github.com/katholt/Kleborate/wiki/Tests-and-example-outputs
+            Notes:
+                1. https://github.com/katholt/Kaptive/wiki/How-does-Kaptive-work%3F
+                2. https://github.com/katholt/Kleborate/wiki/Background
+
+    S.aureus - I
+        1. AgrVATE
+        2. spaTyper
+        3. Staphopia-sccmec
+            Home page:
+                1. https://github.com/VishnuRaghuram94/AgrVATE
+                2. https://github.com/HCGB-IGTP/spaTyper
+                3. https://github.com/staphopia/staphopia-sccmec
+            Module form:
+                1. stand alone tool (Usearch may cause installation problems - no conda/container option due to licensing issue)
+                    A work-around (sort of) is to rewrite using vsearch (https://github.com/torognes/vsearch) and do a pull request
+                2. singularity container from docker image or conda environment with pip install https://bioconda.github.io/recipes/spatyper/README.html
+                3. singularity container from conda template (see home page/install)
+            Tasks:
+                1. agr typing or s.aureus (4 groups)
+                2. spa typing of s.aureus (Harmsen et al. (Ridom) spa type nomenclature)
+                3. SCCmec typing of saureus (see note 3)
+            Input:
+                1. contigs.fasta
+                2. contigs.fasta
+                3. contigs.fasta
+            Output:
+                1. https://github.com/VishnuRaghuram94/AgrVATE output section
+                2. not shown (to be tested)
+                3. binary table with True/False designation for each of SCCmec type (https://github.com/staphopia/staphopia-sccmec - Typing Staphopia Results section)
+            Notes:
+                1. About agr typing https://bmcresnotes.biomedcentral.com/articles/10.1186/s13104-019-4396-8
+                2. About spa typing https://experiments.springernature.com/articles/10.1007/978-1-60327-999-4_15 - see spa_typing.pdf & http://spa.ridom.de/dynamic/spatypes.txt
+                3. About SCCmec typing http://www.pjmonline.org/wp-content/uploads/archive/vol6022011095.pdf - see SCCmes_typing_saureus.pdf
+                S.aureus-centered database (https://staphopia.emory.edu/) & pipeline (https://peerj.com/articles/5261/)
+
+    Str.pyogenes - I
+        emmtyper
+            Home page: https://github.com/MDU-PHL/emmtyper
+            Module form: singularity container from conda template 
+            Tasks: perform emm-type and emm-cluster prediction
+            Input: contigs.fasta
+            Output: tabular format 
+            Notes: 
+                US CDC materials on the topic: https://www.cdc.gov/streplab/groupa-strep/index.html
+                Article on emm-typing: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6083926
+
+    N.gonorrhoeae
+        ngmaster
+            Home page: https://github.com/MDU-PHL/ngmaster
+            Module form: singularity container from conda template 
+            Tasks: NG-MAST Typing
+            Input: contigs.fasta
+            Output: stdout in tabular format
+            Notes:
+                Tool publication: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5320595/
+                NG-MAST publication: https://academic.oup.com/jid/article/189/8/1497/821449?login=false
+                Better alternative may be to use PubMLST API - database is more regularly updated (ngmaster db was updated in 2020):
+                    https://pubmlst.org/species-id/species-identification-via-api
+                    https://rest.pubmlst.org/db/pubmlst_neisseria_isolates/schemes/116
+                    https://pubmlst.org/bigsdb?db=pubmlst_neisseria_seqdef&page=schemeInfo&scheme_id=71
+
+
+    S.pneumoniae
+        SeroBA
+            Home page: https://github.com/sanger-pathogens/seroba#conda
+            Module form: singularity container from conda template 
+            Tasks: S.pneumoniae serotyping
+            Input: contigs.fasta
+            Output: stdout in txt format
+            Notes:
+                Full list of serotypes: https://www.pneumogen.net/gps/serotypes.html
+                Database: https://github.com/phe-bioinformatics/PneumoCaT
+                Article: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5028725/
+
+
+    E.Coli
+        ECTyper
+            Home page: https://github.com/phac-nml/ecoli_serotyping
+            Module form: singularity container from conda template 
+            Tasks: E.Coli serotyping
+            Input: contigs.fasta
+            Output: tab
+            Notes:
+                added to pipe

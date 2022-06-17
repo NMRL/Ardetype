@@ -1,0 +1,5 @@
+name: meningotype_nmeningitidis
+channels:
+  - bioconda
+dependencies:
+  - meningotype

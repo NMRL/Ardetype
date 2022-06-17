@@ -1,0 +1,5 @@
+name: bracken_latest
+channels:
+  - bioconda
+dependencies:
+  - bracken

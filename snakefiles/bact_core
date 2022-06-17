@@ -1,0 +1,147 @@
+localrules: all, contig_id
+
+#define sample_id_pattern wildcard and accessing sample_sheet
+import pandas as pd
+sip_wild = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
+sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
+
+#AGGREGATION RULE
+rule all:
+    input: 
+        config["core_target_files"],
+        file_list = expand(config['output_directory']+'{sample_id}_kraken2_contigs_report.txt', sample_id=sample_sheet['sample_id'])
+    run:
+        total_dict = {}
+        for file in input.file_list:
+            df = pd.read_table(file, header=None)[[0,3,5]]
+            df.columns = ['read_%','taxid','name']
+            df = df[df['taxid'] == "S"].reset_index(drop=True)
+            top_hit = df.loc[df["read_%"] ==df["read_%"].max()]['name'][0].strip()
+            total_dict[os.path.basename(file).replace("_kraken2_contigs_report.txt","")] = top_hit
+        with open(config['output_directory']+'core_aggregated_taxonomy.json', "w+") as json_handle:
+            json.dump(total_dict, json_handle)
+        print('bact_core finished')
+
+#READ LENGTH & QUALITY TRIMMING
+rule quality_control:
+    input:
+        sif_file = config["fastp_sif"],
+        read_1 = config['work_dir']+'{sample_id_pattern}_R1_001.fastq.gz',
+        read_2 = config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz'
+    threads: 4
+    envmodules:
+        'singularity'
+    output: 
+        config['output_directory']+'{sample_id_pattern}.fastp.json',
+        config['output_directory']+'{sample_id_pattern}.fastp.html',
+        read_1_tr = temp(config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz'),
+        read_2_tr = temp(config['output_directory']+'{sample_id_pattern}_fastp_2.fastq.gz')
+    shell:
+        'singularity run {input.sif_file} fastp -j {config[output_directory]}{wildcards.sample_id_pattern}.fastp.json -h {config[output_directory]}{wildcards.sample_id_pattern}.fastp.html --in1 {input.read_1} --in2 {input.read_2} --out1 {output.read_1_tr} --out2 {output.read_2_tr} --thread {threads}'
+
+#RUN KRAKEN2 TO FILTER OUT HOST CONTAMINATION
+rule filter_host:
+    input:
+        #quality-trimmed reads
+        read_1 = config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz',
+        read_2 = config['output_directory']+'{sample_id_pattern}_fastp_2.fastq.gz'
+    output:
+        #host reads (temp)
+        temp(config['output_directory']+'{sample_id_pattern}_host_1.fastq'),
+        temp(config['output_directory']+'{sample_id_pattern}_host_2.fastq'),
+        #sample reads 
+        sample_1 = temp(config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz'),
+        sample_2 = temp(config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz'),
+        report_name = config['output_directory']+'{sample_id_pattern}_kraken2_host_filtering_report.txt'
+    threads: config["core_tool_configs"]["kraken2"]["threads"]
+    conda:
+        config["kraken2_env"]
+    shell:
+        """ 
+        kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][human_db]} --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_host#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_1.fastq
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_2.fastq
+        """
+
+#GENERATING CONTIGS FROM READS
+rule contig_assembly:
+    input:
+        sif_file = config["shovill_sif"],
+        read_1 = config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz',
+        read_2 = config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz',
+    output:
+        temp(config['output_directory']+'{sample_id_pattern}_contigs/contigs.fa')
+    envmodules:
+        'singularity'
+    threads: 12
+    shell:
+        'singularity run {input.sif_file} shovill {config[core_tool_configs][shovill][modules]} --depth {config[core_tool_configs][shovill][depth]} --ram {config[core_tool_configs][shovill][ram]} --minlen {config[core_tool_configs][shovill][minlen]} --force --outdir {config[output_directory]}{wildcards.sample_id_pattern}_contigs --R1 {input.read_1} --R2 {input.read_2}'
+
+
+#RENAMING CONTINGS
+rule contig_id:
+    input:
+        cnt = f'{config["output_directory"]}'+'{sample_id_pattern}_contigs/contigs.fa',
+    envmodules:
+        'singularity'
+    output:
+        contigs = config['output_directory']+'{sample_id_pattern}_contigs.fasta'
+    shell:
+        '''
+        mv -n {input.cnt} {output.contigs}
+        rm -r {config[output_directory]}{wildcards.sample_id_pattern}_contigs/
+        '''
+
+
+#RUN KRAKEN2 TO CLASSIFY BACTERIAL READS USING INHOUSE-BUILT DATABASE
+rule classify_reads:
+    input:
+        #quality-trimmed, host-filtered reads
+        sif_file = config["krona_sif"],
+        read_1 = config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz',
+        read_2 = config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz'
+    output:
+        #classified reads
+        config['output_directory']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        config['output_directory']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        #unclassified reads 
+        config['output_directory']+'{sample_id_pattern}_bact_reads_unclassified_1.fastq.gz',
+        config['output_directory']+'{sample_id_pattern}_bact_reads_unclassified_2.fastq.gz',
+        report_name = config['output_directory']+'{sample_id_pattern}_kraken2_reads_report.txt'
+    threads: config["core_tool_configs"]["kraken2"]["threads"]
+    envmodules:
+        'singularity'
+    conda:
+        config["kraken2_env"]
+    shell:
+        """ 
+        kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][bact_db]} --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
+        singularity run {input.sif_file} kreport2krona.py -r {output.report_name} -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.krona
+        singularity run {input.sif_file} ktImportText {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.krona -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.html
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified_2.fastq
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified_1.fastq
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified_2.fastq
+        """
+
+
+#RUN KRAKEN2 TO CLASSIFY BACTERIAL CONTIGS USING INHOUSE-BUILT DATABASE
+rule classify_contigs:
+    input:
+        #quality-trimmed reads
+        sif_file = config["krona_sif"],
+        contigs = config['output_directory']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        report_name = config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt'
+    threads: config["core_tool_configs"]["kraken2"]["threads"]
+    envmodules:
+        'singularity'
+    conda:
+        config["kraken2_env"]
+    shell:
+        """ 
+        kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][bact_db]} --report {output.report_name} {input.contigs}
+        singularity run {input.sif_file} kreport2krona.py -r {output.report_name} -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.krona
+        singularity run {input.sif_file} ktImportText {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.krona -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.html
+        """
+

@@ -1,0 +1,8 @@
+name: mlst_quast
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - mlst=2.19.0=hdfd78af_1
+  - quast=5.0.2=py27pl5262h8c2299e_4

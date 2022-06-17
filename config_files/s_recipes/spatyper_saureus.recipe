@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    env_defs/spatyper_saureus.yml spatyper_saureus.yml
+%post
+    conda env create --name spatyper_saureus --file spatyper_saureus.yml
+%environment
+    export PATH=/opt/conda/envs/spatyper_saureus/bin:$PATH
+%runscript
+    exec "$@"

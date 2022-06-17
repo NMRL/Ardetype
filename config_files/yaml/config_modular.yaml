@@ -1,0 +1,172 @@
+#########################
+# Static tool & environment definition paths
+#########################
+home_dir:
+  /mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/
+work_dir:
+  /mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/data/
+
+
+##############
+# bact_core
+##############
+kraken2_env:
+  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/config_files/conda_defs/kraken2.yaml
+krona_sif:
+  /home/groups/nmrl/image_files/krona.sif
+shovill_sif:
+  /home/groups/nmrl/image_files/shovill.sif
+fastp_sif:
+  /home/groups/nmrl/image_files/fastp.sif
+
+##############
+# bact_shell
+##############
+amrpp_repo:
+  /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/
+hamronization_sif:
+  /home/groups/nmrl/image_files/hamronization_latest.sif
+mlst_quast_sif:
+  /home/groups/nmrl/image_files/mlst_quast.sif
+mob_suite_sif:
+  /mnt/home/groups/nmrl/image_files/mob_suite_3.0.3.sif
+nextflow_env:
+  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/config_files/conda_defs/nextflow.yaml
+resfinder_sif:
+  /mnt/home/groups/nmrl/image_files/resfinder.sif
+rgi_env:
+  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/config_files/conda_defs/rgi_env.yaml
+hamronization_sif:
+  /mnt/home/groups/nmrl/image_files/hamronization_latest.sif
+resfinder_version: resfinder_v4.1
+resfinder_db_version: resfinder_2022-05-11
+rgi_version: rgi_v5.2.1
+rgi_db_version: card_v1.0
+amrplusplus_version: amrplusplus_v2.0
+amrplusplus_db_version: MEGARES
+
+
+
+##############
+# bact_tip
+##############
+agrvate_saureus_sif:
+  /home/groups/nmrl/image_files/agrvate_saureus.sif
+emmtyper_spyogenes_sif:
+  /home/groups/nmrl/image_files/emmtyper_spyogenes.sif
+hicap_hinfluenzae_sif:
+  /home/groups/nmrl/image_files/hicap_hinfluenzae.sif
+kleborate_kpneumoniae_sif:
+  /home/groups/nmrl/image_files/kleborate_kpneumoniae.sif
+legsta_lpneumophila_sif:
+  /home/groups/nmrl/image_files/legsta_lpneumophila.sif
+lissero_lmonocytogenes_sif:
+  /home/groups/nmrl/image_files/lissero_lmonocytogenes.sif
+lpgenomics_repo:
+  /mnt/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/
+meningotype_nmeningitidis_sif:
+  /home/groups/nmrl/image_files/meningotype_nmeningitidis.sif  
+sccmec_saureus_sif:
+  /home/groups/nmrl/image_files/sccmec_saureus.sif
+seqsero2_senterica_sif:
+  /home/groups/nmrl/image_files/seqsero2_senterica.sif
+sistr_senterica_sif:
+  /home/groups/nmrl/image_files/sistr_senterica.sif
+spatyper_saureus_sif:
+  /home/groups/nmrl/image_files/spatyper_saureus.sif
+ectyper_ecoli_sif:
+  /home/groups/nmrl/image_files/ectyper_ecoli.sif
+seroba_spneumoniae_sif:
+  /home/groups/nmrl/image_files/seroba_spneumoniae.sif
+seroba_spneumoniae_database:
+  /home/groups/nmrl/db/db-seroba
+pigz_sif:
+  /mnt/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/image_files/pigz_latest.sif
+
+
+
+
+
+#########################
+# bact_core configuration
+#########################
+
+###Filled by the wrapper
+core_target_files:
+output_directory:
+
+#####################
+# Configuration notes
+#####################
+# Tools that use contigs as input may perform differently (or fail) if short contigs (shovull minlen option) are included (excluded) from the assembly or read correction module is turned on/off.
+# For example, Sequence-Based-Typing with legsta for Legionella pneumophila will need all contigs to determine sequence type (ST) - shovill minlen 1.
+# On the other hand, Pasteur and Pubmlst database APIs will only accept assemblies that contain less than 5000 contings in total, so shovill minlen should be changed accordingly.
+# Serogroup detection for Listeria monocytogenes by lissero will fail, if blast will not be able to identify any matches in the contigs, which is guaranteed to happen if contigs are from another species
+# but may also happen if contigs do not cover regions of interest (e.g. sequencing failed on genes required by the tool).
+
+core_tool_configs:
+  kraken2:
+    threads: 12
+    human_db: /mnt/home/groups/nmrl/db/db-kraken2/human_reference/
+    bact_db: /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/
+  shovill:
+    minlen: 1
+    ram: 36
+    depth: 100
+    modules: --noreadcorr
+
+
+#########################
+# bact_shell configuration
+#########################
+
+###Filled by the wrapper
+shell_target_files:
+
+shell_tool_configs:
+#Configuration settings for each tool used by bact_shell snakefile
+  amr_plusplus:
+    threads: 24
+  resfinder:
+    length: 0.6
+    coverage: 0.9
+    resfinder_db: /mnt/home/groups/nmrl/db/db-resfinder/
+
+
+#########################
+# bact_tip configuration
+#########################
+
+###Filled by the wrapper
+tip_target_files:
+ 
+tip_tool_configs:
+#Configuration settings for each tool used by bact_tip snakefile
+  agrvate_saureus:
+  emmtyper_spyogenes:
+  hicap_hinfluenzae:
+  kaptive_kpneumoniae:
+  kleborate_kpneumoniae:
+  legsta_lpneumophila:
+  lissero_lmonocytogenes:
+  lissero_lmonocytogenes:
+  lpgenomics_lpneumophila:
+  meningotype_nmeningitidis:
+  pasteurmlst_lmonocytogenes:
+  publmst_ngonorrhoe:
+  sccmec_saureus:
+  seqsero_senterica:
+    threads: 16
+  sistr_senterica:
+  spatyper_saureus:
+  ectyper_ecoli:
+  seroba_spneumoniae:
+  
+
+#########################
+# bact_shape configuration
+#########################
+shape_target_files:
+
+shape_tool_configs:
+  hamronization:
