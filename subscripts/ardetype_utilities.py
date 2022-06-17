@@ -33,7 +33,7 @@ def create_sample_sheet(file_lst, generic_str, regex_str=None, mode=0):
     Given (list) of paths to files and a generic part of the file name (e.g. _contigs.fasta or _R[1,2]_001.fastq.gz string, regex expected for fastq), mode value (int 1 for fasta, 0 (default) for fastq)
     and a sample_id regex pattern to exclude (regex string), returns pandas dataframe with sample_id column and one (fa for fasta) or two (fq1 fq2, for fastq) file path columns. 
     """
-    file_series = pd.Series(file_lst, dtype="str") #to fascilitate filtering
+    file_series = pd.Series(file_lst, dtype="str") #to facilitate filtering
     ss_df = pd.DataFrame(dtype="str") #to store sample sheet
     if mode not in [0,1]:
         raise Exception(f"utilities/create_sample_sheet: Accepted mode values are 0 for fasta and 1 for fastq: {mode} was given.") 
@@ -110,6 +110,35 @@ def edit_nested_dict(config_dict, param, new_value):
             edit_nested_dict(value, param, new_value)
     return 1 #this return is reached only when all recursive calls are made and key is not found
 
+
+def find_in_nested_dict(nested_dict:dict, key_sequence:list):
+    '''
+    Given a dictionary and an ordered sequence of keys in a form of list, returns value mapped to last key in sequence, by parsing the dictionary. 
+    Raises exceptions if key is not found, non-dict value reached before last key in sequence is reached or output type does not match expected type.
+    '''
+
+    key = key_sequence.pop(0)
+    try:
+        if isinstance(nested_dict[key], dict) and len(key_sequence) != 0:
+            tmp_dict = nested_dict[key]
+        elif len(key_sequence) == 0:
+            return nested_dict[key]
+        elif not isinstance(nested_dict[key], dict):
+            raise Exception('Problem with keys: reached non-dict value before processing all keys in sequence.')
+    except KeyError:
+        raise Exception(f'Problem with keys: {key} not found in nested_dict.')
+
+    for key in key_sequence:
+        try:
+            if isinstance(tmp_dict[key], dict) and key != key_sequence[-1]:
+                tmp_dict = tmp_dict[key]
+            elif key == key_sequence[-1]:
+                return tmp_dict[key]
+            elif not isinstance(tmp_dict[key], dict):
+                raise Exception('Problem with keys: reached non-dict value before processing all keys in sequence.')
+        except KeyError:
+            raise Exception(f'Problem with keys: {key} not found in nested_dict.')
+        
 
 def get_all_keys(input_dict, key_set=set()):
     """
