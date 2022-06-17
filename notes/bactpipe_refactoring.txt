@@ -106,11 +106,11 @@ bact_shape should start after core shell and tip are finished
 
 Core of the agnostic analysis implemented as bact_core snakefile
 Tasks:
-    Demultiplexing
     Read QC
     Host filtering
     Denovo assembly
     Read taxonomic classification
+    Contig taxonomic classification
 Input:
     Sequencing run output(bcl files + Sample sheet)
 Output:

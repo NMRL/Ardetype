@@ -1,0 +1,12 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+mlst_quast.yml
+%post
+    conda env create --name mlst_quast --file mlst_quast.yml
+%environment
+    export PATH=/opt/conda/envs/mlst_quast/bin:$PATH
+%runscript
+    exec "$@"
+

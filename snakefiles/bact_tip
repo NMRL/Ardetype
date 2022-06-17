@@ -1,6 +1,359 @@
-configfile: 'config_modular.yaml'
+localrules: all
+
+#imports
+import sys, pandas as pd
+sys.path.insert(0, '/mnt/home/jevgen01/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/subscripts/')
+from ardetype_utilities import type_contigs_api, write_json
+
+#define sample_id_pattern wildcard and accessing sample_sheet
+sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
+
+#AGGREGATION RULE
 rule all:
     input: 
-        config['tip_target']
+        config['tip_target_files']
+    run:
+        print('bact_tip finished')
+
+
+rule hicap_hinfluenzae:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        sif_file = config['hicap_hinfluenzae_sif']
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_hicap.tsv'
     shell:
-        "echo Tip finished"
+        """
+        mkdir -p ~/hicap/
+        cp {input.contigs} ~/hicap/
+        singularity run {input.sif_file} hicap -q ~/hicap/$(basename {input.contigs}) -o ~/hicap/
+        if [ -f ~/hicap/{wildcards.sample_id_pattern}.tsv ]; then
+            mv ~/hicap/{wildcards.sample_id_pattern}.tsv {output}
+        else
+            touch {config[output_directory]}{wildcards.sample_id_pattern}_hicap.tsv
+        fi
+        rm -r ~/hicap/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/hicap/
+        """
+
+
+rule meningotype_nmeningitidis:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        sif_file = config['meningotype_nmeningitidis_sif']
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_meningtotype.tsv'
+    shell:
+        """
+        mkdir -p ~/meningotype/
+        cp {input.contigs} ~/meningotype/
+        singularity run {input.sif_file} meningotype ~/meningotype/$(basename {input.contigs}) > ~/meningotype/$(basename {output})
+        mv ~/meningotype/$(basename {output}) {output}
+        rm -r ~/meningotype/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/meningotype/
+        """
+
+
+rule legsta_lpneumophila:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        sif_file = config['legsta_lpneumophila_sif']
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_legsta.csv'
+    shell:
+        """
+        mkdir -p ~/legsta/
+        cp {input.contigs} ~/legsta/
+        singularity run {input.sif_file} legsta --csv ~/legsta/$(basename {input.contigs}) >> ~/legsta/$(basename {output})
+        mv ~/legsta/$(basename {output}) {output}
+        rm -r ~/legsta/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/legsta/
+        """
+
+rule lpgenomics_lpneumophila:
+    input:
+        read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        read_2 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        repository = config['lpgenomics_repo'],
+        pigz_sif = config['pigz_sif']
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+"{sample_id_pattern}-predictResults.txt"
+    shell:
+        """
+        cd {input.repository}
+        mkdir -p lpgenomics_temp/
+        cp {input.read_1} lpgenomics_temp/
+        cp {input.read_2} lpgenomics_temp/
+        singularity run {input.pigz_sif} -d lpgenomics_temp/$(basename {input.read_1}) lpgenomics_temp/$(basename {input.read_2})
+        R1_FASTQ=lpgenomics_temp/{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq
+        R2_FASTQ=lpgenomics_temp/{wildcards.sample_id_pattern}_bact_reads_classified_2.fastq
+        touch lpgenomics_temp/{wildcards.sample_id_pattern}.lock
+        bash pipeline.sh --reference=supportFiles/Phila_NC_002942.fna --gff=supportFiles/NC_002942.gff --r1=$R1_FASTQ --r2=$R2_FASTQ --isolate={wildcards.sample_id_pattern} --output=./{wildcards.sample_id_pattern}_output
+        if [ -f ./{wildcards.sample_id_pattern}_output/predict/$(basename {output}) ]; then
+            mv ./{wildcards.sample_id_pattern}_output/predict/$(basename {output}) {output}
+            mv ./{wildcards.sample_id_pattern}_output/ {config[output_directory]}{wildcards.sample_id_pattern}_legionella_serogroup_prediction/
+        else
+            touch {output}
+        fi
+        rm -r lpgenomics_temp/{wildcards.sample_id_pattern}.lock $R1_FASTQ $R2_FASTQ
+        rmdir --ignore-fail-on-non-empty lpgenomics_temp/
+        """
+    
+
+rule kleborate_kpneumoniae:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        sif_file = config['kleborate_kpneumoniae_sif']
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_kleborate.tsv'
+    shell:
+        """
+        mkdir -p ~/kleborate/
+        cp {input.contigs} ~/kleborate/
+        singularity run {input.sif_file} kleborate -o ~/kleborate/$(basename {output}) --kaptive -a ~/kleborate/$(basename {input.contigs})
+        if [ -f ~/kleborate/$(basename {output}) ]; then
+            mv ~/kleborate/$(basename {output}) {output}
+        else
+            touch {output}
+        fi
+        rm -r ~/kleborate/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/kleborate/
+        """
+
+    
+rule agrvate_saureus:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        sif_file = config['agrvate_saureus_sif']
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_agrvate_summary.tab'
+    shell:
+        """
+        mkdir -p ~/agrvate/
+        cp {input.contigs} ~/agrvate/
+        cd ~/agrvate/
+        singularity run {input.sif_file} agrvate -t -f -i ~/agrvate/$(basename {input.contigs})
+        if [ -f ~/agrvate/{wildcards.sample_id_pattern}-results/{wildcards.sample_id_pattern}-summary.tab ]; then
+            mv ~/agrvate/{wildcards.sample_id_pattern}-results/{wildcards.sample_id_pattern}-summary.tab {output}
+        else
+            touch {output}
+        fi
+        rm -r ~/agrvate/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/agrvate/
+        """
+
+rule spatyper_saureus:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        sif_file = config['spatyper_saureus_sif']
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_spatyper.txt'
+    shell:
+        """
+        mkdir -p ~/spatyper/
+        cp {input.contigs} ~/spatyper/
+        singularity run {input.sif_file} spaTyper -f ~/spatyper/$(basename {input.contigs}) --output ~/spatyper/$(basename {output})
+        if [ -f ~/spatyper/$(basename {output}) ]; then
+            mv ~/spatyper/$(basename {output})  {output}
+        else
+            touch {output}
+        fi
+        rm -r ~/spatyper/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/spatyper/
+        """
+
+    
+rule sccmec_saureus:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        sif_file = config['sccmec_saureus_sif']
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_sccmec.tsv'
+    shell:
+        """
+        mkdir -p ~/sccmec/
+        cp {input.contigs} ~/sccmec/
+        singularity run {input.sif_file} staphopia-sccmec --assembly ~/sccmec/$(basename {input.contigs}) > ~/sccmec/$(basename {output})
+        mv ~/sccmec/$(basename {output})  {output}
+        rm -r ~/sccmec/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/sccmec/
+        """
+
+rule emmtyper_spyogenes:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        sif_file = config['emmtyper_spyogenes_sif']
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_emmtyper.tsv'
+    shell:
+        """
+        mkdir -p ~/emmtyper/
+        cp {input.contigs} ~/emmtyper/
+        singularity run {input.sif_file} emmtyper ~/emmtyper/$(basename {input.contigs}) -o ~/emmtyper/$(basename {output})
+        if [ -f ~/emmtyper/$(basename {output}) ]; then
+            mv ~/emmtyper/$(basename {output}) {output}
+        else
+            touch {output}
+        fi
+        rm -r ~/emmtyper/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/emmtyper/
+        """
+
+
+rule seqsero_senterica:
+    input:
+        read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        read_2 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        sif_file = config['seqsero2_senterica_sif']
+    threads:
+        config['tip_tool_configs']['seqsero_senterica']['threads']
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_SeqSero.tsv'
+    shell:
+        """
+        mkdir -p ~/seqsero/
+        cp {input.read_1} ~/seqsero/
+        cp {input.read_2} ~/seqsero/
+        singularity run {input.sif_file} SeqSero2_package.py -d ~/seqsero/{wildcards.sample_id_pattern} -n {wildcards.sample_id_pattern} -p {threads} -t 2 -i ~/seqsero/{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq.gz ~/seqsero/{wildcards.sample_id_pattern}_bact_reads_classified_2.fastq.gz
+        if [ -f ~/seqsero/{wildcards.sample_id_pattern}/SeqSero_result.tsv ]; then
+            mv ~/seqsero/{wildcards.sample_id_pattern}/SeqSero_result.tsv  {output}
+        else
+            touch {output}
+        fi
+        rm -r ~/seqsero/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/seqsero/
+        """
+
+
+rule sistr_senterica:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        sif_file = config['sistr_senterica_sif']
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_sistr.csv'
+    shell:
+        """
+        mkdir -p ~/sistr/
+        cp {input.contigs} ~/sistr/
+        singularity run {input.sif_file} sistr --qc -f csv -o ~/sistr/$(basename {output}) ~/sistr/$(basename {input.contigs})
+        if [ -f ~/sistr/$(basename {output}) ]; then
+            mv ~/sistr/$(basename {output}) {output}
+        else
+            touch {output}
+        fi
+        rm -r ~/sistr/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/sistr/
+        """
+
+rule lissero_lmonocytogenes:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        sif_file = config['lissero_lmonocytogenes_sif']
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_lissero.tsv'
+    shell:
+        """
+        mkdir -p ~/lissero/
+        cp {input.contigs} ~/lissero/
+        singularity run {input.sif_file} lissero ~/lissero/$(basename {input.contigs}) > ~/lissero/$(basename {output})
+        mv ~/lissero/$(basename {output}) {output}
+        rm -r ~/lissero/$(basename {input.contigs})
+        rmdir --ignore-fail-on-non-empty ~/lissero/
+        """
+
+rule pasteurmlst_lmonocytogenes:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_pasteur_mlst.json'
+    run:
+        api_output = type_contigs_api(input.contigs, 'Listeria monocytogenes')
+        if isinstance(api_output, dict):
+            write_json(api_output, output[0])
+        else:
+            os.system(f"touch {output[0]}")
+
+rule publmst_ngonorrhoe:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_ngmast.json'
+    run:
+        api_output = type_contigs_api(input.contigs, 'Neisseria gonorrhoeae')
+        if isinstance(api_output, dict):
+            write_json(api_output, output[0])
+        else:
+            os.system(f"touch {output[0]}")
+
+
+rule ectyper_ecoli:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        sif_file = config['ectyper_ecoli_sif']
+    output:
+        config['output_directory']+'{sample_id_pattern}_ectyper.tsv'
+    envmodules:
+        'singularity'
+    shell:
+        """
+        mkdir -p ~/ectyper/
+        cp {input.contigs} ~/ectyper/
+        singularity run {input.sif_file} ectyper -i ~/ectyper/$(basename {input.contigs}) -o ~/ectyper/
+        mv ~/ectyper/output.tsv {output}
+        rm -r ~/ectyper/$(basename {input.contigs})
+        rmdir --ignore-fail-on-non-empty ~/ectyper/
+        """
+
+
+rule seroba_spneumoniae:
+    input:
+        read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        read_2 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        sif_file = config['seroba_spneumoniae_sif']
+    output:
+        config['output_directory']+'{sample_id_pattern}_seroba.tsv'
+    envmodules:
+        'singularity'
+    shell:
+        """
+        mkdir -p ~/seroba/
+        cp -r {config[seroba_spneumoniae_database]} ~/db_seroba_{wildcards.sample_id_pattern}
+        cp {input.read_1} ~/seroba/
+        cp {input.read_2} ~/seroba/
+        singularity run {input.sif_file} seroba runSerotyping --coverage 20 ~/db_seroba_{wildcards.sample_id_pattern} ~/seroba/$(basename {input.read_1}) ~/seroba/$(basename {input.read_2}) ~/seroba/{wildcards.sample_id_pattern}
+        if [ -f ~/seroba/{wildcards.sample_id_pattern}/pred.tsv ]; then
+            mv ~/seroba/{wildcards.sample_id_pattern}/pred.tsv {output}
+        else
+            touch {output}
+        fi
+        rm -r ~/seroba/{wildcards.sample_id_pattern}*
+        rm -r ~/db_seroba_{wildcards.sample_id_pattern}
+        if [ -d ~/seroba/ ]; then
+            rmdir --ignore-fail-on-non-empty ~/seroba/
+        fi
+        """

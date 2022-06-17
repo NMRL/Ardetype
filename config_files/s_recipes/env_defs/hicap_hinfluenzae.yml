@@ -1,0 +1,6 @@
+name: hicap_hinfluenzae
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - hicap

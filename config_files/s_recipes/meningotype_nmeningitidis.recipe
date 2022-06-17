@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    env_defs/meningotype_nmeningitidis.yml meningotype_nmeningitidis.yml
+%post
+    conda env create --name meningotype_nmeningitidis --file meningotype_nmeningitidis.yml
+%environment
+    export PATH=/opt/conda/envs/meningotype_nmeningitidis/bin:$PATH
+%runscript
+    exec "$@"

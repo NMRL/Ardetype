@@ -1,38 +1,23 @@
-"""
-This is a wrapper script of ARDETYPE(?) pipeline.
-Date: 2022-04-27
-Version: 0.0
-"""
-import sys, argparse, yaml, subprocess
+import sys, os
+from pathlib import Path
+sys.path.insert(0, f'{os.path.dirname(str(Path(__file__).absolute()))}/subscripts/')
+from ardetype_modules import run_all, run_core, run_shell
+from ardetype_utilities import install_snakemake, parse_arguments, read_json_dict
 
-###Logic
 """
-Pipeline can start from:
-    a. bcl files - run all
-    b. fastq files - run all, except demultiplexing module in core
-    c. contigs.fasta - run only shell, relevant tip modules and shape
-
-If starting from bcl:
-    find sample sheet 
-    qsub bcl2fastq - check for 
+This is a wrapper script of ARDETYPE pipeline.
+Date: 2022-05-30
+Version: 1.0
 """
 
-###Arguments template (https://docs.python.org/3/library/argparse.html)
-# parser = argparse.ArgumentParser(description='This is a wrapper script of ARDETYPE(?) pipeline.')
-# parser.add_argument('-p1', '--placeholder1', metavar='\b', help = 'Placeholder argument 1 - not required', default=3, required=False)
-# req_arg_grp = parser.add_argument_group('required arguments') #to display argument under required header in help message
-# req_arg_grp.add_argument('-p2', '--placeholder2', metavar='\b', help = 'Placeholder argument 2 - required', default=None, required=True)
-# if len(sys.argv)==1: #if no command-line arguments provided - display help and stop script excecution
-#     parser.print_help(sys.stderr)
-#     sys.exit(1)
-# args = parser.parse_args()
-
-###Template to read config yaml file into dict
-# with open("yaml_path", 'r') as yaml_handle:
-#     config_dict=yaml.safe_load(yaml_handle)
-#     print(config_dict)
-
-
-###Templates to run shell command using subprocess
-# subprocess.check_call(['qsub', '-F', f'{read_1} {read_2} {sample_id} {database}', 'job.sh'])
-# subprocess.call(f'bash create_sampleSheet.sh --mode illumina --fastxDir {config["target_dir"]} --outDir {config["target_dir"]}'.split(' '))
+if __name__ == "__main__":
+    args = parse_arguments(read_json_dict('./config_files/json/argument_data.json'))
+    num_jobs = args.num_jobs
+    if args.install_snakemake:
+        install_snakemake()
+    if args.mode == "all":
+        run_all(args, num_jobs)
+    elif args.mode == 'core':
+        run_core(args,num_jobs)
+    elif args.mode == "shell":
+        run_shell(args, num_jobs)

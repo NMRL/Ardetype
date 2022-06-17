@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    env_defs/hicap_hinfluenzae.yml hicap_hinfluenzae.yml
+%post
+    conda env create --name hicap_hinfluenzae --file hicap_hinfluenzae.yml
+%environment
+    export PATH=/opt/conda/envs/hicap_hinfluenzae/bin:$PATH
+%runscript
+    exec "$@"

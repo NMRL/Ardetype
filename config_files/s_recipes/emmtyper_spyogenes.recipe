@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    env_defs/emmtyper_spyogenes.yml emmtyper_spyogenes.yml
+%post
+    conda env create --name emmtyper_spyogenes --file emmtyper_spyogenes.yml
+%environment
+    export PATH=/opt/conda/envs/emmtyper_spyogenes/bin:$PATH
+%runscript
+    exec "$@"

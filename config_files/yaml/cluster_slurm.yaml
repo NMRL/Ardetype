@@ -1,0 +1,322 @@
+##############
+# default - any rule for which resources were not defined
+##############
+
+__default__:
+  jobname: "default"
+  nodes: 1
+  npn: 1
+  mempc: "1000mb"
+  time: "00:05:00"
+  account: "rakus"
+  error: "default-%j.out"
+  output: "default-%j.err"
+  outdir: "ardetype_job_logs/"
+
+
+##############
+# bact_core
+##############
+quality_control:
+  jobname: "ardetype.quality_control"
+  nodes: 1
+  npn: 12
+  mempc: "1500mb"
+  time: "00:05:00"
+  account: "rakus"
+  error: "ardetype.quality_control-%j.out"
+  output: "ardetype.quality_control-%j.err"
+
+
+filter_host:
+  jobname: "ardetype.filter_host"
+  nodes: 1
+  npn: 12
+  mempc: "21333mb"
+  time: "00:40:00"
+  account: "rakus"
+  error: "ardetype.filter_host-%j.out"
+  output: "ardetype.filter_host-%j.err"
+
+
+classify_reads:
+  jobname: "ardetype.classify_reads"
+  nodes: 1
+  npn: 12
+  mempc: "42667mb"
+  time: "00:40:00"
+  account: "rakus"
+  error: "ardetype.classify_reads-%j.out"
+  output: "ardetype.classify_reads-%j.err"
+
+
+classify_contigs:
+  jobname: "ardetype.classify_contigs"
+  nodes: 1
+  npn: 12
+  mempc: "42667mb"
+  time: "00:40:00"
+  account: "rakus"
+  error: "ardetype.classify_contigs-%j.out"
+  output: "ardetype.classify_contigs-%j.err"
+
+
+contig_assembly:
+  jobname: "ardetype.contig_assembly"
+  nodes: 1
+  npn: 24
+  mempc: "1500mb"
+  time: "00:40:00"
+  account: "rakus"
+  error: "ardetype.contig_assembly-%j.out"
+  output: "ardetype.contig_assembly-%j.err"
+
+
+
+##############
+# bact_shell
+##############
+res_gen_id:
+  jobname: "ardetype.rgi_card"
+  nodes: 1
+  npn: 4
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.rgi_card-%j.out"
+  output: "ardetype.rgi_card-%j.err"
+
+
+mlst:
+  jobname: "ardetype.mlst"
+  nodes: 1
+  npn: 6
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.mlst-%j.out"
+  output: "ardetype.mlst-%j.err"
+
+
+resfinder:
+  jobname: "ardetype.resfinder"
+  nodes: 1
+  npn: 12
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.resfinder-%j.out"
+  output: "ardetype.resfinder-%j.err"
+
+
+
+amrpp:
+  jobname: "ardetype.amrpp"
+  nodes: 1
+  npn: 25
+  mempc: "1500mb"
+  time: "01:00:00"
+  account: "rakus"
+  error: "ardetype.resfinder-%j.out"
+  output: "ardetype.resfinder-%j.err"
+
+
+
+mob_recon:
+  jobname: "ardetype.mob_recon"
+  nodes: 1
+  npn: 12
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.mob_recon-%j.out"
+  output: "ardetype.mob_recon-%j.err"
+
+
+mob_typer:
+  jobname: "ardetype.mob_typer"
+  nodes: 1
+  npn: 12
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.mob_typer-%j.out"
+  output: "ardetype.mob_typer-%j.err"
+
+quast:
+  jobname: "ardetype.quast"
+  nodes: 1
+  npn: 5
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.quast-%j.out"
+  output: "ardetype.quast-%j.err"
+
+
+##############
+# bact_tip
+##############
+hicap_hinfluenzae:
+  jobname: "ardetype.hicap"
+  nodes: 1
+  npn: 8
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.hicap-%j.out"
+  output: "ardetype.hicap-%j.err"
+
+
+meningotype_nmeningitidis:
+  jobname: "ardetype.meningotype"
+  nodes: 1
+  npn: 8
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.meningotype-%j.out"
+  output: "ardetype.meningotype-%j.err"
+
+
+legsta_lpneumophila:
+  jobname: "ardetype.legsta"
+  nodes: 1
+  npn: 8
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.legsta-%j.out"
+  output: "ardetype.legsta-%j.err"
+
+
+lpgenomics_lpneumophila:
+  jobname: "ardetype.lpgenomics"
+  nodes: 1
+  npn: 24
+  mempc: "1000mb"
+  time: "02:30:00"
+  account: "rakus"
+  error: "ardetype.lpgenomics-%j.out"
+  output: "ardetype.lpgenomics-%j.err"
+
+
+kleborate_kpneumoniae:
+  jobname: "ardetype.kleborate"
+  nodes: 1
+  npn: 8
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.kleborate-%j.out"
+  output: "ardetype.kleborate-%j.err"
+
+
+agrvate_saureus:
+  jobname: "ardetype.agrvate"
+  nodes: 1
+  npn: 8
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.agrvate-%j.out"
+  output: "ardetype.agrvate-%j.err"
+
+
+spatyper_saureus:
+  jobname: "ardetype.spatyper"
+  nodes: 1
+  npn: 8
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.agrvate-%j.out"
+  output: "ardetype.agrvate-%j.err"
+
+
+sccmec_saureus:
+  jobname: "ardetype.sccmec"
+  nodes: 1
+  npn: 10
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.sccmec-%j.out"
+  output: "ardetype.sccmec-%j.err"
+
+
+emmtyper_spyogenes:
+  jobname: "ardetype.emmtyper"
+  nodes: 1
+  npn: 8
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.emmtyper-%j.out"
+  output: "ardetype.emmtyper-%j.err"
+
+
+seqsero_senterica:
+  jobname: "ardetype.seqsero"
+  nodes: 1
+  npn: 12
+  mempc: "1500mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.seqsero-%j.out"
+  output: "ardetype.seqsero-%j.err"
+
+
+sistr_senterica:
+  jobname: "ardetype.sistr"
+  nodes: 1
+  npn: 10
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.sistr-%j.out"
+  output: "ardetype.sistr-%j.err"
+
+
+lissero_lmonocytogenes:
+  jobname: "ardetype.lissero"
+  nodes: 1
+  npn: 10
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.lissero-%j.out"
+  output: "ardetype.lissero-%j.err"
+
+
+pasteurmlst_lmonocytogenes:
+  jobname: "ardetype.pasteurmlst"
+  nodes: 1
+  npn: 5
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.pasteurmlst-%j.out"
+  output: "ardetype.pasteurmlst-%j.err"
+
+
+publmst_ngonorrhoe:
+  jobname: "ardetype.publmst"
+  nodes: 1
+  npn: 5
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.publmst-%j.out"
+  output: "ardetype.publmst-%j.err"
+
+
+ectyper_ecoli:
+  jobname: "ardetype.ectyper"
+  nodes: 1
+  npn: 10
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.ectyper-%j.out"
+  output: "ardetype.ectyper-%j.err"
