@@ -1,10 +1,10 @@
-<mxfile host="app.diagrams.net" modified="2022-04-27T10:06:12.716Z" agent="5.0 (X11)" etag="_snP3gCc40c8u-JMyCcs" version="17.4.6" type="github">
+<mxfile host="app.diagrams.net" modified="2022-06-16T09:39:26.124Z" agent="5.0 (X11)" etag="g3kUoD4CNja5agaxU87_" version="19.0.3" type="github">
   <diagram id="GYhOJoof6raGVxeCeefJ" name="Page-1">
-    <mxGraphModel dx="1342" dy="551" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1102" dy="551" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-69" value="&lt;div&gt;&amp;nbsp;Specific&lt;/div&gt;&lt;div&gt;&amp;nbsp;report&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-69" value="&lt;div&gt;&lt;font color=&quot;#66B2FF&quot;&gt;&amp;nbsp;Specific&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#66B2FF&quot;&gt;&amp;nbsp;report&lt;br&gt;&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
           <mxGeometry x="470" y="550" width="310" height="150" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-13" value="&lt;div align=&quot;left&quot;&gt;&amp;nbsp;Agnostic&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
@@ -40,43 +40,43 @@
         <mxCell id="6KGyysBaEeLL0fUPtLAd-8" value="&lt;div&gt;typing&lt;/div&gt;(PubMLST/rMLST)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="340" y="380" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-11" value="&lt;div&gt;AMR&lt;/div&gt;(CARD, Resfinder, AMR ++)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-11" value="&lt;div&gt;AMR&lt;/div&gt;(CARD, Resfinder, AMR ++)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="340" y="480" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-15" value="&amp;nbsp;Specific" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
           <mxGeometry x="470" y="70" width="310" height="480" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-16" value="&lt;div&gt;SeqSero&lt;br&gt;(Salmonella)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-16" value="&lt;div&gt;SeqSero&lt;br&gt;(Salmonella)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="520" y="80" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-17" value="MTBSeq" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-17" value="MTBSeq" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
           <mxGeometry x="520" y="240" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-19" value="&lt;div&gt;SISTR&lt;/div&gt;(Salmonella)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-19" value="&lt;div&gt;SISTR&lt;/div&gt;(Salmonella)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="520" y="160" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-20" value="&lt;div&gt;AgrVATE/spaTyper/Staphopia-sccmec&lt;/div&gt;&lt;div&gt;(S.aureus)&lt;br&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-20" value="&lt;div&gt;AgrVATE/spaTyper/Staphopia-sccmec&lt;/div&gt;&lt;div&gt;(S.aureus)&lt;br&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="520" y="320" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-21" value="&lt;div&gt;emmtyper&lt;/div&gt;(Str.pyogenes)" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-21" value="&lt;div&gt;emmtyper&lt;/div&gt;(Str.pyogenes)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="520" y="400" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-23" value="&lt;div&gt;hicap&lt;/div&gt;&lt;div&gt;(H.influenzae)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-23" value="&lt;div&gt;hicap&lt;/div&gt;&lt;div&gt;(H.influenzae)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="650" y="80" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-24" value="&lt;div&gt;Kleborate&lt;br&gt;&lt;/div&gt;&lt;div&gt;(Klebsiella)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-24" value="&lt;div&gt;Kleborate&lt;br&gt;&lt;/div&gt;&lt;div&gt;(Klebsiella)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="650" y="160" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-25" value="&lt;div&gt;legsta&lt;/div&gt;&lt;div&gt;(Legionella)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-25" value="&lt;div&gt;legsta&lt;/div&gt;&lt;div&gt;(Legionella)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="650" y="240" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-26" value="LisSero&lt;br&gt;&lt;div&gt;(Listeria)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-26" value="LisSero&lt;br&gt;&lt;div&gt;(Listeria)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="650" y="320" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-27" value="&lt;div&gt;meningotype&lt;/div&gt;&lt;div&gt;(N.meningitidis)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-27" value="&lt;div&gt;meningotype&lt;/div&gt;&lt;div&gt;(N.meningitidis)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="650" y="400" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-29" value="&lt;div&gt;ngmaster&lt;/div&gt;&lt;div&gt;(N.gonorrhoeae)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-29" value="&lt;div&gt;ngmaster&lt;/div&gt;&lt;div&gt;(N.gonorrhoeae)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="520" y="480" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-34" value="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
@@ -133,16 +133,16 @@
         <mxCell id="6KGyysBaEeLL0fUPtLAd-63" value="3.1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
           <mxGeometry x="280" y="320" width="20" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-64" value="&lt;div&gt;&amp;nbsp;Agnostic&lt;/div&gt;&lt;div&gt;&amp;nbsp;report&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-64" value="&lt;div&gt;&lt;font color=&quot;#66B2FF&quot;&gt;&amp;nbsp;Agnostic&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#66B2FF&quot;&gt;&amp;nbsp;report&lt;br&gt;&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
           <mxGeometry x="110" y="550" width="360" height="150" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-65" value="Species-based results" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-65" value="Species-based results" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="570" y="590" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-66" value="&lt;div&gt;AQUAMIS&lt;br&gt;&lt;/div&gt;(2,3,3.1,4, 4.1)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="210" y="560" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-68" value="hAMRonization&lt;br&gt;(5)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-68" value="hAMRonization&lt;br&gt;(5)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="330" y="560" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-70" value="I" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
@@ -163,7 +163,7 @@
         <mxCell id="6KGyysBaEeLL0fUPtLAd-77" value="4.1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
           <mxGeometry x="280" y="420" width="20" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-84" value="&lt;div&gt;Plasmid detection&lt;/div&gt;(MOB Suite)" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-84" value="&lt;div&gt;Plasmid detection&lt;/div&gt;(MOB Suite)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="180" y="480" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-85" value="5.1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
@@ -190,7 +190,7 @@
         <mxCell id="6KGyysBaEeLL0fUPtLAd-95" value="&lt;div&gt;Species specific information&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="680" y="730" width="70" height="150" as="geometry" />
         </mxCell>
-        <mxCell id="f30ukFIYP7I3eDNHcA3t-1" value="MOB Suite&lt;br&gt;(5.1)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="f30ukFIYP7I3eDNHcA3t-1" value="MOB Suite&lt;br&gt;(5.1)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="270" y="620" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="pYkemPIbqCXn32EcojJD-4" value="15" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
@@ -211,7 +211,7 @@
         <mxCell id="pYkemPIbqCXn32EcojJD-12" value="In progress" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
           <mxGeometry x="40" y="90" width="70" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="hDAx6RP763Kb8-OsMu50-1" value="tool review and references for related methods (Resfinder, AMR + Specific tools): &lt;br&gt;https://github.com/NMRL/NMRL_Bact_Assembly_Inhouse/blob/develop/notes/tool_notes.txt" style="rounded=0;whiteSpace=wrap;html=1;labelBackgroundColor=#FFFFFF;fontColor=#000000;" vertex="1" parent="1">
+        <mxCell id="hDAx6RP763Kb8-OsMu50-1" value="tool review and references for related methods (Resfinder, AMR + Specific tools): &lt;br&gt;https://github.com/NMRL/NMRL_Bact_Assembly_Inhouse/blob/develop/notes/tool_notes.txt" style="rounded=0;whiteSpace=wrap;html=1;labelBackgroundColor=#FFFFFF;fontColor=#000000;" parent="1" vertex="1">
           <mxGeometry x="110" y="40" width="670" height="30" as="geometry" />
         </mxCell>
       </root>
