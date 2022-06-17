@@ -1,10 +1,10 @@
 {
-    "cluster_config":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/config_files/yaml/cluster.yaml",
+    "cluster_config":"/mnt/home/groups/nmrl/bact_analysis/Ardetype/config_files/yaml/cluster.yaml",
     "snakefiles":{
-        "core":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/snakefiles/bact_core",
-        "shell":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/snakefiles/bact_shell",
-        "tip":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/snakefiles/bact_tip",
-        "shape":"/mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/snakefiles/bact_shape"
+        "core":"/mnt/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_core",
+        "shell":"/mnt/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shell",
+        "tip":"/mnt/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_tip",
+        "shape":"/mnt/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shape"
     },
     "core" : {
         "targets":[

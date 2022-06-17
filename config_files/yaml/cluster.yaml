@@ -115,7 +115,7 @@ amrpp:
   nodes: 1
   ppn: 25
   pmem: "1500mb"
-  walltime: "01:00:00"
+  walltime: "02:00:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
