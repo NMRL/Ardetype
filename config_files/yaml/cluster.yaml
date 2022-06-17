@@ -66,7 +66,7 @@ contig_assembly:
   nodes: 1
   ppn: 24
   pmem: "1500mb"
-  walltime: "00:40:00"
+  walltime: "01:00:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"

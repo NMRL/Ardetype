@@ -9,6 +9,6 @@
 eval "$(conda shell.bash hook)"
 conda activate bio_env
 
-cd ~/sra_legionella
-cat ~/legionella_list.csv | xargs -n1 -P23 -I% fastq-dump --split-3 --gzip --accession %
+cd ~/sra_abaumanii
+cat ~/abaumanii_list_sra.csv | xargs -n1 -P23 -I% fastq-dump --split-3 --gzip --accession %
     
