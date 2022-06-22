@@ -289,8 +289,8 @@ lissero_lmonocytogenes:
   jobout: "oe"
 
 
-pasteurmlst_lmonocytogenes:
-  jobname: "ardetype.pasteurmlst"
+pasteur_pcr_serogroup_lmonocytogenes:
+  jobname: "ardetype.pasteur_pcrsero"
   nodes: 1
   ppn: 5
   pmem: "1000mb"
@@ -299,6 +299,16 @@ pasteurmlst_lmonocytogenes:
   queue: "batch"
   jobout: "oe"
 
+
+pasteur_cgmlst_lmonocytogenes:
+  jobname: "ardetype.pasteur_cgmlst"
+  nodes: 1
+  ppn: 5
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
 
 publmst_ngonorrhoe:
   jobname: "ardetype.publmst"

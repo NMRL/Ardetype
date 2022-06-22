@@ -77,8 +77,9 @@
                 "_ngmast.json"
             ],
             "Listeria monocytogenes":[
-                "_pasteur_mlst.json",
-                "_lissero.tsv"
+                "_pasteur_pcr_serogroup_mlst.json",
+                "_lissero.tsv",
+                "_pasteur_cgmlst.json"
             ],
             "Salmonella enterica":[
                 "_sistr.csv",

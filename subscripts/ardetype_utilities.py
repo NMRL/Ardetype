@@ -222,19 +222,27 @@ def read_json_dict(json_path):
         return json.load(json_file)
 
 
-def type_contigs_api(contigs_path: str, organism: str):
+def type_contigs_api(contigs_path: str, organism: str, scheme_num:int=0):
     '''
     Given path to a fasta file and the full name of the organism, sends POST request to the corresponding API.
     If returned status code is valid, returns dictionary, containing response details, else returns dictionary with status code and corresponding text.
-    If no api is available for given organism returns 2.
+    If no api is available for given organism returns 2. Optionally, scheme_num value might be given if more than one typing scheme is in use for the same organism.
     '''
     #this dictionary is the main interface for typing option selection - one organism - one option
     organisms = {
-        'Listeria monocytogenes': "https://bigsdb.pasteur.fr/api/db/pubmlst_listeria_seqdef/schemes/2/sequence",
-        'Neisseria gonorrhoeae': "https://rest.pubmlst.org/db/pubmlst_neisseria_seqdef/schemes/71/sequence"
+        'Listeria monocytogenes': [
+            "https://bigsdb.pasteur.fr/api/db/pubmlst_listeria_seqdef/schemes/2/sequence",
+            "https://bigsdb.pasteur.fr/api/db/pubmlst_listeria_seqdef/schemes/3/sequence"
+            ],
+        'Neisseria gonorrhoeae': [
+            "https://rest.pubmlst.org/db/pubmlst_neisseria_seqdef/schemes/71/sequence"
+            ],
+        'Acinetobacter baumanii': [
+            "https://rest.pubmlst.org/db/pubmlst_abaumannii_seqdef/schemes/1/sequence"
+            ]
     }
     try:
-        url = organisms[organism] #trying to get url for the organism requested by the user
+        url = organisms[organism][scheme_num] #trying to get url for the organism requested by the user
     except KeyError:
         return 2 #if url is not defined
     with open(contigs_path, 'r') as x: #if url is obtained
@@ -333,3 +341,5 @@ def parse_arguments(arg_dict:dict):
         sys.exit(1)
     args = parser.parse_args()
     return args
+
+

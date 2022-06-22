@@ -77,6 +77,7 @@ rule legsta_lpneumophila:
         rmdir --ignore-fail-on-non-empty ~/legsta/
         """
 
+
 rule lpgenomics_lpneumophila:
     input:
         read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
@@ -131,7 +132,7 @@ rule kleborate_kpneumoniae:
         rmdir --ignore-fail-on-non-empty ~/kleborate/
         """
 
-    
+
 rule agrvate_saureus:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
@@ -155,6 +156,7 @@ rule agrvate_saureus:
         rmdir --ignore-fail-on-non-empty ~/agrvate/
         """
 
+
 rule spatyper_saureus:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
@@ -177,7 +179,7 @@ rule spatyper_saureus:
         rmdir --ignore-fail-on-non-empty ~/spatyper/
         """
 
-    
+
 rule sccmec_saureus:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
@@ -195,6 +197,7 @@ rule sccmec_saureus:
         rm -r ~/sccmec/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/sccmec/
         """
+
 
 rule emmtyper_spyogenes:
     input:
@@ -268,6 +271,7 @@ rule sistr_senterica:
         rmdir --ignore-fail-on-non-empty ~/sistr/
         """
 
+
 rule lissero_lmonocytogenes:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
@@ -286,17 +290,32 @@ rule lissero_lmonocytogenes:
         rmdir --ignore-fail-on-non-empty ~/lissero/
         """
 
-rule pasteurmlst_lmonocytogenes:
+
+rule pasteur_pcr_serogroup_lmonocytogenes:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
-        config['output_directory']+'{sample_id_pattern}_pasteur_mlst.json'
+        config['output_directory']+'{sample_id_pattern}_pasteur_pcr_serogroup.json'
     run:
         api_output = type_contigs_api(input.contigs, 'Listeria monocytogenes')
         if isinstance(api_output, dict):
             write_json(api_output, output[0])
         else:
             os.system(f"touch {output[0]}")
+
+
+rule pasteur_cgmlst_lmonocytogenes:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json'
+    run:
+        api_output = type_contigs_api(input.contigs, 'Listeria monocytogenes', scheme_num=1)
+        if isinstance(api_output, dict):
+            write_json(api_output, output[0])
+        else:
+            os.system(f"touch {output[0]}")            
+
 
 rule publmst_ngonorrhoe:
     input:
@@ -305,6 +324,19 @@ rule publmst_ngonorrhoe:
         config['output_directory']+'{sample_id_pattern}_ngmast.json'
     run:
         api_output = type_contigs_api(input.contigs, 'Neisseria gonorrhoeae')
+        if isinstance(api_output, dict):
+            write_json(api_output, output[0])
+        else:
+            os.system(f"touch {output[0]}")
+        
+
+rule pubmlst_abaumanii:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_ngmast.json'
+    run:
+        api_output = type_contigs_api(input.contigs, 'Acinetobacter baumanii')
         if isinstance(api_output, dict):
             write_json(api_output, output[0])
         else:
