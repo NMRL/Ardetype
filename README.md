@@ -23,7 +23,7 @@ Pipeline is designed to be run by NMRL users on RTU HPC, where HPC-level configu
 |Resfinder4         |[Database](https://bitbucket.org/genomicepidemiology/resfinder_db/src)|
 
 ## Installation
-To install from scratch, you will need an access to a Linux system with **root access** and installed [singularity](https://sylabs.io/guides/3.0/user-guide/installation.html) to build containers. [WSL](https://docs.microsoft.com/en-us/windows/wsl/install) or [Virtual Machine](https://www.arcserve.com/blog/dead-simple-guide-installing-linux-virtual-machine-windows) should also work. 
+To install from scratch, you will need a Linux system with **root access** and installed [singularity](https://sylabs.io/guides/3.0/user-guide/installation.html) to build containers. [WSL](https://docs.microsoft.com/en-us/windows/wsl/install) or [Virtual Machine](https://www.arcserve.com/blog/dead-simple-guide-installing-linux-virtual-machine-windows) should also work.
 
 Clone the repository to your local machine and use [singularity recipe files](https://github.com/NMRL/NMRL_Bact_Assembly_Inhouse/tree/ardetype/config_files/s_recipes) to build containers,<br>then copy to HPC cluster so that they can be accessed by the pipeline scripts.
 
