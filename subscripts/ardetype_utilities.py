@@ -205,10 +205,13 @@ def install_snakemake():
         echo Running with --install_snakemake flag: Snakemake is already installed for this user
     else
         echo Running with --install_snakemake flag:
-        conda create -n mamba_env -c conda-forge mamba
+        conda create -n mamba_env
         conda activate mamba_env
+        conda install python=3.10
+        conda install -c conda-forge mamba
         mamba create -c conda-forge -c bioconda -n snakemake snakemake=7.6.1
-        conda activate snakemake
+        conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake
+        pip install PyYAML bs4
     fi    
     '''
     )

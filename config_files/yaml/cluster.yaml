@@ -65,7 +65,7 @@ contig_assembly:
   jobname: "ardetype.contig_assembly"
   nodes: 1
   ppn: 24
-  pmem: "1500mb"
+  pmem: "2000mb"
   walltime: "01:00:00"
   account: "rakus"
   queue: "batch"
@@ -195,7 +195,7 @@ lpgenomics_lpneumophila:
   nodes: 1
   ppn: 24
   pmem: "1000mb"
-  walltime: "01:30:00"
+  walltime: "02:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"

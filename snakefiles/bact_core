@@ -73,7 +73,6 @@ rule contig_assembly:
         temp(config['output_directory']+'{sample_id_pattern}_contigs/contigs.fa')
     envmodules:
         'singularity'
-    threads: 12
     shell:
         'singularity run {input.sif_file} shovill {config[core_tool_configs][shovill][modules]} --depth {config[core_tool_configs][shovill][depth]} --ram {config[core_tool_configs][shovill][ram]} --minlen {config[core_tool_configs][shovill][minlen]} --force --outdir {config[output_directory]}{wildcards.sample_id_pattern}_contigs --R1 {input.read_1} --R2 {input.read_2}'
 
