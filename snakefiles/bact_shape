@@ -1,6 +1,41 @@
-configfile: 'config_modular.yaml'
+localrules: all, contig_id
+
+#define sample_id_pattern wildcard and accessing sample_sheet
+import pandas as pd
+sip_wild = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
+sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
+
 rule all:
-    input: 
-        config['shape_target']
-    shell:
-        "echo Shell finished"
+    input:
+    output:
+    run:
+
+rule extract_fastp:
+    input:
+    output:
+    run:
+
+rule extract_kraken2:
+    input:
+    output:
+    run:
+
+rule extract_mlst:
+    input:
+    output:
+    run:
+
+rule extract_quast:
+    input:
+    output:
+    run:
+
+rule compute_average_coverage:
+    input:
+    output:
+    run:
+
+rule run_multiqc:
+    input:
+    output:
+    run:

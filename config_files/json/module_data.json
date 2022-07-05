@@ -122,5 +122,19 @@
                 "Streptococcus pneumoniae"
             ]
         }
+    },
+    "shape" : {
+        "targets":[
+            ".rgi.txt"
+        ],
+        "patterns":{
+            "inputs":[""],
+            "sample_sheet":"(_R[1,2]_001.fastq.gz|_contigs.fasta)"
+        },
+        "job_name":"bact_shape",
+        "requests":{
+            "check":"_contigs.fasta:True",
+            "taxonomy":null
+        }
     }
 }
