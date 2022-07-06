@@ -1,41 +1,263 @@
 localrules: all, contig_id
 
 #define sample_id_pattern wildcard and accessing sample_sheet
-import pandas as pd
+import sys, pandas as pd, os
+from datetime import date
+sys.path.insert(0, '/mnt/home/jevgen01/nmrl/bact_analysis/Ardetype/subscripts/')
+from ardetype_utilities import read_json_dict, find_in_nested_dict
+
 sip_wild = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
+date = date.today().strftime("%Y-%m-%d")
 
 rule all:
     input:
+        config['shape_target_files']
     output:
+        config['output_directory']+f'{date}_ardetype_report.csv'
     run:
 
 rule extract_fastp:
     input:
+        config['output_directory']+'{sample_id_pattern}.fastp.json'
     output:
+        config['output_directory']+'{sample_id_pattern}_fastp_std.csv'
     run:
+        report = read_json_dict(input[0])
+        data_dict = {
+            'total_reads_bf':['summary','before_filtering','total_reads'],
+            'total_reads_af':['summary','after_filtering','total_reads'],
+            'q30_rbf':['summary','before_filtering','q30_rate'],
+            'q30_raf':['summary','after_filtering','q30_rate'],
+            'r1_mean_len_bf':['summary','before_filtering','read1_mean_length'],
+            'r2_mean_len_bf':['summary','before_filtering','read2_mean_length'],
+            'r1_mean_len_af':['summary','after_filtering','read1_mean_length'],
+            'r2_mean_len_af':['summary','after_filtering','read2_mean_length'],
+            'gc_bf':['summary','before_filtering','gc_content'],
+            'gc_af':['summary','after_filtering','gc_content']
+        }
+        for key in data_dict: data_dict[key] = [find_in_nested_dict(report, data_dict[key])]
+        df = pd.DataFrame.from_dict(data_dict)
+        df.to_csv(output[0], header=True, index=False)
 
 rule extract_kraken2:
     input:
+        config['output_directory']+ '{sample_id_pattern}_kraken2_contigs_report.txt'
     output:
+        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report_std.csv'
     run:
+        df = pd.read_table(input[0], header=None)[[0,3,5]]
+        df.columns = ['read_%','taxid','name']
+        df = df[df['taxid'] == "S"].reset_index(drop=True).sort_values(by=['read_%', ascending=False]).head(2)
+        df.to_csv(output[0],header=True, index=False)
 
 rule extract_mlst:
     input:
+        config['output_directory']+'{sample_id_pattern}_mlst_output.csv'
     output:
+        config['output_directory']+'{sample_id_pattern}_mlst_output_std.csv'
     run:
+        try:
+            df = pd.read_csv(input[0], header=None)[[1,2]]
+            df.columns = ['sample_id','sequence_type']
+            df.to_csv(output[0],header=True, index=False)
+        except EmptyDataError as e:
+            df = pd.DataFrame.from_dict({'sample_id':"wildcards.sample_id_pattern", 'sequence_type':None})
+            df.to_csv(output[0],header=True, index=False)
 
 rule extract_quast:
     input:
+        config['output_directory']+'{sample_id_pattern}_quast/transpose_report.tsv'
     output:
+        config['output_directory']+'{sample_id_pattern}_quast_std.csv'
     run:
-
-rule compute_average_coverage:
-    input:
-    output:
-    run:
+        report = pd.read_csv(input[0], sep="\t")
+        data_dict = {
+            "contig_count":[report["# contigs"][0]],
+            "N50":[report["N50"][0]],
+            "assembly_length":[report["Total_length"][0]],
+            "gc_contigs":[report["GC (%)"][0]]
+        }
+        df = pd.DataFrame.from_dict(data_dict)
+        df.to_csv(output[0], header=True, index=False)
 
 rule run_multiqc:
     input:
+        multiqc_sif = config['multiqc_sif']
     output:
+        config['output_directory']+'multiqc_report.html'
+    shell:
+        '''
+        singularity run {input.multiqc_sif} multiqc {config[output_directory]} --interactive
+        '''
+
+rule extract_agrvate_saureus:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_agrvate_summary.tab'
+    output:
+        config['output_directory']+'{sample_id_pattern}_agrvate_summary_std.csv'
     run:
+        report = pd.read_csv(input[0], sep="\t")
+        
+
+rule extract_emmtyper_spyogenes:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_emmtyper.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_emmtyper_std.csv'
+    run:
+        report = pd.read_csv(input[0], sep="\t")
+
+
+rule extract_hicap_hinfluenzae:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_hicap.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_hicap_std.csv'
+    run:
+        try:
+            report = pd.read_csv(input[0], sep="\t")
+        except EmptyDataError as e:
+            pass
+
+
+rule extract_kleborate_kpneumoniae_abaumanii:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_kleborate.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_kleborate_std.csv'
+    run:
+        try:
+            report = pd.read_csv(input[0], sep="\t")
+            report.to_csv(output[0], header=True, index=False)
+        except EmptyDataError as e:
+            os.system(f"touch {output[0]}")
+
+rule extract_legsta_lpneumophila:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_legsta.csv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_legsta_std.csv'
+    run:
+        try:
+            report = pd.read_csv(input[0])
+        except EmptyDataError as e:
+            pass
+
+rule extract_lissero_lmonocytogenes:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_lissero.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_lissero_std.csv'
+    run:
+        try:
+            report = pd.read_csv(input[0], sep="\t")
+        except EmptyDataError as e:
+            pass
+
+rule extract_lpgenomics_lpneumophila:
+    input:
+        out_path = config['output_directory']+"{sample_id_pattern}-predictResults.txt"
+    output:
+        config['output_directory']+'{sample_id_pattern}-predictResults_std.csv'
+    run:
+
+
+rule extract_meningotype_nmeningitidis:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_meningtotype.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_meningtotype_std.csv'
+    run:
+        try:
+            report = pd.read_csv(input[0], sep="\t")
+        except EmptyDataError as e:
+            pass
+
+rule extract_bigsdb_lmonocytogenes:
+    input:
+        cgmlst = config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json',
+        serogrp = config['output_directory']+'{sample_id_pattern}_pasteur_pcr_serogroup.json'
+    output:
+        config['output_directory']+'{sample_id_pattern}_pasteur_pcr_serogroup_std.csv'
+    run:
+
+
+rule extract_publmst_ngonorrhoe:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_ngmast.json'
+    output:
+        config['output_directory']+'{sample_id_pattern}_ngmast_std.csv'
+    run:
+
+
+rule extract_publmst_abaumanii:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_ab_pumblst.json'
+    output:
+        config['output_directory']+'{sample_id_pattern}_ab_pumblst_std.csv'
+    run:
+
+
+rule extract_sccmec_saureus:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_sccmec.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_sccmec_std.csv'
+    run:
+        try:
+            report = pd.read_csv(input[0], sep="\t")
+        except EmptyDataError as e:
+            pass
+
+rule extract_seqsero_senterica:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_SeqSero.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_SeqSero_std.csv'
+    run:
+        try:
+            report = pd.read_csv(input[0], sep="\t")
+        except EmptyDataError as e:
+            pass
+
+rule extract_sistr_senterica:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_sistr.csv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_sistr_std.csv'
+    run:
+        try:
+            report = pd.read_csv(input[0], sep="\t")
+        except EmptyDataError as e:
+            pass
+
+rule extract_spatyper_saureus:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_spatyper.txt'
+    output:
+        config['output_directory']+'{sample_id_pattern}_spatyper_std.csv'
+    run:
+
+
+rule extract_ectyper_ecoli:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_ectyper.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_ectyper_std.csv'
+    run:
+        try:
+            report = pd.read_csv(input[0], sep="\t")
+        except EmptyDataError as e:
+            pass
+
+rule extract_seroba_spneumoniae:
+    input:
+        out_path = config['output_directory']+'{sample_id_pattern}_seroba.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_seroba_std.csv'
+    run:
+        try:
+            report = pd.read_csv(input[0], sep="\t")
+        except EmptyDataError as e:
+            pass

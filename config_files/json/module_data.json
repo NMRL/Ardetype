@@ -86,7 +86,8 @@
                 "_SeqSero.tsv"
             ],
             "Acinetobacter baumannii" :[
-                "_kleborate.tsv"
+                "_kleborate.tsv",
+                "_ab_pumblst.json"
             ],
             "Escherichia coli" :[
                 "_ectyper.tsv"
@@ -124,17 +125,82 @@
         }
     },
     "shape" : {
-        "targets":[
-            ".rgi.txt"
-        ],
+        "targets":{
+            "general":[
+                "_fastp_std.csv",
+                "_kraken2_contigs_report_std.csv",
+                "_mlst_output_std.csv",
+                "_quast_std.csv"
+            ],
+            "Neisseria meningitidis":[
+                "_meningtotype_std.csv"
+            ],
+            "Legionella pneumophila":[
+                "_legsta_std.csv",
+                "-predictResults_std.csv"
+            ],
+            "Haemophilus influenzae":[
+                "_hicap_std.csv"
+            ],
+            "Klebsiella pneumoniae":[
+                "_kleborate_std.csv"
+            ],
+            "Staphylococcus aureus":[
+                "_agrvate_summary_std.csv",
+                "_spatyper_std.csv",
+                "_sccmec_std.csv"
+            ],
+            "Streptococcus pyogenes":[
+                "_emmtyper_std.csv"
+            ],
+            "Neisseria gonorrhoeae":[
+                "_ngmast_std.csv"
+            ],
+            "Listeria monocytogenes":[
+                "_pasteur_pcr_serogroup_std.csv",
+                "_lissero_std.csv",
+                "_pasteur_cgmlst_std.csv"
+            ],
+            "Salmonella enterica":[
+                "_sistr_std.csv",
+                "_SeqSero_std.csv"
+            ],
+            "Acinetobacter baumannii" :[
+                "_kleborate_std.csv"
+            ],
+            "Escherichia coli" :[
+                "_ectyper_std.csv"
+            ],
+            "Streptococcus pneumoniae" :[
+                "_seroba_std.csv"
+            ]
+        },
         "patterns":{
             "inputs":[""],
             "sample_sheet":"(_R[1,2]_001.fastq.gz|_contigs.fasta)"
         },
         "job_name":"bact_shape",
         "requests":{
-            "check":"_contigs.fasta:True",
-            "taxonomy":null
+            "check":[
+                "_contigs.fasta:True",
+                "_quast/icarus.html:True",
+                "_kraken2_contigs_report.txt:True",
+                "_mlst_output.csv:True"
+            ],
+            "taxonomy":[
+                "Neisseria meningitidis",
+                "Legionella pneumophila",
+                "Haemophilus influenzae",
+                "Klebsiella pneumoniae",
+                "Staphylococcus aureus",
+                "Streptococcus pyogenes",
+                "Neisseria gonorrhoeae",
+                "Listeria monocytogenes",
+                "Salmonella enterica",
+                "Acinetobacter baumannii",
+                "Escherichia coli",
+                "Streptococcus pneumoniae"
+            ]
         }
     }
 }

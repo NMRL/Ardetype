@@ -114,7 +114,7 @@ def edit_nested_dict(config_dict, param, new_value):
 def find_in_nested_dict(nested_dict:dict, key_sequence:list):
     '''
     Given a dictionary and an ordered sequence of keys in a form of list, returns value mapped to last key in sequence, by parsing the dictionary. 
-    Raises exceptions if key is not found, non-dict value reached before last key in sequence is reached or output type does not match expected type.
+    Raises exceptions if key is not found or non-dict value reached before last key in sequence is reached.
     '''
 
     key = key_sequence.pop(0)

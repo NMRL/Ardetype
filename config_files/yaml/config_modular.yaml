@@ -85,6 +85,11 @@ pigz_sif:
 
 
 
+##############
+# bact_shape
+##############
+multiqc_sif:
+  /home/groups/nmrl/image_files/fastq_screen.sif
 
 
 #########################
@@ -122,7 +127,6 @@ core_tool_configs:
 
 ###Filled by the wrapper
 shell_target_files:
-
 shell_tool_configs:
 #Configuration settings for each tool used by bact_shell snakefile
   amr_plusplus:
@@ -139,7 +143,6 @@ shell_tool_configs:
 
 ###Filled by the wrapper
 tip_target_files:
- 
 tip_tool_configs:
 #Configuration settings for each tool used by bact_tip snakefile
   agrvate_saureus:
@@ -148,7 +151,6 @@ tip_tool_configs:
   kaptive_kpneumoniae:
   kleborate_kpneumoniae:
   legsta_lpneumophila:
-  lissero_lmonocytogenes:
   lissero_lmonocytogenes:
   lpgenomics_lpneumophila:
   meningotype_nmeningitidis:
@@ -167,5 +169,4 @@ tip_tool_configs:
 # bact_shape configuration
 #########################
 shape_target_files:
-
 shape_tool_configs:

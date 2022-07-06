@@ -334,7 +334,7 @@ rule pubmlst_abaumanii:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
-        config['output_directory']+'{sample_id_pattern}_ngmast.json'
+        config['output_directory']+'{sample_id_pattern}_ab_pumblst.json'
     run:
         api_output = type_contigs_api(input.contigs, 'Acinetobacter baumanii')
         if isinstance(api_output, dict):

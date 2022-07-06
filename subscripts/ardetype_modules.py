@@ -72,10 +72,13 @@ class Module:
             self.sample_sheet = map_new_column(self.sample_sheet,fasta_dict,'sample_id','fa')
 
 
-    def fill_target_list(self, taxonomy_based=False):
+    def fill_target_list(self, taxonomy_based:bool=False, mixed:bool=False):
         '''Fills self.target_list using data stored in self.sample_sheet instance variable.'''
         if taxonomy_based:#specific targets for each species
             self.target_list = [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
+        elif mixed:#both species-specific and non-specific targets
+            self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets['general']]
+            self.target_list += [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
         else:#only non-specific targets
             self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
             
