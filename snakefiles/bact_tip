@@ -25,7 +25,7 @@ rule hicap_hinfluenzae:
         'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_hicap.tsv'
-    shell:
+    shell: #creating empty file just in case to make snakemake not stop if typing has failed for tool-specific reasons
         """
         mkdir -p ~/hicap/
         cp {input.contigs} ~/hicap/
@@ -88,7 +88,7 @@ rule lpgenomics_lpneumophila:
         'singularity'
     output:
         config['output_directory']+"{sample_id_pattern}-predictResults.txt"
-    shell:
+    shell: #script is run from git repository; blank file is created to avoid snakemake failing if typing has failed; lock file is created for each sample under temp to indicate that it is being used
         """
         cd {input.repository}
         mkdir -p lpgenomics_temp/
@@ -118,7 +118,7 @@ rule kleborate_kpneumoniae:
         'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_kleborate.tsv'
-    shell:
+    shell: #generates blank output to avoid snakemake failing if typing goes wrong
         """
         mkdir -p ~/kleborate/
         cp {input.contigs} ~/kleborate/
@@ -296,7 +296,7 @@ rule pasteur_pcr_serogroup_lmonocytogenes:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
         config['output_directory']+'{sample_id_pattern}_pasteur_pcr_serogroup.json'
-    run:
+    run: #typing via network can be done from nodes other than login node as it does not require job submission, only internet connection
         api_output = type_contigs_api(input.contigs, 'Listeria monocytogenes')
         if isinstance(api_output, dict):
             write_json(api_output, output[0])
@@ -371,7 +371,7 @@ rule seroba_spneumoniae:
         config['output_directory']+'{sample_id_pattern}_seroba.tsv'
     envmodules:
         'singularity'
-    shell:
+    shell: #final condition may be redundant
         """
         mkdir -p ~/seroba/
         cp -r {config[seroba_spneumoniae_database]} ~/db_seroba_{wildcards.sample_id_pattern}

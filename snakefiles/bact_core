@@ -8,27 +8,27 @@ sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 #AGGREGATION RULE
 rule all:
     input: 
-        config["core_target_files"],
-        file_list = expand(config['output_directory']+'{sample_id}_kraken2_contigs_report.txt', sample_id=sample_sheet['sample_id'])
+        config["core_target_files"], #reads all expected outputs from config file
+        file_list = expand(config['output_directory']+'{sample_id}_kraken2_contigs_report.txt', sample_id=sample_sheet['sample_id']) #Creates a list of kraken contig reports to summarize taxonomy for all samples
     run:
         total_dict = {}
-        for file in input.file_list:
-            df = pd.read_table(file, header=None)[[0,3,5]]
-            df.columns = ['read_%','taxid','name']
-            df = df[df['taxid'] == "S"].reset_index(drop=True)
-            top_hit = df.loc[df["read_%"] ==df["read_%"].max()]['name'][0].strip()
-            total_dict[os.path.basename(file).replace("_kraken2_contigs_report.txt","")] = top_hit
-        with open(config['output_directory']+'core_aggregated_taxonomy.json', "w+") as json_handle:
+        for file in input.file_list: #looping over reports
+            df = pd.read_table(file, header=None)[[0,3,5]] #read columns
+            df.columns = ['read_%','taxid','name'] #rename 
+            df = df[df['taxid'] == "S"].reset_index(drop=True) #extract only species rows
+            top_hit = df.loc[df["read_%"] ==df["read_%"].max()]['name'][0].strip() #extract top hit
+            total_dict[os.path.basename(file).replace("_kraken2_contigs_report.txt","")] = top_hit #save info for current samples
+        with open(config['output_directory']+'core_aggregated_taxonomy.json', "w+") as json_handle: #write top hit for each sample to json file
             json.dump(total_dict, json_handle)
         print('bact_core finished')
 
 #READ LENGTH & QUALITY TRIMMING
 rule quality_control:
     input:
-        sif_file = config["fastp_sif"],
+        sif_file = config["fastp_sif"], #path to singularity image file
         read_1 = config['work_dir']+'{sample_id_pattern}_R1_001.fastq.gz',
         read_2 = config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz'
-    threads: 4
+    threads: 4 #to be moved to config
     envmodules:
         'singularity'
     output: 
@@ -56,7 +56,7 @@ rule filter_host:
     threads: config["core_tool_configs"]["kraken2"]["threads"]
     conda:
         config["kraken2_env"]
-    shell:
+    shell: #pigz for faster fastq compressing using multiprocessing
         """ 
         kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][human_db]} --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_host#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_1.fastq
@@ -70,7 +70,7 @@ rule contig_assembly:
         read_1 = config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz',
         read_2 = config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz',
     output:
-        temp(config['output_directory']+'{sample_id_pattern}_contigs/contigs.fa')
+        temp(config['output_directory']+'{sample_id_pattern}_contigs/contigs.fa') #removed after renaming 
     envmodules:
         'singularity'
     shell:
@@ -85,7 +85,7 @@ rule contig_id:
         'singularity'
     output:
         contigs = config['output_directory']+'{sample_id_pattern}_contigs.fasta'
-    shell:
+    shell: #keeps only finals shovill output
         '''
         mv -n {input.cnt} {output.contigs}
         rm -r {config[output_directory]}{wildcards.sample_id_pattern}_contigs/
@@ -112,7 +112,7 @@ rule classify_reads:
         'singularity'
     conda:
         config["kraken2_env"]
-    shell:
+    shell: #kreport2krona converts kraken2 output to krona format; ktImportText converts the result to interactive form
         """ 
         kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][bact_db]} --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2}
         singularity run {input.sif_file} kreport2krona.py -r {output.report_name} -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.krona
