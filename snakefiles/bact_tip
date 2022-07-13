@@ -2,7 +2,7 @@ localrules: all
 
 #imports
 import sys, pandas as pd
-sys.path.insert(0, '/mnt/home/jevgen01/nmrl/bact_analysis/Ardetype/subscripts/')
+sys.path.insert(0, '/mnt/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
 from ardetype_utilities import type_contigs_api, write_json
 
 #define sample_id_pattern wildcard and accessing sample_sheet

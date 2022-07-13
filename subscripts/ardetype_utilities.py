@@ -207,11 +207,11 @@ def install_snakemake():
         echo Running with --install_snakemake flag:
         conda create -n mamba_env
         conda activate mamba_env
-        conda install python=3.10
+        conda install python=3.9
         conda install -c conda-forge mamba
         mamba create -c conda-forge -c bioconda -n snakemake snakemake=7.6.1
         conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake
-        pip install PyYAML bs4
+        pip install PyYAML bs4 lxml
     fi    
     '''
     )
