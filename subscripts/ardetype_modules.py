@@ -280,6 +280,10 @@ class Module:
         '''Moves target files outside of folders created by fold_output method in order to avoid having to move file out manually to do a rerun.'''
         for id in self.sample_sheet['sample_id']: os.system(f'mv -n {self.output_path}folded_{id}_output/* {self.output_path} 2> /dev/null')
 
+    def set_permissions(self, permissions:str='775'):
+        '''Given Linux permission string in numeric format, sets requested permissions (775 by default) recursively on the contents of self.output_path.'''
+        os.system(f"chmod -R {permissions} {self.output_path} 2> /dev/null")
+
 
 ###############################################
 # Defining wrapper functions to call from main
@@ -419,6 +423,7 @@ def run_all(args, num_jobs):
     tip.write_sample_sheet()
     tip.clear_working_directory()
     if tip.pack_output: tip.fold_output()
+    tip.set_permissions()
 
 
 def run_core(args, num_jobs):
@@ -465,6 +470,7 @@ def run_core(args, num_jobs):
     core.write_sample_sheet()
     core.clear_working_directory()
     if core.pack_output: core.fold_output()
+    core.set_permissions()
 
 
 def run_shell(args, num_jobs):
@@ -506,3 +512,4 @@ def run_shell(args, num_jobs):
     shell.write_sample_sheet()
     shell.clear_working_directory()
     if shell.pack_output: shell.fold_output()
+    shell.set_permissions()

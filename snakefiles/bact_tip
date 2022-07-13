@@ -92,6 +92,7 @@ rule lpgenomics_lpneumophila:
         """
         cd {input.repository}
         mkdir -p lpgenomics_temp/
+        chmod 775 lpgenomics_temp/
         cp {input.read_1} lpgenomics_temp/
         cp {input.read_2} lpgenomics_temp/
         singularity run {input.pigz_sif} -d lpgenomics_temp/$(basename {input.read_1}) lpgenomics_temp/$(basename {input.read_2})
