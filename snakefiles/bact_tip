@@ -148,8 +148,8 @@ rule agrvate_saureus:
         cp {input.contigs} ~/agrvate/
         cd ~/agrvate/
         singularity run {input.sif_file} agrvate -t -f -i ~/agrvate/$(basename {input.contigs})
-        if [ -f ~/agrvate/{wildcards.sample_id_pattern}-results/{wildcards.sample_id_pattern}-summary.tab ]; then
-            mv ~/agrvate/{wildcards.sample_id_pattern}-results/{wildcards.sample_id_pattern}-summary.tab {output}
+        if [ -f ~/agrvate/{wildcards.sample_id_pattern}_contigs-results/{wildcards.sample_id_pattern}_contigs-summary.tab ]; then
+            mv ~/agrvate/{wildcards.sample_id_pattern}_contigs-results/{wildcards.sample_id_pattern}_contigs-summary.tab {output}
         else
             touch {output}
         fi
