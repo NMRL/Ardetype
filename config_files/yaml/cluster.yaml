@@ -22,7 +22,7 @@ quality_control:
   nodes: 1
   ppn: 12
   pmem: "1500mb"
-  walltime: "00:05:00"
+  walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"

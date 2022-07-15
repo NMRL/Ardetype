@@ -116,8 +116,9 @@ core_tool_configs:
     bact_db: /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/
   shovill:
     minlen: 1
-    ram: 36
+    ram: 48
     depth: 100
+    cpus: 24
     modules: --noreadcorr
 
 

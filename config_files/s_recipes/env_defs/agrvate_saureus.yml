@@ -1,5 +1,7 @@
 name: agrvate_saureus
 channels:
   - bioconda
+  - conda-forge
 dependencies:
   - agrvate
+  - file
