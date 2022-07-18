@@ -69,13 +69,15 @@ rule contig_assembly:
         sif_file = config["shovill_sif"],
         read_1 = config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz',
         read_2 = config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz',
+    threads: 
+        12
     output:
         temp(config['output_directory']+'{sample_id_pattern}_contigs/contigs.fa') #removed after renaming 
     envmodules:
         'singularity'
     shell:
         '''
-        singularity run {input.sif_file} shovill {config[core_tool_configs][shovill][modules]} --depth {config[core_tool_configs][shovill][depth]} --ram {config[core_tool_configs][shovill][ram]} --cpus {config[core_tool_configs][shovill][cpus]} --minlen {config[core_tool_configs][shovill][minlen]} --force --outdir {config[output_directory]}{wildcards.sample_id_pattern}_contigs --R1 {input.read_1} --R2 {input.read_2}
+        singularity run {input.sif_file} shovill {config[core_tool_configs][shovill][modules]} --depth {config[core_tool_configs][shovill][depth]} --ram {config[core_tool_configs][shovill][ram]} --minlen {config[core_tool_configs][shovill][minlen]} --force --outdir {config[output_directory]}{wildcards.sample_id_pattern}_contigs --R1 {input.read_1} --R2 {input.read_2}
         '''
 
 

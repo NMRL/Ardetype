@@ -3,7 +3,7 @@ localrules: all
 #imports
 import sys, pandas as pd
 sys.path.insert(0, '/mnt/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
-from ardetype_utilities import type_contigs_api, write_json
+from ardetype_utilities import type_contigs_api, write_json, filter_contigs_length
 
 #define sample_id_pattern wildcard and accessing sample_sheet
 sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
@@ -298,7 +298,9 @@ rule pasteur_pcr_serogroup_lmonocytogenes:
     output:
         config['output_directory']+'{sample_id_pattern}_pasteur_pcr_serogroup.json'
     run: #typing via network can be done from nodes other than login node as it does not require job submission, only internet connection
-        api_output = type_contigs_api(input.contigs, 'Listeria monocytogenes')
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = type_contigs_api(filtered_contigs, 'Listeria monocytogenes')
         if isinstance(api_output, dict):
             write_json(api_output, output[0])
         else:
@@ -311,7 +313,9 @@ rule pasteur_cgmlst_lmonocytogenes:
     output:
         config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json'
     run:
-        api_output = type_contigs_api(input.contigs, 'Listeria monocytogenes', scheme_num=1)
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = type_contigs_api(filtered_contigs, 'Listeria monocytogenes', scheme_num=1)
         if isinstance(api_output, dict):
             write_json(api_output, output[0])
         else:

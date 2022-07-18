@@ -1,4 +1,5 @@
 import os, sys, yaml, pandas as pd, re, argparse, json, base64, requests, numpy as np
+from Bio import SeqIO
 
 
 def parse_folder(folder_pth_str, file_fmt_str, substr_lst=None, regstr_lst=None):
@@ -258,6 +259,14 @@ def type_contigs_api(contigs_path: str, organism: str, scheme_num:int=0):
         return response.json()  #return dictionary with the response contents
     else: #if return code indicates failure
         return {"status_code": response.status_code, "text": response.text} #return dictionary with corresponding status code
+
+
+def filter_contigs_length(input_multifasta_path:str, output_multifasta_path:str, minlen:int=500):
+    '''
+    Given path to multifasta, filters out contigs that are less than specified length (default 500 bp)
+    and saves filtered contigs to a new multifasta file.
+    '''
+    SeqIO.write([record for record in SeqIO.parse(input_multifasta_path, "fasta") if len(record.seq) > minlen], output_multifasta_path, "fasta")
 
 
 def check_file_multiplicity(file_path_list:list):

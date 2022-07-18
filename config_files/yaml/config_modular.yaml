@@ -118,7 +118,6 @@ core_tool_configs:
     minlen: 1
     ram: 48
     depth: 100
-    cpus: 24
     modules: --noreadcorr
 
 
