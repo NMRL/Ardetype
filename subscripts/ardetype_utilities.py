@@ -243,7 +243,25 @@ def type_contigs_api(contigs_path: str, organism: str, scheme_num:int=0):
             ],
         'Acinetobacter baumanii': [
             "https://rest.pubmlst.org/db/pubmlst_abaumannii_seqdef/schemes/1/sequence"
-            ]
+            ],
+        "Neisseria meningitidis":
+            ["https://rest.pubmlst.org/db/pubmlst_neisseria_seqdef/schemes/47/sequence"],
+        "Klebsiella pneumoniae":
+            ["https://bigsdb.pasteur.fr/api/db/pubmlst_klebsiella_seqdef/schemes/15/sequence"],
+        "Staphylococcus aureus":
+            ["https://rest.pubmlst.org/db/pubmlst_saureus_seqdef/schemes/2/sequence"],
+        "Neisseria gonorrhoeae":
+            ["https://rest.pubmlst.org/db/pubmlst_neisseria_seqdef/schemes/62/sequence"],
+        "Listeria monocytogenes":
+            ["https://bigsdb.pasteur.fr/api/db/pubmlst_listeria_seqdef/schemes/3/sequence"],
+        "Salmonella enterica":
+            ["https://rest.pubmlst.org/db/pubmlst_salmonella_seqdef/schemes/4/sequence"],
+        "Acinetobacter baumannii":
+            ["https://rest.pubmlst.org/db/pubmlst_abaumannii_seqdef/schemes/3/sequence"],
+        "Escherichia coli":
+            ["https://rest.pubmlst.org/db/pubmlst_escherichia_seqdef/schemes/6/sequence"],
+        "Streptococcus pneumoniae":
+            ["https://rest.pubmlst.org/db/pubmlst_spneumoniae_seqdef/schemes/2/sequence"]
     }
     try:
         url = organisms[organism][scheme_num] #trying to get url for the organism requested by the user
