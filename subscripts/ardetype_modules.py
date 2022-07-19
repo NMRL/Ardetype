@@ -156,10 +156,15 @@ class Module:
                 if isinstance(self.requests['check'],str): #if only one requirement is provided as string
                     self.removed_samples = self.sample_sheet[~self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(self.requests['check'])].reset_index(drop=True)
                     self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(self.requests['check'])].reset_index(drop=True)
-                else:
+                elif isinstance(self.requests['check'], list):
                     for request in self.requests['check']: #if many requirements are provided as list of stings
                         self.removed_samples = self.sample_sheet[~self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(request)].reset_index(drop=True)
                         self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(request)].reset_index(drop=True)
+                elif isinstance(self.requests['check'], dict):
+                    for request in self.requests['check']: #if many requirements are provided as list of stings
+                        for check in self.requests['check'][connect_from_module_name]:
+                            self.removed_samples = self.sample_sheet[~self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(check)].reset_index(drop=True)
+                            self.sample_sheet = self.sample_sheet[self.sample_sheet[f'check_note_{connect_from_module_name}'].str.contains(check)].reset_index(drop=True)
             if self.requests['taxonomy'] is not None:   #if module can run only certain taxonomy-specific rules (but not others) and accepted species are supplied as list of strings
                 self.removed_samples = self.removed_samples.append(self.sample_sheet[~self.sample_sheet['taxonomy'].str.contains("("+"|".join(self.requests['taxonomy'])+")")].reset_index(drop=True))
                 self.sample_sheet = self.sample_sheet[self.sample_sheet['taxonomy'].str.contains("("+"|".join(self.requests['taxonomy'])+")")].reset_index(drop=True)
@@ -345,6 +350,24 @@ def run_all(args, num_jobs):
         snakefile_path=module_data['snakefiles']['tip'],
         cluster_config_path=module_data['cluster_config']
     )
+    shape = Module(
+        module_name='shape', 
+        input_path=core.output_path,
+        module_config=tip.config_file, 
+        output_path=args.output_dir, 
+        run_mode=args.submit_modules,
+        dry_run=args.dry_run,
+        force_all=args.force_all,
+        rule_graph=args.rule_graph,
+        pack_output=args.pack_output,
+        unpack_output=args.unpack_output,
+        job_name=module_data['shape']['job_name'],
+        patterns=module_data['shape']['patterns'],
+        targets=module_data['shape']['targets'],
+        requests=module_data['shape']['requests'],
+        snakefile_path=module_data['snakefiles']['shape'],
+        cluster_config_path=module_data['cluster_config']
+    )
 
     #Running core
     core.fill_input_dict()
@@ -398,7 +421,7 @@ def run_all(args, num_jobs):
     shell.write_sample_sheet()
     shell.clear_working_directory()
 
-    # Connecting core to tip
+    # Connecting shell & core to tip
     tip.receive_sample_sheet(shell.supply_sample_sheet())
     samples_cleared = tip.remove_invalid_samples(connect_from_module_name='core')
     tip.save_removed()
@@ -422,8 +445,34 @@ def run_all(args, num_jobs):
     tip.check_module_output()
     tip.write_sample_sheet()
     tip.clear_working_directory()
-    if tip.pack_output: tip.fold_output()
-    tip.set_permissions()
+
+    # Connecting tip & core to shape
+    shape.receive_sample_sheet(tip.supply_sample_sheet())
+    samples_cleared = shape.remove_invalid_samples(connect_from_module_name='core')
+    shape.save_removed()
+    if samples_cleared == 1: 
+        if tip.pack_output: tip.fold_output()
+        raise Exception('Missing files requested by bact_shape.')
+
+    # Running shape
+    shape.fill_input_dict(substring_list=None)
+    shape.write_sample_sheet()
+    shape.fill_target_list()
+    shape.add_module_targets()
+    shape.write_module_config()
+    shape.files_to_wd()
+    try:
+        shape.run_module(job_count=num_jobs)
+    except Exception as e:
+        shape.clear_working_directory()
+        raise e
+    shape.check_module_output()
+    shape.write_sample_sheet()
+    shape.clear_working_directory()
+    if shape.pack_output: shape.fold_output()
+    shape.set_permissions()
+
+
 
 
 def run_core(args, num_jobs):
