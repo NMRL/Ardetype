@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2022-07-20T08:08:56.856Z" agent="5.0 (X11)" etag="TTjOl5WPf9b-Vf6l2hdn" version="20.1.2" type="github">
+<mxfile host="app.diagrams.net" modified="2022-07-20T08:09:20.336Z" agent="5.0 (X11)" etag="G3_5Y_zlhYGnPVCanoGG" version="20.1.2" type="github">
   <diagram id="zrMWa_FLOu9Q8kttmFzF" name="Page-1">
     <mxGraphModel dx="1102" dy="551" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
@@ -14,7 +14,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="sf5IwjjIK1uFrz8gkjvL-5" value="&lt;div&gt;File_extension-to-typing-methods map&lt;/div&gt;&lt;div&gt;(extension, method)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+        <mxCell id="sf5IwjjIK1uFrz8gkjvL-5" value="&lt;div&gt;File_extension-to-typing-methods map&lt;/div&gt;&lt;div&gt;(extension, method, tool)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
           <mxGeometry x="346.25" y="370" width="213.75" height="40" as="geometry" />
         </mxCell>
         <mxCell id="sf5IwjjIK1uFrz8gkjvL-6" value="&lt;div&gt;Typing reports&lt;/div&gt;&lt;div&gt;(sample_id, type)&lt;/div&gt;&lt;div&gt;(tool-dependent format)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
