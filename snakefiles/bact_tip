@@ -322,6 +322,126 @@ rule pasteur_cgmlst_lmonocytogenes:
             os.system(f"touch {output[0]}")            
 
 
+rule pasteur_cgmlst_nmeningitidis:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = type_contigs_api(filtered_contigs, 'Neisseria meningitidis')
+        if isinstance(api_output, dict):
+            write_json(api_output, output[0])
+        else:
+            os.system(f"touch {output[0]}")
+
+
+rule pasteur_cgmlst_ngonorrhoeae:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = type_contigs_api(filtered_contigs, 'Neisseria gonorrhoeae', scheme_num=1)
+        if isinstance(api_output, dict):
+            write_json(api_output, output[0])
+        else:
+            os.system(f"touch {output[0]}")
+
+
+rule pasteur_cgmlst_kpneumoniae:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = type_contigs_api(filtered_contigs, 'Klebsiella pneumoniae')
+        if isinstance(api_output, dict):
+            write_json(api_output, output[0])
+        else:
+            os.system(f"touch {output[0]}")
+
+
+rule pasteur_cgmlst_saureus:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = type_contigs_api(filtered_contigs, 'Staphylococcus aureus')
+        if isinstance(api_output, dict):
+            write_json(api_output, output[0])
+        else:
+            os.system(f"touch {output[0]}")
+
+
+rule pasteur_cgmlst_senterica:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = type_contigs_api(filtered_contigs, 'Salmonella enterica')
+        if isinstance(api_output, dict):
+            write_json(api_output, output[0])
+        else:
+            os.system(f"touch {output[0]}")
+
+
+rule pasteur_cgmlst_ecoli:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = type_contigs_api(filtered_contigs, 'Escherichia coli')
+        if isinstance(api_output, dict):
+            write_json(api_output, output[0])
+        else:
+            os.system(f"touch {output[0]}")
+
+
+rule pasteur_cgmlst_spneumoniae:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = type_contigs_api(filtered_contigs, 'Streptococcus pneumoniae')
+        if isinstance(api_output, dict):
+            write_json(api_output, output[0])
+        else:
+            os.system(f"touch {output[0]}")
+
+
+rule pasteur_cgmlst_abaumanii:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = type_contigs_api(filtered_contigs, 'Acinetobacter baumanii', scheme_num=1)
+        if isinstance(api_output, dict):
+            write_json(api_output, output[0])
+        else:
+            os.system(f"touch {output[0]}")
+
+
 rule publmst_ngonorrhoe:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'

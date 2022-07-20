@@ -40,7 +40,8 @@ rule all:
             "assembly_length",
             "gc_contigs",
             "MLST7_ST",
-            "species"
+            "species",
+            "species_contig_%"
         ]]
         report.to_csv(output[0], header=True, index=False) #save as csv
 
@@ -76,8 +77,8 @@ rule extract_kraken2:
         temp(config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report_std.csv')
     run:
         df = pd.read_table(input[0], header=None)[[0,3,5]]
-        df.columns = ['read_%','taxid','species']
-        df = df[df['taxid'] == "S"].reset_index(drop=True).sort_values(by=['read_%'], ascending=False).head(2)
+        df.columns = ['species_contig_%','taxid','species']
+        df = df[df['taxid'] == "S"].reset_index(drop=True).sort_values(by=['species_contig_%'], ascending=False).head(2)
         df['sample_id'] = [wildcards.sample_id_pattern]
         df['species'] = [df['species'][0].strip()]
         df.to_csv(output[0],header=True, index=False)

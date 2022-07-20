@@ -53,7 +53,8 @@
     "tip" : {
         "targets":{
             "Neisseria meningitidis":[
-                "_meningtotype.tsv"
+                "_meningtotype.tsv",
+                "_pasteur_cgmlst.json"
             ],
             "Legionella pneumophila":[
                 "_legsta.csv",
@@ -63,37 +64,43 @@
                 "_hicap.tsv"
             ],
             "Klebsiella pneumoniae":[
-                "_kleborate.tsv"
+                "_kleborate.tsv",
+                "_pasteur_cgmlst.json"
             ],
             "Staphylococcus aureus":[
                 "_agrvate_summary.tab",
                 "_spatyper.txt",
-                "_sccmec.tsv"
+                "_sccmec.tsv",
+                "_pasteur_cgmlst.json"
             ],
             "Streptococcus pyogenes":[
                 "_emmtyper.tsv"
             ],
             "Neisseria gonorrhoeae":[
-                "_ngmast.json"
+                "_ngmast.json",
+                "_pasteur_cgmlst.json"
             ],
             "Listeria monocytogenes":[
                 "_lissero.tsv",
-                "_pasteur_cgmlst.json",
-                "_pasteur_pcr_serogroup.json"
+                "_pasteur_cgmlst.json"
             ],
             "Salmonella enterica":[
                 "_sistr.csv",
-                "_SeqSero.tsv"
+                "_SeqSero.tsv",
+                "_pasteur_cgmlst.json"
             ],
             "Acinetobacter baumannii" :[
                 "_kleborate.tsv",
-                "_ab_pumblst.json"
+                "_ab_pumblst.json",
+                "_pasteur_cgmlst.json"
             ],
             "Escherichia coli" :[
-                "_ectyper.tsv"
+                "_ectyper.tsv",
+                "_pasteur_cgmlst.json"
             ],
             "Streptococcus pneumoniae" :[
-                "_seroba.tsv"
+                "_seroba.tsv",
+                "_pasteur_cgmlst.json"
             ]
         }
         ,

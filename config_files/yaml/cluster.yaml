@@ -386,16 +386,6 @@ extract_quast:
   queue: "batch"
   jobout: "oe"
 
-compute_average_coverage:
-  jobname: "ardetype.compute_average_coverage"
-  nodes: 1
-  ppn: 5
-  pmem: "1000mb"
-  walltime: "00:10:00"
-  account: "rakus"
-  queue: "batch"
-  jobout: "oe"
-
 run_multiqc:
   jobname: "ardetype.run_multiqc"
   nodes: 1
