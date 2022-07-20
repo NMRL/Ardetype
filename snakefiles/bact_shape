@@ -11,7 +11,8 @@ date = date.today().strftime("%Y-%m-%d")
 
 rule all:
     input:
-        config['shape_target_files']
+        config['shape_target_files'],
+        multiqc_sif = config['multiqc_sif']
     output:
         config['output_directory']+f'{date}_ardetype_report.csv'
     run:
@@ -44,6 +45,7 @@ rule all:
             "species_contig_%"
         ]]
         report.to_csv(output[0], header=True, index=False) #save as csv
+        os.system(f"""module load singularity ; singularity run {input.multiqc_sif} multiqc {config["output_directory"]} --interactive""")
 
 
 rule extract_fastp:
@@ -114,16 +116,6 @@ rule extract_quast:
         }
         df = pd.DataFrame.from_dict(data_dict)
         df.to_csv(output[0], header=True, index=False)
-
-# rule run_multiqc:
-#     input:
-#         multiqc_sif = config['multiqc_sif']
-#     output:
-#         config['output_directory']+'multiqc_report.html'
-#     shell:
-#         '''
-#         singularity run {input.multiqc_sif} multiqc {config[output_directory]} --interactive
-#         '''
 
 # rule extract_agrvate_saureus:
 #     input:

@@ -349,9 +349,9 @@ seroba_spneumoniae:
 extract_fastp:
   jobname: "ardetype.extract_fastp"
   nodes: 1
-  ppn: 6
+  ppn: 3
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:02:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -359,9 +359,9 @@ extract_fastp:
 extract_kraken2:
   jobname: "ardetype.extract_kraken2"
   nodes: 1
-  ppn: 6
+  ppn: 3
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:02:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -369,9 +369,9 @@ extract_kraken2:
 extract_mlst:
   jobname: "ardetype.extract_mlst"
   nodes: 1
-  ppn: 6
+  ppn: 3
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:02:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -379,19 +379,9 @@ extract_mlst:
 extract_quast:
   jobname: "ardetype.extract_quast"
   nodes: 1
-  ppn: 6
+  ppn: 3
   pmem: "1000mb"
-  walltime: "00:10:00"
-  account: "rakus"
-  queue: "batch"
-  jobout: "oe"
-
-run_multiqc:
-  jobname: "ardetype.run_multiqc"
-  nodes: 1
-  ppn: 12
-  pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:02:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
