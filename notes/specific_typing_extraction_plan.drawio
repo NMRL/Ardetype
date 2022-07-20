@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2022-07-20T08:00:44.134Z" agent="5.0 (X11)" etag="Xr_tboUmrKoXOrQPOZKw" version="20.1.2" type="github">
+<mxfile host="app.diagrams.net" modified="2022-07-20T08:01:02.929Z" agent="5.0 (X11)" etag="wsu2EV6_XuXKgcrVaSAX" version="20.1.2" type="github">
   <diagram id="zrMWa_FLOu9Q8kttmFzF" name="Page-1">
     <mxGraphModel dx="1102" dy="551" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
@@ -24,7 +24,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="sf5IwjjIK1uFrz8gkjvL-6" value="&lt;div&gt;Typing reports&lt;/div&gt;&lt;div&gt;(sample_id, type (tool-dependent format))&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="sf5IwjjIK1uFrz8gkjvL-6" value="&lt;div&gt;Typing reports&lt;/div&gt;&lt;div&gt;(sample_id, type)&lt;/div&gt;&lt;div&gt;(tool-dependent format)&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="318" y="180" width="215" height="50" as="geometry" />
         </mxCell>
         <mxCell id="sf5IwjjIK1uFrz8gkjvL-7" value="&lt;div&gt;Standardized typing reports&lt;/div&gt;&lt;div&gt;(sample_id, type, tool, method)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
