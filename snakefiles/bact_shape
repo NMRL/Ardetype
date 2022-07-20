@@ -48,7 +48,7 @@ rule all:
 
 rule extract_fastp:
     input:
-        config['output_directory']+'{sample_id_pattern}.fastp.json'
+        config['work_dir']+'{sample_id_pattern}.fastp.json'
     output:
         temp(config['output_directory']+'{sample_id_pattern}_fastp_std.csv')
     run:
@@ -72,7 +72,7 @@ rule extract_fastp:
 
 rule extract_kraken2:
     input:
-        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt'
+        config['work_dir']+'{sample_id_pattern}_kraken2_contigs_report.txt'
     output:
         temp(config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report_std.csv')
     run:
@@ -85,7 +85,7 @@ rule extract_kraken2:
 
 rule extract_mlst:
     input:
-        config['output_directory']+'{sample_id_pattern}_mlst_output.csv'
+        config['work_dir']+'{sample_id_pattern}_mlst_output.csv'
     output:
         temp(config['output_directory']+'{sample_id_pattern}_mlst_output_std.csv')
     run:
@@ -114,6 +114,7 @@ rule extract_quast:
         }
         df = pd.DataFrame.from_dict(data_dict)
         df.to_csv(output[0], header=True, index=False)
+
 
 # rule extract_agrvate_saureus:
 #     input:
