@@ -31,7 +31,7 @@ quality_control:
 filter_host:
   jobname: "ardetype.filter_host"
   nodes: 1
-  ppn: 12
+  ppn: 16
   pmem: "21333mb"
   walltime: "00:40:00"
   account: "rakus"
@@ -42,7 +42,7 @@ filter_host:
 classify_reads:
   jobname: "ardetype.classify_reads"
   nodes: 1
-  ppn: 12
+  ppn: 16
   pmem: "21333mb"
   walltime: "00:40:00"
   account: "rakus"
@@ -53,7 +53,7 @@ classify_reads:
 classify_contigs:
   jobname: "ardetype.classify_contigs"
   nodes: 1
-  ppn: 12
+  ppn: 24
   pmem: "21333mb"
   walltime: "00:40:00"
   account: "rakus"

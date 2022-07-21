@@ -2,12 +2,13 @@ localrules: all
 
 import sys, pandas as pd, os
 from datetime import date
-sys.path.insert(0, '/mnt/home/jevgen01/nmrl/bact_analysis/Ardetype/subscripts/')
+sys.path.insert(0, '/mnt/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
 from ardetype_utilities import read_json_dict, find_in_nested_dict
 
 sip_wild = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 date = date.today().strftime("%Y-%m-%d")
+specific_tool_map = read_json_dict("/mnt/home/groups/nmrl/bact_analysis/Ardetype/config_files/json/specific_tool_map.json")
 
 rule all:
     input:
@@ -16,14 +17,18 @@ rule all:
         config['output_directory']+f'{date}_ardetype_report.csv'
     run:
         aggr_dict = {}
+        
+        #Combining agnostic typing results
         for path in config['shape_target_files']: 
             df = pd.read_csv(path)#read each file
             if df['sample_id'][0] in aggr_dict: #if sample included before
                 aggr_dict[df['sample_id'][0]] = aggr_dict[df['sample_id'][0]].join(df.loc[ : ,df.columns != "sample_id"]) #add all columns except for sample_id
             else:
                 aggr_dict[df['sample_id'][0]] = df #add all columns
+
+        #Generating combined report
         report = pd.concat(aggr_dict.values()) #combile all dataframes as rows into single report (one row for each sample_id)
-        report = report[[ #reorder columns
+        general_columns = [ 
             "sample_id",
             "total_reads_bf",
             "total_reads_af",
@@ -41,16 +46,20 @@ rule all:
             "gc_contigs",
             "MLST7_ST",
             "species",
-            "species_contig_%"
-        ]]
+            "species_contig_%",
+            "taxid"
+        ]
+        optional_columns = sorted(list(set(report.columns) - set(general_columns)))
+        order_list = general_columns + optional_columns
+        report = report[order_list]#reorder columns
         report.to_csv(output[0], header=True, index=False) #save as csv
 
 
 rule extract_fastp:
     input:
-        config['work_dir']+'{sample_id_pattern}.fastp.json'
+        config['output_directory']+'{sample_id_pattern}.fastp.json'
     output:
-        temp(config['output_directory']+'{sample_id_pattern}_fastp_std.csv')
+        config['output_directory']+'{sample_id_pattern}_fastp_std.csv'
     run:
         report = read_json_dict(input[0])
         data_dict = {
@@ -72,22 +81,22 @@ rule extract_fastp:
 
 rule extract_kraken2:
     input:
-        config['work_dir']+'{sample_id_pattern}_kraken2_contigs_report.txt'
+        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt'
     output:
-        temp(config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report_std.csv')
+        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report_std.csv'
     run:
         df = pd.read_table(input[0], header=None)[[0,3,5]]
         df.columns = ['species_contig_%','taxid','species']
-        df = df[df['taxid'] == "S"].reset_index(drop=True).sort_values(by=['species_contig_%'], ascending=False).head(2)
-        df['sample_id'] = [wildcards.sample_id_pattern]
+        df = df[df['taxid'] == "S"].reset_index(drop=True).sort_values(by=['species_contig_%'], ascending=False).head(1)
         df['species'] = [df['species'][0].strip()]
+        df['sample_id'] = [wildcards.sample_id_pattern]
         df.to_csv(output[0],header=True, index=False)
 
 rule extract_mlst:
     input:
-        config['work_dir']+'{sample_id_pattern}_mlst_output.csv'
+        config['output_directory']+'{sample_id_pattern}_mlst_output.csv'
     output:
-        temp(config['output_directory']+'{sample_id_pattern}_mlst_output_std.csv')
+        config['output_directory']+'{sample_id_pattern}_mlst_output_std.csv'
     run:
         try:
             df = pd.read_csv(input[0], header=None)[[0,2]]
@@ -102,7 +111,7 @@ rule extract_quast:
     input:
         config['output_directory']+'{sample_id_pattern}_quast/transposed_report.tsv'
     output:
-        temp(config['output_directory']+'{sample_id_pattern}_quast_std.csv')
+        config['output_directory']+'{sample_id_pattern}_quast_std.csv'
     run:
         report = pd.read_csv(input[0], sep="\t")
         data_dict = {
@@ -116,173 +125,232 @@ rule extract_quast:
         df.to_csv(output[0], header=True, index=False)
 
 
-# rule extract_agrvate_saureus:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_agrvate_summary.tab'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_agrvate_summary_std.csv'
-#     run:
-#         report = pd.read_csv(input[0], sep="\t")
+rule extract_Meningotype: #OK
+    input: 
+        config['output_directory']+'{sample_id_pattern}_meningotype.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_meningotype_std.csv'
+    run:
+        key = "_meningotype.tsv"
+        report = pd.read_csv(input[0], sep="\t")
+        report = report[["SEROGROUP"]]
+        report.columns = ["type"]
+        report["sample_id"] = wildcards.sample_id_pattern
+        report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+        report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+        report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+        report.to_csv(output[0], header=True, index=False)
         
-
-# rule extract_emmtyper_spyogenes:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_emmtyper.tsv'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_emmtyper_std.csv'
-#     run:
-#         report = pd.read_csv(input[0], sep="\t")
-
-
-# rule extract_hicap_hinfluenzae:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_hicap.tsv'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_hicap_std.csv'
-#     run:
-#         try:
-#             report = pd.read_csv(input[0], sep="\t")
-#         except EmptyDataError as e:
-#             pass
-
-
-# rule extract_kleborate_kpneumoniae_abaumanii:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_kleborate.tsv'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_kleborate_std.csv'
-#     run:
-#         try:
-#             report = pd.read_csv(input[0], sep="\t")
-#             report.to_csv(output[0], header=True, index=False)
-#         except EmptyDataError as e:
-#             os.system(f"touch {output[0]}")
-
-# rule extract_legsta_lpneumophila:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_legsta.csv'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_legsta_std.csv'
-#     run:
-#         try:
-#             report = pd.read_csv(input[0])
-#         except EmptyDataError as e:
-#             pass
-
-# rule extract_lissero_lmonocytogenes:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_lissero.tsv'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_lissero_std.csv'
-#     run:
-#         try:
-#             report = pd.read_csv(input[0], sep="\t")
-#         except EmptyDataError as e:
-#             pass
-
-# rule extract_lpgenomics_lpneumophila:
-#     input:
-#         out_path = config['output_directory']+"{sample_id_pattern}-predictResults.txt"
-#     output:
-#         config['output_directory']+'{sample_id_pattern}-predictResults_std.csv'
-#     run:
-
-
-# rule extract_meningotype_nmeningitidis:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_meningtotype.tsv'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_meningtotype_std.csv'
-#     run:
-#         try:
-#             report = pd.read_csv(input[0], sep="\t")
-#         except EmptyDataError as e:
-#             pass
-
-# rule extract_bigsdb_lmonocytogenes:
-#     input:
-#         cgmlst = config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json',
-#         serogrp = config['output_directory']+'{sample_id_pattern}_pasteur_pcr_serogroup.json'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_pasteur_pcr_serogroup_std.csv'
-#     run:
-
-
-# rule extract_publmst_ngonorrhoe:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_ngmast.json'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_ngmast_std.csv'
-#     run:
-
-
-# rule extract_publmst_abaumanii:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_ab_pumblst.json'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_ab_pumblst_std.csv'
-#     run:
-
-
-# rule extract_sccmec_saureus:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_sccmec.tsv'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_sccmec_std.csv'
-#     run:
-#         try:
-#             report = pd.read_csv(input[0], sep="\t")
-#         except EmptyDataError as e:
-#             pass
-
-# rule extract_seqsero_senterica:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_SeqSero.tsv'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_SeqSero_std.csv'
-#     run:
-#         try:
-#             report = pd.read_csv(input[0], sep="\t")
-#         except EmptyDataError as e:
-#             pass
-
-# rule extract_sistr_senterica:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_sistr.csv'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_sistr_std.csv'
-#     run:
-#         try:
-#             report = pd.read_csv(input[0], sep="\t")
-#         except EmptyDataError as e:
-#             pass
-
-# rule extract_spatyper_saureus:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_spatyper.txt'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_spatyper_std.csv'
-#     run:
-
-
-# rule extract_ectyper_ecoli:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_ectyper.tsv'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_ectyper_std.csv'
-#     run:
-#         try:
-#             report = pd.read_csv(input[0], sep="\t")
-#         except EmptyDataError as e:
-#             pass
-
-# rule extract_seroba_spneumoniae:
-#     input:
-#         out_path = config['output_directory']+'{sample_id_pattern}_seroba.tsv'
-#     output:
-#         config['output_directory']+'{sample_id_pattern}_seroba_std.csv'
-#     run:
-#         try:
-#             report = pd.read_csv(input[0], sep="\t")
-#         except EmptyDataError as e:
-#             pass
+rule extract_legsta: #OK
+    input: 
+        config['output_directory']+'{sample_id_pattern}_legsta.csv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_legsta_std.csv'
+    run:
+        key = "_legsta.csv"
+        report = pd.read_csv(input[0])
+        report = report[["SBT"]]
+        report.columns = ["type"]
+        report["sample_id"] = wildcards.sample_id_pattern
+        report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+        report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+        report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+        report.to_csv(output[0], header=True, index=False)
+        
+rule extract_legionella_pneumophila_genomics: #OK
+    input: 
+        config['output_directory']+"{sample_id_pattern}-predictResults.txt"
+    output:
+        config['output_directory']+"{sample_id_pattern}-predictResults_std.csv"
+    run:
+        key = "-predictResults.txt"
+        report = pd.read_csv(input[0])
+        report = report[["x"]]
+        report.columns = ["type"]
+        report["sample_id"] = wildcards.sample_id_pattern
+        report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+        report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+        report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+        report.to_csv(output[0], header=True, index=False)
+        
+rule extract_hicap: #OK
+    input: 
+        config['output_directory']+'{sample_id_pattern}_hicap.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_hicap_std.csv'
+    run:
+        key = "_hicap.tsv"
+        report = pd.read_csv(input[0], sep="\t")
+        report = report[["predicted_serotype"]]
+        report.columns = ["type"]
+        report["sample_id"] = wildcards.sample_id_pattern
+        report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+        report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+        report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+        report.to_csv(output[0], header=True, index=False)
+        
+rule extract_kleborate: #OK
+    input: 
+        config['output_directory']+'{sample_id_pattern}_kleborate.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_kleborate_std.csv'
+    run:
+        key = "_kleborate.tsv"
+        report = pd.read_csv(input[0], sep="\t")
+        report = report[["K_locus", "O_locus"]]
+        report["type"] = report[['K_locus', 'K_locus']].agg('; '.join, axis=1) #textjoin in pandas accross columns
+        report = report[["type"]]
+        report["sample_id"] = wildcards.sample_id_pattern
+        report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+        report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+        report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+        report.to_csv(output[0], header=True, index=False)
+        
+rule extract_AgrVATE: #OK
+    input: 
+        config['output_directory']+'{sample_id_pattern}_agrvate_summary.tab'
+    output:
+        config['output_directory']+'{sample_id_pattern}_agrvate_summary_std.csv'
+    run:
+        key = "_agrvate_summary.tab"
+        report = pd.read_csv(input[0], sep="\t")
+        report = report[["agr_group"]]
+        report.columns = ["type"]
+        report["sample_id"] = wildcards.sample_id_pattern
+        report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+        report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+        report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+        report.to_csv(output[0], header=True, index=False)
+        
+rule extract_spaTyper: #OK
+    input: 
+        config['output_directory']+'{sample_id_pattern}_spatyper.txt'
+    output:
+        config['output_directory']+'{sample_id_pattern}_spatyper_std.csv'
+    run:
+        key = "_spatyper.txt"
+        report = pd.read_csv(input[0], sep="\t")
+        report = report[["Type"]]
+        report.columns = ["type"]
+        report["sample_id"] = wildcards.sample_id_pattern
+        report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+        report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+        report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+        report.to_csv(output[0], header=True, index=False)
+        
+rule extract_sccmec: #OK
+    input: 
+        config['output_directory']+'{sample_id_pattern}_sccmec.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_sccmec_std.csv'
+    run:
+        key = "_sccmec.tsv"
+        df = pd.read_csv(input[0], sep="\t", header=None)
+        df = df.T
+        df.columns = ["type", "detected"]
+        df = df[df["detected"] == "True"]
+        report = pd.DataFrame.from_dict({"type":[df["type"].str.cat(sep="; ")]})
+        report["sample_id"] = wildcards.sample_id_pattern
+        report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+        report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+        report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+        report.to_csv(output[0], header=True, index=False)
+        
+rule extract_emmtyper:
+    input: 
+        config['output_directory']+'{sample_id_pattern}_emmtyper.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_emmtyper_std.csv'
+    run:
+        key = "_emmtyper.tsv"
+        report = pd.read_csv(input[0], sep="\t", header=None)
+        report = report.iloc[:, 2]
+        report.columns = ["type"]
+        report["sample_id"] = wildcards.sample_id_pattern
+        report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+        report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+        report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+        report.to_csv(output[0], header=True, index=False)
+        
+rule extract_LisSero: #OK
+    input: 
+        config['output_directory']+'{sample_id_pattern}_lissero.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_lissero_std.csv'
+    run:
+        key = "_lissero.tsv"
+        report = pd.read_csv(input[0], sep="\t")
+        report = report[["SEROTYPE"]]
+        report.columns = ["type"]
+        report["sample_id"] = wildcards.sample_id_pattern
+        report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+        report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+        report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+        report.to_csv(output[0], header=True, index=False)
+        
+rule extract_SISTR: #OK
+    input: 
+        config['output_directory']+'{sample_id_pattern}_sistr.csv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_sistr_std.csv'
+    run:
+        key = "_sistr.csv"
+        report = pd.read_csv(input[0], sep="\t")
+        report = report[["serovar", "serogroup"]]
+        report["type"] = report[["serovar", "serogroup"]].agg('; '.join, axis=1) #textjoin in pandas accross columns
+        report = report[["type"]]
+        report["sample_id"] = wildcards.sample_id_pattern
+        report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+        report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+        report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+        report.to_csv(output[0], header=True, index=False)
+        
+rule extract_SeqSero2: #OK
+    input: 
+        config['output_directory']+'{sample_id_pattern}_SeqSero.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_SeqSero_std.csv'
+    run:
+        key = "_SeqSero.tsv"
+        report = pd.read_csv(input[0], sep="\t")
+        report = report[["Predicted serotype"]]
+        report.columns = ["type"]
+        report["sample_id"] = wildcards.sample_id_pattern
+        report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+        report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+        report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+        report.to_csv(output[0], header=True, index=False)
+        
+rule extract_ECTyper: #OK
+    input: 
+        config['output_directory']+'{sample_id_pattern}_ectyper.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_ectyper_std.csv'
+    run:
+        key = "_ectyper.tsv"
+        report = pd.read_csv(input[0], sep="\t")
+        report = report[["Serotype"]]
+        report.columns = ["type"]
+        report["sample_id"] = wildcards.sample_id_pattern
+        report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+        report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+        report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+        report.to_csv(output[0], header=True, index=False)
+        
+rule extract_SeroBA:
+    input: 
+        config['output_directory']+'{sample_id_pattern}_seroba.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_seroba_std.csv'
+    run:
+        key = "_seroba.tsv"
+        report = pd.read_csv(input[0], sep="\t", header=None)
+        report.columns = ["id","type","info"]
+        report = report[["type", "info"]]
+        report["type"] = report[["type", "info"]].agg('; '.join, axis=1) #textjoin in pandas accross columns
+        report = report[["type"]]
+        report["sample_id"] = wildcards.sample_id_pattern
+        report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+        report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+        report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+        report.to_csv(output[0], header=True, index=False)

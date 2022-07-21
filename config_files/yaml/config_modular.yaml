@@ -97,6 +97,7 @@ multiqc_sif:
 #########################
 
 ###Filled by the wrapper
+core_input_files:
 core_target_files:
 output_directory:
 
@@ -126,6 +127,7 @@ core_tool_configs:
 #########################
 
 ###Filled by the wrapper
+shell_input_files:
 shell_target_files:
 shell_tool_configs:
 #Configuration settings for each tool used by bact_shell snakefile
@@ -142,6 +144,7 @@ shell_tool_configs:
 #########################
 
 ###Filled by the wrapper
+tip_input_files:
 tip_target_files:
 tip_tool_configs:
 #Configuration settings for each tool used by bact_tip snakefile
@@ -168,5 +171,6 @@ tip_tool_configs:
 #########################
 # bact_shape configuration
 #########################
+shape_input_files:
 shape_target_files:
 shape_tool_configs:

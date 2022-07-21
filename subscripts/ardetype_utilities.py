@@ -319,7 +319,7 @@ def check_file_multiplicity(file_path_list:list):
             else:
                 return current_multiplicity
     return current_multiplicity
-
+    
 
 def parse_arguments(arg_dict:dict):
     """
@@ -367,5 +367,3 @@ def parse_arguments(arg_dict:dict):
         sys.exit(1)
     args = parser.parse_args()
     return args
-
-

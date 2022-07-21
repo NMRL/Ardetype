@@ -49,15 +49,23 @@ class Module:
         self.cleanup_dict = {} #to map origin paths of input files to path in working directory; filled by move_to_wd; used by clear_working_directory
 
 
-    def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified']):
+    def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified'], mixed:bool=False):
         '''Fills self.input_dict using self.input_path and self.module_name by
         mapping each file format to the list of files of that format, found in the self.input_path, 
         excluding files that contain substrings in their names (supply None to avoid excluding files).
         If some files of required format are missing, raises an exception, indicating missing file format.'''
-        for format in self.patterns['inputs']: 
-            self.input_dict[format] = parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
-            if not self.input_dict[format]: raise Exception(f'Missing {format} files in input directory')
-   
+        if not mixed:
+            for format in self.patterns['inputs']: 
+                self.input_dict[format] = parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
+                if not self.input_dict[format]: raise Exception(f'Missing {format} files in input directory')
+        else:
+            for format in self.patterns['inputs']['required']: 
+                self.input_dict[format] = parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
+                if not self.input_dict[format]: raise Exception(f'Missing {format} files in input directory')
+            for format in self.patterns['inputs']['optional']:
+                parsed_files = parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
+                if parsed_files:
+                    self.input_dict[format] = parsed_files
 
     def fill_sample_sheet(self):
         '''
@@ -77,7 +85,7 @@ class Module:
         if taxonomy_based:#specific targets for each species
             self.target_list = [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
         elif mixed:#both species-specific and non-specific targets
-            self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets['general']]
+            self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'].to_list()+self.removed_samples['sample_id'].to_list() for tmpl in self.targets['general']]
             self.target_list += [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
         else:#only non-specific targets
             self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
@@ -114,12 +122,15 @@ class Module:
         write_yaml(self.config_file, f'{self.output_path}config.yaml')
 
 
-    def check_module_output(self):
+    def check_module_output(self, mixed:bool=False):
         '''Checks if output files are generated according to self.module_name and adds check_note_{self.module_name} column 
         to the self.sample_sheet dataframe, where boolean value is stored for each expected file.'''
         ###Development - Automatically scale dirs_up depending on input structure - currently two dirs up max
         check_dict = check_file_existance(file_list=self.target_list)
-        id_check_dict = {id:"" for id in self.sample_sheet['sample_id']}
+        if mixed:
+            id_check_dict = {id:"" for id in self.sample_sheet['sample_id'].to_list()+self.removed_samples['sample_id'].to_list()}
+        else:
+            id_check_dict = {id:"" for id in self.sample_sheet['sample_id']}
         for file in check_dict:
             two_dirs_up = os.path.basename(os.path.dirname(os.path.dirname(file)))+"/"+os.path.basename(os.path.dirname(file))+"/"+os.path.basename(file) #required for outputs where directory patters are defined in addition to file extensions
             if isinstance(self.targets, list): #if only un-specific targets are supplied
@@ -130,7 +141,7 @@ class Module:
         self.sample_sheet = map_new_column(self.sample_sheet, id_check_dict, 'sample_id', f"check_note_{self.module_name}")
 
 
-    def supply_sample_sheet(self): #getter, may not be required now as all variables are public, but makes it easier to encapsulate later, if needed
+    def supply_sample_sheet(self, removed:bool=False): #getter, may not be required now as all variables are public, but makes it easier to encapsulate later, if needed
         '''Returns self.sample_sheet dataframe object.'''
         return self.sample_sheet
 
@@ -182,7 +193,7 @@ class Module:
         '''Generates a csv file in self.output_path folder, containing information about samples that were
         filtered as invalid by the module (see remove_invalid_samples). Does nothing if self.removed_samples is empty.'''
         if not self.removed_samples.empty: self.removed_samples.to_csv(f"{self.output_path}removed_samples_{self.module_name}.csv", header=True, index=False)
-            
+    
 
     def submit_module_job(self, jobscript_path):
         """
@@ -449,30 +460,24 @@ def run_all(args, num_jobs):
     # Connecting tip & core to shape
     shape.receive_sample_sheet(tip.supply_sample_sheet())
     samples_cleared = shape.remove_invalid_samples(connect_from_module_name='core')
-    shape.save_removed()
+    shape.removed_samples = tip.removed_samples
     if samples_cleared == 1: 
         if tip.pack_output: tip.fold_output()
         raise Exception('Missing files requested by bact_shape.')
 
     # Running shape
-    shape.fill_input_dict(substring_list=None)
-    shape.write_sample_sheet()
-    shape.fill_target_list()
+    shape.fill_input_dict(substring_list=None, mixed=True)
+    shape.fill_target_list(mixed=True)
     shape.add_module_targets()
     shape.write_module_config()
-    shape.files_to_wd()
     try:
         shape.run_module(job_count=num_jobs)
     except Exception as e:
-        shape.clear_working_directory()
         raise e
-    shape.check_module_output()
+    shape.check_module_output(mixed=True)
     shape.write_sample_sheet()
-    shape.clear_working_directory()
-    if shape.pack_output: shape.fold_output()
+    if shape.pack_output: tip.fold_output()
     shape.set_permissions()
-
-
 
 
 def run_core(args, num_jobs):

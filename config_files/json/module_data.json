@@ -53,7 +53,7 @@
     "tip" : {
         "targets":{
             "Neisseria meningitidis":[
-                "_meningtotype.tsv",
+                "_meningotype.tsv",
                 "_pasteur_cgmlst.json"
             ],
             "Legionella pneumophila":[
@@ -61,46 +61,46 @@
                 "-predictResults.txt"
             ],
             "Haemophilus influenzae":[
-                "_hicap.tsv"
+                "_hi_hicap.tsv"
             ],
             "Klebsiella pneumoniae":[
                 "_kleborate.tsv",
-                "_pasteur_cgmlst.json"
+                "_kp_pasteur_cgmlst.json"
             ],
             "Staphylococcus aureus":[
                 "_agrvate_summary.tab",
                 "_spatyper.txt",
                 "_sccmec.tsv",
-                "_pasteur_cgmlst.json"
+                "_sa_pasteur_cgmlst.json"
             ],
             "Streptococcus pyogenes":[
-                "_emmtyper.tsv"
+                "_strp_emmtyper.tsv"
             ],
             "Neisseria gonorrhoeae":[
                 "_ngmast.json",
-                "_pasteur_cgmlst.json"
+                "_ng_pasteur_cgmlst.json"
             ],
             "Listeria monocytogenes":[
                 "_lissero.tsv",
-                "_pasteur_cgmlst.json"
+                "_lm_pasteur_cgmlst.json"
             ],
             "Salmonella enterica":[
                 "_sistr.csv",
                 "_SeqSero.tsv",
-                "_pasteur_cgmlst.json"
+                "_se_pasteur_cgmlst.json"
             ],
             "Acinetobacter baumannii" :[
                 "_kleborate.tsv",
                 "_ab_pumblst.json",
-                "_pasteur_cgmlst.json"
+                "_ab_pasteur_cgmlst.json"
             ],
             "Escherichia coli" :[
                 "_ectyper.tsv",
-                "_pasteur_cgmlst.json"
+                "_ec_pasteur_cgmlst.json"
             ],
             "Streptococcus pneumoniae" :[
                 "_seroba.tsv",
-                "_pasteur_cgmlst.json"
+                "_strp_pasteur_cgmlst.json"
             ]
         }
         ,
@@ -132,20 +132,91 @@
         }
     },
     "shape" : {
-        "targets":[
+        "targets":{
+            "general":[
                 "_fastp_std.csv",
                 "_kraken2_contigs_report_std.csv",
                 "_mlst_output_std.csv",
                 "_quast_std.csv"
-        ],
-        "patterns":{
-            "inputs":[
-                "_contigs.fasta",
-                "_kraken2_contigs_report.txt",
-                ".fastp.json",
-                "_mlst_output.csv"
+            ],
+            "Neisseria meningitidis":[
+                "_meningotype_std.csv"
 
             ],
+            "Legionella pneumophila":[
+                "_legsta_std.csv",
+                "-predictResults_std.csv"
+            ],
+            "Haemophilus influenzae":[
+                "_hicap_std.csv"
+            ],
+            "Klebsiella pneumoniae":[
+                "_kleborate_std.csv"
+
+            ],
+            "Staphylococcus aureus":[
+                "_agrvate_summary_std.csv",
+                "_spatyper_std.csv",
+                "_sccmec_std.csv"
+
+            ],
+            "Streptococcus pyogenes":[
+                "_emmtyper_std.csv"
+            ],
+            "Neisseria gonorrhoeae":[
+                "_ngmast_std.csv"
+
+            ],
+            "Listeria monocytogenes":[
+                "_lissero_std.csv"
+
+            ],
+            "Salmonella enterica":[
+                "_sistr_std.csv",
+                "_SeqSero_std.csv"
+
+            ],
+            "Acinetobacter baumannii" :[
+                "_kleborate_std.csv",
+                "_ab_pumblst_std.csv"
+
+            ],
+            "Escherichia coli" :[
+                "_ectyper_std.csv"
+
+            ],
+            "Streptococcus pneumoniae" :[
+                "_seroba_std.csv"
+
+            ]
+        },
+        "patterns":{
+            "inputs":{
+                "required":[
+                    "_contigs.fasta",
+                    "_kraken2_contigs_report.txt",
+                    ".fastp.json",
+                    "_mlst_output.csv"
+                ],
+                "optional":[
+                    "_meningotype.tsv",
+                    "_legsta.csv",
+                    "-predictResults.txt",
+                    "_hicap.tsv",
+                    "_kleborate.tsv",
+                    "_agrvate_summary.tab",
+                    "_spatyper.txt",
+                    "_sccmec.tsv",
+                    "_emmtyper.tsv",
+                    "_ngmast.json",
+                    "_lissero.tsv",
+                    "_sistr.csv",
+                    "_SeqSero.tsv",
+                    "_ab_pumblst.json",
+                    "_ectyper.tsv",
+                    "_seroba.tsv"
+                ]
+            },
             "sample_sheet":"(_R[1,2]_001.fastq.gz|_contigs.fasta)"
         },
         "job_name":"bact_shape",
