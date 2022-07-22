@@ -295,7 +295,7 @@ rule extract_SISTR: #OK
         config['output_directory']+'{sample_id_pattern}_sistr_std.csv'
     run:
         key = "_sistr.csv"
-        report = pd.read_csv(input[0], sep="\t")
+        report = pd.read_csv(input[0])
         report = report[["serovar", "serogroup"]]
         report["type"] = report[["serovar", "serogroup"]].agg('; '.join, axis=1) #textjoin in pandas accross columns
         report = report[["type"]]
@@ -347,7 +347,7 @@ rule extract_SeroBA:
         report = pd.read_csv(input[0], sep="\t", header=None)
         report.columns = ["id","type","info"]
         report = report[["type", "info"]]
-        report["type"] = report[["type", "info"]].agg('; '.join, axis=1) #textjoin in pandas accross columns
+        if isinstance(report['info'][0], str): report["type"] = report[["type", "info"]].agg('; '.join, axis=1) #textjoin in pandas accross columns
         report = report[["type"]]
         report["sample_id"] = wildcards.sample_id_pattern
         report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
