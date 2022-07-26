@@ -177,9 +177,7 @@
 
             ],
             "Acinetobacter baumannii" :[
-                "_kleborate_std.csv",
-                "_ab_pumblst_std.csv"
-
+                "_kleborate_std.csv"
             ],
             "Escherichia coli" :[
                 "_ectyper_std.csv"

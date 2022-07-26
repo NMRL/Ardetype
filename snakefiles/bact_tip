@@ -24,7 +24,7 @@ rule hicap_hinfluenzae:
     envmodules:
         'singularity'
     output:
-        config['output_directory']+'{sample_id_pattern}_hicap.tsv'
+        config['output_directory']+'{sample_id_pattern}_hi_hicap.tsv'
     shell: #creating empty file just in case to make snakemake not stop if typing has failed for tool-specific reasons
         """
         mkdir -p ~/hicap/
@@ -33,7 +33,7 @@ rule hicap_hinfluenzae:
         if [ -f ~/hicap/{wildcards.sample_id_pattern}.tsv ]; then
             mv ~/hicap/{wildcards.sample_id_pattern}.tsv {output}
         else
-            touch {config[output_directory]}{wildcards.sample_id_pattern}_hicap.tsv
+            touch {config[output_directory]}{wildcards.sample_id_pattern}_hi_hicap.tsv
         fi
         rm -r ~/hicap/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/hicap/

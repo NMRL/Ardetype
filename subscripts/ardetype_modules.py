@@ -236,7 +236,7 @@ class Module:
         '''
         #job_submission command to be used by snakmake to automatically submit jobs to HPC; stuff in curly brackets are snakemake arguments, not python variables
         if os.path.basename(self.cluster_config_path) == 'cluster.yaml':
-            job_submission_command = '"qsub -N {cluster.jobname} -l nodes={cluster.nodes}:ppn={cluster.ppn},pmem={cluster.pmem},walltime={cluster.walltime} -q {cluster.queue} -j {cluster.jobout} -o {cluster.outdir} -V"'
+            job_submission_command = '"qsub -N {cluster.jobname} -l procs={cluster.procs},pmem={cluster.pmem},walltime={cluster.walltime} -q {cluster.queue} -j {cluster.jobout} -o {cluster.outdir} -V"'
         elif os.path.basename(self.cluster_config_path) == 'cluster_slurm.yaml':
             job_submission_command = '"sbatch --job-name {cluster.jobname} -N {cluster.nodes} --ntasks={cluster.ppn} --mem-per-cpu={cluster.mempc} -t {cluster.time} -o {cluster.outdir}{cluster.output} -e {cluster.outdir}{cluster.error} --export=ALL"'
         #shell command run by the wrapper (includes qsub command as substring);
@@ -437,25 +437,41 @@ def run_all(args, num_jobs):
     samples_cleared = tip.remove_invalid_samples(connect_from_module_name='core')
     tip.save_removed()
     if samples_cleared == 1: 
-        if shell.pack_output: shell.fold_output()
-        raise Exception('Missing files requested by bact_tip.')
+        shape.receive_sample_sheet(tip.supply_sample_sheet())
+        samples_cleared = shape.remove_invalid_samples(connect_from_module_name='core')
+        shape.removed_samples = tip.removed_samples
 
-    # Running tip
-    tip.fill_input_dict(substring_list=None)
-    tip.add_fasta_samples()
-    tip.write_sample_sheet()
-    tip.fill_target_list(taxonomy_based=True)
-    tip.add_module_targets()
-    tip.write_module_config()
-    tip.files_to_wd()
-    try:
-        tip.run_module(job_count=num_jobs)
-    except Exception as e:
+        # Running shape
+        shape.fill_input_dict(substring_list=None, mixed=True)
+        shape.fill_target_list(mixed=True)
+        shape.add_module_targets()
+        shape.write_module_config()
+        try:
+            shape.run_module(job_count=num_jobs)
+        except Exception as e:
+            raise e
+        shape.check_module_output(mixed=True)
+        shape.write_sample_sheet()
+        if shape.pack_output: tip.fold_output()
+        shape.set_permissions()
+        sys.exit("bact_shape finished")
+    else:
+        # Running tip
+        tip.fill_input_dict(substring_list=None)
+        tip.add_fasta_samples()
+        tip.write_sample_sheet()
+        tip.fill_target_list(taxonomy_based=True)
+        tip.add_module_targets()
+        tip.write_module_config()
+        tip.files_to_wd()
+        try:
+            tip.run_module(job_count=num_jobs)
+        except Exception as e:
+            tip.clear_working_directory()
+            raise e
+        tip.check_module_output()
+        tip.write_sample_sheet()
         tip.clear_working_directory()
-        raise e
-    tip.check_module_output()
-    tip.write_sample_sheet()
-    tip.clear_working_directory()
 
     # Connecting tip & core to shape
     shape.receive_sample_sheet(tip.supply_sample_sheet())
