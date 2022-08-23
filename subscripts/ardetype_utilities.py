@@ -1,5 +1,45 @@
-import os, sys, yaml, pandas as pd, re, argparse, json, base64, requests, numpy as np
-from Bio import SeqIO
+import os, sys, yaml, pandas as pd, re, argparse, json, base64, requests, numpy as np, urllib
+from Bio import SeqIO, Entrez
+
+
+class Query_ncbi:
+    '''Class is set to contain methods to send requests to ncbi nucleotied database via biopython Entrez API.'''
+    email = "jevgenijs.bodrenko@aslimnica.lv"
+    database = 'nucleotide'
+
+    @classmethod
+    def check_output(cls, valid_accession):
+        '''Method checks if record exists in NCBI database given accession number.'''
+        Entrez.email = cls.email
+        try:
+            handle = Entrez.efetch(db=cls.database, id = valid_accession, rettype="acc") #Attempts to open connection to NCBI database
+            data = handle.read() #Reads up-to-date accession from NCBI
+            handle.close() #Closes connection
+            if valid_accession in data: #Checks if found accession contains query
+                return True
+            else: 
+                return False
+        except urllib.error.HTTPError as e: #If query is invalid, the exception is thrown
+            if str(e) == "HTTP Error 400: Bad Request":
+                return False
+
+    @classmethod
+    def get_fasta(cls, valid_accession):
+        '''Method attempts to get fasta sequence (header + sequence separately) given accession number.'''
+        Entrez.email = Query_ncbi.email
+        handle = Entrez.efetch(db=Query_ncbi.database, id = valid_accession, rettype="fasta") #Attempts to open connection to NCBI database
+        record = SeqIO.read(handle, "fasta") #Reads sequence in fasta format from ncbi
+        handle.close() #Closes connection
+        return record.seq, record.id
+
+    @classmethod
+    def get_taxonomy(cls, valid_accession):
+        '''Method attempts to get taxonomy information(list) from NCBI database given accession number.'''
+        Entrez.email = cls.email
+        handle = Entrez.efetch(db=cls.database, id = valid_accession, rettype="gb") #Attempts to open connection to NCBI database
+        tax_data = SeqIO.read(handle, format='genbank').annotations['taxonomy']
+        handle.close() #Closes connection
+        return tax_data
 
 
 def parse_folder(folder_pth_str, file_fmt_str, substr_lst=None, regstr_lst=None):

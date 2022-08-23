@@ -87,9 +87,13 @@ rule extract_kraken2:
     run:
         df = pd.read_table(input[0], header=None)[[0,3,5]]
         df.columns = ['species_contig_%','taxid','species']
-        df = df[df['taxid'] == "S"].reset_index(drop=True).sort_values(by=['species_contig_%'], ascending=False).head(1)
-        df['species'] = [df['species'][0].strip()]
-        df['sample_id'] = [wildcards.sample_id_pattern]
+        try:
+            df = df[df['taxid'] == "S"].reset_index(drop=True).sort_values(by=['species_contig_%'], ascending=False).head(1)
+            df['species'] = [df['species'].reset_index(drop=True)[0].strip()]
+            df['sample_id'] = [wildcards.sample_id_pattern]
+        except:
+            df = pd.DataFrame.from_dict({'species_contig_%':["None"],'taxid':["None"],'species':["None"]}) #When no typing is available at species level
+            df['sample_id'] = [wildcards.sample_id_pattern]
         df.to_csv(output[0],header=True, index=False)
 
 rule extract_mlst:
@@ -223,9 +227,9 @@ rule extract_hicap: #OK
             key = "_hicap.tsv"
             df = pd.DataFrame.from_dict({
                 'sample_id':[wildcards.sample_id_pattern], 
-                f"method|{specific_tool_map[key]['tool']}":[None],
-                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
-                f'type|{specific_tool_map[key]["tool"]}':[None]
+                f"method|{specific_tool_map[key]['tool']}":["hicap"],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[specific_tool_map[key]['reference']],
+                f'type|{specific_tool_map[key]["tool"]}':["NTHi"]
                 })
             df.to_csv(output[0],header=True, index=False)
         

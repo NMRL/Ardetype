@@ -15,9 +15,13 @@ rule all:
         for file in input.file_list: #looping over reports
             df = pd.read_table(file, header=None)[[0,3,5]] #read columns
             df.columns = ['read_%','taxid','name'] #rename 
+            # try:
             df = df[df['taxid'] == "S"].reset_index(drop=True) #extract only species rows
-            top_hit = df.loc[df["read_%"] ==df["read_%"].max()]['name'][0].strip() #extract top hit
+            top_hit = df.loc[df["read_%"] ==df["read_%"].max()]['name'].reset_index(drop=True)[0].strip() #extract top hit
             total_dict[os.path.basename(file).replace("_kraken2_contigs_report.txt","")] = top_hit #save info for current samples
+            # except: 
+            #     top_hit = 'None' #If no designation was made at the species level
+            #     total_dict[os.path.basename(file).replace("_kraken2_contigs_report.txt","")] = top_hit #save info for current samples
         with open(config['output_directory']+'core_aggregated_taxonomy.json', "w+") as json_handle: #write top hit for each sample to json file
             json.dump(total_dict, json_handle)
         print('bact_core finished')
