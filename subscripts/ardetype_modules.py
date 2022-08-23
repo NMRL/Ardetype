@@ -47,7 +47,7 @@ class Module:
         self.removed_samples = pd.DataFrame() #to store dataframe containing information about samples that were deemed invalid by the module
         self.pack_output = pack_output #switch to control putting output files into one folder named after sample_id; used by fold_output
         self.cleanup_dict = {} #to map origin paths of input files to path in working directory; filled by move_to_wd; used by clear_working_directory
-
+        self.status_script = f"{os.path.dirname(Path(__file__).absolute())}/pbs-status.py"
 
     def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified'], mixed:bool=False):
         '''Fills self.input_dict using self.input_path and self.module_name by
@@ -243,7 +243,7 @@ class Module:
         shell_command = f'''
         eval "$(conda shell.bash hook)";
         conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake;
-        snakemake --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.rule_graph} {self.dry_run} --cluster {job_submission_command} '''
+        snakemake --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.rule_graph} {self.dry_run} --cluster {job_submission_command} '''
         try:
             subprocess.check_call(shell_command, shell=True)
         except subprocess.CalledProcessError as msg:

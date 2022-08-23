@@ -14,7 +14,9 @@
                 "_bact_reads_unclassified_1.fastq.gz",
                 "_bact_reads_unclassified_2.fastq.gz",
                 "_kraken2_contigs_report.txt",
-                "_kraken2_host_filtering_report.txt"
+                "_kraken2_host_filtering_report.txt",
+                ".fastp.json",
+                ".fastp.html"
         ],
         "patterns":{
             "inputs":["001.fastq.gz"],

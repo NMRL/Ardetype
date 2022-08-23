@@ -2,7 +2,7 @@ localrules: all
 
 #define sample_id_pattern wildcard and accessing sample_sheet
 import pandas as pd, os
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup #to format hamronization html report
 sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
