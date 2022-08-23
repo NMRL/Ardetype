@@ -23,17 +23,17 @@ rule all:
         #Create single html report from all resistance inference tools
         os.system(f'''
         module load singularity
-        singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).html" -t interactive {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_amrpp)} {" ".join(input.hamr_rgi)}
+        singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).tsv" -t tsv {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_amrpp)} {" ".join(input.hamr_rgi)}
         echo bact_shell finished
         ''')
         #Change amrpp results to show them correctly in the report (unchanged version displays separate entry for amrpp for each sample (e.g. one row for resfinder & rgi and one row for amrpp for each sample))
-        with open(f"{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).html", "r+") as report:
-            contents = report.read()
-            html_string = str(BeautifulSoup(contents, features='lxml').prettify())
-            for i in sample_sheet['sample_id']:
-                html_string = html_string.replace('}, {"input_file_name": '+ f'"{i}.amr.alignment"'+', "amrplusplus: config 0": ',  ', "amrplusplus: config 0": ')
-            html_string = html_string.replace(': config 0',"")
-            report.write(html_string)
+        # with open(f"{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).html", "r+") as report:
+        #     contents = report.read()
+        #     html_string = str(BeautifulSoup(contents, features='lxml').prettify())
+        #     for i in sample_sheet['sample_id']:
+        #         html_string = html_string.replace('}, {"input_file_name": '+ f'"{i}.amr.alignment"'+', "amrplusplus: config 0": ',  ', "amrplusplus: config 0": ')
+        #     html_string = html_string.replace(': config 0',"")
+        #     report.write(html_string)
 
 
 #MOB-SUITE
