@@ -267,19 +267,34 @@ class Module:
 
 
     def clear_working_directory(self):
-        """Moves all files from working directory to source directory stored in self.cleanup_dict."""
+        '''Moves all files from working directory to source directory stored in self.cleanup_dict.'''
         for key in self.cleanup_dict: os.system(f"mv -n {key} {self.cleanup_dict[key]} 2> /dev/null")
             
 
-    def files_to_wd(self):
-        '''Moves all input files from input and output directories to working directory before running snakemake.'''
+    def files_to_wd(self, redirect_filter:dict=None):
+        '''
+        Moves all input files from input and output directories to working directory before running snakemake.
+        If redirect_filter dictionary is passed, checks each files against the keys of it. If a match is found,
+        sets source path in self.cleanup_dict to the value mapped to the corresponding key of redirect_filter (only one filter applied to each file).
+        '''
         os.makedirs(os.path.abspath(self.config_file['work_dir']), exist_ok=True)
         for format in self.input_dict:
             map_dict = {}
             for source_path in self.input_dict[format]:
-                map_dict[f"{self.config_file['work_dir']}/{os.path.basename(source_path)}"] = source_path
-                os.system(f"mv -n {source_path} {os.path.abspath(self.config_file['work_dir'])} 2> /dev/null")
-            self.cleanup_dict.update(map_dict)
+                full_path = f"{self.config_file['work_dir']}/{os.path.basename(source_path)}" #full input path to file
+                if redirect_filter is not None: #if redirection was requested
+                    for filter in redirect_filter: #starting to check filters against file names
+                        if filter in source_path: #if match
+                            map_dict[full_path] = redirect_filter[filter] #redirect
+                            os.system(f"mv -n {source_path} {os.path.abspath(self.config_file['work_dir'])} 2> /dev/null") #move to wd
+                            break #stop matching filters
+                    if full_path not in map_dict: #if all filters are parsed but no match (if match happend, the full path will be in map_dict)
+                        map_dict[full_path] = source_path #no redirection
+                        os.system(f"mv -n {source_path} {os.path.abspath(self.config_file['work_dir'])} 2> /dev/null")
+                else: #if no filtering required during function call
+                    map_dict[full_path] = source_path
+                    os.system(f"mv -n {source_path} {os.path.abspath(self.config_file['work_dir'])} 2> /dev/null")
+            self.cleanup_dict.update(map_dict) #add new entries to self.cleanup_dict - these are use to place files back to source/redirect location during cleanup
 
 
     def fold_output(self):
@@ -390,7 +405,7 @@ def run_all(args, num_jobs):
     core.add_module_targets()
     core.add_output_dir()
     core.write_module_config()
-    core.files_to_wd()
+    core.files_to_wd(redirect_filter={"001.fastq.gz":core.output_path})
     try:
         core.run_module(job_count=num_jobs)
     except Exception as e:
