@@ -17,7 +17,8 @@
             ["-f", "--force_all", "Flag to rerun all snakemake rules in all modules (--forceall option)."],
             ["-g", "--rule_graph", "Flag to visualize snakemage job graphs for all modules and save as pdf file (--rulegraph option)."],
             ["-p", "--pack_output", "Flag to combine output for each sample in separate folder, named after sample_id. \n If rerun is required after packing, run using --unpack_output flag."],
-            ["-u", "--unpack_output", "Flag to move packed output (see --pack_output flag) to specified output folder.\nSuggested use: if rerun is required after running with --pack_output flag, use this flag to move output files from subfolders (making them detectable by snakemake)."]
+            ["-u", "--unpack_output", "Flag to move packed output (see --pack_output flag) to specified output folder.\nSuggested use: if rerun is required after running with --pack_output flag, use this flag to move output files from subfolders (making them detectable by snakemake)."],
+            ["-l", "--clean_job_logs", "Flag to remove all ardetype log files that are older than 30 days."]
         ]
     }
 }

@@ -39,7 +39,7 @@ filter_host:
 classify_reads:
   jobname: "ardetype.classify_reads"
   procs: 16
-  pmem: "21333mb"
+  pmem: "25000mb"
   walltime: "01:00:00"
   account: "rakus"
   queue: "batch"
@@ -48,8 +48,8 @@ classify_reads:
 
 classify_contigs:
   jobname: "ardetype.classify_contigs"
-  procs: 24
-  pmem: "21333mb"
+  procs: 16
+  pmem: "25000mb"
   walltime: "01:30:00"
   account: "rakus"
   queue: "batch"

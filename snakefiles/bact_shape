@@ -3,12 +3,12 @@ localrules: all
 import sys, pandas as pd, os
 from datetime import date
 sys.path.insert(0, '/mnt/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
-from ardetype_utilities import read_json_dict, find_in_nested_dict
+from ardetype_utilities import Housekeeper
 
 sip_wild = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 date = date.today().strftime("%Y-%m-%d")
-specific_tool_map = read_json_dict("/mnt/home/groups/nmrl/bact_analysis/Ardetype/config_files/json/specific_tool_map.json")
+specific_tool_map = Housekeeper.read_json_dict("/mnt/home/groups/nmrl/bact_analysis/Ardetype/config_files/json/specific_tool_map.json")
 
 rule all:
     input:
@@ -61,7 +61,7 @@ rule extract_fastp:
     output:
         config['output_directory']+'{sample_id_pattern}_fastp_std.csv'
     run:
-        report = read_json_dict(input[0])
+        report = Housekeeper.read_json_dict(input[0])
         data_dict = {
             'total_reads_bf':['summary','before_filtering','total_reads'],
             'total_reads_af':['summary','after_filtering','total_reads'],
@@ -74,7 +74,7 @@ rule extract_fastp:
             'gc_bf':['summary','before_filtering','gc_content'],
             'gc_af':['summary','after_filtering','gc_content']
         }
-        for key in data_dict: data_dict[key] = [find_in_nested_dict(report, data_dict[key])]
+        for key in data_dict: data_dict[key] = [Housekeeper.find_in_nested_dict(report, data_dict[key])]
         data_dict['sample_id'] = wildcards.sample_id_pattern
         df = pd.DataFrame.from_dict(data_dict)
         df.to_csv(output[0], header=True, index=False)

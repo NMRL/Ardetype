@@ -1,5 +1,5 @@
-from ardetype_utilities import *
-import os, warnings, re, sys, subprocess, shutil, time
+from ardetype_utilities import Housekeeper as hk
+import os, warnings, re, sys, subprocess, shutil, time, pandas as pd
 from itertools import chain
 from getpass import getuser
 from pathlib import Path
@@ -11,7 +11,8 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 
 
 #Reading data used to build module objects
-module_data = read_json_dict(f'{os.path.dirname(Path(__file__).parents[0].absolute())}/config_files/json/module_data.json')
+ardetype_path = os.path.dirname(Path(__file__).parents[0].absolute())
+module_data = hk.read_json_dict(f'{ardetype_path}/config_files/json/module_data.json')
 
 
 ####################
@@ -33,7 +34,7 @@ class Module:
         self.aggr_taxonomy_path = f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
         self.config_file_path = f'{os.path.abspath(self.output_path)}/config.yaml' #where to look for operational copy of the configuration file; used by submit_module_job & run_module_cluster
         self.cluster_config_path = cluster_config_path #where to look for job resource definition file; used by run_module_cluster
-        self.config_file = read_yaml(module_config) if isinstance(module_config, str) else module_config #read module configuration from file if string is supplied (path expected); else - reads dictionary; used by add_module_targets, add_output_dir, write_module_config
+        self.config_file = hk.read_yaml(module_config) if isinstance(module_config, str) else module_config #read module configuration from file if string is supplied (path expected); else - reads dictionary; used by add_module_targets, add_output_dir, write_module_config
         self.input_dict = {} #to store input file paths for each file extension; used by fill_input_dict, fill_sample_sheet, add_fasta_samples
         self.patterns = patterns #to store file extension patterns of expected input files; used by fill_input_dict; fill_sample_sheet
         self.job_name = job_name #to store job name if self.run_mode is True; used by check_job_completion
@@ -56,14 +57,14 @@ class Module:
         If some files of required format are missing, raises an exception, indicating missing file format.'''
         if not mixed:
             for format in self.patterns['inputs']: 
-                self.input_dict[format] = parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
+                self.input_dict[format] = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
                 if not self.input_dict[format]: raise Exception(f'Missing {format} files in input directory')
         else:
             for format in self.patterns['inputs']['required']: 
-                self.input_dict[format] = parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
+                self.input_dict[format] = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
                 if not self.input_dict[format]: raise Exception(f'Missing {format} files in input directory')
             for format in self.patterns['inputs']['optional']:
-                parsed_files = parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
+                parsed_files = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
                 if parsed_files:
                     self.input_dict[format] = parsed_files
 
@@ -73,11 +74,11 @@ class Module:
         '''
         ###Development - create sample sheet from paired or unpaired files; update sample sheet with paired or unpaired files
         if len(self.input_dict) < 2: #only one file extension is used - assumed fastq.gz
-            self.sample_sheet = create_sample_sheet(self.input_dict["001.fastq.gz"],self.patterns['sample_sheet'],mode=0)
+            self.sample_sheet = hk.create_sample_sheet(self.input_dict["001.fastq.gz"],self.patterns['sample_sheet'],mode=0)
         else: #fastq & fasta assumed
-            self.sample_sheet = create_sample_sheet(self.input_dict["001.fastq.gz"],self.patterns['sample_sheet'],mode=0)
+            self.sample_sheet = hk.create_sample_sheet(self.input_dict["001.fastq.gz"],self.patterns['sample_sheet'],mode=0)
             fasta_dict = {re.sub("_contigs.fasta","",os.path.basename(contig)):contig for contig in self.input_dict["_contigs.fasta"]}
-            self.sample_sheet = map_new_column(self.sample_sheet,fasta_dict,'sample_id','fa')
+            self.sample_sheet = hk.map_new_column(self.sample_sheet,fasta_dict,'sample_id','fa')
 
 
     def fill_target_list(self, taxonomy_based:bool=False, mixed:bool=False):
@@ -103,30 +104,30 @@ class Module:
 
     def add_module_targets(self):
         '''Updates self.config_file, using self.module_name.'''
-        output_code = edit_nested_dict(config_dict=self.config_file, param=f"{self.module_name}_target_files", new_value=self.target_list)
-        validation_code = validate_yaml(self.config_file)
+        output_code = hk.edit_nested_dict(config_dict=self.config_file, param=f"{self.module_name}_target_files", new_value=self.target_list)
+        validation_code = hk.validate_yaml(self.config_file)
         if not output_code == 0: raise Exception(f'Config editing failed with error code {output_code}')
         elif not validation_code == 0: raise Exception(f'Config validation failed with error code {validation_code}')
 
 
     def add_output_dir(self):
         '''Updates self.config_file using self.output_path.'''
-        output_code = edit_nested_dict(config_dict=self.config_file, param="output_directory", new_value=self.output_path)
-        validation_code = validate_yaml(self.config_file)
+        output_code = hk.edit_nested_dict(config_dict=self.config_file, param="output_directory", new_value=self.output_path)
+        validation_code = hk.validate_yaml(self.config_file)
         if not output_code == 0: raise Exception(f'Config editing failed with error code {output_code}')
         elif not validation_code == 0: raise Exception(f'Config validation failed with error code {validation_code}')
 
 
     def write_module_config(self):
         '''Writes self.config_file to the self.output_path'''
-        write_yaml(self.config_file, f'{self.output_path}config.yaml')
+        hk.write_yaml(self.config_file, f'{self.output_path}config.yaml')
 
 
     def check_module_output(self, mixed:bool=False):
         '''Checks if output files are generated according to self.module_name and adds check_note_{self.module_name} column 
         to the self.sample_sheet dataframe, where boolean value is stored for each expected file.'''
         ###Development - Automatically scale dirs_up depending on input structure - currently two dirs up max
-        check_dict = check_file_existance(file_list=self.target_list)
+        check_dict = hk.check_file_existance(file_list=self.target_list)
         if mixed:
             id_check_dict = {id:"" for id in self.sample_sheet['sample_id'].to_list()+self.removed_samples['sample_id'].to_list()}
         else:
@@ -138,7 +139,7 @@ class Module:
             elif isinstance(self.targets, dict): #if taxonomy-based targets are supplied - all species-specific target lists are to be merged into one list using chain.from_iterables
                 id = os.path.basename(re.sub("("+"|".join(chain.from_iterable(self.targets.values()))+")","",two_dirs_up))
             id_check_dict[id] += f"|{file}:{check_dict[file]}"
-        self.sample_sheet = map_new_column(self.sample_sheet, id_check_dict, 'sample_id', f"check_note_{self.module_name}")
+        self.sample_sheet = hk.map_new_column(self.sample_sheet, id_check_dict, 'sample_id', f"check_note_{self.module_name}")
 
 
     def supply_sample_sheet(self, removed:bool=False): #getter, may not be required now as all variables are public, but makes it easier to encapsulate later, if needed
@@ -146,7 +147,7 @@ class Module:
         return self.sample_sheet
 
 
-    def receive_sample_sheet(self, sample_sheet): #setter, may not be required now as all variables are public, but makes it easier to encapsulate later, if needed
+    def receive_sample_sheet(self, sample_sheet:pd.DataFrame): #setter, may not be required now as all variables are public, but makes it easier to encapsulate later, if needed
         '''Inializes self.sample_sheet with external sample_sheet dataframe (used to connect modules).'''
         self.sample_sheet = sample_sheet
 
@@ -154,10 +155,10 @@ class Module:
     def add_fasta_samples(self):
         '''Adds fa column with _contigs.fasta files to the self.sample_sheet dataframe.'''
         fasta_dict = {re.sub("_contigs.fasta","",os.path.basename(contig)):contig for contig in self.input_dict["_contigs.fasta"]}
-        self.sample_sheet = map_new_column(self.sample_sheet,fasta_dict,'sample_id','fa')
+        self.sample_sheet = hk.map_new_column(self.sample_sheet,fasta_dict,'sample_id','fa')
 
 
-    def remove_invalid_samples(self, connect_from_module_name, taxonomy_only=False):
+    def remove_invalid_samples(self, connect_from_module_name:str, taxonomy_only:bool=False):
         '''
         Removes samples that lack files, required by the current module, given supplier module name.
         If all samples are removed, returns 1 (int).
@@ -262,8 +263,8 @@ class Module:
     def add_taxonomy_column(self):
         '''Reads taxonomy information from self.aggr_taxonomy_path into self.taxonomy_dict 
         and adds taxonomy information as new column to the self.sample_sheet.'''
-        self.taxonomy_dict = read_json_dict(self.aggr_taxonomy_path)
-        self.sample_sheet = map_new_column(self.sample_sheet,self.taxonomy_dict,'sample_id','taxonomy')
+        self.taxonomy_dict = hk.read_json_dict(self.aggr_taxonomy_path)
+        self.sample_sheet = hk.map_new_column(self.sample_sheet,self.taxonomy_dict,'sample_id','taxonomy')
 
 
     def clear_working_directory(self):
@@ -510,6 +511,13 @@ def run_all(args, num_jobs):
     if shape.pack_output: tip.fold_output()
     shape.set_permissions()
 
+    #Housekeeping the log files
+    hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
+    hk.name_ardetype_logs()
+    if args.clean_job_logs:
+        hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
+
+
 
 def run_core(args, num_jobs):
     '''Wrapper function to run only core module.'''
@@ -557,6 +565,12 @@ def run_core(args, num_jobs):
     if core.pack_output: core.fold_output()
     core.set_permissions()
 
+    #Housekeeping the log files
+    hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
+    hk.name_ardetype_logs()
+    if args.clean_job_logs:
+        hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
+
 
 def run_shell(args, num_jobs):
     '''Wrapper function to run only shell module.'''
@@ -598,3 +612,9 @@ def run_shell(args, num_jobs):
     shell.clear_working_directory()
     if shell.pack_output: shell.fold_output()
     shell.set_permissions()
+
+    #Housekeeping the log files
+    hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
+    hk.name_ardetype_logs()
+    if args.clean_job_logs:
+        hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
