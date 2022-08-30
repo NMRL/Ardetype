@@ -5,7 +5,7 @@ from pathlib import Path
 
 class Housekeeper:
     '''Class to contain methods that perform general housekeeping tasks for the pipeline, 
-    like reading from/writing to certain file types generating sample sheets etc.'''
+    like reading from/writing to certain file types, generating sample sheets etc.'''
 
     @staticmethod
     def parse_folder(folder_pth_str:str, file_fmt_str:str, substr_lst:list=None, regstr_lst:list=None):
