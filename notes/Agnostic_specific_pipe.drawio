@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2022-09-13T14:33:47.517Z" agent="5.0 (Windows)" etag="qko--27whIwaC_UtVwCT" version="20.2.0" type="github">
+<mxfile host="app.diagrams.net" modified="2022-09-13T14:44:23.115Z" agent="5.0 (Windows)" etag="i884lna9lmGAHlku9mB2" version="20.2.0" type="github">
   <diagram id="GYhOJoof6raGVxeCeefJ" name="Page-1">
-    <mxGraphModel dx="1564" dy="882" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1303" dy="735" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -59,7 +59,7 @@
         <mxCell id="6KGyysBaEeLL0fUPtLAd-16" value="&lt;div&gt;SeqSero/SISTR&lt;br&gt;(Salmonella)&lt;br&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="520" y="80" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="6KGyysBaEeLL0fUPtLAd-17" value="MTBSeq" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+        <mxCell id="6KGyysBaEeLL0fUPtLAd-17" value="&lt;div&gt;MTBSeq&lt;/div&gt;(M.tuberculosis)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
           <mxGeometry x="520" y="160" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-20" value="&lt;div&gt;AgrVATE/spaTyper/Staphopia-sccmec&lt;/div&gt;&lt;div&gt;(S.aureus)&lt;br&gt;&lt;span&gt;&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
@@ -144,10 +144,10 @@
           <mxGeometry x="570" y="590" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-66" value="&lt;div&gt;AQUAMIS&lt;br&gt;&lt;/div&gt;(2,3,3.1,4, 4.1)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-          <mxGeometry x="210" y="560" width="120" height="60" as="geometry" />
+          <mxGeometry x="200" y="560" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-68" value="hAMRonization&lt;br&gt;(5)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-          <mxGeometry x="330" y="560" width="120" height="60" as="geometry" />
+          <mxGeometry x="320" y="560" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-70" value="I" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
           <mxGeometry x="110" y="70" width="20" height="20" as="geometry" />
@@ -177,25 +177,25 @@
           <mxGeometry x="110" y="700" width="670" height="200" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-89" value="Spreadsheet with selected metrics from agnostic &amp;amp; specific reports for each sample id" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-          <mxGeometry x="190" y="750" width="110" height="100" as="geometry" />
+          <mxGeometry x="200" y="750" width="110" height="100" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-90" value="&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;AQUAMIS&lt;br&gt;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;1. N50 for assembly (medium contig length)&lt;br&gt;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;2. Num contigs&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;3. Average coverage depth&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;4. rMLST/PubMLST&lt;br&gt;&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-          <mxGeometry x="300" y="725" width="130" height="150" as="geometry" />
+          <mxGeometry x="310" y="725" width="130" height="150" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-91" value="&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;MOB-Suite&lt;br&gt;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;1. Resistance gene&lt;br&gt;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;2. Allele&lt;br&gt;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;3. Drug class&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;4. Resistance&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;5. Percent identity&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;6. Gene location (contig id)&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;7. Location (Chromosome/Plasmid)&lt;br&gt;&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="550" y="725" width="140" height="150" as="geometry" />
+          <mxGeometry x="560" y="725" width="140" height="150" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-92" value="&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;hAMRonization:&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 11px;&quot;&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;csv file, showing # of hits for each amr tool + allowing to compare individual hist between tools and viewing metadata (see link for details)&lt;br&gt;&lt;/font&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-          <mxGeometry x="430" y="725" width="120" height="150" as="geometry" />
+          <mxGeometry x="440" y="725" width="120" height="150" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-93" value="&lt;div&gt;V&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
           <mxGeometry x="110" y="700" width="20" height="20" as="geometry" />
         </mxCell>
         <mxCell id="6KGyysBaEeLL0fUPtLAd-95" value="&lt;div style=&quot;font-size: 11px;&quot;&gt;Species specific information&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-          <mxGeometry x="690" y="725" width="70" height="150" as="geometry" />
+          <mxGeometry x="700" y="725" width="70" height="150" as="geometry" />
         </mxCell>
         <mxCell id="f30ukFIYP7I3eDNHcA3t-1" value="MOB Suite&lt;br&gt;(5.1)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-          <mxGeometry x="270" y="620" width="120" height="60" as="geometry" />
+          <mxGeometry x="260" y="620" width="120" height="60" as="geometry" />
         </mxCell>
         <mxCell id="pYkemPIbqCXn32EcojJD-4" value="14" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
           <mxGeometry x="750" y="280" width="20" height="20" as="geometry" />
