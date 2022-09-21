@@ -22,7 +22,26 @@ module_data = hk.read_json_dict(f'{ardetype_path}/config_files/json/module_data.
 class Module:
     '''Class represents single module of the ardetype pipeline'''
 
-    def __init__(self, module_name: str, input_path: str, module_config, output_path: str, run_mode: bool, job_name: str, patterns: dict, targets: list, requests: dict, snakefile_path: str, cluster_config_path: str, dry_run: bool, force_all: bool, rule_graph: bool, pack_output:bool, unpack_output:bool) -> None:
+    def __init__(
+            self,
+            module_name: str, 
+            input_path: str, 
+            module_config, 
+            output_path: str, 
+            run_mode: bool, 
+            job_name: str, 
+            patterns: dict, 
+            targets: list, 
+            requests: dict, 
+            snakefile_path: str, 
+            cluster_config_path: str, 
+            dry_run: bool, 
+            force_all: bool, 
+            rule_graph: bool, 
+            pack_output:bool, 
+            unpack_output:bool
+        ) -> None:
+
         self.run_mode = run_mode #If true, snakemake will be run as single job, else - will run as job submitter on the login node
         self.job_id = None  #Will be added if self.run_mode is True and job was submitted to HPC; filled by submit_module_job
         self.taxonomy_dict = None   #Required if module creates different targets for different samples based on taxonomy information; filled by add_taxonomy_column
@@ -315,6 +334,23 @@ class Module:
     def set_permissions(self, permissions:str='775'):
         '''Given Linux permission string in numeric format, sets requested permissions (775 by default) recursively on the contents of self.output_path.'''
         os.system(f"chmod -R {permissions} {self.output_path} 2> /dev/null")
+
+
+###############################################
+# Implementing modules using OOP approach
+###############################################
+
+class Core(Module):
+    pass
+
+class Shell(Module):
+    pass
+
+class Tip(Module):
+    pass
+
+class Shape(Module):
+    pass
 
 
 ###############################################

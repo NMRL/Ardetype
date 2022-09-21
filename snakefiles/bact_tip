@@ -129,8 +129,8 @@ rule kleborate_kpneumoniae:
         else
             touch {output}
         fi
-        rm -r ~/kleborate/{wildcards.sample_id_pattern}*
-        rmdir --ignore-fail-on-non-empty ~/kleborate/
+        rm -r ~/kleborate/{wildcards.sample_id_pattern}* 2> /dev/null
+        rmdir --ignore-fail-on-non-empty ~/kleborate/ 2> /dev/null
         """
 
 
@@ -303,8 +303,10 @@ rule pasteur_pcr_serogroup_lmonocytogenes:
         api_output = Housekeeper.type_contigs_api(filtered_contigs, 'Listeria monocytogenes')
         if isinstance(api_output, dict):
             Housekeeper.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
         else:
             os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
 
 
 rule pasteur_cgmlst_lmonocytogenes:
@@ -318,23 +320,27 @@ rule pasteur_cgmlst_lmonocytogenes:
         api_output = Housekeeper.type_contigs_api(filtered_contigs, 'Listeria monocytogenes', scheme_num=1)
         if isinstance(api_output, dict):
             Housekeeper.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
         else:
-            os.system(f"touch {output[0]}")            
+            os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)         
 
 
 rule pasteur_cgmlst_nmeningitidis:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
-        config['output_directory']+'{sample_id_pattern}_nm_pasteur_cgmlst.json'
+        config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json'
     run:
         filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
         Housekeeper.filter_contigs_length(input.contigs, filtered_contigs)
         api_output = Housekeeper.type_contigs_api(filtered_contigs, 'Neisseria meningitidis')
         if isinstance(api_output, dict):
             Housekeeper.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
         else:
             os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
 
 
 rule pasteur_cgmlst_ngonorrhoeae:
@@ -348,8 +354,10 @@ rule pasteur_cgmlst_ngonorrhoeae:
         api_output = Housekeeper.type_contigs_api(filtered_contigs, 'Neisseria gonorrhoeae', scheme_num=1)
         if isinstance(api_output, dict):
             Housekeeper.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
         else:
             os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
 
 
 rule pasteur_cgmlst_kpneumoniae:
@@ -363,8 +371,10 @@ rule pasteur_cgmlst_kpneumoniae:
         api_output = Housekeeper.type_contigs_api(filtered_contigs, 'Klebsiella pneumoniae')
         if isinstance(api_output, dict):
             Housekeeper.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
         else:
             os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
 
 
 rule pasteur_cgmlst_saureus:
@@ -378,8 +388,10 @@ rule pasteur_cgmlst_saureus:
         api_output = Housekeeper.type_contigs_api(filtered_contigs, 'Staphylococcus aureus')
         if isinstance(api_output, dict):
             Housekeeper.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
         else:
             os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
 
 
 rule pasteur_cgmlst_senterica:
@@ -393,8 +405,10 @@ rule pasteur_cgmlst_senterica:
         api_output = Housekeeper.type_contigs_api(filtered_contigs, 'Salmonella enterica')
         if isinstance(api_output, dict):
             Housekeeper.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
         else:
             os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
 
 
 rule pasteur_cgmlst_ecoli:
@@ -408,8 +422,10 @@ rule pasteur_cgmlst_ecoli:
         api_output = Housekeeper.type_contigs_api(filtered_contigs, 'Escherichia coli')
         if isinstance(api_output, dict):
             Housekeeper.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
         else:
             os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
 
 
 rule pasteur_cgmlst_spneumoniae:
@@ -423,8 +439,10 @@ rule pasteur_cgmlst_spneumoniae:
         api_output = Housekeeper.type_contigs_api(filtered_contigs, 'Streptococcus pneumoniae')
         if isinstance(api_output, dict):
             Housekeeper.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
         else:
             os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
 
 
 rule pasteur_cgmlst_abaumanii:
@@ -438,8 +456,10 @@ rule pasteur_cgmlst_abaumanii:
         api_output = Housekeeper.type_contigs_api(filtered_contigs, 'Acinetobacter baumanii', scheme_num=1)
         if isinstance(api_output, dict):
             Housekeeper.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
         else:
             os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
 
 
 rule publmst_ngonorrhoe:

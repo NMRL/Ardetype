@@ -167,7 +167,7 @@ Specific
                 Article on emm-typing: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6083926
 
     N.gonorrhoeae
-        ngmaster
+        ngmaster(Depricated - PubMLST API used instead)
             Home page: https://github.com/MDU-PHL/ngmaster
             Module form: singularity container from conda template 
             Tasks: NG-MAST Typing
@@ -193,6 +193,26 @@ Specific
                 Full list of serotypes: https://www.pneumogen.net/gps/serotypes.html
                 Database: https://github.com/phe-bioinformatics/PneumoCaT
                 Article: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5028725/
+
+    S.enterica
+        SISTR
+            Home page: https://github.com/phac-nml/sistr_cmd
+            Module form: singularity container from conda template 
+            Tasks: S.enterica serotyping
+            Input: contigs.fasta
+            Output: stdout in txt format
+            Notes:
+                Acticle on serotype nomenclature: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC86943/
+                Article: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0147101
+        SeqSero2
+            Home page: https://github.com/denglab/SeqSero2
+            Module form: singularity container from conda template 
+            Tasks: S.enterica serotyping
+            Input: host-filtered fastq files
+            Output: stdout in txt format
+            Notes:
+                Acticle on serotype nomenclature: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC86943/
+                Article: https://journals.asm.org/doi/10.1128/AEM.01746-19
 
 
     E.Coli

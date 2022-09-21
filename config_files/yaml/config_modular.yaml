@@ -112,11 +112,12 @@ output_directory:
 
 core_tool_configs:
   kraken2:
-    threads: 16
+    threads: 42
     human_db: /mnt/home/groups/nmrl/db/db-kraken2/human_reference/
     bact_db: /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/
   shovill:
     minlen: 1
+    cpus: 24
     ram: 48
     depth: 100
     modules: --noreadcorr

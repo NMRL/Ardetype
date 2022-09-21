@@ -275,6 +275,7 @@ class Housekeeper:
         req_stop = '"}'
         payload = req_start + base64.b64encode(fasta.encode()).decode() + req_stop #request + contig sequences
         response = requests.post(url, data=payload) #sending request to the API and saving responce to a variable
+                
         if response.status_code == requests.codes.ok:   #if responce status code is valid (e.g. not 404)
             return response.json()  #return dictionary with the response contents
         else: #if return code indicates failure

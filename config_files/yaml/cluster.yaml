@@ -20,7 +20,7 @@ quality_control:
   jobname: "ardetype.quality_control"
   procs: 12
   pmem: "1500mb"
-  walltime: "01:00:00"
+  walltime: "02:00:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -28,9 +28,9 @@ quality_control:
 
 filter_host:
   jobname: "ardetype.filter_host"
-  procs: 16
-  pmem: "21333mb"
-  walltime: "01:10:00"
+  procs: 43
+  pmem: "6000mb"
+  walltime: "02:10:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -38,9 +38,9 @@ filter_host:
 
 classify_reads:
   jobname: "ardetype.classify_reads"
-  procs: 16
-  pmem: "25000mb"
-  walltime: "01:00:00"
+  procs: 43
+  pmem: "6000mb"
+  walltime: "02:00:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -48,9 +48,9 @@ classify_reads:
 
 classify_contigs:
   jobname: "ardetype.classify_contigs"
-  procs: 16
-  pmem: "25000mb"
-  walltime: "01:30:00"
+  procs: 43
+  pmem: "6000mb"
+  walltime: "02:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -60,7 +60,7 @@ contig_assembly:
   jobname: "ardetype.contig_assembly"
   procs: 24
   pmem: "2000mb"
-  walltime: "02:40:00"
+  walltime: "10:00:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -74,7 +74,7 @@ res_gen_id:
   jobname: "ardetype.rgi_card"
   procs: 4
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -105,7 +105,7 @@ amrpp:
   jobname: "ardetype.amrpp"
   procs: 25
   pmem: "1500mb"
-  walltime: "03:30:00"
+  walltime: "010:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -126,7 +126,7 @@ mob_typer:
   jobname: "ardetype.mob_typer"
   procs: 12
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -135,7 +135,7 @@ quast:
   jobname: "ardetype.quast"
   procs: 5
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"

@@ -57,13 +57,14 @@ rule filter_host:
         sample_1 = temp(config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz'),
         sample_2 = temp(config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz'),
         report_name = config['output_directory']+'{sample_id_pattern}_kraken2_host_filtering_report.txt',
-        filtering_data = temp(config['output_directory']+'{sample_id_pattern}_kraken2_host_filtering_data.txt')
+        filtering_data = temp(config['output_directory']+'{sample_id_pattern}_kraken2_host_filtering_data.txt'),
+        stdout = temp(config['output_directory']+'{sample_id_pattern}_hf_k2_stdout')
     threads: config["core_tool_configs"]["kraken2"]["threads"]
     conda:
         config["kraken2_env"]
     shell: #pigz for faster fastq compressing using multiprocessing
         """ 
-        kraken2 --threads {threads} --memory-mapping --db {config[core_tool_configs][kraken2][human_db]} --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_host#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered#.fastq --report {output.report_name} --output {output.filtering_data} --gzip-compressed --paired {input.read_1} {input.read_2}
+        kraken2 --threads {threads} --memory-mapping --db {config[core_tool_configs][kraken2][human_db]} --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_host#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered#.fastq --report {output.report_name} --output {output.filtering_data} --gzip-compressed --paired {input.read_1} {input.read_2} > {output.stdout}
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_1.fastq
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_2.fastq
         """
@@ -75,14 +76,14 @@ rule contig_assembly:
         read_1 = config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz',
         read_2 = config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz',
     threads: 
-        12
+        config["core_tool_configs"]["shovill"]["cpus"]
     output:
         temp(config['output_directory']+'{sample_id_pattern}_contigs/contigs.fa') #removed after renaming 
     envmodules:
         'singularity'
     shell:
         '''
-        singularity run {input.sif_file} shovill {config[core_tool_configs][shovill][modules]} --depth {config[core_tool_configs][shovill][depth]} --ram {config[core_tool_configs][shovill][ram]} --minlen {config[core_tool_configs][shovill][minlen]} --force --outdir {config[output_directory]}{wildcards.sample_id_pattern}_contigs --R1 {input.read_1} --R2 {input.read_2}
+        singularity run {input.sif_file} shovill {config[core_tool_configs][shovill][modules]} --depth {config[core_tool_configs][shovill][depth]} --ram {config[core_tool_configs][shovill][ram]} --cpus {threads} --minlen {config[core_tool_configs][shovill][minlen]} --force --outdir {config[output_directory]}{wildcards.sample_id_pattern}_contigs --R1 {input.read_1} --R2 {input.read_2}
         '''
 
 
