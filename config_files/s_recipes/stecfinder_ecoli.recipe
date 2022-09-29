@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    env_defs/stecfinder_ecoli.yml stecfinder_ecoli.yml
+%post
+    conda env create --name stecfinder_ecoli --file stecfinder_ecoli.yml
+%environment
+    export PATH=/opt/conda/envs/stecfinder_ecoli/bin:$PATH
+%runscript
+    exec "$@"
