@@ -82,6 +82,8 @@ seroba_spneumoniae_database:
   /home/groups/nmrl/db/db-seroba
 pigz_sif:
   /mnt/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/image_files/pigz_latest.sif
+stecfinder_ecoli_sif:
+  /home/groups/nmrl/image_files/stecfinder_ecoli.sif
 
 
 

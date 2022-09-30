@@ -507,6 +507,27 @@ rule ectyper_ecoli:
         """
 
 
+rule stecfinder_ecoli:
+    input:
+        read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        read_2 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        sif_file = config['stecfinder_ecoli_sif']
+    output:
+        result = config['output_directory']+'{sample_id_pattern}_stecfinder.tsv'
+    envmodules:
+        'singularity'
+    shell:
+        """
+        mkdir -p ~/stecfinder/
+        cp {input.read_1} ~/stecfinder/
+        cp {input.read_2} ~/stecfinder/
+        singularity run {input.sif_file} stecfinder -r -i ~/stecfinder/{wildcards.sample_id_pattern}* --output ~/stecfinder/$(basename {output.result})
+        mv ~/stecfinder/$(basename {output.result}) {output.result}
+        rm -r ~/stecfinder/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/stecfinder/
+        """
+
+
 rule seroba_spneumoniae:
     input:
         read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',

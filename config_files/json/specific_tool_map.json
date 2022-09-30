@@ -89,6 +89,12 @@
             "tool":"ECTyper",
             "reference":"https://github.com/phac-nml/ecoli_serotyping"
         },
+    "_stecfinder.tsv":
+        {
+            "method":"Shigatoxin typing for E.coli",
+            "tool":"STECFinder",
+            "reference":"https://github.com/LanLab/STECFinder"
+        },
     "_seroba.tsv":
         {
             "method":"serotyping for S.pneumoniae",

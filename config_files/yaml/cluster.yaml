@@ -312,6 +312,16 @@ ectyper_ecoli:
   jobout: "oe"
 
 
+stecfinder_ecoli:
+  jobname: "ardetype.stecfinder"
+  procs: 12
+  pmem: "2000mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
 seroba_spneumoniae:
   jobname: "ardetype.seroba"
   procs: 20
@@ -320,6 +330,7 @@ seroba_spneumoniae:
   account: "rakus"
   queue: "batch"
   jobout: "oe"
+
 
 
 ##############

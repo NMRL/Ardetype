@@ -10,6 +10,7 @@ sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 date = date.today().strftime("%Y-%m-%d")
 specific_tool_map = Housekeeper.read_json_dict("/mnt/home/groups/nmrl/bact_analysis/Ardetype/config_files/json/specific_tool_map.json")
 
+
 rule all:
     input:
         config['shape_target_files']
@@ -79,6 +80,7 @@ rule extract_fastp:
         df = pd.DataFrame.from_dict(data_dict)
         df.to_csv(output[0], header=True, index=False)
 
+
 rule extract_kraken2:
     input:
         config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt'
@@ -96,6 +98,7 @@ rule extract_kraken2:
             df['sample_id'] = [wildcards.sample_id_pattern]
         df.to_csv(output[0],header=True, index=False)
 
+
 rule extract_mlst:
     input:
         config['output_directory']+'{sample_id_pattern}_mlst_output.csv'
@@ -110,6 +113,7 @@ rule extract_mlst:
         except pd.errors.EmptyDataError as e:
             df = pd.DataFrame.from_dict({'sample_id':wildcards.sample_id_pattern, 'MLST7_ST':None})
             df.to_csv(output[0],header=True, index=False)
+
 
 rule extract_quast:
     input:
@@ -154,7 +158,8 @@ rule extract_Meningotype: #OK
                 f'type|{specific_tool_map[key]["tool"]}':[None]
                 })
             df.to_csv(output[0],header=True, index=False)
-        
+
+
 rule extract_legsta: #OK
     input: 
         config['output_directory']+'{sample_id_pattern}_legsta.csv'
@@ -180,7 +185,8 @@ rule extract_legsta: #OK
                 f'type|{specific_tool_map[key]["tool"]}':[None]
                 })
             df.to_csv(output[0],header=True, index=False)
-        
+
+
 rule extract_legionella_pneumophila_genomics: #OK
     input: 
         config['output_directory']+"{sample_id_pattern}-predictResults.txt"
@@ -206,7 +212,8 @@ rule extract_legionella_pneumophila_genomics: #OK
                 f'type|{specific_tool_map[key]["tool"]}':[None]
                 })
             df.to_csv(output[0],header=True, index=False)
-        
+
+
 rule extract_hicap: #OK
     input: 
         config['output_directory']+'{sample_id_pattern}_hi_hicap.tsv'
@@ -232,7 +239,8 @@ rule extract_hicap: #OK
                 f'type|{specific_tool_map[key]["tool"]}':["NTHi"]
                 })
             df.to_csv(output[0],header=True, index=False)
-        
+
+
 rule extract_kleborate: #OK
     input: 
         config['output_directory']+'{sample_id_pattern}_kleborate.tsv'
@@ -259,7 +267,8 @@ rule extract_kleborate: #OK
                 f'type|{specific_tool_map[key]["tool"]}':[None]
                 })
             df.to_csv(output[0],header=True, index=False)
-        
+
+
 rule extract_AgrVATE: #OK
     input: 
         config['output_directory']+'{sample_id_pattern}_agrvate_summary.tab'
@@ -285,7 +294,8 @@ rule extract_AgrVATE: #OK
                 f'type|{specific_tool_map[key]["tool"]}':[None]
                 })
             df.to_csv(output[0],header=True, index=False)
-        
+
+
 rule extract_spaTyper: #OK
     input: 
         config['output_directory']+'{sample_id_pattern}_spatyper.txt'
@@ -311,7 +321,8 @@ rule extract_spaTyper: #OK
                 f'type|{specific_tool_map[key]["tool"]}':[None]
                 })
             df.to_csv(output[0],header=True, index=False)
-        
+
+
 rule extract_sccmec: #OK
     input: 
         config['output_directory']+'{sample_id_pattern}_sccmec.tsv'
@@ -339,7 +350,8 @@ rule extract_sccmec: #OK
                 f'type|{specific_tool_map[key]["tool"]}':[None]
                 })
             df.to_csv(output[0],header=True, index=False)
-        
+
+
 rule extract_emmtyper:
     input: 
         config['output_directory']+'{sample_id_pattern}_emmtyper.tsv'
@@ -365,7 +377,8 @@ rule extract_emmtyper:
                 f'type|{specific_tool_map[key]["tool"]}':[None]
                 })
             df.to_csv(output[0],header=True, index=False)
-        
+
+
 rule extract_LisSero: #OK
     input: 
         config['output_directory']+'{sample_id_pattern}_lissero.tsv'
@@ -391,7 +404,8 @@ rule extract_LisSero: #OK
                 f'type|{specific_tool_map[key]["tool"]}':[None]
                 })
             df.to_csv(output[0],header=True, index=False)
-        
+
+
 rule extract_SISTR: #OK
     input: 
         config['output_directory']+'{sample_id_pattern}_sistr.csv'
@@ -418,7 +432,8 @@ rule extract_SISTR: #OK
                 f'type|{specific_tool_map[key]["tool"]}':[None]
                 })
             df.to_csv(output[0],header=True, index=False)
-        
+
+
 rule extract_SeqSero2: #OK
     input: 
         config['output_directory']+'{sample_id_pattern}_SeqSero.tsv'
@@ -444,7 +459,8 @@ rule extract_SeqSero2: #OK
                 f'type|{specific_tool_map[key]["tool"]}':[None]
                 })
             df.to_csv(output[0],header=True, index=False)
-        
+
+
 rule extract_ECTyper: #OK
     input: 
         config['output_directory']+'{sample_id_pattern}_ectyper.tsv'
@@ -470,7 +486,35 @@ rule extract_ECTyper: #OK
                 f'type|{specific_tool_map[key]["tool"]}':[None]
                 })
             df.to_csv(output[0],header=True, index=False)
-        
+
+
+rule extract_STECFinder: #OK
+    input: 
+        config['output_directory']+'{sample_id_pattern}_stecfinder.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_stecfinder_std.csv'
+    run:
+        try:
+            key = "_stecfinder.tsv"
+            report = pd.read_csv(input[0], sep="\t")
+            report = report[["stx type"]]
+            report.columns = ["type"]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "_stecfinder.tsv"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":[None],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
+                f'type|{specific_tool_map[key]["tool"]}':[None]
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
 rule extract_SeroBA:
     input: 
         config['output_directory']+'{sample_id_pattern}_seroba.tsv'

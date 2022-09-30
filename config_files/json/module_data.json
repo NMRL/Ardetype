@@ -98,7 +98,8 @@
             ],
             "Escherichia coli" :[
                 "_ectyper.tsv",
-                "_ec_pasteur_cgmlst.json"
+                "_ec_pasteur_cgmlst.json",
+                "_stecfinder.tsv"
             ],
             "Streptococcus pneumoniae" :[
                 "_seroba.tsv",
@@ -143,7 +144,6 @@
             ],
             "Neisseria meningitidis":[
                 "_meningotype_std.csv"
-
             ],
             "Legionella pneumophila":[
                 "_legsta_std.csv",
@@ -182,13 +182,13 @@
                 "_kleborate_std.csv"
             ],
             "Escherichia coli" :[
-                "_ectyper_std.csv"
-
+                "_ectyper_std.csv",
+                "_stecfinder_std.csv"
             ],
             "Streptococcus pneumoniae" :[
                 "_seroba_std.csv"
-
             ]
+
         },
         "patterns":{
             "inputs":{
@@ -214,7 +214,8 @@
                     "_SeqSero.tsv",
                     "_ab_pumblst.json",
                     "_ectyper.tsv",
-                    "_seroba.tsv"
+                    "_seroba.tsv",
+                    "_stecfinder.tsv"
                 ]
             },
             "sample_sheet":"(_R[1,2]_001.fastq.gz|_contigs.fasta)"

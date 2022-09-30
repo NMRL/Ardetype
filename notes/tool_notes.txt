@@ -224,3 +224,13 @@ Specific
             Output: tab
             Notes:
                 added to pipe
+
+        STECFinder
+            Home page: https://github.com/LanLab/STECFinder
+            Module form: singularity container from conda template 
+            Tasks: E.Coli serotyping, Shiga Toxin typing
+            Input: contigs.fasta
+            Output: tab
+            Notes:
+                Shiga Toxin article: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4270005/
+                Tool article: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8785982/
