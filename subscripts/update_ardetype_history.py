@@ -332,7 +332,7 @@ def update_analysis_batch(batch_map_path:str, db_file_path:str, parent_dir_path:
     batch_map = pd.concat([batch_map, filtered_df], sort=False) #COMBINE BATCH MAP WITH 
     batch_map.drop_duplicates(subset=[id_cln_name], inplace=True, keep='first') #ONLY ONE BATCH ID PER SAMPLE EXPECTED
     batch_map.to_csv(batch_map_path, header=True, index=False) #SAVE SCANNING RESULTS FOR SPEED-UP
-    db_df.drop('analysis_batch_id', axis=1, inplace=True)
+    if 'analusis_batch_id' in db_df.columns: db_df.drop('analysis_batch_id', axis=1, inplace=True)
     db_df = pd.merge(db_df, batch_map, on=id_cln_name, how='outer') #ADD ANNOTATION COLUMN
     db_df.dropna(axis=0, how='all', thresh=None, subset=db_df.columns[1:-1], inplace=True)
     db_df.to_csv(db_file_path, header=True, index=False) #SAVE UPDATED DB FILE
@@ -340,7 +340,7 @@ def update_analysis_batch(batch_map_path:str, db_file_path:str, parent_dir_path:
 
 if __name__ == "__main__":
     db_file_path = find_history_file(folder_to_parse, tag_string) #LOOKUP FOR THE DATABASE FILE IN THE FOLDER WHERE SCRIPT IS LOCATED
-    print(f'Current database file: {db_file_path}') #REPORTING CURRENT DB FILE
+    print(f'\nCurrent database file: {db_file_path}\n') #REPORTING CURRENT DB FILE
     args = parse_arguments() #CMD ARGUMENTS & SCRIPT USAGE MESSAGES
 
     if args.pipe: #IF SCRIPT IS USED TO ADD DATA FOR A NEW BATCH TO DATABASE FILE
