@@ -63,14 +63,16 @@ def parse_arguments() -> argparse.ArgumentParser:
     return parser.parse_args()
 
 
-def prepare_pipe_data(ardetype_report_path:str) -> pd.DataFrame:
+def prepare_ardetype_data(ardetype_report_path:str) -> pd.DataFrame:
     '''
     Given path to ardetype report, restructures it by concatenating method, 
-    type and reference columns for each sample into single column, sparated by semicolon (;).
+    type and reference columns for each sample into single column, sparated by doubly-spaced semicolon ( ; ).
     If all fields are empty for any given sample, empty columns are produced for that sample. 
+    Removed illumina sample number from all sample names.
     Returns reformatted pandas dataframe.
     '''
     df = pd.read_csv(ardetype_report_path).applymap(str)
+    df['sample_id'] = df['sample_id'].str.replace(r"(_S[0-9]{3}|_S[0-9]{2}|_S[0-9]{1})","")
     tools = [col.replace("method|", "") for col in df.columns if "method" in col]
     print(tools)
     if tools: #IF SPECIES-SPECIFIC TYPING WAS PERFORMED
@@ -104,7 +106,7 @@ def find_history_file(folder_to_parse:str, tag_string:str) -> str:
 def parse_pipe_files(pipe_report_path:str, db_file_path:str, pipe_sep:str='\t') -> tuple([pd.DataFrame, pd.DataFrame]):
     '''Reads pipe_report_path and db_file_path into pandas dataframes. Returns tuple of two dataframes.'''
     ###READ DATA FROM FILES
-    pipe_data = prepare_pipe_data(pipe_report_path) #READ PIPELINE REPORT
+    pipe_data = prepare_ardetype_data(pipe_report_path) #READ PIPELINE REPORT
     db_frame = pd.read_csv(db_file_path).applymap(str) #NORMALIZE THE DB FILE DATAFRAME TO STRING TYPE
     columns_to_exclude = ['analysis_batch_id'] #TO STORE METADATA COLUMNS NAMES
     db_frame = db_frame.loc[:, ~db_frame.columns.isin(columns_to_exclude)] #LEAVE OUT METADATA COLUMNS
@@ -317,7 +319,8 @@ def update_analysis_batch(batch_map_path:str, db_file_path:str, parent_dir_path:
     search_list = db_df[id_cln_name][~db_df[id_cln_name].isin(batch_map[id_cln_name])] #GET LIST OF FILES IN DB THAT ARE NOT IN BATCH MAP
     os.system(f'echo path > {temp_target_path} ; for i in {parent_dir_path}/{found_tag}; do echo $i; done >> {temp_target_path}') #EXPORT ALL PATHS TO SAMPLE-LABELED FOLDERS TO A FILE
     path_df = pd.read_csv(temp_target_path)['path'].str.split('/', expand=True) #READ FILE TO TABLE AND SPLIT BY SEPARATORS "/" INTO COLUMNS
-    path_df[9] = path_df[9].str.replace(r"(folded_|_output)","", regex=True) #replacing matching patterns
+    path_df[9] = path_df[9].str.replace(r"(folded_|_output)","") #REPLACING MATCHING PATTERNS
+    path_df[9] = path_df[9].str.replace(r"(_S[0-9]{3}|_S[0-9]{2}|_S[0-9]{1})","") #REPLACING ILLUMINA SAMPLE NUMBER
     os.system(f'rm {temp_target_path}') #REMOVE TEMP FILE
     if search_list.empty:
         filtered_df = path_df[[7,9]]
