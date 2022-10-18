@@ -114,9 +114,13 @@ output_directory:
 
 core_tool_configs:
   kraken2:
-    threads: 42
+    threads: 12
     human_db: /mnt/home/groups/nmrl/db/db-kraken2/human_reference/
-    bact_db: /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/
+    ram_host_mb: 262144
+    bact_db: /mnt/home/groups/nmrl/bact_analysis/AQUAMIS/reference_db/kraken
+    # /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/
+    ram_bact_mb: 24576
+    #262144
   shovill:
     minlen: 1
     cpus: 24

@@ -420,7 +420,7 @@ class Housekeeper:
                 continue
             if sample_id and sample_id not in log: 
                 Housekeeper.rename_file(log, sample_id, path_to_log_dir) #if no sample id is found, the extract_log_id returns False
-            
+
 
 
     @staticmethod
@@ -550,8 +550,8 @@ class Housekeeper:
                 seconds=int(cluster_config_dict[job_name]['walltime'].split(':')[2]))
             time_sec_req = time_sec_req.hours*3600+time_sec_req.minutes*60+time_sec_req.seconds
             Eff = round(100*time_sec_total/time_sec_req,2)
-            path_to_log = path_to_log.replace('_job_logs/', f'_job_logs/{sample_id}_')
-
+            if sample_id not in path_to_log: path_to_log = path_to_log.replace('_job_logs/', f'_job_logs/{sample_id}_')
+            
             df = pd.DataFrame({
                 "log_path":[path_to_log],
                 "job_name":[job_name],
@@ -612,7 +612,7 @@ class Housekeeper:
             eval "$(conda shell.bash hook)" 
             conda activate {env_path}
             jupyter nbconvert --to html --execute --no-input {notebook_path} --output-dir={output_dir}
-            chmod 775 {output_dir} 2> /dev/null
+            chmod 775 {output_dir} 2>/dev/null
             ''')
 
 
@@ -637,7 +637,10 @@ class Housekeeper:
             updated_df = new_log_df
         tstemp = datetime.now().strftime("%Y-%m-%d")
         new_file_name = f'{tstemp}-log_aggregate_{pipeline_name}.csv'
+        updated_df.drop_duplicates(subset=['log_path'], keep='first', inplace=True)
+        if file_search: os.remove(f'{job_log_dir}/{current_file}')
         updated_df.to_csv(f'{job_log_dir}/{new_file_name}', header=True, index=False)
+
 
 
 

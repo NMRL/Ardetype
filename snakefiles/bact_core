@@ -59,12 +59,15 @@ rule filter_host:
         report_name = config['output_directory']+'{sample_id_pattern}_kraken2_host_filtering_report.txt',
         filtering_data = temp(config['output_directory']+'{sample_id_pattern}_kraken2_host_filtering_data.txt'),
         stdout = temp(config['output_directory']+'{sample_id_pattern}_hf_k2_stdout')
-    threads: config["core_tool_configs"]["kraken2"]["threads"]
+    threads: 
+        config["core_tool_configs"]["kraken2"]["threads"]
+    resources:    
+        mem_mb = config["core_tool_configs"]["kraken2"]["ram_host_mb"]
     conda:
         config["kraken2_env"]
     shell: #pigz for faster fastq compressing using multiprocessing
         """ 
-        kraken2 --threads {threads} --memory-mapping --db {config[core_tool_configs][kraken2][human_db]} --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_host#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered#.fastq --report {output.report_name} --output {output.filtering_data} --gzip-compressed --paired {input.read_1} {input.read_2} > {output.stdout}
+        kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][human_db]} --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_host#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered#.fastq --report {output.report_name} --output {output.filtering_data} --gzip-compressed --paired {input.read_1} {input.read_2} > {output.stdout}
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_1.fastq
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_2.fastq
         """
@@ -118,6 +121,7 @@ rule classify_reads:
         config['output_directory']+'{sample_id_pattern}_bact_reads_unclassified_2.fastq.gz',
         report_name = config['output_directory']+'{sample_id_pattern}_kraken2_reads_report.txt',
         filtering_data = temp(config['output_directory']+'{sample_id_pattern}_kraken2_read_data.txt')
+    
     threads: config["core_tool_configs"]["kraken2"]["threads"]
     envmodules:
         'singularity'
@@ -125,7 +129,7 @@ rule classify_reads:
         config["kraken2_env"]
     shell: #kreport2krona converts kraken2 output to krona format; ktImportText converts the result to interactive form
         """ 
-        kraken2 --threads {threads} --memory-mapping --db {config[core_tool_configs][kraken2][bact_db]} --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2} > {output.filtering_data}
+        kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][bact_db]} --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified#.fastq --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified#.fastq --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2} > {output.filtering_data}
         singularity run {input.sif_file} kreport2krona.py -r {output.report_name} -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.krona
         singularity run {input.sif_file} ktImportText {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.krona -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.html
         pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq
@@ -151,7 +155,7 @@ rule classify_contigs:
         config["kraken2_env"]
     shell:
         """ 
-        kraken2 --threads {threads} --memory-mapping --db {config[core_tool_configs][kraken2][bact_db]} --report {output.report_name} {input.contigs} > {output.filtering_data}
+        kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][bact_db]} --report {output.report_name} {input.contigs} > {output.filtering_data}
         singularity run {input.sif_file} kreport2krona.py -r {output.report_name} -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.krona
         singularity run {input.sif_file} ktImportText {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.krona -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.html
         """

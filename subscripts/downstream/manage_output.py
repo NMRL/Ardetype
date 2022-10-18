@@ -11,7 +11,7 @@ b) By batch
 '''
 
 ###IMPORTS
-import os, pandas as pd, sys, argparse
+import os, pandas as pd, sys, argparse, glob
 
 
 ###STATIC VARIABLES
@@ -49,7 +49,7 @@ def parse_arguments() -> argparse.ArgumentParser:
     '''Parsing cmd arguments and return argparse class object.'''
 
     #CMD ARGUMENTS & SCRIPT USAGE MESSAGES
-    parser = argparse.ArgumentParser(description='A script structure ardetype output based on analysis_batch or taxonomy.') 
+    parser = argparse.ArgumentParser(description='A script structure ardetype output based on analysis_batch or taxonomy.\nWARNING: Make sure to update the summary report file!\nOnly data for samples present in summary file will be restructured (anything not present will stay in batch-based convention).') 
     parser.add_argument('-t', '--tax', help = 'Structure ardetype output by taxonomy (see by_taxonomy folder)', action='store_true')
     parser.add_argument('-b', '--batch', help = f'Structure ardetype output by batch (all folded outputs in corresponding batch folders)', action='store_true')
 
@@ -92,11 +92,11 @@ if __name__ == "__main__":
         folder_names = list(db_df['species'].unique())
         folder_names = lower_unspace(folder_names)
         update_folders(folder_names, taxonomy_parent_path)
-        test_name = f"{taxonomy_parent_path}{db_df.loc[db_df['sample_id'] == db_df['sample_id'][0]]['species'].item().replace(' ', '_').lower()}/folded_{db_df['sample_id'][0]}_output/"
-        if not os.path.isdir(test_name):
+        test_name = f"{taxonomy_parent_path}{db_df.loc[db_df['sample_id'] == db_df['sample_id'][0]]['species'].item().replace(' ', '_').lower()}/folded_{db_df['sample_id'][0]}_*_output/"
+        if not glob.glob(test_name):
             print('Switching to taxonomy-based folder tree: ')
             for i,id in enumerate(db_df['sample_id']):
-                source_name = f"{bact_output_path}{db_df.loc[db_df['sample_id'] == id]['analysis_batch_id'].item()}/*ardetype*/folded_{id}_output"
+                source_name = f"{bact_output_path}{db_df.loc[db_df['sample_id'] == id]['analysis_batch_id'].item()}/*ardetype*/folded_{id}_*_output"
                 dest_name = f"{taxonomy_parent_path}{db_df.loc[db_df['sample_id'] == id]['species'].item().replace(' ', '_').lower()}"
                 os.system(f'mv {source_name} {dest_name} 2>/dev/null')
                 printProgressBar(i+1, db_df['sample_id'].size)
@@ -105,12 +105,12 @@ if __name__ == "__main__":
 
 
     if args.batch:
-        test_name = f"{taxonomy_parent_path}{db_df.loc[db_df['sample_id'] == db_df['sample_id'][0]]['species'].item().replace(' ', '_').lower()}/folded_{db_df['sample_id'][0]}_output/"
-        if os.path.isdir(test_name):
+        test_name = f"{taxonomy_parent_path}{db_df.loc[db_df['sample_id'] == db_df['sample_id'][0]]['species'].item().replace(' ', '_').lower()}/folded_{db_df['sample_id'][0]}_*_output/"
+        if glob.glob(test_name):
             print('Switching to batch-based folder tree: ')
             for i,id in enumerate(db_df['sample_id']):
                 dest_name = f"{bact_output_path}{db_df.loc[db_df['sample_id'] == id]['analysis_batch_id'].item()}/*ardetype*/"
-                source_name = f"{taxonomy_parent_path}{db_df.loc[db_df['sample_id'] == id]['species'].item().replace(' ', '_').lower()}/folded_{id}_output"
+                source_name = f"{taxonomy_parent_path}{db_df.loc[db_df['sample_id'] == id]['species'].item().replace(' ', '_').lower()}/folded_{id}_*_output"
                 os.system(f'mv {source_name} {dest_name} 2>/dev/null')
                 printProgressBar(i+1, db_df['sample_id'].size)
         else:
