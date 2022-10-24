@@ -207,7 +207,7 @@ def add_unique(
         else: 
             print('Invalid user input on unique records save.')
             sys.exit(1)
-        if not unique_rec_df.empty: db_file_df = pd.concat([db_file_df, unique_records], sort=False) #ADDING UNIQUE RECORDS TO DB FILE FRAME
+        if not unique_rec_df.empty: db_file_df = pd.concat([db_file_df, unique_rec_df], sort=False) #ADDING UNIQUE RECORDS TO DB FILE FRAME
         db_file_df.drop([f'{id_cln_name}_1'], axis=1, inplace=True) #REMOVING COLUMN USED IN INDEX SEARCH
         db_file_new = db_file_path.replace(re.search(summary_timestamp_regex,db_file_path).group(0),summary_timestamp)
         db_file_df.to_csv(db_file_new,header=True, index=False) #UPDATING DB FILE
@@ -332,7 +332,7 @@ def update_analysis_batch(batch_map_path:str, db_file_path:str, parent_dir_path:
     batch_map = pd.concat([batch_map, filtered_df], sort=False) #COMBINE BATCH MAP WITH 
     batch_map.drop_duplicates(subset=[id_cln_name], inplace=True, keep='first') #ONLY ONE BATCH ID PER SAMPLE EXPECTED
     batch_map.to_csv(batch_map_path, header=True, index=False) #SAVE SCANNING RESULTS FOR SPEED-UP
-    if 'analusis_batch_id' in db_df.columns: db_df.drop('analysis_batch_id', axis=1, inplace=True)
+    if 'analysis_batch_id' in db_df.columns: db_df.drop('analysis_batch_id', axis=1, inplace=True)
     db_df = pd.merge(db_df, batch_map, on=id_cln_name, how='outer') #ADD ANNOTATION COLUMN
     db_df.dropna(axis=0, how='all', thresh=None, subset=db_df.columns[1:-1], inplace=True)
     db_df.to_csv(db_file_path, header=True, index=False) #SAVE UPDATED DB FILE
@@ -371,9 +371,10 @@ if __name__ == "__main__":
         os.system(f'mv {args.dupl} {log_path}')
 
     ###CLEANUP
+    db_path_new = db_file_path.replace(re.search(regex_cur_time_summary,db_file_path).group(0),cur_time_summary)
     update_analysis_batch(
         analysis_batch_map_path,
-        db_file_path,
+        db_path_new,
         output_folder_path,
         id_column_name,
         temp_target_file,

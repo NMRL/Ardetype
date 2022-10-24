@@ -3,7 +3,7 @@ localrules: all
 import sys, pandas as pd, os
 from datetime import date
 sys.path.insert(0, '/mnt/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
-from ardetype_utilities import Housekeeper
+from ardetype_utilities import Ardetype_housekeeper as Housekeeper
 
 sip_wild = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
