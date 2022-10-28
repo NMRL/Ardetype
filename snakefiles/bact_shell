@@ -1,4 +1,4 @@
-localrules: all
+localrules: all, quast
 
 #define sample_id_pattern wildcard and accessing sample_sheet
 import pandas as pd, os
@@ -11,19 +11,21 @@ rule all:
     input: 
         config['shell_target_files'], #path to singularity image file
         hamr_sif = config['hamronization_sif'],
-        #Lists of resistance reports to be harmonized, may be it can be refactored to singla expand
+        #Lists of resistance reports to be harmonized, may be it can be refactored to single expand
         hamr_resfinder = expand(config['output_directory']+'{sample_id}_resfinder/{sample_id}_resfinder.hamr.tab', sample_id=sample_sheet['sample_id']),
         hamr_amrpp = expand(config['output_directory']+"{sample_id}_amrpp/{sample_id}_amrplusplus.hamr.tab", sample_id=sample_sheet['sample_id']),
-        hamr_rgi = expand(config['output_directory']+'{sample_id}.rgi.hamr.tab', sample_id=sample_sheet['sample_id'])
+        hamr_rgi = expand(config['output_directory']+'{sample_id}.rgi.hamr.tab', sample_id=sample_sheet['sample_id']),
+        hamr_amrfp = expand(config['output_directory']+'{sample_id}_amrfinderplus.hamr.tab', sample_id=sample_sheet['sample_id'])
     run:
         #Use only non-empty files (hamronization fails otherwise)
         input.hamr_resfinder = [ path for path in input.hamr_resfinder if not os.path.getsize(path) == 0]
         input.hamr_amrpp = [ path for path in input.hamr_amrpp if not os.path.getsize(path) == 0]
         input.hamr_rgi = [ path for path in input.hamr_rgi if not os.path.getsize(path) == 0]
-        #Create single html report from all resistance inference tools
+        input.hamr_amrfp = [ path for path in input.hamr_amrfp if not os.path.getsize(path) == 0]
+        #Create single tsv report from all resistance inference tools
         os.system(f'''
         module load singularity
-        singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).tsv" -t tsv {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_amrpp)} {" ".join(input.hamr_rgi)}
+        singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).tsv" -t tsv {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_amrpp)} {" ".join(input.hamr_rgi)} {" ".join(input.hamr_amrfp)}
         echo bact_shell finished
         ''')
         #Change amrpp results to show them correctly in the report (unchanged version displays separate entry for amrpp for each sample (e.g. one row for resfinder & rgi and one row for amrpp for each sample))
@@ -90,6 +92,23 @@ rule resfinder:
         rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$CONTIG_FILENAME
         """
 
+
+#AMRFINDER+
+rule amrfinderplus:
+    input:
+        hamr_sif = config['hamronization_sif'],
+        amrfinder_sif = config['amrfinderplus_sif'],
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+"{sample_id_pattern}_amrfinderplus.tab",
+        config['output_directory']+'{sample_id_pattern}_amrfinderplus.hamr.tab'
+    envmodules:
+        'singularity'
+    shell: #resfinder database is a separate repository that is used along with singularity image file; files are processed in user's home dir
+        """
+        singularity run {input.amrfinder_sif} amrfinder -n {input.contigs} > {output[0]}
+        singularity run {input.hamr_sif} amrfinderplus {output[0]} --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config[amrfinderplus_version]} --reference_database_version {config[amrfinderplus_db_version]} > {output[1]}
+        """
 
 #AMR++
 if 'fq1' in sample_sheet.columns:

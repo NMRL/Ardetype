@@ -40,7 +40,8 @@
             "_resfinder/ResFinder_results.txt",
             "_amrpp/ResistomeResults/AMR_analytic_matrix.csv",
             "_quast/icarus.html",
-            "_mob_typer.tab"
+            "_mob_typer.tab",
+            "_amrfinderplus.tab"
         ],
         "patterns":{
             "inputs":["001.fastq.gz", "_contigs.fasta"],

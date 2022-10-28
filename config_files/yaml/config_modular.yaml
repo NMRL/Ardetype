@@ -22,6 +22,8 @@ fastp_sif:
 ##############
 # bact_shell
 ##############
+amrfinderplus_sif:
+  /home/groups/nmrl/image_files/ncbi-amrfinderplus_latest.sif
 amrpp_repo:
   /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/
 hamronization_sif:
@@ -44,6 +46,9 @@ rgi_version: rgi_v5.2.1
 rgi_db_version: card_v1.0
 amrplusplus_version: amrplusplus_v2.0
 amrplusplus_db_version: MEGARES
+amrfinderplus_version: 3.10.42
+amrfinderplus_db_version: 2022-10-11.2
+
 
 
 
