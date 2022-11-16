@@ -251,7 +251,7 @@ rule extract_kleborate: #OK
             key = "_kleborate.tsv"
             report = pd.read_csv(input[0], sep="\t")
             report = report[["K_locus", "O_locus"]]
-            report["type"] = report[['K_locus', 'K_locus']].agg('; '.join, axis=1) #textjoin in pandas accross columns
+            report["type"] = report[['K_locus', 'O_locus']].agg('; '.join, axis=1) #textjoin in pandas accross columns
             report = report[["type"]]
             report["sample_id"] = wildcards.sample_id_pattern
             report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']

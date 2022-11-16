@@ -104,7 +104,7 @@ amrfinderplus:
   jobname: "ardetype.amrfinderplus"
   procs: 12
   pmem: "1000mb"
-  walltime: "00:03:00"
+  walltime: "00:10:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -125,7 +125,7 @@ mob_recon:
   jobname: "ardetype.mob_recon"
   procs: 12
   pmem: "1000mb"
-  walltime: "00:07:00"
+  walltime: "00:10:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
