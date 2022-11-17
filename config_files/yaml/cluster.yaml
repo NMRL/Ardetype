@@ -104,7 +104,7 @@ amrfinderplus:
   jobname: "ardetype.amrfinderplus"
   procs: 12
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
