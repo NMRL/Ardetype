@@ -116,11 +116,21 @@ rule amrfinderplus:
     # envmodules:
     #     'singularity'
     run: #resfinder database is a separate repository that is used along with singularity image file; files are processed in user's home dir
-        os.system(f"""
+        command_org = f"""
         module load singularity
         singularity run {input.amrfinder_sif} amrfinder --mutation_all {output[2]} --organism {org_dict[wildcards.sample_id_pattern]} -n {input.contigs} > {output[0]}
         singularity run {input.hamr_sif} amrfinderplus {output[0]} --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['amrfinderplus_version']} --reference_database_version {config['amrfinderplus_db_version']} > {output[1]}
-        """)
+        """
+        command_generic = f"""
+        module load singularity
+        singularity run {input.amrfinder_sif} amrfinder -n {input.contigs} > {output[0]}
+        singularity run {input.hamr_sif} amrfinderplus {output[0]} --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['amrfinderplus_version']} --reference_database_version {config['amrfinderplus_db_version']} > {output[1]}
+        touch {output[2}
+        """
+        if wildcards.sample_id_pattern in org_dict:
+            os.system(command_org)
+        else:
+            os.system(command_generic)
 
 #AMR++
 if 'fq1' in sample_sheet.columns:
