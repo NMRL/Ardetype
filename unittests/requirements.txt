@@ -56,7 +56,6 @@ jmespath==1.0.0
 jsonschema==4.5.1
 jupyter-core==4.9.2
 kiwisolver==1.4.2
-logmuse==0.2.6
 lxml==4.9.0
 markupsafe==2.1.1
 matplotlib==3.5.1
