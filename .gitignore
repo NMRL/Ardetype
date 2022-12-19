@@ -1,3 +1,12 @@
 #Untracked files
-subscripts/__pychache__/*
-subscripts/src/__pychache__/*
+subscripts/__pycache__/*
+subscripts/src/__pycache__/*
+.snakemake/*
+*.fastq.gz
+ardetype_job_logs/*
+historical/*
+log_summary.html
+test/*
+test_1/*
+ardetype_big_test/*
+ardetype_output/*
