@@ -1,35 +1,52 @@
-localrules: all
+localrules: all, quast
 
 #define sample_id_pattern wildcard and accessing sample_sheet
 import pandas as pd, os
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup #to format hamronization html report
 sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
+sample_sheet.taxonomy = sample_sheet.taxonomy.str.replace(' ', "_")
+amrfinder_orgs = ["Acinetobacter_baumannii", "Burkholderia_cepacia", "Burkholderia_pseudomallei", "Campylobacter", "Clostridioides_difficile", "Enterococcus_faecalis", "Enterococcus_faecium", "Escherichia", "Klebsiella", "Neisseria", "Pseudomonas_aeruginosa", "Salmonella", "Staphylococcus_aureus", "Staphylococcus_pseudintermedius", "Streptococcus_agalactiae", "Streptococcus_pneumoniae", "Streptococcus_pyogenes", "Vibrio_cholerae"]
+currated_orgs = sample_sheet[sample_sheet.taxonomy.str.contains('|'.join(amrfinder_orgs))] #keeping only organisms that are currated by ncbi
+for org in currated_orgs.taxonomy: #replacing the taxonomy to the correct format
+    for o in amrfinder_orgs:
+        if o in org:
+            currated_orgs = currated_orgs.replace(org, o)
+            break
+
+org_dict = dict(zip(currated_orgs['sample_id'], currated_orgs['taxonomy'])) #to use in amrfinder call
+
 
 #AGGREGATION RULE
 rule all:
     input: 
-        config['shell_target_files'],
+        config['shell_target_files'], #path to singularity image file
         hamr_sif = config['hamronization_sif'],
+        #Lists of resistance reports to be harmonized, may be it can be refactored to single expand
         hamr_resfinder = expand(config['output_directory']+'{sample_id}_resfinder/{sample_id}_resfinder.hamr.tab', sample_id=sample_sheet['sample_id']),
         hamr_amrpp = expand(config['output_directory']+"{sample_id}_amrpp/{sample_id}_amrplusplus.hamr.tab", sample_id=sample_sheet['sample_id']),
-        hamr_rgi = expand(config['output_directory']+'{sample_id}.rgi.hamr.tab', sample_id=sample_sheet['sample_id'])
+        hamr_rgi = expand(config['output_directory']+'{sample_id}.rgi.hamr.tab', sample_id=sample_sheet['sample_id']),
+        hamr_amrfp = expand(config['output_directory']+'{sample_id}_amrfinderplus.hamr.tab', sample_id=sample_sheet['sample_id'])
     run:
+        #Use only non-empty files (hamronization fails otherwise)
         input.hamr_resfinder = [ path for path in input.hamr_resfinder if not os.path.getsize(path) == 0]
         input.hamr_amrpp = [ path for path in input.hamr_amrpp if not os.path.getsize(path) == 0]
         input.hamr_rgi = [ path for path in input.hamr_rgi if not os.path.getsize(path) == 0]
+        input.hamr_amrfp = [ path for path in input.hamr_amrfp if not os.path.getsize(path) == 0]
+        #Create single tsv report from all resistance inference tools
         os.system(f'''
         module load singularity
-        singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).html" -t interactive {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_amrpp)} {" ".join(input.hamr_rgi)}
+        singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).tsv" -t tsv {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_amrpp)} {" ".join(input.hamr_rgi)} {" ".join(input.hamr_amrfp)}
         echo bact_shell finished
         ''')
-        with open(f"{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).html", "r+") as report:
-            contents = report.read()
-            html_string = str(BeautifulSoup(contents, features='lxml').prettify())
-            for i in sample_sheet['sample_id']:
-                html_string = html_string.replace('}, {"input_file_name": '+ f'"{i}.amr.alignment"'+', "amrplusplus: config 0": ',  ', "amrplusplus: config 0": ')
-            html_string = html_string.replace(': config 0',"")
-            report.write(html_string)
+        #Change amrpp results to show them correctly in the report (unchanged version displays separate entry for amrpp for each sample (e.g. one row for resfinder & rgi and one row for amrpp for each sample))
+        # with open(f"{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).html", "r+") as report:
+        #     contents = report.read()
+        #     html_string = str(BeautifulSoup(contents, features='lxml').prettify())
+        #     for i in sample_sheet['sample_id']:
+        #         html_string = html_string.replace('}, {"input_file_name": '+ f'"{i}.amr.alignment"'+', "amrplusplus: config 0": ',  ', "amrplusplus: config 0": ')
+        #     html_string = html_string.replace(': config 0',"")
+        #     report.write(html_string)
 
 
 #MOB-SUITE
@@ -38,8 +55,8 @@ rule mob_recon:
         mob_suite_sif = config['mob_suite_sif'],
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
-        config['output_directory']+'{sample_id_pattern}_mob_recon/chromosome.fasta',
-        config['output_directory']+'{sample_id_pattern}_mob_recon/contig_report.txt'
+        config['output_directory']+'{sample_id_pattern}_mob_recon/chromosome.fasta', #expected in any case, unless only plasmid was sequenced
+        config['output_directory']+'{sample_id_pattern}_mob_recon/contig_report.txt' #contig scanning results
     envmodules:
         'singularity'
     shell:
@@ -52,7 +69,7 @@ rule mob_typer:
         mob_suite_sif = config['mob_suite_sif'],
         recons = config['output_directory']+'{sample_id_pattern}_mob_recon/chromosome.fasta'
     output:
-        config['output_directory']+'{sample_id_pattern}_mob_typer.tab'
+        config['output_directory']+'{sample_id_pattern}_mob_typer.tab' #plasmid typing results
     envmodules:
         'singularity'
     shell:
@@ -75,7 +92,7 @@ rule resfinder:
         config['output_directory']+'{sample_id_pattern}_resfinder/{sample_id_pattern}_resfinder.hamr.tab'
     envmodules:
         'singularity'
-    shell:
+    shell: #resfinder database is a separate repository that is used along with singularity image file; files are processed in user's home dir
         """
         CONTIG_FILENAME=$(basename {input.contigs})
         cp -r {config[shell_tool_configs][resfinder][resfinder_db]} ~/db-resfinder_{wildcards.sample_id_pattern}/
@@ -86,6 +103,31 @@ rule resfinder:
         rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$CONTIG_FILENAME
         """
 
+
+#AMRFINDER+
+rule amrfinderplus:
+    input:
+        hamr_sif = config['hamronization_sif'],
+        amrfinder_sif = config['amrfinderplus_sif'],
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+"{sample_id_pattern}_amrfinderplus.tab",
+        config['output_directory']+'{sample_id_pattern}_amrfinderplus.hamr.tab',
+        config['output_directory']+"{sample_id_pattern}_amrfinderplus_point.tab"
+    # envmodules:
+    #     'singularity'
+    run: #resfinder database is a separate repository that is used along with singularity image file; files are processed in user's home dir
+        if wildcards.sample_id_pattern in org_dict:
+            os.system(f"""
+            module load singularity
+            singularity run {input.amrfinder_sif} amrfinder --mutation_all {output[2]} --organism {org_dict[wildcards.sample_id_pattern]} -n {input.contigs} > {output[0]}
+            singularity run {input.hamr_sif} amrfinderplus {output[0]} --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['amrfinderplus_version']} --reference_database_version {config['amrfinderplus_db_version']} > {output[1]}
+            """)
+        else:
+            os.system(f"""
+            touch {output[0]}
+            touch {output[1]}
+            """)
 
 #AMR++
 if 'fq1' in sample_sheet.columns:
@@ -102,7 +144,7 @@ if 'fq1' in sample_sheet.columns:
             'singularity'
         conda:
             config["nextflow_env"]
-        shell:
+        shell: #nextflow is run from separate directory under amrpp folder
             """
             module load singularity
             mkdir -p {config[output_directory]}{wildcards.sample_id_pattern}_amrpp/RunResistome/
@@ -157,7 +199,7 @@ rule res_gen_id:
         "singularity"
     conda:
         config["rgi_env"]
-    shell:
+    shell: #rgi run from conda environment; hamronization run from singularity image
         """
         rgi main --input_sequence {input.contigs} --output_file {config[output_directory]}{wildcards.sample_id_pattern}.rgi --input_type contig --clean
         singularity run {input.hamr_sif} rgi {config[output_directory]}{wildcards.sample_id_pattern}.rgi.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config[rgi_version]} --reference_database_version {config[rgi_db_version]} > {config[output_directory]}{wildcards.sample_id_pattern}.rgi.hamr.tab

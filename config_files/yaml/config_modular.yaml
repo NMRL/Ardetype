@@ -2,16 +2,16 @@
 # Static tool & environment definition paths
 #########################
 home_dir:
-  /mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/
+  /mnt/home/groups/nmrl/bact_analysis/Ardetype/
 work_dir:
-  /mnt/home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/data/
+  /mnt/home/groups/nmrl/bact_analysis/Ardetype/data/
 
 
 ##############
 # bact_core
 ##############
 kraken2_env:
-  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/config_files/conda_defs/kraken2.yaml
+  /home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/kraken2.yaml
 krona_sif:
   /home/groups/nmrl/image_files/krona.sif
 shovill_sif:
@@ -22,6 +22,8 @@ fastp_sif:
 ##############
 # bact_shell
 ##############
+amrfinderplus_sif:
+  /home/groups/nmrl/image_files/ncbi-amrfinderplus_latest.sif
 amrpp_repo:
   /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/
 hamronization_sif:
@@ -31,19 +33,22 @@ mlst_quast_sif:
 mob_suite_sif:
   /mnt/home/groups/nmrl/image_files/mob_suite_3.0.3.sif
 nextflow_env:
-  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/config_files/conda_defs/nextflow.yaml
+  /home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/nextflow.yaml
 resfinder_sif:
   /mnt/home/groups/nmrl/image_files/resfinder.sif
 rgi_env:
-  /home/groups/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/config_files/conda_defs/rgi_env.yaml
+  /home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/rgi_env.yaml
 hamronization_sif:
   /mnt/home/groups/nmrl/image_files/hamronization_latest.sif
-resfinder_version: resfinder_v4.1
+resfinder_version: resfinder_v4.1.11
 resfinder_db_version: resfinder_2022-05-11
 rgi_version: rgi_v5.2.1
-rgi_db_version: card_v1.0
+rgi_db_version: card_v3.1.4
 amrplusplus_version: amrplusplus_v2.0
 amrplusplus_db_version: MEGARES
+amrfinderplus_version: 3.10.42
+amrfinderplus_db_version: 2022-10-11.2
+
 
 
 
@@ -82,9 +87,16 @@ seroba_spneumoniae_database:
   /home/groups/nmrl/db/db-seroba
 pigz_sif:
   /mnt/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/image_files/pigz_latest.sif
+stecfinder_ecoli_sif:
+  /home/groups/nmrl/image_files/stecfinder_ecoli.sif
 
 
 
+##############
+# bact_shape
+##############
+multiqc_sif:
+  /home/groups/nmrl/image_files/fastq_screen.sif
 
 
 #########################
@@ -92,6 +104,7 @@ pigz_sif:
 #########################
 
 ###Filled by the wrapper
+core_input_files:
 core_target_files:
 output_directory:
 
@@ -108,10 +121,15 @@ core_tool_configs:
   kraken2:
     threads: 12
     human_db: /mnt/home/groups/nmrl/db/db-kraken2/human_reference/
-    bact_db: /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/
+    ram_host_mb: 262144
+    bact_db: /mnt/home/groups/nmrl/bact_analysis/AQUAMIS/reference_db/kraken
+    # /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/
+    ram_bact_mb: 24576
+    #262144
   shovill:
     minlen: 1
-    ram: 36
+    cpus: 24
+    ram: 48
     depth: 100
     modules: --noreadcorr
 
@@ -121,8 +139,8 @@ core_tool_configs:
 #########################
 
 ###Filled by the wrapper
+shell_input_files:
 shell_target_files:
-
 shell_tool_configs:
 #Configuration settings for each tool used by bact_shell snakefile
   amr_plusplus:
@@ -138,8 +156,8 @@ shell_tool_configs:
 #########################
 
 ###Filled by the wrapper
+tip_input_files:
 tip_target_files:
- 
 tip_tool_configs:
 #Configuration settings for each tool used by bact_tip snakefile
   agrvate_saureus:
@@ -148,7 +166,6 @@ tip_tool_configs:
   kaptive_kpneumoniae:
   kleborate_kpneumoniae:
   legsta_lpneumophila:
-  lissero_lmonocytogenes:
   lissero_lmonocytogenes:
   lpgenomics_lpneumophila:
   meningotype_nmeningitidis:
@@ -166,7 +183,6 @@ tip_tool_configs:
 #########################
 # bact_shape configuration
 #########################
+shape_input_files:
 shape_target_files:
-
 shape_tool_configs:
-  hamronization:

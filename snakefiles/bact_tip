@@ -2,8 +2,8 @@ localrules: all
 
 #imports
 import sys, pandas as pd
-sys.path.insert(0, '/mnt/home/jevgen01/nmrl/bact_analysis/NMRL_Bact_Assembly_Inhouse/subscripts/')
-from ardetype_utilities import type_contigs_api, write_json
+sys.path.insert(0, '/mnt/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
+from ardetype_utilities import Ardetype_housekeeper as hk
 
 #define sample_id_pattern wildcard and accessing sample_sheet
 sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
@@ -24,8 +24,8 @@ rule hicap_hinfluenzae:
     envmodules:
         'singularity'
     output:
-        config['output_directory']+'{sample_id_pattern}_hicap.tsv'
-    shell:
+        config['output_directory']+'{sample_id_pattern}_hi_hicap.tsv'
+    shell: #creating empty file just in case to make snakemake not stop if typing has failed for tool-specific reasons
         """
         mkdir -p ~/hicap/
         cp {input.contigs} ~/hicap/
@@ -33,7 +33,7 @@ rule hicap_hinfluenzae:
         if [ -f ~/hicap/{wildcards.sample_id_pattern}.tsv ]; then
             mv ~/hicap/{wildcards.sample_id_pattern}.tsv {output}
         else
-            touch {config[output_directory]}{wildcards.sample_id_pattern}_hicap.tsv
+            touch {config[output_directory]}{wildcards.sample_id_pattern}_hi_hicap.tsv
         fi
         rm -r ~/hicap/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/hicap/
@@ -47,7 +47,7 @@ rule meningotype_nmeningitidis:
     envmodules:
         'singularity'
     output:
-        config['output_directory']+'{sample_id_pattern}_meningtotype.tsv'
+        config['output_directory']+'{sample_id_pattern}_meningotype.tsv'
     shell:
         """
         mkdir -p ~/meningotype/
@@ -77,6 +77,7 @@ rule legsta_lpneumophila:
         rmdir --ignore-fail-on-non-empty ~/legsta/
         """
 
+
 rule lpgenomics_lpneumophila:
     input:
         read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
@@ -87,10 +88,11 @@ rule lpgenomics_lpneumophila:
         'singularity'
     output:
         config['output_directory']+"{sample_id_pattern}-predictResults.txt"
-    shell:
+    shell: #script is run from git repository; blank file is created to avoid snakemake failing if typing has failed; lock file is created for each sample under temp to indicate that it is being used
         """
         cd {input.repository}
         mkdir -p lpgenomics_temp/
+        chmod 775 lpgenomics_temp/
         cp {input.read_1} lpgenomics_temp/
         cp {input.read_2} lpgenomics_temp/
         singularity run {input.pigz_sif} -d lpgenomics_temp/$(basename {input.read_1}) lpgenomics_temp/$(basename {input.read_2})
@@ -117,7 +119,7 @@ rule kleborate_kpneumoniae:
         'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_kleborate.tsv'
-    shell:
+    shell: #generates blank output to avoid snakemake failing if typing goes wrong
         """
         mkdir -p ~/kleborate/
         cp {input.contigs} ~/kleborate/
@@ -127,11 +129,11 @@ rule kleborate_kpneumoniae:
         else
             touch {output}
         fi
-        rm -r ~/kleborate/{wildcards.sample_id_pattern}*
-        rmdir --ignore-fail-on-non-empty ~/kleborate/
+        rm -r ~/kleborate/{wildcards.sample_id_pattern}* 2> /dev/null
+        rmdir --ignore-fail-on-non-empty ~/kleborate/ 2> /dev/null
         """
 
-    
+
 rule agrvate_saureus:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
@@ -146,14 +148,15 @@ rule agrvate_saureus:
         cp {input.contigs} ~/agrvate/
         cd ~/agrvate/
         singularity run {input.sif_file} agrvate -t -f -i ~/agrvate/$(basename {input.contigs})
-        if [ -f ~/agrvate/{wildcards.sample_id_pattern}-results/{wildcards.sample_id_pattern}-summary.tab ]; then
-            mv ~/agrvate/{wildcards.sample_id_pattern}-results/{wildcards.sample_id_pattern}-summary.tab {output}
+        if [ -f ~/agrvate/{wildcards.sample_id_pattern}_contigs-results/{wildcards.sample_id_pattern}_contigs-summary.tab ]; then
+            mv ~/agrvate/{wildcards.sample_id_pattern}_contigs-results/{wildcards.sample_id_pattern}_contigs-summary.tab {output}
         else
             touch {output}
         fi
         rm -r ~/agrvate/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/agrvate/
         """
+
 
 rule spatyper_saureus:
     input:
@@ -177,7 +180,7 @@ rule spatyper_saureus:
         rmdir --ignore-fail-on-non-empty ~/spatyper/
         """
 
-    
+
 rule sccmec_saureus:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
@@ -195,6 +198,7 @@ rule sccmec_saureus:
         rm -r ~/sccmec/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/sccmec/
         """
+
 
 rule emmtyper_spyogenes:
     input:
@@ -268,6 +272,7 @@ rule sistr_senterica:
         rmdir --ignore-fail-on-non-empty ~/sistr/
         """
 
+
 rule lissero_lmonocytogenes:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
@@ -286,17 +291,176 @@ rule lissero_lmonocytogenes:
         rmdir --ignore-fail-on-non-empty ~/lissero/
         """
 
-rule pasteurmlst_lmonocytogenes:
+
+rule pasteur_pcr_serogroup_lmonocytogenes:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
-        config['output_directory']+'{sample_id_pattern}_pasteur_mlst.json'
-    run:
-        api_output = type_contigs_api(input.contigs, 'Listeria monocytogenes')
+        config['output_directory']+'{sample_id_pattern}_pasteur_pcr_serogroup.json'
+    run: #typing via network can be done from nodes other than login node as it does not require job submission, only internet connection
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = hk.type_contigs_api(filtered_contigs, 'Listeria monocytogenes')
         if isinstance(api_output, dict):
-            write_json(api_output, output[0])
+            hk.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
         else:
             os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
+
+
+rule pasteur_cgmlst_lmonocytogenes:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_lm_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = hk.type_contigs_api(filtered_contigs, 'Listeria monocytogenes', scheme_num=1)
+        if isinstance(api_output, dict):
+            hk.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
+        else:
+            os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)         
+
+
+rule pasteur_cgmlst_nmeningitidis:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = hk.type_contigs_api(filtered_contigs, 'Neisseria meningitidis')
+        if isinstance(api_output, dict):
+            hk.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
+        else:
+            os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
+
+
+rule pasteur_cgmlst_ngonorrhoeae:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_ng_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = hk.type_contigs_api(filtered_contigs, 'Neisseria gonorrhoeae', scheme_num=1)
+        if isinstance(api_output, dict):
+            hk.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
+        else:
+            os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
+
+
+rule pasteur_cgmlst_kpneumoniae:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_kp_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = hk.type_contigs_api(filtered_contigs, 'Klebsiella pneumoniae')
+        if isinstance(api_output, dict):
+            hk.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
+        else:
+            os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
+
+
+rule pasteur_cgmlst_saureus:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_sa_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = hk.type_contigs_api(filtered_contigs, 'Staphylococcus aureus')
+        if isinstance(api_output, dict):
+            hk.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
+        else:
+            os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
+
+
+rule pasteur_cgmlst_senterica:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_se_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = hk.type_contigs_api(filtered_contigs, 'Salmonella enterica')
+        if isinstance(api_output, dict):
+            hk.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
+        else:
+            os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
+
+
+rule pasteur_cgmlst_ecoli:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_ec_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = hk.type_contigs_api(filtered_contigs, 'Escherichia coli')
+        if isinstance(api_output, dict):
+            hk.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
+        else:
+            os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
+
+
+rule pasteur_cgmlst_spneumoniae:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_strp_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = hk.type_contigs_api(filtered_contigs, 'Streptococcus pneumoniae')
+        if isinstance(api_output, dict):
+            hk.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
+        else:
+            os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
+
+
+rule pasteur_cgmlst_abaumanii:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_ab_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        api_output = hk.type_contigs_api(filtered_contigs, 'Acinetobacter baumanii', scheme_num=1)
+        if isinstance(api_output, dict):
+            hk.write_json(api_output, output[0])
+            os.remove(filtered_contigs)
+        else:
+            os.system(f"touch {output[0]}")
+            os.remove(filtered_contigs)
+
 
 rule publmst_ngonorrhoe:
     input:
@@ -304,9 +468,22 @@ rule publmst_ngonorrhoe:
     output:
         config['output_directory']+'{sample_id_pattern}_ngmast.json'
     run:
-        api_output = type_contigs_api(input.contigs, 'Neisseria gonorrhoeae')
+        api_output = hk.type_contigs_api(input.contigs, 'Neisseria gonorrhoeae')
         if isinstance(api_output, dict):
-            write_json(api_output, output[0])
+            hk.write_json(api_output, output[0])
+        else:
+            os.system(f"touch {output[0]}")
+        
+
+rule pubmlst_abaumanii:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_ab_pumblst.json'
+    run:
+        api_output = hk.type_contigs_api(input.contigs, 'Acinetobacter baumanii')
+        if isinstance(api_output, dict):
+            hk.write_json(api_output, output[0])
         else:
             os.system(f"touch {output[0]}")
 
@@ -330,6 +507,27 @@ rule ectyper_ecoli:
         """
 
 
+rule stecfinder_ecoli:
+    input:
+        read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        read_2 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        sif_file = config['stecfinder_ecoli_sif']
+    output:
+        result = config['output_directory']+'{sample_id_pattern}_stecfinder.tsv'
+    envmodules:
+        'singularity'
+    shell:
+        """
+        mkdir -p ~/stecfinder/
+        cp {input.read_1} ~/stecfinder/
+        cp {input.read_2} ~/stecfinder/
+        singularity run {input.sif_file} stecfinder -r -i ~/stecfinder/{wildcards.sample_id_pattern}* --output ~/stecfinder/$(basename {output.result})
+        mv ~/stecfinder/$(basename {output.result}) {output.result}
+        rm -r ~/stecfinder/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/stecfinder/
+        """
+
+
 rule seroba_spneumoniae:
     input:
         read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
@@ -339,7 +537,7 @@ rule seroba_spneumoniae:
         config['output_directory']+'{sample_id_pattern}_seroba.tsv'
     envmodules:
         'singularity'
-    shell:
+    shell: #final condition may be redundant
         """
         mkdir -p ~/seroba/
         cp -r {config[seroba_spneumoniae_database]} ~/db_seroba_{wildcards.sample_id_pattern}

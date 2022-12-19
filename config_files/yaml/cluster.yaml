@@ -4,10 +4,9 @@
 
 __default__:
   jobname: "default"
-  nodes: 1
-  ppn: 1
+  procs: 1
   pmem: "1000mb"
-  walltime: "00:05:00"
+  walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -19,8 +18,7 @@ __default__:
 ##############
 quality_control:
   jobname: "ardetype.quality_control"
-  nodes: 1
-  ppn: 12
+  procs: 12
   pmem: "1500mb"
   walltime: "00:05:00"
   account: "rakus"
@@ -30,10 +28,9 @@ quality_control:
 
 filter_host:
   jobname: "ardetype.filter_host"
-  nodes: 1
-  ppn: 12
-  pmem: "21333mb"
-  walltime: "00:40:00"
+  procs: 43
+  pmem: "6000mb"
+  walltime: "00:18:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -41,10 +38,9 @@ filter_host:
 
 classify_reads:
   jobname: "ardetype.classify_reads"
-  nodes: 1
-  ppn: 12
-  pmem: "21333mb"
-  walltime: "00:40:00"
+  procs: 12
+  pmem: "1000mb"
+  walltime: "00:09:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -52,10 +48,9 @@ classify_reads:
 
 classify_contigs:
   jobname: "ardetype.classify_contigs"
-  nodes: 1
-  ppn: 12
-  pmem: "21333mb"
-  walltime: "00:40:00"
+  procs: 12
+  pmem: "1000mb"
+  walltime: "00:02:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -63,10 +58,9 @@ classify_contigs:
 
 contig_assembly:
   jobname: "ardetype.contig_assembly"
-  nodes: 1
-  ppn: 24
-  pmem: "1500mb"
-  walltime: "01:00:00"
+  procs: 24
+  pmem: "2000mb"
+  walltime: "00:40:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -78,10 +72,9 @@ contig_assembly:
 ##############
 res_gen_id:
   jobname: "ardetype.rgi_card"
-  nodes: 1
-  ppn: 4
+  procs: 4
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:07:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -89,10 +82,9 @@ res_gen_id:
 
 mlst:
   jobname: "ardetype.mlst"
-  nodes: 1
-  ppn: 6
+  procs: 6
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:03:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -100,22 +92,29 @@ mlst:
 
 resfinder:
   jobname: "ardetype.resfinder"
-  nodes: 1
-  ppn: 12
+  procs: 12
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:03:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
 
 
+amrfinderplus:
+  jobname: "ardetype.amrfinderplus"
+  procs: 12
+  pmem: "1000mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
 
 amrpp:
   jobname: "ardetype.amrpp"
-  nodes: 1
-  ppn: 25
+  procs: 25
   pmem: "1500mb"
-  walltime: "01:00:00"
+  walltime: "06:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -124,8 +123,7 @@ amrpp:
 
 mob_recon:
   jobname: "ardetype.mob_recon"
-  nodes: 1
-  ppn: 12
+  procs: 12
   pmem: "1000mb"
   walltime: "00:10:00"
   account: "rakus"
@@ -135,20 +133,18 @@ mob_recon:
 
 mob_typer:
   jobname: "ardetype.mob_typer"
-  nodes: 1
-  ppn: 12
+  procs: 12
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:05:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
 
 quast:
   jobname: "ardetype.quast"
-  nodes: 1
-  ppn: 5
+  procs: 5
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:00:30"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -159,10 +155,9 @@ quast:
 ##############
 hicap_hinfluenzae:
   jobname: "ardetype.hicap"
-  nodes: 1
-  ppn: 8
+  procs: 8
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:01:30"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -170,10 +165,9 @@ hicap_hinfluenzae:
 
 meningotype_nmeningitidis:
   jobname: "ardetype.meningotype"
-  nodes: 1
-  ppn: 8
+  procs: 8
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:01:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -181,8 +175,7 @@ meningotype_nmeningitidis:
 
 legsta_lpneumophila:
   jobname: "ardetype.legsta"
-  nodes: 1
-  ppn: 8
+  procs: 8
   pmem: "1000mb"
   walltime: "00:10:00"
   account: "rakus"
@@ -192,10 +185,9 @@ legsta_lpneumophila:
 
 lpgenomics_lpneumophila:
   jobname: "ardetype.lpgenomics"
-  nodes: 1
-  ppn: 24
+  procs: 24
   pmem: "1000mb"
-  walltime: "01:30:00"
+  walltime: "06:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -203,10 +195,9 @@ lpgenomics_lpneumophila:
 
 kleborate_kpneumoniae:
   jobname: "ardetype.kleborate"
-  nodes: 1
-  ppn: 8
+  procs: 8
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:04:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -214,10 +205,9 @@ kleborate_kpneumoniae:
 
 agrvate_saureus:
   jobname: "ardetype.agrvate"
-  nodes: 1
-  ppn: 8
+  procs: 3
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:01:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -225,10 +215,9 @@ agrvate_saureus:
 
 spatyper_saureus:
   jobname: "ardetype.spatyper"
-  nodes: 1
-  ppn: 8
+  procs: 8
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:01:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -236,10 +225,9 @@ spatyper_saureus:
 
 sccmec_saureus:
   jobname: "ardetype.sccmec"
-  nodes: 1
-  ppn: 10
+  procs: 10
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:01:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -247,8 +235,7 @@ sccmec_saureus:
 
 emmtyper_spyogenes:
   jobname: "ardetype.emmtyper"
-  nodes: 1
-  ppn: 8
+  procs: 8
   pmem: "1000mb"
   walltime: "00:10:00"
   account: "rakus"
@@ -258,8 +245,7 @@ emmtyper_spyogenes:
 
 seqsero_senterica:
   jobname: "ardetype.seqsero"
-  nodes: 1
-  ppn: 12
+  procs: 12
   pmem: "1500mb"
   walltime: "00:10:00"
   account: "rakus"
@@ -269,10 +255,9 @@ seqsero_senterica:
 
 sistr_senterica:
   jobname: "ardetype.sistr"
-  nodes: 1
-  ppn: 10
+  procs: 10
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:01:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -280,8 +265,7 @@ sistr_senterica:
 
 lissero_lmonocytogenes:
   jobname: "ardetype.lissero"
-  nodes: 1
-  ppn: 10
+  procs: 10
   pmem: "1000mb"
   walltime: "00:10:00"
   account: "rakus"
@@ -289,23 +273,39 @@ lissero_lmonocytogenes:
   jobout: "oe"
 
 
-pasteurmlst_lmonocytogenes:
-  jobname: "ardetype.pasteurmlst"
-  nodes: 1
-  ppn: 5
+pasteur_pcr_serogroup_lmonocytogenes:
+  jobname: "ardetype.pasteur_pcrsero"
+  procs: 5
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:15:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
 
+
+pasteur_cgmlst_lmonocytogenes:
+  jobname: "ardetype.pasteur_cgmlst"
+  procs: 5
+  pmem: "1000mb"
+  walltime: "00:15:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+pasteur_cgmlst_ecoli:
+  jobname: "ardetype.pasteur_cgmlst"
+  procs: 5
+  pmem: "1000mb"
+  walltime: "00:15:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
 
 publmst_ngonorrhoe:
   jobname: "ardetype.publmst"
-  nodes: 1
-  ppn: 5
+  procs: 5
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:15:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -313,10 +313,19 @@ publmst_ngonorrhoe:
 
 ectyper_ecoli:
   jobname: "ardetype.ectyper"
-  nodes: 1
-  ppn: 10
+  procs: 10
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:05:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+stecfinder_ecoli:
+  jobname: "ardetype.stecfinder"
+  procs: 12
+  pmem: "2000mb"
+  walltime: "00:08:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -324,10 +333,50 @@ ectyper_ecoli:
 
 seroba_spneumoniae:
   jobname: "ardetype.seroba"
-  nodes: 1
-  ppn: 20
+  procs: 20
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:06:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+
+##############
+# bact_shape
+##############
+extract_fastp:
+  jobname: "ardetype.extract_fastp"
+  procs: 3
+  pmem: "1000mb"
+  walltime: "00:01:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+extract_kraken2:
+  jobname: "ardetype.extract_kraken2"
+  procs: 3
+  pmem: "1000mb"
+  walltime: "00:01:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+extract_mlst:
+  jobname: "ardetype.extract_mlst"
+  procs: 3
+  pmem: "1000mb"
+  walltime: "00:01:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+extract_quast:
+  jobname: "ardetype.extract_quast"
+  procs: 3
+  pmem: "1000mb"
+  walltime: "00:01:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
