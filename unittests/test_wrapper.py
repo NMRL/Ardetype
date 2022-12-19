@@ -1,6 +1,4 @@
-import unittest, sys, os
-from pathlib import Path
-sys.path.insert(0, os.path.dirname(os.path.dirname(Path(__file__).absolute())))
+import unittest
 import subscripts.ardetype_utilities as au
 import subscripts.src.modules as modules
 from subscripts.ardetype_modules import Ardetype_module as am
