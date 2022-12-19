@@ -1,4 +1,4 @@
-from ardetype_utilities import Ardetype_housekeeper as hk
+from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 import os, warnings, sys
 from pathlib import Path
 sys.path.insert(0, os.path.dirname(Path(__file__).absolute()))
