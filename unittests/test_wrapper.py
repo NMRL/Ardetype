@@ -1,47 +1,14 @@
 import unittest
+import os
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 from subscripts.ardetype_modules import Ardetype_module as am
 
-
-
 class test_housekeeper(unittest.TestCase):
-    '''Testing the function using unittest library'''
-    def test_valid_input(self):
+    '''Testing methods of the housekeeper class'''
+    def test_asign_perm_rec(self):
         self.assertEqual(1, 1)
-'''
-add_fasta_samples
-add_module_targets
-add_output_dir
-add_taxonomy_column
-check_job_completion
-check_module_output
-clear_working_directory
-files_to_wd
-fill_input_dict
-fill_sample_sheet
-fill_target_list
-fold_output
-make_output_dir
-receive_sample_sheet
-remove_invalid_samples
-run_module
-run_module_cluster
-save_removed
-set_permissions
-submit_module_job
-supply_sample_sheet
-unfold_output
-write_module_config
-write_sample_sheet
-'''
 
-
-class test_module(unittest.TestCase):
-    '''Testing the function using unittest library'''
-    def test_valid_input(self):
-        self.assertEqual(1, 1)
 '''
-aggregate_job_logs
 asign_perm_rec
 check_file_existance
 check_file_multiplicity
@@ -72,6 +39,39 @@ write_yaml
 '''
 
 
+
+class test_module(unittest.TestCase):
+    '''Testing methods of the module class'''
+    def test_valid_input(self):
+        self.assertEqual(1, 1)
+
+
+'''
+add_fasta_samples
+add_module_targets
+add_output_dir
+add_taxonomy_column
+check_job_completion
+check_module_output
+clear_working_directory
+files_to_wd
+fill_input_dict
+fill_sample_sheet
+fill_target_list
+fold_output
+make_output_dir
+receive_sample_sheet
+remove_invalid_samples
+run_module
+run_module_cluster
+save_removed
+set_permissions
+submit_module_job
+supply_sample_sheet
+unfold_output
+write_module_config
+write_sample_sheet
+'''
 
 
 if __name__ == "__main__":

@@ -382,7 +382,19 @@ class Housekeeper:
         Given path_to_folder string, representing a path in linux-based system,
         recursively assigns permissions (775 by-default) to all files in the folder.
         '''
-        os.system(f"chmod {linux_permissions} -R {path_to_folder} 2> /dev/null")
+        for root, dirs, files in os.walk(path_to_folder):
+            for d in dirs:
+                try:
+                    os.chmod(os.path.join(root, d), int(linux_permissions, 8))
+                except PermissionError:
+                    continue
+            for f in files:
+                try:
+                    os.chmod(os.path.join(root, f), int(linux_permissions, 8))
+                except PermissionError:
+                    continue
+
+        # os.system(f"chmod {linux_permissions} -R {path_to_folder} 2> /dev/null")
 
     @staticmethod
     def extract_log_id(path_to_log:str, pattern_to_search:str="wildcards: sample_id_pattern=.*"):
