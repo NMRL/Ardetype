@@ -5,9 +5,9 @@ name: Unittest on push
 
 on:
   push:
-    branches:  [ ardetype, master ]
+    branches:  [ master ]
   pull_request:
-    branches: [ ardetype ]
+    branches: [ master ]
 
 permissions:
   contents: read
