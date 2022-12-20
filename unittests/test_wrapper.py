@@ -14,7 +14,7 @@ class test_housekeeper(unittest.TestCase):
             'Wrong nested iterable format':[[], '', '', AttributeError],
             'Wrong attribute format':[{}, ['XYZ'], '', TypeError]
         }
-        for i, case in enumerate(test):
+        for case in test:
             if 'format' not in case:
                 self.assertEqual(hk.edit_nested_dict(test[case][0],test[case][1],test[case][2]),test[case][3])
             else:
