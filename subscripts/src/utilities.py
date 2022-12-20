@@ -108,16 +108,15 @@ class Housekeeper:
         Given a nested dictionary (dict), a parameter (key) that needs to be changed,
         and a new value of the parameter, returns edited dictionary were the value of specified parameter is changed.
         (Adjusted from here: https://localcoder.org/recursively-replace-dictionary-values-with-matching-key)
-        Return 0 if key was found and value changed, 1 otherwise.
+        Return 0 if key was found and value changed, None otherwise.
         """
         if param in config_dict:
             config_dict[param] = new_value
             return 0 #this return is reached if key was found and value was changed
-        
-        for param, value in config_dict.items():
-            if isinstance(value, dict):
-                Housekeeper.edit_nested_dict(value, param, new_value)
-        return 1 #this return is reached only when all recursive calls are made and key is not found
+        else:
+            for value in config_dict.values():
+                if isinstance(value, dict):
+                    return Housekeeper.edit_nested_dict(value, param, new_value)
 
     @staticmethod
     def find_in_nested_dict(nested_dict:dict, key_sequence:list):
