@@ -1,12 +1,18 @@
 import unittest
-import os
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 from subscripts.ardetype_modules import Ardetype_module as am
 
 
-
 class test_housekeeper(unittest.TestCase):
     '''Testing methods of the housekeeper class'''
+
+    #############################################################
+    
+    # Tests for methods that do not interact with the file system
+    
+    #############################################################
+
+
     def test_edit_nested_dict(self):
         test = {
             'Valid case':[{'level_1':{'level_2':{'level_3':1}}}, 'level_3', 0, 0],
@@ -20,6 +26,23 @@ class test_housekeeper(unittest.TestCase):
             else:
                 with self.assertRaises(test[case][3]):
                     hk.edit_nested_dict(test[case][0],test[case][1],test[case][2])
+
+    
+    def test_find_in_nested_dict(self):
+        pass
+
+    def test_get_all_keys(self):
+        pass
+
+    def test_map_new_column(self):
+        pass
+
+    #############################################################
+    
+    # Tests for methods that DO interact with the file system
+    
+    #############################################################
+
 
 #Methods that operate on file system
 '''
@@ -45,14 +68,6 @@ write_json
 write_yaml
 '''
 
-#Methods that operate on python objects
-'''
-edit_nested_dict
-find_in_nested_dict
-get_all_keys
-map_new_column
-'''
-
 
 class test_module(unittest.TestCase):
     '''Testing methods of the module class'''
@@ -60,7 +75,26 @@ class test_module(unittest.TestCase):
         self.assertEqual(1, 1)
 
 
-#Methods that operate on file system
+    #############################################################
+    
+    # Tests for methods that do not interact with the file system
+    
+    #############################################################
+
+'''
+fill_input_dict
+fill_sample_sheet
+fill_target_list
+receive_sample_sheet
+remove_invalid_samples
+supply_sample_sheet
+'''
+    #############################################################
+    
+    # Tests for methods that DO interact with the file system
+    
+    #############################################################
+
 '''
 check_job_completion
 check_module_output
@@ -77,16 +111,7 @@ unfold_output
 write_module_config
 write_sample_sheet
 '''
-#Methods that operate on python objects
 
-'''
-fill_input_dict
-fill_sample_sheet
-fill_target_list
-receive_sample_sheet
-remove_invalid_samples
-supply_sample_sheet
-'''
 
 
 if __name__ == "__main__":
