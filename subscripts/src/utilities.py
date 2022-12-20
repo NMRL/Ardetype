@@ -3,7 +3,7 @@ from dateutil.relativedelta import relativedelta
 from Bio import SeqIO, Entrez
 from datetime import datetime
 from pathlib import Path
-
+from shutil import move
 
 class Housekeeper:
     '''Class to contain methods that perform general housekeeping tasks for the pipeline, 
@@ -394,8 +394,6 @@ class Housekeeper:
                 except PermissionError:
                     continue
 
-        # os.system(f"chmod {linux_permissions} -R {path_to_folder} 2> /dev/null")
-
     @staticmethod
     def extract_log_id(path_to_log:str, pattern_to_search:str="wildcards: sample_id_pattern=.*"):
         '''Given path to log file and pattern to search, returns the search result or False if search failed.'''
@@ -414,7 +412,7 @@ class Housekeeper:
         saves file in the same directory with pattern added to its name.
         '''
         new_path = f"{target_folder_path}/{pattern_to_add}_{os.path.basename(path_to_file)}"
-        os.system(f"mv {path_to_file} {new_path}")
+        move(path_to_file,new_path)
 
 
     @staticmethod 
