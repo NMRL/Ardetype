@@ -1,4 +1,4 @@
-import unittest
+import unittest, pandas as pd
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 from subscripts.ardetype_modules import Ardetype_module as am
 
@@ -11,7 +11,6 @@ class test_housekeeper(unittest.TestCase):
     # Tests for methods that do not interact with the file system
     
     #############################################################
-
 
     def test_edit_nested_dict(self):
         test = {
@@ -56,8 +55,63 @@ class test_housekeeper(unittest.TestCase):
                 with self.assertRaises(test[case][1]):
                     hk.get_all_keys(test[case][0])
 
+
+# Methods used to verify dataframe equality based on https://stackoverflow.com/questions/38839402/how-to-use-assert-frame-equal-in-unittest
+    def assertDataframeEqual(self, a, b, msg):
+        try:
+            pd.testing.assert_frame_equal(a, b)
+        except AssertionError as e:
+            raise self.failureException(msg) from e
+
+    def setUp(self):
+        self.addTypeEqualityFunc(pd.DataFrame, self.assertDataframeEqual)
+
+
     def test_map_new_column(self):
-        pass
+        test = {
+            'Valid case':[
+                pd.DataFrame.from_dict({'id':[i+1 for i in range(5)], 'var1':[10 for _ in range(5)], 'var2':[10-i-1 for i in range(5)]}),
+                dict(zip([i+1 for i in range(5)],[10+i+1 for i in range(5)])), 
+                'id', 
+                'var3',
+                pd.DataFrame.from_dict({'id':[i+1 for i in range(5)], 'var1':[10 for _ in range(5)], 'var2':[10-i-1 for i in range(5)], 'var3':[10+i+1 for i in range(5)]})
+                ],
+            'Exception|No key column found in dataframe':[
+                pd.DataFrame.from_dict({'id':[i+1 for i in range(5)], 'var1':[10 for _ in range(5)], 'var2':[10-i-1 for i in range(5)]}),
+                dict(zip([i+1 for i in range(5)],[10+i+1 for i in range(5)])),
+                'id_column',
+                'var3',
+                KeyError
+                ],
+            'Exception|No correspondance between ids used in new column and key column content':[
+                pd.DataFrame.from_dict({'id':[i+1 for i in range(5)], 'var1':[10 for _ in range(5)], 'var2':[10-i-1 for i in range(5)]}),
+                dict(zip([i+1 for i in range(6,10)],[10+i+1 for i in range(5)])),
+                'id', 
+                'var3',
+                KeyError
+                ],
+            'Exception|Non-dataframe ss_df input':[
+                {'id':[i+1 for i in range(5)], 'var1':[10 for _ in range(5)], 'var2':[10-i-1 for i in range(5)]},
+                dict(zip([i+1 for i in range(5)],[10+i+1 for i in range(5)])), 
+                'id', 
+                'var3',
+                TypeError
+                ],
+            'Exception|Non-dictionary info_dict input':[
+                pd.DataFrame.from_dict({'id':[i+1 for i in range(5)], 'var1':[10 for _ in range(5)], 'var2':[10-i-1 for i in range(5)]}),
+                tuple(zip([i+1 for i in range(5)],[10+i+1 for i in range(5)])), 
+                'id', 
+                'var3',
+                TypeError
+                ],
+        }
+
+        for case in test:
+            if 'Exception' not in case:
+                self.assertEqual(hk.map_new_column(test[case][0],test[case][1], test[case][2], test[case][3]), test[case][4])
+            else:
+                with self.assertRaises(test[case][4]):
+                    hk.map_new_column(test[case][0],test[case][1], test[case][2], test[case][3])
 
     #############################################################
     
@@ -89,6 +143,8 @@ validate_yaml
 write_json
 write_yaml
 '''
+
+
 
 
 class test_module(unittest.TestCase):
