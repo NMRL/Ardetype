@@ -3,10 +3,23 @@ import os
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 from subscripts.ardetype_modules import Ardetype_module as am
 
+
+
 class test_housekeeper(unittest.TestCase):
     '''Testing methods of the housekeeper class'''
-    def test_asign_perm_rec(self):
-        self.assertEqual(1, 1)
+    def test_edit_nested_dict(self):
+        test = {
+            'Valid case':[{'level_1':{'level_2':{'level_3':1}}}, 'level_3', 0, 0],
+            'Missing parameter':[{'level_1':{'level_2':{'level_3':1}}}, 'level_4', 0, None],
+            'Wrong nested iterable format':[[], '', '', AttributeError],
+            'Wrong attribute format':[{}, ['XYZ'], '', TypeError]
+        }
+        for i, case in enumerate(test):
+            if 'format' not in case:
+                self.assertEqual(hk.edit_nested_dict(test[case][0],test[case][1],test[case][2]),test[case][3])
+            else:
+                with self.assertRaises(test[case][3]):
+                    hk.edit_nested_dict(test[case][0],test[case][1],test[case][2])
 
 #Methods that operate on file system
 '''
