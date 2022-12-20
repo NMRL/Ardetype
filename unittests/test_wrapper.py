@@ -33,8 +33,8 @@ class test_housekeeper(unittest.TestCase):
             'Valid case':[{'level_1':{'level_2':{'level_3':1}, 'level_21':2}}, ['level_1','level_2', 'level_3'], 1],
             'Exception|Missing key in sequence':[{'level_1':{'level_2':{'level_3':1}}}, ['level_1','level_21'], LookupError],
             'Exception|Non-dict value accessed before the end of the key sequence':[{'level_1':{'level_2': 1}}, ['level_1','level_2', 'level_3'], LookupError],
-            'Exception|Wrong nested iterable format':[{}, 'XYZ', TypeError],
-            'Exception|Wrong sequence format':[[], ['XYZ'], TypeError]
+            'Exception|Wrong sequence format':[{}, 'XYZ', TypeError],
+            'Exception|Wrong nested iterable format':[[], ['XYZ'], TypeError]
         }
         for case in test:
             if 'Exception' not in case:
@@ -43,8 +43,18 @@ class test_housekeeper(unittest.TestCase):
                 with self.assertRaises(test[case][2]):
                     hk.find_in_nested_dict(test[case][0],test[case][1])
 
+
     def test_get_all_keys(self):
-        pass
+        test = {
+            'Valid case':[{'level_1':{'level_2':{'level_3':1}, 'level_21':2}}, {'level_1', 'level_2','level_3','level_21'}],
+            'Exception|Non-dictionary input':[{'level_1', 'level_2','level_3','level_21'}, AttributeError],
+        }
+        for case in test:
+            if 'Exception' not in case:
+                self.assertEqual(hk.get_all_keys(test[case][0]), test[case][1])
+            else:
+                with self.assertRaises(test[case][1]):
+                    hk.get_all_keys(test[case][0])
 
     def test_map_new_column(self):
         pass
