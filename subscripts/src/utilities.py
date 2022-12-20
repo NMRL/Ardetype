@@ -82,6 +82,11 @@ class Housekeeper:
         Given a pandas dataframe (object), a dictionary where each row in id_column is matched with information to be added (dict, values to be added as one column),
         and a new column name (str), returns a pandas dataframe (object), that contains new column where new information is added to the corresponding row of id_column.
         """
+        if not isinstance(ss_df, pd.DataFrame): raise TypeError('Expected pandas.DataFrame as ss_df')
+        elif not isinstance(info_dict, dict): raise TypeError('Expected dictionary as info_dict')
+        elif id_column not in ss_df.columns: raise KeyError('id_column should be present in ss_df')
+        elif not set(info_dict.keys()).intersection(set(ss_df[id_column])): raise KeyError('No overlap between ids in ss_df.id_column and info_dict')
+
         ss_df[new_col_name] = ss_df[id_column].map(info_dict)
         return ss_df
 
