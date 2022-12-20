@@ -10,3 +10,5 @@ test/*
 test_1/*
 ardetype_big_test/*
 ardetype_output/*
+unittests/__pycache__/*
+__pycache__/*

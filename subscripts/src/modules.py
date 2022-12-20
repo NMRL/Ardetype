@@ -1,8 +1,9 @@
 from .utilities import Housekeeper as hk
-import os, warnings, re, subprocess, shutil, time, pandas as pd
+import os, warnings, re, subprocess, shutil, time, pandas as pd, glob
 from itertools import chain
 from getpass import getuser
 from pathlib import Path
+from shutil import move
 
 #Suppressing pandas warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -204,7 +205,8 @@ class Module:
 
         try:
             self.job_id = subprocess.check_output(['qsub', '-F', f'{self.snakefile_path} {self.config_file_path}', f'{self.output_path}ardetype_jobscript.sh'])
-            os.system(f"rm {self.output_path}ardetype_jobscript.sh") #cleanup
+            os.remove(f'{self.output_path}ardetype_jobscript.sh') #cleanup
+            # os.system(f"rm {self.output_path}ardetype_jobscript.sh") #cleanup
         except subprocess.CalledProcessError as msg:
             raise Exception(f"{self.module_name} job submission error: {msg}")
         
@@ -226,7 +228,11 @@ class Module:
                 break
             time.sleep(sleeping_time) #if job is not complete - wait some more
         job_report = f"*o{self.job_id.split('.')[0]}" #job stdout/stderr file name (job report)
-        os.system(f"mv {job_report} {self.output_path}/{self.module_name}_{self.job_name}_{self.job_id}.txt") #move job report to the output folder, where the rest of related files are generated
+        try:
+            move(job_report, f'{self.output_path}/{self.module_name}_{self.job_name}_{self.job_id}.txt') #move job report to the output folder, where the rest of related files are generated
+        except:
+            print(f'Failed to move {job_report} to {self.output_path}')
+        #os.system(f"mv {job_report} {self.output_path}/{self.module_name}_{self.job_name}_{self.job_id}.txt") #move job report to the output folder, where the rest of related files are generated
 
 
     def run_module_cluster(self, job_count): #AKA do_not_mess_with_my_quatation_marks
@@ -268,7 +274,11 @@ class Module:
 
     def clear_working_directory(self):
         '''Moves all files from working directory to source directory stored in self.cleanup_dict.'''
-        for key in self.cleanup_dict: os.system(f"mv -n {key} {self.cleanup_dict[key]} 2> /dev/null")
+        for key in self.cleanup_dict: 
+            try:
+                move(key, self.cleanup_dict[key])
+            except:
+                continue
             
 
     def files_to_wd(self, redirect_filter:dict=None):
@@ -286,14 +296,23 @@ class Module:
                     for filter in redirect_filter: #starting to check filters against file names
                         if filter in source_path: #if match
                             map_dict[full_path] = redirect_filter[filter] #redirect
-                            os.system(f"mv -n {source_path} {os.path.abspath(self.config_file['work_dir'])} 2> /dev/null") #move to wd
+                            try:
+                                move(source_path, os.path.abspath(self.config_file['work_dir']))  #move to wd
+                            except:
+                                break #match found by moving file was not succesful
                             break #stop matching filters
                     if full_path not in map_dict: #if all filters are parsed but no match (if match happend, the full path will be in map_dict)
                         map_dict[full_path] = source_path #no redirection
-                        os.system(f"mv -n {source_path} {os.path.abspath(self.config_file['work_dir'])} 2> /dev/null")
+                        try:
+                            move(source_path, os.path.abspath(self.config_file['work_dir']))
+                        except:
+                            continue
                 else: #if no filtering required during function call
                     map_dict[full_path] = source_path
-                    os.system(f"mv -n {source_path} {os.path.abspath(self.config_file['work_dir'])} 2> /dev/null")
+                    try:
+                        move(source_path, os.path.abspath(self.config_file['work_dir']))
+                    except:
+                        continue
             self.cleanup_dict.update(map_dict) #add new entries to self.cleanup_dict - these are use to place files back to source/redirect location during cleanup
 
 
@@ -304,14 +323,23 @@ class Module:
         if not self.removed_samples.empty: full_sample_list += self.removed_samples['sample_id'].to_list()
         for sample_id in full_sample_list: 
             os.makedirs(f'{self.output_path}folded_{sample_id}_output', exist_ok=True)
-            os.system(f'mv -n {self.output_path}{sample_id}* {self.output_path}folded_{sample_id}_output/ 2> /dev/null')
+            for file in glob.glob(f'{self.output_path}{sample_id}*'): 
+                try:
+                    move(file, f'{self.output_path}folded_{sample_id}_output/')
+                except:
+                    continue
 
 
     def unfold_output(self):
         '''Moves target files outside of folders created by fold_output method in order to avoid having to move file out manually to do a rerun.'''
-        for id in self.sample_sheet['sample_id']: os.system(f'mv -n {self.output_path}folded_{id}_output/* {self.output_path} 2> /dev/null')
+        for id in self.sample_sheet['sample_id']: 
+            for file in glob.glob(f'{self.output_path}folded_{id}_output/*'):
+                try:
+                    move(file, self.output_path)
+                except:
+                    continue
 
     def set_permissions(self, permissions:str='775'):
         '''Given Linux permission string in numeric format, sets requested permissions (775 by default) recursively on the contents of self.output_path.'''
-        os.system(f"chmod -R {permissions} {self.output_path} 2> /dev/null")
+        hk.asign_perm_rec(self.output_path, permissions)
 

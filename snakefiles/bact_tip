@@ -1,9 +1,9 @@
 localrules: all
 
 #imports
-import sys, pandas as pd
-sys.path.insert(0, '/mnt/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
-from ardetype_utilities import Ardetype_housekeeper as hk
+import sys, pandas as pd, os
+sys.path.insert(0, os.path.abspath('./'))
+from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 
 #define sample_id_pattern wildcard and accessing sample_sheet
 sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
