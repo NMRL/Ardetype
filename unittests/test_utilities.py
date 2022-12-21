@@ -1,4 +1,5 @@
-import unittest, pandas as pd
+import unittest, pandas as pd, os, uuid
+from shutil import rmtree
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 
 
@@ -120,6 +121,23 @@ class test_housekeeper(unittest.TestCase):
     # Tests for methods that DO interact with the file system
     
     #############################################################
+
+
+    @staticmethod
+    def create_nested_dir_struct(branch_count:int=3, leave_count:int=3, file_count:int=1, root_name:str='top'):
+        '''
+        Method is used to create nested folders with files to be used in testing process.
+        The folder tree will have height of 3, which cannot be changed.
+        root_name defines the name of the top-most folder
+        branch_count - number of non-leave folders (containing subfolders)
+        leave_count - number of leave folders (with no subfolders)
+        file_count - number of files stored at each level
+        '''
+        for i in range(branch_count):
+            for j in range(leave_count):
+                os.makedirs(f'./{root_name}/middle{i+1}/bottom{j+1}', exist_ok=True)
+                for _ in range(file_count):
+                    open(f'./{root_name}/middle{i+1}/bottom{j+1}/{str(uuid.uuid4())}','a').close()
 
 
     def test_asign_perm_rec(self):
