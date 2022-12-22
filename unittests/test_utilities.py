@@ -9,6 +9,48 @@ class test_housekeeper(unittest.TestCase):
 
     #############################################################
     
+    # Pre-testing configurations
+    
+    #############################################################
+
+
+    # Methods used to verify dataframe equality based on https://stackoverflow.com/questions/38839402/how-to-use-assert-frame-equal-in-unittest
+    def assertDataframeEqual(self, a, b, msg):
+        try:
+            pd.testing.assert_frame_equal(a, b)
+        except AssertionError as e:
+            raise self.failureException(msg) from e
+
+
+    def setUp(self):
+        self.addTypeEqualityFunc(pd.DataFrame, self.assertDataframeEqual)
+
+
+    @staticmethod
+    def create_nested_dir_struct(branch_count:int=3, leave_count:int=3, file_count:int=1, root_name:str='top') -> list:
+        '''
+        Method is used to create nested folders with files to be used in testing process.
+        The folder tree will have height of 3, which cannot be changed.
+        root_name defines the name of the top-most folder
+        branch_count - number of non-leave folders (containing subfolders)
+        leave_count - number of leave folders (with no subfolders)
+        file_count - number of files stored at each level
+        
+        Returns list of all created files.
+        '''
+        file_list = []
+        for i in range(branch_count):
+            for j in range(leave_count):
+                os.makedirs(f'./{root_name}/middle{i+1}/bottom{j+1}', exist_ok=True)
+                for _ in range(file_count):
+                    open(f'./{root_name}/middle{i+1}/bottom{j+1}/{str(uuid.uuid4())}','a').close()
+                    file_list.append(f'./{root_name}/middle{i+1}/bottom{j+1}/{str(uuid.uuid4())}')
+        return file_list
+
+
+
+    #############################################################
+    
     # Tests for methods that do not interact with the file system
     
     #############################################################
@@ -56,17 +98,6 @@ class test_housekeeper(unittest.TestCase):
             else:
                 with self.assertRaises(test[case][1]):
                     hk.get_all_keys(test[case][0])
-
-
-# Methods used to verify dataframe equality based on https://stackoverflow.com/questions/38839402/how-to-use-assert-frame-equal-in-unittest
-    def assertDataframeEqual(self, a, b, msg):
-        try:
-            pd.testing.assert_frame_equal(a, b)
-        except AssertionError as e:
-            raise self.failureException(msg) from e
-
-    def setUp(self):
-        self.addTypeEqualityFunc(pd.DataFrame, self.assertDataframeEqual)
 
 
     def test_map_new_column(self):
@@ -123,34 +154,9 @@ class test_housekeeper(unittest.TestCase):
     #############################################################
 
 
-    @staticmethod
-    def create_nested_dir_struct(branch_count:int=3, leave_count:int=3, file_count:int=1, root_name:str='top'):
-        '''
-        Method is used to create nested folders with files to be used in testing process.
-        The folder tree will have height of 3, which cannot be changed.
-        root_name defines the name of the top-most folder
-        branch_count - number of non-leave folders (containing subfolders)
-        leave_count - number of leave folders (with no subfolders)
-        file_count - number of files stored at each level
-        '''
-        for i in range(branch_count):
-            for j in range(leave_count):
-                os.makedirs(f'./{root_name}/middle{i+1}/bottom{j+1}', exist_ok=True)
-                for _ in range(file_count):
-                    open(f'./{root_name}/middle{i+1}/bottom{j+1}/{str(uuid.uuid4())}','a').close()
-
-
     def test_asign_perm_rec(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+        file_list = test_housekeeper.create_nested_dir_struct()
+        pass
 
     
     def test_check_file_existance(self):
