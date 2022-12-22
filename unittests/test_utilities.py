@@ -169,20 +169,23 @@ class test_housekeeper(unittest.TestCase):
         self.assertFalse(all([oct(os.stat(dr).st_mode)[-3:]=='775' for dr in drs]))
         self.assertFalse(all([oct(os.stat(fl).st_mode)[-3:]=='775' for fl in fls]))
         
+        #Cleanup
         rmtree('./top/')
 
     
     def test_check_file_existance(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+
+        #Existing files
+        test_housekeeper.create_nested_dir_struct()
+        fls = []
+        for root, _, files in os.walk('./top/'):
+            [fls.append(os.path.join(root,fl)) for fl in files]
+        
+        self.assertTrue(all(list(hk.check_file_existance(fls).values())))
+
+        #Non-existing files
+        fls = [str(uuid.uuid4()) for _ in range(10)]
+        self.assertTrue(not any(hk.check_file_existance(fls).values()))
 
     
     def test_check_file_multiplicity(self):
