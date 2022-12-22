@@ -402,6 +402,7 @@ class Housekeeper:
                     os.chmod(os.path.join(root, f), int(linux_permissions, 8))
                 except PermissionError:
                     continue
+        os.chmod(path_to_folder, int(linux_permissions, 8))
 
     @staticmethod
     def extract_log_id(path_to_log:str, pattern_to_search:str="wildcards: sample_id_pattern=.*"):
