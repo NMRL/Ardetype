@@ -179,7 +179,6 @@ class test_housekeeper(unittest.TestCase):
 
     
     def test_check_file_existance(self):
-
         #Existing files
         test_housekeeper.create_nested_dir_struct()
         fls = []
@@ -191,19 +190,6 @@ class test_housekeeper(unittest.TestCase):
         #Non-existing files
         fls = [str(uuid.uuid4()) for _ in range(10)]
         self.assertTrue(not any(hk.check_file_existance(fls).values()))
-
-    
-    def test_check_file_multiplicity(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
 
     
     def test_create_sample_sheet(self):
