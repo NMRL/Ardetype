@@ -38,14 +38,11 @@ class test_housekeeper(unittest.TestCase):
         
         Returns list of all created files.
         '''
-        file_list = []
         for i in range(branch_count):
             for j in range(leave_count):
                 os.makedirs(f'./{root_name}/middle{i+1}/bottom{j+1}', exist_ok=True)
                 for _ in range(file_count):
                     open(f'./{root_name}/middle{i+1}/bottom{j+1}/{str(uuid.uuid4())}','a').close()
-                    file_list.append(f'./{root_name}/middle{i+1}/bottom{j+1}/{str(uuid.uuid4())}')
-        return file_list
 
 
 
@@ -155,8 +152,24 @@ class test_housekeeper(unittest.TestCase):
 
 
     def test_asign_perm_rec(self):
-        file_list = test_housekeeper.create_nested_dir_struct()
-        pass
+        test_housekeeper.create_nested_dir_struct()
+        drs, fls = [], []
+        for root, dirs, files in os.walk('./top/'):
+            [drs.append(os.path.join(root,dr)) for dr in dirs]
+            [fls.append(os.path.join(root,fl)) for fl in files]
+        drs.append('./top/')
+
+        #Default permissions
+        hk.asign_perm_rec('./top/')
+        self.assertTrue(all([oct(os.stat(dr).st_mode)[-3:]=='775' for dr in drs]))
+        self.assertTrue(all([oct(os.stat(fl).st_mode)[-3:]=='775' for fl in fls]))
+
+        #Different permissions
+        hk.asign_perm_rec('./top/','777')
+        self.assertFalse(all([oct(os.stat(dr).st_mode)[-3:]=='775' for dr in drs]))
+        self.assertFalse(all([oct(os.stat(fl).st_mode)[-3:]=='775' for fl in fls]))
+        
+        rmtree('./top/')
 
     
     def test_check_file_existance(self):
