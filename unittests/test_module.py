@@ -1,4 +1,4 @@
-import unittest, pandas as pd, os
+import unittest, pandas as pd, os, uuid
 from subscripts.ardetype_modules import Ardetype_module as am
 
 
