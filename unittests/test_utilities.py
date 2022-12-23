@@ -316,10 +316,6 @@ class test_housekeeper(unittest.TestCase):
             rmtree('./unittest_pipe_job_logs')
             raise e
         
-        
-        
-
-
 
     def test_filter_contigs_length(self):
         test = {
