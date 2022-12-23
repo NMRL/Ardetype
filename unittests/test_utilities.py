@@ -27,7 +27,7 @@ class test_housekeeper(unittest.TestCase):
 
 
     @staticmethod
-    def create_nested_dir_struct(branch_count:int=3, leave_count:int=3, file_count:int=1, root_name:str='top', file_multiplicity:int=1) -> list:
+    def create_nested_dir_struct(branch_count:int=3, leave_count:int=3, file_count:int=1, root_name:str='top', file_multiplicity:int=1, silent:bool=True) -> list:
         '''
         Method is used to create nested folders with files to be used in testing process.
         The folder tree will have height of 3, which cannot be changed.
@@ -36,19 +36,28 @@ class test_housekeeper(unittest.TestCase):
         leave_count - number of leave folders (with no subfolders)
         file_count - number of files stored at each level
         file_multiplicity - option to simulate files that have names that differ only by some suffix (e.g. paired fastq)
-        Returns list of all created files.
+        Returns list of sample ids and list of file path in order
         '''
+        sids = []
+        fpaths = []
         for i in range(branch_count):
             for j in range(leave_count):
                 os.makedirs(f'./{root_name}/middle{i+1}/bottom{j+1}', exist_ok=True)
                 for _ in range(file_count):
+                    fname = str(uuid.uuid4())
                     if file_multiplicity <=1:
-                        open(f'./{root_name}/middle{i+1}/bottom{j+1}/{str(uuid.uuid4())}','a').close()
+                        open(f'./{root_name}/middle{i+1}/bottom{j+1}/{fname}.fasta','a').close()
+                        if not silent:
+                            sids.append(fname)
+                            fpaths.append(f'./{root_name}/middle{i+1}/bottom{j+1}/{fname}.fasta')
                     else:
-                        fname = str(uuid.uuid4())
                         for k in range(file_multiplicity):
-                            open(f'./{root_name}/middle{i+1}/bottom{j+1}/{fname}_{k+1}','a').close()
-
+                            open(f'./{root_name}/middle{i+1}/bottom{j+1}/{fname}_R{k+1}_001.fastq.gz','a').close()
+                            if not silent:
+                                sids.append(fname)
+                                fpaths.append(f'./{root_name}/middle{i+1}/bottom{j+1}/{fname}_R{k+1}_001.fastq.gz')
+        if not silent:
+            return sids, fpaths
 
 
     #############################################################
@@ -191,18 +200,32 @@ class test_housekeeper(unittest.TestCase):
         fls = [str(uuid.uuid4()) for _ in range(10)]
         self.assertTrue(not any(hk.check_file_existance(fls).values()))
 
+        #Cleanup
+        rmtree('./top/')
+
     
     def test_create_sample_sheet(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+        #Fasta
+        sids, fpaths = test_housekeeper.create_nested_dir_struct(file_count=3, silent=False)
+        true = pd.DataFrame.from_dict({'sample_id':sids,'fa':fpaths})
+        result = hk.create_sample_sheet(fpaths,mode=1, generic_str='.fasta')
+        self.assertEqual(result, true)
+        rmtree('./top/')
+
+        #Fastq
+        sids, fpaths = test_housekeeper.create_nested_dir_struct(file_count=3, file_multiplicity=2, silent=False)
+        ids = []
+        rones, rtwos = [], []
+        for i,path in enumerate(fpaths):
+            if 'R1' in path:
+                rones.append(path)
+                ids.append(sids[i])
+            elif 'R2' in path:
+                rtwos.append(path)
+        true = pd.DataFrame.from_dict({'sample_id':ids,'fq1':rones,'fq2':rtwos}).sort_values(by='sample_id').reset_index(drop=True)
+        result = hk.create_sample_sheet(fpaths, generic_str=r'_R[1,2]_001.fastq.gz').sort_values(by='sample_id').reset_index(drop=True)
+        self.assertEqual(result, true)
+        rmtree('./top/')
 
     
     def test_extract_log_id(self):
