@@ -454,17 +454,20 @@ class Housekeeper:
 
 
     @staticmethod
-    def find_job_logs(pipeline_name:str, logs_to_skip:list=[]) -> list:
+    def find_job_logs(pipeline_name:str, logs_to_skip:list=[]):
         '''
-        Given pipeline name, returns list of paths (as str) to all log files that contain pipeline name as substring in file name.
+        Given pipeline name, returns generator of paths (as str) to all log files that contain pipeline name as substring in file name.
         Returns empty list if none is found. 
         '''
         path_to_log_dir=f"{os.path.dirname(Path(__file__).parents[1].absolute())}/{pipeline_name}_job_logs" #get path to log folder - static for default pipeline template
         processed_log_set = set(logs_to_skip) #to use set operations for speedup
         path_joiner = lambda p: os.path.join(path_to_log_dir, p) #helper function to apply map instead of using for loop
         full_log_set = set(map(path_joiner, os.listdir(path_to_log_dir))) #applying helper to all log paths to get set of full paths
-        unprocessed_logs = list(full_log_set - processed_log_set) #using set operations to keep only paths to unprocessed logs
-        return unprocessed_logs
+        fresh_logs = full_log_set - processed_log_set
+        if fresh_logs: 
+            return (path for path in fresh_logs), len(fresh_logs) #using set operations to keep only paths to unprocessed logs + generator to avoid loading all 
+        else:
+            return [], 0
                 
 
     @staticmethod
@@ -557,7 +560,7 @@ class Housekeeper:
         
 
     @staticmethod
-    def aggregate_job_logs(log_path_list:list, procs:int=24) -> pd.DataFrame:
+    def aggregate_job_logs(log_path_list:list, count:int, procs:int=24) -> pd.DataFrame:
         '''
         Given list of paths to log files of individual jobs of the pipeline, aggregates the log data in the pandas dataframe.
         Returns empty dataframe if input list is empty. Prints warnings for files that could not be properly parsed by the extractor function.
@@ -585,7 +588,7 @@ class Housekeeper:
                 except PermissionError:
                     pass
                 processed_count += 1 #counting processed files
-                Housekeeper.printProgressBar(processed_count, len(log_path_list), prefix = 'Progress:', suffix = 'Complete', length = 50)
+                Housekeeper.printProgressBar(processed_count, count, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
         return aggr_df
 
@@ -613,8 +616,8 @@ class Housekeeper:
             current_df = pd.read_csv(f'{job_log_dir}/{current_file}')
         else:
             current_df = None
-        path_list = Housekeeper.find_job_logs(pipeline_name, logs_to_skip=list(current_df['log_path']) if current_df is not None else [])
-        new_log_df = Housekeeper.aggregate_job_logs(log_path_list=path_list)
+        path_gen, log_count = Housekeeper.find_job_logs(pipeline_name, logs_to_skip=list(current_df['log_path']) if current_df is not None else [])
+        new_log_df = Housekeeper.aggregate_job_logs(log_path_list=path_gen, count=log_count)
         if current_df is not None and not new_log_df.empty: 
             updated_df = pd.concat([current_df, new_log_df], sort=False)
         elif new_log_df.empty:
