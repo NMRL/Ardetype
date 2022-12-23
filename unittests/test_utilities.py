@@ -284,20 +284,44 @@ class test_housekeeper(unittest.TestCase):
             raise e
 
 
-    def test_filter_contigs_length(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
-
-    
     def test_find_job_logs(self):
+        #Fresh logs present
+        os.mkdir('./unittest_pipe_job_logs', mode=int('775',8))
+        all_logs = []
+        logs_to_skip = []
+        for i in range(10):
+            fname = str(uuid.uuid4())
+            open(f'./unittest_pipe_job_logs/{fname}', 'a').close()
+            all_logs.append(os.path.abspath(f'./unittest_pipe_job_logs/{fname}'))
+            if i >=5: logs_to_skip.append(os.path.abspath(f'./unittest_pipe_job_logs/{fname}'))
+        unique = (path for path in set(set(all_logs) - set(logs_to_skip)))
+        count = 5
+
+        result, log_count = hk.find_job_logs('unittest_pipe', logs_to_skip)
+        try:
+            self.assertListEqual(sorted([e for e in unique]), sorted([e for e in result]))
+            self.assertEqual(count, log_count)
+        except AssertionError as e:
+            rmtree('./unittest_pipe_job_logs')
+            raise e
+
+
+        #Fresh logs missing
+        result, log_count = hk.find_job_logs('unittest_pipe', all_logs)
+        try:
+            self.assertListEqual([], result)
+            self.assertEqual(0, log_count)
+            rmtree('./unittest_pipe_job_logs')
+        except AssertionError as e:
+            rmtree('./unittest_pipe_job_logs')
+            raise e
+        
+        
+        
+
+
+
+    def test_filter_contigs_length(self):
         test = {
             'Valid input':[],
             'Exception|':[]
