@@ -60,6 +60,11 @@ class test_housekeeper(unittest.TestCase):
             return sids, fpaths
 
 
+    @staticmethod
+    def create_test_file(path_to_file:str='./unittest_file', content:str=""):
+        with open(path_to_file, 'w+') as f:
+            f.write(content)
+
     #############################################################
     
     # Tests for methods that do not interact with the file system
@@ -173,18 +178,22 @@ class test_housekeeper(unittest.TestCase):
             [fls.append(os.path.join(root,fl)) for fl in files]
         drs.append('./top/')
 
-        #Default permissions
-        hk.asign_perm_rec('./top/')
-        self.assertTrue(all([oct(os.stat(dr).st_mode)[-3:]=='775' for dr in drs]))
-        self.assertTrue(all([oct(os.stat(fl).st_mode)[-3:]=='775' for fl in fls]))
+        try:
+            #Default permissions
+            hk.asign_perm_rec('./top/')
+            self.assertTrue(all([oct(os.stat(dr).st_mode)[-3:]=='775' for dr in drs]))
+            self.assertTrue(all([oct(os.stat(fl).st_mode)[-3:]=='775' for fl in fls]))
 
-        #Different permissions
-        hk.asign_perm_rec('./top/','777')
-        self.assertFalse(all([oct(os.stat(dr).st_mode)[-3:]=='775' for dr in drs]))
-        self.assertFalse(all([oct(os.stat(fl).st_mode)[-3:]=='775' for fl in fls]))
-        
-        #Cleanup
-        rmtree('./top/')
+            #Different permissions
+            hk.asign_perm_rec('./top/','777')
+            self.assertFalse(all([oct(os.stat(dr).st_mode)[-3:]=='775' for dr in drs]))
+            self.assertFalse(all([oct(os.stat(fl).st_mode)[-3:]=='775' for fl in fls]))
+            
+            #Cleanup
+            rmtree('./top/')
+        except AssertionError as e:
+            rmtree('./top/')
+            raise e
 
     
     def test_check_file_existance(self):
@@ -193,15 +202,17 @@ class test_housekeeper(unittest.TestCase):
         fls = []
         for root, _, files in os.walk('./top/'):
             [fls.append(os.path.join(root,fl)) for fl in files]
-        
-        self.assertTrue(all(list(hk.check_file_existance(fls).values())))
+        try:
+            self.assertTrue(all(list(hk.check_file_existance(fls).values())))
+        except AssertionError as e:
+            rmtree('./top/')
+            raise e
 
         #Non-existing files
         fls = [str(uuid.uuid4()) for _ in range(10)]
         self.assertTrue(not any(hk.check_file_existance(fls).values()))
 
-        #Cleanup
-        rmtree('./top/')
+        
 
     
     def test_create_sample_sheet(self):
@@ -209,8 +220,12 @@ class test_housekeeper(unittest.TestCase):
         sids, fpaths = test_housekeeper.create_nested_dir_struct(file_count=3, silent=False)
         true = pd.DataFrame.from_dict({'sample_id':sids,'fa':fpaths})
         result = hk.create_sample_sheet(fpaths,mode=1, generic_str='.fasta')
-        self.assertEqual(result, true)
-        rmtree('./top/')
+        try:
+            self.assertEqual(result, true)
+            rmtree('./top/')
+        except AssertionError as e:
+            rmtree('./top/')
+            raise e
 
         #Fastq
         sids, fpaths = test_housekeeper.create_nested_dir_struct(file_count=3, file_multiplicity=2, silent=False)
@@ -224,23 +239,51 @@ class test_housekeeper(unittest.TestCase):
                 rtwos.append(path)
         true = pd.DataFrame.from_dict({'sample_id':ids,'fq1':rones,'fq2':rtwos}).sort_values(by='sample_id').reset_index(drop=True)
         result = hk.create_sample_sheet(fpaths, generic_str=r'_R[1,2]_001.fastq.gz').sort_values(by='sample_id').reset_index(drop=True)
-        self.assertEqual(result, true)
-        rmtree('./top/')
+        try:
+            self.assertEqual(result, true)
+            rmtree('./top/')
+        except AssertionError as e:
+            rmtree('./top/')
+            raise e
 
     
     def test_extract_log_id(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+        log_content = '''
+        Building DAG of jobs...
+        Falling back to greedy scheduler because no default solver is found for pulp (you have to install either coincbc or glpk).
+        Using shell: /usr/bin/bash
+        Provided cores: 4
+        Rules claiming more threads will be scaled down.
+        Select jobs to execute...
 
-    
+        [Fri Oct 28 15:10:13 2022]
+        rule amrfinderplus:
+            input: /mnt/home/groups/nmrl/image_files/hamronization_latest.sif, /home/groups/nmrl/image_files/ncbi-amrfinderplus_latest.sif, /mnt/home/groups/nmrl/bact_analysis/Ardetype/data/22_1_4_00420_S25_contigs.fasta
+            output: /mnt/home/groups/nmrl/bact_analysis/Ardetype/2022-08-31-nmrl-dnap-pe150-NDX550703_RUO_0047_AHLNV5BGXM/22_1_4_00420_S25_amrfinderplus.tab, /mnt/home/groups/nmrl/bact_analysis/Ardetype/2022-08-31-nmrl-dnap-pe150-NDX550703_RUO_0047_AHLNV5BGXM/22_1_4_00420_S25_amrfinderplus.hamr.tab
+            jobid: 0
+            wildcards: sample_id_pattern=22_1_4_00420_S25
+            resources: mem_mb=1107, disk_mb=1107, tmpdir=/tmp
+
+        [Fri Oct 28 15:11:11 2022]
+        Finished job 0.
+        1 of 1 steps (100%) done
+        '''
+
+        #Valid id in file
+        test_housekeeper.create_test_file(content=log_content)
+        self.assertEqual(hk.extract_log_id('./unittest_file'), '22_1_4_00420_S25')
+        os.remove('./unittest_file')
+
+        #No id in file
+        test_housekeeper.create_test_file(content='')
+        try:
+            self.assertFalse(hk.extract_log_id('./unittest_file'))
+            os.remove('./unittest_file')
+        except AssertionError as e:
+            os.remove('./unittest_file')
+            raise e
+
+
     def test_filter_contigs_length(self):
         test = {
             'Valid input':[],
