@@ -5,17 +5,19 @@ from datetime import datetime
 from pathlib import Path
 from shutil import move
 
+
 class Housekeeper:
     '''Class to contain methods that perform general housekeeping tasks for the pipeline, 
     like reading from/writing to certain file types, generating sample sheets etc.'''
 
     @staticmethod
-    def parse_folder(folder_pth_str:str, file_fmt_str:str, substr_lst:list=None, regstr_lst:list=None):
+    def parse_folder(folder_pth_str:str, file_fmt_str:str, substr_lst:list=None, regstr_lst:list=None) -> list:
         '''
         Given path to the folder (folder_pth_str) and file format (file_fmt_str), returns a list, 
         containing absolute paths to all files of specified format found in folder and subfolders,
         except for files that contain patterns to exclude (specified in regstr_lst) or substrings to exclude (specified in substr_lst).    
         '''
+        if not os.path.isdir(folder_pth_str): raise ValueError(f'Expected path to folder - {folder_pth_str} does not exist or refers to a file')
         name_series = pd.Series(dtype="str") #initialize pandas series to store path values
         for (root,_,files) in os.walk(folder_pth_str, topdown=True): #get list of file paths (from parent dir & subdir)
             new_files = pd.Series(files, dtype="str") #convert file names in new folder to pandas series
@@ -211,6 +213,7 @@ class Housekeeper:
         with open(json_path, "w+") as json_handle:
             json.dump(input_dict,json_handle)
 
+
     @staticmethod
     def install_snakemake():
         '''Function is used as a wrapper for bash script that checks if snakemake is installed and installs if absent.'''
@@ -290,6 +293,7 @@ class Housekeeper:
             return response.json()  #return dictionary with the response contents
         else: #if return code indicates failure
             return {"status_code": response.status_code, "text": response.text} #return dictionary with corresponding status code
+
 
     @staticmethod
     def filter_contigs_length(input_multifasta_path:str, output_multifasta_path:str, minlen:int=500):
