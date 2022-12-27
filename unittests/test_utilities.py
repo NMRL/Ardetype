@@ -318,11 +318,6 @@ class test_housekeeper(unittest.TestCase):
         
 
     def test_filter_contigs_length(self):
-        pass
-        #all contigs pass filter
-        #some contigs do not pass filter
-        #all contigs do not pass filter
-        #incorrect file format
         test = {
             'valid':
                 [
