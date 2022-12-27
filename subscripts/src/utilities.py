@@ -297,7 +297,13 @@ class Housekeeper:
         Given path to multifasta, filters out contigs that are less than specified length (default 500 bp)
         and saves filtered contigs to a new multifasta file.
         '''
-        SeqIO.write([record for record in SeqIO.parse(input_multifasta_path, "fasta") if len(record.seq) > minlen], output_multifasta_path, "fasta")
+        fasta = SeqIO.parse(input_multifasta_path, "fasta")
+        seqs = [record for record in fasta]
+
+        if seqs:
+            SeqIO.write([rec for rec in seqs if len(rec.seq) > minlen], output_multifasta_path, "fasta")
+        else:
+            raise ValueError('Input fasta parsing error')
 
         
     @staticmethod
