@@ -49,13 +49,13 @@ class test_housekeeper(unittest.TestCase):
                         open(f'./{root_name}/middle{i+1}/bottom{j+1}/{fname}.fasta','a').close()
                         if not silent:
                             sids.append(fname)
-                            fpaths.append(f'./{root_name}/middle{i+1}/bottom{j+1}/{fname}.fasta')
+                            fpaths.append(os.path.abspath(f'./{root_name}/middle{i+1}/bottom{j+1}/{fname}.fasta'))
                     else:
                         for k in range(file_multiplicity):
                             open(f'./{root_name}/middle{i+1}/bottom{j+1}/{fname}_R{k+1}_001.fastq.gz','a').close()
                             if not silent:
                                 sids.append(fname)
-                                fpaths.append(f'./{root_name}/middle{i+1}/bottom{j+1}/{fname}_R{k+1}_001.fastq.gz')
+                                fpaths.append(os.path.abspath(f'./{root_name}/middle{i+1}/bottom{j+1}/{fname}_R{k+1}_001.fastq.gz'))
         if not silent:
             return sids, fpaths
 
@@ -171,41 +171,43 @@ class test_housekeeper(unittest.TestCase):
 
 
     def test_asign_perm_rec(self):
-        test_housekeeper.create_nested_dir_struct()
+        root_name='./top/'
+        test_housekeeper.create_nested_dir_struct(root_name=root_name)
         drs, fls = [], []
-        for root, dirs, files in os.walk('./top/'):
+        for root, dirs, files in os.walk(root_name):
             [drs.append(os.path.join(root,dr)) for dr in dirs]
             [fls.append(os.path.join(root,fl)) for fl in files]
-        drs.append('./top/')
+        drs.append(root_name)
 
         try:
             #Default permissions
-            hk.asign_perm_rec('./top/')
+            hk.asign_perm_rec(root_name)
             self.assertTrue(all([oct(os.stat(dr).st_mode)[-3:]=='775' for dr in drs]))
             self.assertTrue(all([oct(os.stat(fl).st_mode)[-3:]=='775' for fl in fls]))
 
             #Different permissions
-            hk.asign_perm_rec('./top/','777')
+            hk.asign_perm_rec(root_name,'777')
             self.assertFalse(all([oct(os.stat(dr).st_mode)[-3:]=='775' for dr in drs]))
             self.assertFalse(all([oct(os.stat(fl).st_mode)[-3:]=='775' for fl in fls]))
             
             #Cleanup
-            rmtree('./top/')
+            rmtree(root_name)
         except AssertionError as e:
-            rmtree('./top/')
+            rmtree(root_name)
             raise e
 
     
     def test_check_file_existance(self):
+        root_name='./top/'
         #Existing files
-        test_housekeeper.create_nested_dir_struct()
+        test_housekeeper.create_nested_dir_struct(root_name=root_name)
         fls = []
-        for root, _, files in os.walk('./top/'):
+        for root, _, files in os.walk(root_name):
             [fls.append(os.path.join(root,fl)) for fl in files]
         try:
             self.assertTrue(all(list(hk.check_file_existance(fls).values())))
         except AssertionError as e:
-            rmtree('./top/')
+            rmtree(root_name)
             raise e
 
         #Non-existing files
@@ -216,19 +218,20 @@ class test_housekeeper(unittest.TestCase):
 
     
     def test_create_sample_sheet(self):
+        root_name = './top/'
         #Fasta
-        sids, fpaths = test_housekeeper.create_nested_dir_struct(file_count=3, silent=False)
+        sids, fpaths = test_housekeeper.create_nested_dir_struct(file_count=3, silent=False,root_name=root_name)
         true = pd.DataFrame.from_dict({'sample_id':sids,'fa':fpaths})
         result = hk.create_sample_sheet(fpaths,mode=1, generic_str='.fasta')
         try:
             self.assertEqual(result, true)
-            rmtree('./top/')
+            rmtree(root_name)
         except AssertionError as e:
-            rmtree('./top/')
+            rmtree(root_name)
             raise e
 
         #Fastq
-        sids, fpaths = test_housekeeper.create_nested_dir_struct(file_count=3, file_multiplicity=2, silent=False)
+        sids, fpaths = test_housekeeper.create_nested_dir_struct(file_count=3, file_multiplicity=2, silent=False,root_name=root_name)
         ids = []
         rones, rtwos = [], []
         for i,path in enumerate(fpaths):
@@ -241,13 +244,15 @@ class test_housekeeper(unittest.TestCase):
         result = hk.create_sample_sheet(fpaths, generic_str=r'_R[1,2]_001.fastq.gz').sort_values(by='sample_id').reset_index(drop=True)
         try:
             self.assertEqual(result, true)
-            rmtree('./top/')
+            rmtree(root_name)
         except AssertionError as e:
-            rmtree('./top/')
+            rmtree(root_name)
             raise e
 
     
     def test_extract_log_id(self):
+
+        fname = './unittest_file'
         log_content = '''
         Building DAG of jobs...
         Falling back to greedy scheduler because no default solver is found for pulp (you have to install either coincbc or glpk).
@@ -271,102 +276,166 @@ class test_housekeeper(unittest.TestCase):
 
         #Valid id in file
         test_housekeeper.create_test_file(content=log_content)
-        self.assertEqual(hk.extract_log_id('./unittest_file'), '22_1_4_00420_S25')
-        os.remove('./unittest_file')
+        self.assertEqual(hk.extract_log_id(fname), '22_1_4_00420_S25')
+        os.remove(fname)
 
         #No id in file
         test_housekeeper.create_test_file(content='')
         try:
-            self.assertFalse(hk.extract_log_id('./unittest_file'))
-            os.remove('./unittest_file')
+            self.assertFalse(hk.extract_log_id(fname))
+            os.remove(fname)
         except AssertionError as e:
-            os.remove('./unittest_file')
+            os.remove(fname)
             raise e
 
 
     def test_find_job_logs(self):
+
+        pipe_name = 'unittest_pipe'
+        job_logs = './unittest_pipe_job_logs'
+
         #Fresh logs present
-        os.mkdir('./unittest_pipe_job_logs', mode=int('775',8))
+        os.mkdir(job_logs, mode=int('775',8))
         all_logs = []
         logs_to_skip = []
         for i in range(10):
             fname = str(uuid.uuid4())
-            open(f'./unittest_pipe_job_logs/{fname}', 'a').close()
-            all_logs.append(os.path.abspath(f'./unittest_pipe_job_logs/{fname}'))
-            if i >=5: logs_to_skip.append(os.path.abspath(f'./unittest_pipe_job_logs/{fname}'))
+            open(f'{job_logs}/{fname}', 'a').close()
+            all_logs.append(os.path.abspath(f'{job_logs}/{fname}'))
+            if i >=5: logs_to_skip.append(os.path.abspath(f'{job_logs}/{fname}'))
         unique = (path for path in set(set(all_logs) - set(logs_to_skip)))
         count = 5
 
-        result, log_count = hk.find_job_logs('unittest_pipe', logs_to_skip)
+        result, log_count = hk.find_job_logs(pipe_name, logs_to_skip)
         try:
             self.assertListEqual(sorted([e for e in unique]), sorted([e for e in result]))
             self.assertEqual(count, log_count)
         except AssertionError as e:
-            rmtree('./unittest_pipe_job_logs')
+            rmtree(job_logs)
             raise e
 
 
         #Fresh logs missing
-        result, log_count = hk.find_job_logs('unittest_pipe', all_logs)
+        result, log_count = hk.find_job_logs(pipe_name, all_logs)
         try:
             self.assertListEqual([], result)
             self.assertEqual(0, log_count)
-            rmtree('./unittest_pipe_job_logs')
+            rmtree(job_logs)
         except AssertionError as e:
-            rmtree('./unittest_pipe_job_logs')
+            rmtree(job_logs)
             raise e
         
 
     def test_filter_contigs_length(self):
         test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
+            'valid':
+                [
+                    '>SEQ1\nGCGAATCGAC\n>SEQ2\nGTCGATTCGC',
+                    '>SEQ1\nGCGAATCGAC\n>SEQ2\nGTCGATTCGC\n'
+                ],
+            'valid_short':
+                [
+                    '>SEQ1\nGCGAATCGAC\n>SEQ2\nC',
+                    '>SEQ1\nGCGAATCGAC\n'
+                ],
+            'all_short':
+                [
+                    '>SEQ1\nG\n>SEQ2\nC\n',''],
+            'Exception|invalid_format':
+                ['ABCDEFGHIJKLMNOPQRSTUWXYZ']
+            }
         for case in test:
+            contigs = './contigs.fasta'
+            test_housekeeper.create_test_file(contigs, content=test[case][0])
             if 'Exception' not in case:
-                self.assertEqual(1,1)
+                try:
+                    hk.filter_contigs_length(contigs,contigs, minlen=2)
+                    with open(contigs, 'r+') as f:
+                        data = f.read()
+                    self.assertEqual(data, test[case][1])
+                except Exception as e:
+                    os.remove(contigs)
+                    raise e
             else:
-                with self.assertRaises(Exception):
-                    raise Exception
-
-    
-    def test_install_snakemake(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
-
-    
-    def test_name_job_logs(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+                try:
+                    hk.filter_contigs_length(contigs,contigs, minlen=2)
+                    os.remove(contigs)
+                    raise AssertionError('Succesful parsing of non-fasta file')
+                except Exception as e:
+                    os.remove(contigs)
+                    self.assertTrue(isinstance(e,ValueError))
 
     
     def test_parse_folder(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+
+        #not a folder
+        notfolder='./folder.file'
+        nonexfolder='./folder_name'
+        test_housekeeper.create_test_file(notfolder)
+        with self.assertRaises(ValueError):
+            hk.parse_folder(nonexfolder, '')
+        try:
+            hk.parse_folder(notfolder,'')
+            os.remove(notfolder)
+            raise AssertionError('Succesful parsing of file as folder')
+        except Exception as e:
+            os.remove(notfolder)
+            self.assertTrue(isinstance(e, ValueError))
+
+
+        #no files in folders
+        root_name='./top'
+        test_housekeeper.create_nested_dir_struct(file_count=0, root_name=root_name)
+
+        try:
+            self.assertFalse(hk.parse_folder(root_name,''))
+            rmtree(root_name)
+        except Exception as e:
+            rmtree(root_name)
+            raise e
+
+
+        #files found in folders, no substrings, no regex
+        _, apaths = test_housekeeper.create_nested_dir_struct(file_count=3,root_name=root_name, silent=False)
+        try:
+            self.assertListEqual(sorted(apaths),sorted(hk.parse_folder(root_name, file_fmt_str='fasta')))
+            rmtree(root_name)
+        except Exception as e:
+            rmtree(root_name)
+            raise e
+
+
+        #files in folders, substrings, no regex
+        test_housekeeper.create_nested_dir_struct(file_count=3,root_name=root_name)
+        _, fpaths = test_housekeeper.create_nested_dir_struct(file_count=3, file_multiplicity=2, root_name=root_name, silent=False)
+        try:
+            self.assertListEqual(sorted(fpaths), sorted(hk.parse_folder(root_name, file_fmt_str='', substr_lst=['.fasta'])))
+            rmtree(root_name)
+        except Exception as e:
+            rmtree(root_name)
+            raise e
+
+
+        #files in folders, regex, no substrings
+        _, apaths = test_housekeeper.create_nested_dir_struct(file_count=3,root_name=root_name, silent=False)
+        test_housekeeper.create_nested_dir_struct(file_count=3, file_multiplicity=2, root_name=root_name)
+        try:
+            self.assertListEqual(sorted(apaths), sorted(hk.parse_folder(root_name, file_fmt_str='', regstr_lst=['.*\.fastq\.gz'])))
+            rmtree(root_name)
+        except Exception as e:
+            rmtree(root_name)
+            raise e
+
+
+        #files in folders, regex, substrings
+        test_housekeeper.create_nested_dir_struct(file_count=3,root_name=root_name)
+        test_housekeeper.create_nested_dir_struct(file_count=3, file_multiplicity=2, root_name=root_name)
+        try:
+            self.assertFalse(hk.parse_folder(root_name, file_fmt_str='', substr_lst=['.fasta'], regstr_lst=['.*\.fastq\.gz']))
+            rmtree(root_name)
+        except Exception as e:
+            rmtree(root_name)
+            raise e
 
     
     def test_parse_snakemake_log(self):
@@ -496,8 +565,6 @@ class test_housekeeper(unittest.TestCase):
             else:
                 with self.assertRaises(Exception):
                     raise Exception
-
-
 
 
 if __name__ == "__main__":
