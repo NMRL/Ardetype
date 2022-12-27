@@ -318,16 +318,47 @@ class test_housekeeper(unittest.TestCase):
         
 
     def test_filter_contigs_length(self):
+        pass
+        #all contigs pass filter
+        #some contigs do not pass filter
+        #all contigs do not pass filter
+        #incorrect file format
         test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
+            'valid':
+                [
+                    '>SEQ1\nGCGAATCGAC\n>SEQ2\nGTCGATTCGC',
+                    '>SEQ1\nGCGAATCGAC\n>SEQ2\nGTCGATTCGC\n'
+                ],
+            'valid_short':
+                [
+                    '>SEQ1\nGCGAATCGAC\n>SEQ2\nC',
+                    '>SEQ1\nGCGAATCGAC\n'
+                ],
+            'all_short':
+                [
+                    '>SEQ1\nG\n>SEQ2\nC\n',''],
+            'Exception|invalid_format':
+                ['ABCDEFGHIJKLMNOPQRSTUWXYZ']
+            }
         for case in test:
+            test_housekeeper.create_test_file('./contigs.fasta', content=test[case][0])
             if 'Exception' not in case:
-                self.assertEqual(1,1)
+                try:
+                    hk.filter_contigs_length('./contigs.fasta','./contigs.fasta', minlen=2)
+                    with open('./contigs.fasta', 'r+') as f:
+                        data = f.read()
+                    self.assertEqual(data, test[case][1])
+                except Exception as e:
+                    os.remove('./contigs.fasta')
+                    raise e
             else:
-                with self.assertRaises(Exception):
-                    raise Exception
+                try:
+                    hk.filter_contigs_length('./contigs.fasta','./contigs.fasta', minlen=2)
+                except Exception as e:
+                    os.remove('./contigs.fasta')
+                    self.assertTrue(isinstance(e,ValueError))
+
+
 
     
     def test_install_snakemake(self):
