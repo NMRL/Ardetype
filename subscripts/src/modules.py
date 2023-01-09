@@ -249,7 +249,7 @@ class Module:
         shell_command = f'''
         eval "$(conda shell.bash hook)";
         conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake;
-        snakemake --reason --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.dry_run} --cluster {job_submission_command} {self.rule_graph} '''
+        snakemake --reason --nolock --restart-times 3 --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.dry_run} --cluster {job_submission_command} {self.rule_graph} '''
         try:
             subprocess.check_call(shell_command, shell=True)
         except subprocess.CalledProcessError as msg:
