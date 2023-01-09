@@ -1,6 +1,8 @@
 import unittest, pandas as pd, os, uuid
 from shutil import rmtree
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
+from dateutil.relativedelta import relativedelta
+from datetime import datetime
 
 
 class test_housekeeper(unittest.TestCase):
@@ -439,132 +441,212 @@ class test_housekeeper(unittest.TestCase):
 
     
     def test_parse_snakemake_log(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
+        log_name = './snakemake_log_test'
+        
+        test = {'valid':
+'''Building DAG of jobs...
+Falling back to greedy scheduler because no default solver is found for pulp (you have to install either coincbc or glpk).
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Select jobs to execute...
+
+[Fri Oct 28 15:10:13 2022]
+rule amrfinderplus:
+    input: 
+    output:
+    jobid: 0
+    wildcards: sample_id_pattern=test_name
+    resources: mem_mb=1107, disk_mb=1107, tmpdir=/tmp
+[Fri Oct 28 15:11:11 2022]
+Finished job 0.
+1 of 1 steps (100%) done''',
+
+        'Exception':
+'Not a log file',
+
+        'failed':
+'''Building DAG of jobs...
+Falling back to greedy scheduler because no default solver is found for pulp (you have to install either coincbc or glpk).
+Using shell: /usr/bin/bash
+Provided cores: 5
+Rules claiming more threads will be scaled down.
+Select jobs to execute...
+
+[Fri Oct 28 20:33:42 2022]
+rule amrpp:
+    input: a
+    output: b
+    jobid: 0
+    wildcards: sample_id_pattern=c
+    resources: mem_mb=1000, disk_mb=1000, tmpdir=/tmp
+
+[Fri Oct 28 20:34:08 2022]
+Error in rule amrpp:
+    jobid: 0
+    output: b
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+'''
         }
         for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+            test_housekeeper.create_test_file(log_name, content = test[case])
+            df = hk.parse_snakemake_log(log_name)
+            try:
+                if 'failed' in case:
+                    time_sec_total = relativedelta(datetime.fromtimestamp(os.path.getctime(log_name)), datetime.strptime('2022:10:28-20:33:42', '%Y:%m:%d-%H:%M:%S'))
+                    time_sec_total = time_sec_total.hours*3600+time_sec_total.minutes*60+time_sec_total.seconds
+                    self.assertEqual(df,pd.DataFrame({
+                        "log_path":[log_name],
+                        "job_name":['amrpp'],
+                        "sample_id":['c'],
+                        "is_failed":[1],
+                        "mem_gb_snakemake":[1000/1024],
+                        "cpu_snakemake":[1],
+                        "mem_gb_req":[37500/1024],
+                        "time_sec_req":[23400],
+                        "start_time":['2022:10:28-20:33:42'],
+                        "time_sec_total":[time_sec_total],
+                        "Eff":[round(100*time_sec_total/23400,2)]
+                    }))
+                elif 'valid' in case:
+
+                    self.assertEqual(df,pd.DataFrame({
+                        "log_path":[log_name],
+                        "job_name":['amrfinderplus'],
+                        "sample_id":['test_name'],
+                        "is_failed":[0],
+                        "mem_gb_snakemake":[1107/1024],
+                        "cpu_snakemake":[1],
+                        "mem_gb_req":[12000/1024],
+                        "time_sec_req":[1800],
+                        "start_time":['2022:10:28-15:10:13'],
+                        "time_sec_total":[58],
+                        "Eff":[round(100*58/1800,2)]
+                    }))
+                elif 'Exception' in case:
+                    self.assertEqual(df,pd.DataFrame())
+                os.remove(log_name)
+            except Exception as e:
+                os.remove(log_name)
+                raise e
 
 
-    def test_read_json_dict(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+    # def test_read_json_dict(self):
+    #     test = {
+    #         'Valid input':[],
+    #         'Exception|':[]
+    #     }
+    #     for case in test:
+    #         if 'Exception' not in case:
+    #             self.assertEqual(1,1)
+    #         else:
+    #             with self.assertRaises(Exception):
+    #                 raise Exception
 
 
-    def test_read_yaml(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+    # def test_read_yaml(self):
+    #     test = {
+    #         'Valid input':[],
+    #         'Exception|':[]
+    #     }
+    #     for case in test:
+    #         if 'Exception' not in case:
+    #             self.assertEqual(1,1)
+    #         else:
+    #             with self.assertRaises(Exception):
+    #                 raise Exception
 
 
-    def test_remove_old_files(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+    # def test_remove_old_files(self):
+    #     test = {
+    #         'Valid input':[],
+    #         'Exception|':[]
+    #     }
+    #     for case in test:
+    #         if 'Exception' not in case:
+    #             self.assertEqual(1,1)
+    #         else:
+    #             with self.assertRaises(Exception):
+    #                 raise Exception
 
-    def test_rename_file(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
-
-
-    def test_update_log_history(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+    # def test_rename_file(self):
+    #     test = {
+    #         'Valid input':[],
+    #         'Exception|':[]
+    #     }
+    #     for case in test:
+    #         if 'Exception' not in case:
+    #             self.assertEqual(1,1)
+    #         else:
+    #             with self.assertRaises(Exception):
+    #                 raise Exception
 
 
-    def test_update_log_summary(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+    # def test_update_log_history(self):
+    #     test = {
+    #         'Valid input':[],
+    #         'Exception|':[]
+    #     }
+    #     for case in test:
+    #         if 'Exception' not in case:
+    #             self.assertEqual(1,1)
+    #         else:
+    #             with self.assertRaises(Exception):
+    #                 raise Exception
 
 
-    def test_validate_yaml(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+    # def test_update_log_summary(self):
+    #     test = {
+    #         'Valid input':[],
+    #         'Exception|':[]
+    #     }
+    #     for case in test:
+    #         if 'Exception' not in case:
+    #             self.assertEqual(1,1)
+    #         else:
+    #             with self.assertRaises(Exception):
+    #                 raise Exception
 
 
-    def test_write_json(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+    # def test_validate_yaml(self):
+    #     test = {
+    #         'Valid input':[],
+    #         'Exception|':[]
+    #     }
+    #     for case in test:
+    #         if 'Exception' not in case:
+    #             self.assertEqual(1,1)
+    #         else:
+    #             with self.assertRaises(Exception):
+    #                 raise Exception
 
 
-    def test_write_yaml(self):
-        test = {
-            'Valid input':[],
-            'Exception|':[]
-        }
-        for case in test:
-            if 'Exception' not in case:
-                self.assertEqual(1,1)
-            else:
-                with self.assertRaises(Exception):
-                    raise Exception
+    # def test_write_json(self):
+    #     test = {
+    #         'Valid input':[],
+    #         'Exception|':[]
+    #     }
+    #     for case in test:
+    #         if 'Exception' not in case:
+    #             self.assertEqual(1,1)
+    #         else:
+    #             with self.assertRaises(Exception):
+    #                 raise Exception
+
+
+    # def test_write_yaml(self):
+    #     test = {
+    #         'Valid input':[],
+    #         'Exception|':[]
+    #     }
+    #     for case in test:
+    #         if 'Exception' not in case:
+    #             self.assertEqual(1,1)
+    #         else:
+    #             with self.assertRaises(Exception):
+    #                 raise Exception
 
 
 if __name__ == "__main__":
