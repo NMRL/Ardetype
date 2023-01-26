@@ -8,6 +8,7 @@ __default__:
   pmem: "1000mb"
   walltime: "00:30:00"
   account: "rakus"
+  feature: "rudens"
   queue: "batch"
   jobout: "oe"
   outdir: "ardetype_job_logs/"
@@ -20,7 +21,7 @@ quality_control:
   jobname: "ardetype.quality_control"
   procs: 12
   pmem: "1500mb"
-  walltime: "00:05:00"
+  walltime: "00:20:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -31,6 +32,7 @@ filter_host:
   procs: 43
   pmem: "6000mb"
   walltime: "00:18:00"
+  feature: "vasara"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -39,8 +41,9 @@ filter_host:
 classify_reads:
   jobname: "ardetype.classify_reads"
   procs: 12
-  pmem: "1000mb"
-  walltime: "00:09:00"
+  pmem: "22500mb"
+  walltime: "01:00:00"
+  feature: "vasara"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -49,8 +52,9 @@ classify_reads:
 classify_contigs:
   jobname: "ardetype.classify_contigs"
   procs: 12
-  pmem: "1000mb"
-  walltime: "00:02:00"
+  pmem: "22500mb"
+  walltime: "01:00:00"
+  feature: "vasara"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -60,7 +64,7 @@ contig_assembly:
   jobname: "ardetype.contig_assembly"
   procs: 24
   pmem: "2000mb"
-  walltime: "00:40:00"
+  walltime: "03:40:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
