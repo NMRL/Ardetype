@@ -125,8 +125,10 @@ rule amrfinderplus:
             """)
         else:
             os.system(f"""
-            touch {output[0]}
-            touch {output[1]}
+            module load singularity
+            singularity run {input.amrfinder_sif} amrfinder -n {input.contigs} > {output[0]}
+            singularity run {input.hamr_sif} amrfinderplus {output[0]} --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['amrfinderplus_version']} --reference_database_version {config['amrfinderplus_db_version']} > {output[1]}
+            touch {output[2]}
             """)
 
 #AMR++
