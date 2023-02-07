@@ -5,6 +5,8 @@ home_dir:
   /mnt/home/groups/nmrl/demo/CLUSTER/tools_global/workflows/Ardetype/
 work_dir:
   /mnt/home/groups/nmrl/demo/CLUSTER/tools_global/workflows/Ardetype/data/
+sample_template:
+  /mnt/home/jevgen01/nmrl/demo/CLUSTER/tools_global/workflows/Ardetype/config_files/json/sample_template.json
 
 
 ##############
