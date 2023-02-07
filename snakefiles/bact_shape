@@ -305,6 +305,8 @@ rule extract_spaTyper: #OK
         try:
             key = "_spatyper.txt"
             report = pd.read_csv(input[0], sep="\t")
+            if report.empty: raise pd.errors.EmptyDataError
+
             report = report[["Type"]]
             report.columns = ["type"]
             report["sample_id"] = wildcards.sample_id_pattern
@@ -312,13 +314,14 @@ rule extract_spaTyper: #OK
             report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
             report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
             report.to_csv(output[0], header=True, index=False)
+            
         except pd.errors.EmptyDataError:
             key = "_spatyper.txt"
             df = pd.DataFrame.from_dict({
                 'sample_id':[wildcards.sample_id_pattern], 
-                f"method|{specific_tool_map[key]['tool']}":[None],
-                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
-                f'type|{specific_tool_map[key]["tool"]}':[None]
+                f"method|{specific_tool_map[key]['tool']}":['NA'],
+                f"tool_reference|{specific_tool_map[key]['tool']}":['NA'],
+                f'type|{specific_tool_map[key]["tool"]}':['NA']
                 })
             df.to_csv(output[0],header=True, index=False)
 
