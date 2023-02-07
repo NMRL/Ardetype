@@ -2,16 +2,16 @@
 # Static tool & environment definition paths
 #########################
 home_dir:
-  /mnt/home/groups/nmrl/bact_analysis/Ardetype/
+  /mnt/home/groups/nmrl/demo/CLUSTER/tools_global/workflows/Ardetype/
 work_dir:
-  /mnt/home/groups/nmrl/bact_analysis/Ardetype/data/
+  /mnt/home/groups/nmrl/demo/CLUSTER/tools_global/workflows/Ardetype/data/
 
 
 ##############
 # bact_core
 ##############
 kraken2_env:
-  /home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/kraken2.yaml
+  /home/groups/nmrl/demo/CLUSTER/tools_global/workflows/Ardetype/config_files/conda_defs/kraken2.yaml
 krona_sif:
   /home/groups/nmrl/image_files/krona.sif
 shovill_sif:
@@ -33,11 +33,11 @@ mlst_quast_sif:
 mob_suite_sif:
   /mnt/home/groups/nmrl/image_files/mob_suite_3.0.3.sif
 nextflow_env:
-  /home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/nextflow.yaml
+  /home/groups/nmrl/demo/CLUSTER/tools_global/workflows/Ardetype/config_files/conda_defs/nextflow.yaml
 resfinder_sif:
   /mnt/home/groups/nmrl/image_files/resfinder.sif
 rgi_env:
-  /home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/rgi_env.yaml
+  /home/groups/nmrl/demo/CLUSTER/tools_global/workflows/Ardetype/config_files/conda_defs/rgi_env.yaml
 hamronization_sif:
   /mnt/home/groups/nmrl/image_files/hamronization_latest.sif
 resfinder_version: resfinder_v4.1.11
