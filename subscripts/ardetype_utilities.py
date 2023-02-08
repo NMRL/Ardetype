@@ -32,22 +32,118 @@ class Wrapper():
     '''Toolkit class to store wrapper methods for different tools'''
 
     #pipeline configuration saved at module import
-    _rule_dict_core = Ardetype_housekeeper.snakemake_to_dict('./snakefiles/bact_core')
+    _rule_dict_core  = Ardetype_housekeeper.snakemake_to_dict('./snakefiles/bact_core')
     _rule_dict_shell = Ardetype_housekeeper.snakemake_to_dict('./snakefiles/bact_shell')
-    _rule_dict_tip = Ardetype_housekeeper.snakemake_to_dict('./snakefiles/bact_tip')
-    _config_dict    = hk.read_yaml("./config_files/yaml/config_modular.yaml")
+    _rule_dict_tip   = Ardetype_housekeeper.snakemake_to_dict('./snakefiles/bact_tip')
+    _config_dict     = hk.read_yaml("./config_files/yaml/config_modular.yaml")
     
     #tool versions saved at module import
-    _fastp_version  = sp.run(
+    #bact_core
+    _fastp_version   = sp.run(
         f'module load singularity && singularity run {_config_dict["fastp_sif"]} fastp --version',
         stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip()
+    _kraken2_version = sp.run(
+        f'eval "$(conda shell.bash hook)" &&  conda activate kraken2 && kraken2 --version', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[0]
+    _shovill_version = sp.run(
+        f'module load singularity && singularity run {_config_dict["shovill_sif"]} shovill --version 2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip()
+   
+    #bact_shell
+    _mobsuite_version      = sp.run(
+        f'module load singularity && singularity run {_config_dict["mob_suite_sif"]} mob_recon --version ', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip()
+    _resfinder_version     = sp.run(
+        f'module load singularity && singularity run {_config_dict["resfinder_sif"]} run_resfinder.py --version 2> /dev/null',
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip()
+    _resfinderdb_version   = sp.run(
+        f'stat --format=%y {_config_dict["shell_tool_configs"]["resfinder"]["resfinder_db"]} 2> /dev/null',
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[0] 
+    _amrfinderplus_version = sp.run(
+        f'module load singularity && singularity run {_config_dict["amrfinderplus_sif"]} amrfinder --version 2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip()
+    _amrplusplus_version   = sp.run(
+        f'stat --format=%y {_config_dict["amrpp_repo"]} 2> /dev/null',
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[0]
+    _mlst7_version         = sp.run(
+        f'module load singularity && singularity run {_config_dict["mlst_quast_sif"]} mlst --version 2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip()
+    _rgi_version           = sp.run(
+        f'stat --format=%y {_config_dict["rgi_env"]} 2> /dev/null',
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[0]
+    _quast_version         = sp.run(
+        f'module load singularity && singularity run {_config_dict["mlst_quast_sif"]} quast --version 2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1]
 
-    #stdout extractor example
-    # _cutadapt_version  = sp.run(
-    #     f'module load singularity && singularity run {_config_dict["fastq_sif"]} cutadapt --version',
-    #     stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip()
+
+    #bact_tip
+    ##H.influenzae
+    _hicap_version = sp.run(
+        f'module load singularity && singularity run {_config_dict["hicap_hinfluenzae_sif"]} hicap --version 2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1]
     
-    #more extractors to be added
+    ##N.meningitidis
+    _meningotype_version = sp.run(
+        f'module load singularity && singularity run {_config_dict["meningotype_nmeningitidis_sif"]}meningotype --version 2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1]
+    
+    ##L.pneumophila
+    _legsta_version     = sp.run(
+        f'module load singularity && singularity run {_config_dict["legsta_lpneumophila_sif"]} legsta --version  2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1]
+    _lpgenomics_version = sp.run(
+        f'stat --format=%y {_config_dict["lpgenomics_repo"]} 2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[0]
+
+    ##K.pneumoniae
+    _kleborate_version = sp.run(
+        f'module load singularity && singularity run {_config_dict["kleborate_kpneumoniae_sif"]} kleborate --version  2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1]
+    
+    ##S.aureus
+    _agrvate_version  = sp.run(
+        f'module load singularity && singularity run {_config_dict["agrvate_saureus_sif"]} agrvate --version  2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1]
+    _spatyper_version = sp.run(
+        f'module load singularity && singularity run {_config_dict["spatyper_saureus_sif"]} spaTyper --version  2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1]
+    _sccmec_version   = sp.run(
+        f'module load singularity && singularity run {_config_dict["sccmec_saureus_sif"]} staphopia-sccmec --version  2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1]
+    
+    ##S.pyogenes
+    _emmtyper_version = sp.run(
+        f'module load singularity && singularity run {_config_dict["emmtyper_spyogenes_sif"]} emmtyper --version  2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1]
+    
+    ##S.enterica
+    _seqsero_version = sp.run(
+        f'module load singularity && singularity run {_config_dict["seqsero2_senterica_sif"]} SeqSero2_package.py --version 2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1]
+    _sistr_version   = sp.run(
+        f'module load singularity && singularity run {_config_dict["sistr_senterica_sif"]} sistr --version ', 
+        stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip()
+
+    ##L.monocytogenes
+    _lissero_version = sp.run(
+        f'module load singularity && singularity run {_config_dict["lissero_lmonocytogenes_sif"]} lissero --version 2> /dev/null ', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1]
+
+    ##E.coli
+    _ectyper_version    = sp.run(
+        f'module load singularity && singularity run {_config_dict["ectyper_ecoli_sif"]} ectyper --version 2> /dev/null ', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1]
+    _stecfinder_version = sp.run(
+        f'module load singularity && singularity run {_config_dict["stecfinder_ecoli_sif"]} stecfinder --version 2> /dev/null ', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1]
+    
+    ##S.pneumoniae
+    _seroba_version   = sp.run(
+        f'module load singularity && singularity run {_config_dict["seroba_spneumoniae_sif"]} seroba version 2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip()
+    _serobadb_version = sp.run(
+        f'stat --format=%y {_config_dict["seroba_spneumoniae_database"]} 2> /dev/null', 
+        stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[0]
     
 
     @staticmethod
