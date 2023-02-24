@@ -5,12 +5,12 @@ import os,  time
 
 
 ###STATIC VARIABLES
-folder_to_parse = '/mnt/home/groups/nmrl/bact_analysis/analysis_history/ardetype/'
+folder_to_parse = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/analysis_history/ardetype/'
 pipeline_name = 'ardetype'
 id_column_name = 'sample_id'
-analysis_batch_map_path = '/mnt/home/groups/nmrl/bact_analysis/analysis_history/ardetype/ardetype_batch_map.csv'
-output_folder_path = '/mnt/home/groups/nmrl/bact_analysis/bact_output/*/'
-temp_target_file = "/mnt/home/groups/nmrl/bact_analysis/analysis_history/ardetype/temp_list.txt"
+analysis_batch_map_path = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/analysis_history/ardetype/ardetype_batch_map.csv'
+output_folder_path = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/bact_output/*/'
+temp_target_file = "/mnt/beegfs2/home/groups/nmrl/bact_analysis/analysis_history/ardetype/temp_list.txt"
 ardetype_found_tag = "ardetype*/folded_*_output"
 
 

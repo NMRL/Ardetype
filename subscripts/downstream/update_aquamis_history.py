@@ -5,12 +5,12 @@ import os,  time
 
 
 ###STATIC VARIABLES
-folder_to_parse = '/mnt/home/groups/nmrl/bact_analysis/analysis_history/aquamis/'
+folder_to_parse = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/analysis_history/aquamis/'
 pipeline_name = 'aquamis'
 id_column_name = 'Sample_Name'
-analysis_batch_map_path = '/mnt/home/groups/nmrl/bact_analysis/analysis_history/aquamis/aquamis_batch_map.csv'
-output_folder_path = '/mnt/home/groups/nmrl/bact_analysis/bact_output/*/'
-temp_target_file = "/mnt/home/groups/nmrl/bact_analysis/analysis_history/aquamis/temp_list.txt"
+analysis_batch_map_path = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/analysis_history/aquamis/aquamis_batch_map.csv'
+output_folder_path = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/bact_output/*/'
+temp_target_file = "/mnt/beegfs2/home/groups/nmrl/bact_analysis/analysis_history/aquamis/temp_list.txt"
 aquamis_found_tag = "aquamis*/confindr/*/confindr_log.txt"
 
 

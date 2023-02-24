@@ -2,44 +2,44 @@
 # Static tool & environment definition paths
 #########################
 home_dir:
-  /mnt/home/groups/nmrl/bact_analysis/Ardetype/
+  /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/
 work_dir:
-  /mnt/home/groups/nmrl/bact_analysis/Ardetype/data/
+  /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/data/
 
 
 ##############
 # bact_core
 ##############
 kraken2_env:
-  /home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/kraken2.yaml
+  /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/kraken2.yaml
 krona_sif:
-  /home/groups/nmrl/image_files/krona.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/krona.sif
 shovill_sif:
-  /home/groups/nmrl/image_files/shovill.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/shovill.sif
 fastp_sif:
-  /home/groups/nmrl/image_files/fastp.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/fastp.sif
 
 ##############
 # bact_shell
 ##############
 amrfinderplus_sif:
-  /home/groups/nmrl/image_files/ncbi-amrfinderplus_latest.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/ncbi-amrfinderplus_latest.sif
 amrpp_repo:
-  /mnt/home/groups/nmrl/bact_analysis/amrplusplus_v2/
+  /mnt/beegfs2/home/groups/nmrl/bact_analysis/amrplusplus_v2/
 hamronization_sif:
-  /home/groups/nmrl/image_files/hamronization_latest.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/hamronization_latest.sif
 mlst_quast_sif:
-  /home/groups/nmrl/image_files/mlst_quast.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/mlst_quast.sif
 mob_suite_sif:
-  /mnt/home/groups/nmrl/image_files/mob_suite_3.0.3.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/mob_suite_3.0.3.sif
 nextflow_env:
-  /home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/nextflow.yaml
+  /mnt/home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/nextflow.yaml
 resfinder_sif:
   /mnt/home/groups/nmrl/image_files/resfinder.sif
 rgi_env:
-  /home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/rgi_env.yaml
+  /mnt/home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/rgi_env.yaml
 hamronization_sif:
-  /mnt/home/groups/nmrl/image_files/hamronization_latest.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/hamronization_latest.sif
 resfinder_version: resfinder_v4.1.11
 resfinder_db_version: resfinder_2022-05-11
 rgi_version: rgi_v5.2.1
@@ -56,39 +56,39 @@ amrfinderplus_db_version: 2022-10-11.2
 # bact_tip
 ##############
 agrvate_saureus_sif:
-  /home/groups/nmrl/image_files/agrvate_saureus.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/agrvate_saureus.sif
 emmtyper_spyogenes_sif:
-  /home/groups/nmrl/image_files/emmtyper_spyogenes.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/emmtyper_spyogenes.sif
 hicap_hinfluenzae_sif:
-  /home/groups/nmrl/image_files/hicap_hinfluenzae.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/hicap_hinfluenzae.sif
 kleborate_kpneumoniae_sif:
-  /home/groups/nmrl/image_files/kleborate_kpneumoniae.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/kleborate_kpneumoniae.sif
 legsta_lpneumophila_sif:
-  /home/groups/nmrl/image_files/legsta_lpneumophila.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/legsta_lpneumophila.sif
 lissero_lmonocytogenes_sif:
-  /home/groups/nmrl/image_files/lissero_lmonocytogenes.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/lissero_lmonocytogenes.sif
 lpgenomics_repo:
-  /mnt/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/
+  /mnt/beegfs2/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/
 meningotype_nmeningitidis_sif:
-  /home/groups/nmrl/image_files/meningotype_nmeningitidis.sif  
+  /mnt/beegfs2/home/groups/nmrl/image_files/meningotype_nmeningitidis.sif  
 sccmec_saureus_sif:
-  /home/groups/nmrl/image_files/sccmec_saureus.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/sccmec_saureus.sif
 seqsero2_senterica_sif:
-  /home/groups/nmrl/image_files/seqsero2_senterica.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/seqsero2_senterica.sif
 sistr_senterica_sif:
-  /home/groups/nmrl/image_files/sistr_senterica.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/sistr_senterica.sif
 spatyper_saureus_sif:
-  /home/groups/nmrl/image_files/spatyper_saureus.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/spatyper_saureus.sif
 ectyper_ecoli_sif:
-  /home/groups/nmrl/image_files/ectyper_ecoli.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/ectyper_ecoli.sif
 seroba_spneumoniae_sif:
-  /home/groups/nmrl/image_files/seroba_spneumoniae.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/seroba_spneumoniae.sif
 seroba_spneumoniae_database:
-  /home/groups/nmrl/db/db-seroba
+  /mnt/beegfs2/home/groups/nmrl/db/db-seroba
 pigz_sif:
-  /mnt/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/image_files/pigz_latest.sif
+  /mnt/beegfs2/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/image_files/pigz_latest.sif
 stecfinder_ecoli_sif:
-  /home/groups/nmrl/image_files/stecfinder_ecoli.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/stecfinder_ecoli.sif
 
 
 
@@ -96,7 +96,7 @@ stecfinder_ecoli_sif:
 # bact_shape
 ##############
 multiqc_sif:
-  /home/groups/nmrl/image_files/fastq_screen.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/fastq_screen.sif
 
 
 #########################
@@ -120,11 +120,11 @@ output_directory:
 core_tool_configs:
   kraken2:
     threads: 12
-    human_db: /mnt/home/groups/nmrl/db/db-kraken2/human_reference/
+    human_db: /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/human_reference/
     ram_host_mb: 262144
-    bact_db: /mnt/home/groups/nmrl/bact_analysis/AQUAMIS/reference_db/kraken
-    # /mnt/home/groups/nmrl/db/db-kraken2/full_ref_bafp/
-    # /mnt/home/groups/nmrl/bact_analysis/AQUAMIS/reference_db/kraken
+    bact_db: /mnt/beegfs2/home/groups/nmrl/bact_analysis/AQUAMIS/reference_db/kraken
+    # /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/full_ref_bafp/
+    # /mnt/beegfs2/home/groups/nmrl/bact_analysis/AQUAMIS/reference_db/kraken
     # 
     ram_bact_mb: 262144
     #24576
@@ -150,7 +150,7 @@ shell_tool_configs:
   resfinder:
     length: 0.6
     coverage: 0.9
-    resfinder_db: /mnt/home/groups/nmrl/db/db-resfinder/
+    resfinder_db: /mnt/beegfs2/home/groups/nmrl/db/db-resfinder/
 
 
 #########################

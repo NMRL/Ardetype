@@ -36,7 +36,7 @@ rule all:
         #Create single tsv report from all resistance inference tools
         os.system(f'''
         module load singularity
-        singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).tsv" -t tsv {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_amrpp)} {" ".join(input.hamr_rgi)} {" ".join(input.hamr_amrfp)}
+        singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).tsv" -t tsv {" ".join(input.hamr_amrpp)} {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_rgi)} {" ".join(input.hamr_amrfp)}
         echo bact_shell finished
         ''')
         #Change amrpp results to show them correctly in the report (unchanged version displays separate entry for amrpp for each sample (e.g. one row for resfinder & rgi and one row for amrpp for each sample))
@@ -99,7 +99,12 @@ rule resfinder:
         cp {input.contigs} ~/ 
         singularity run {input.resfinder_sif} run_resfinder.py -ifa ~/$CONTIG_FILENAME -acq -l {config[shell_tool_configs][resfinder][length]} -t {config[shell_tool_configs][resfinder][coverage]} -db_res  ~/db-resfinder_{wildcards.sample_id_pattern}/db_resfinder -o ~/resfinder_output_{wildcards.sample_id_pattern}
         singularity run {input.hamr_sif} resfinder4 ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config[resfinder_version]} --reference_database_version {config[resfinder_db_version]} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab
-        mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/* {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/
+        mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/pheno_table.txt {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/
+        mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Hit_in_genome_seq.fsa {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/
+        mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Resistance_gene_seq.fsa {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/
+        mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/
+        mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results.txt {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/
+        mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/
         rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$CONTIG_FILENAME
         """
 

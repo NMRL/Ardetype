@@ -15,10 +15,10 @@ import os, pandas as pd, sys, argparse, glob
 
 
 ###STATIC VARIABLES
-ardetype_history_path = '/mnt/home/groups/nmrl/bact_analysis/analysis_history/ardetype/'
+ardetype_history_path = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/analysis_history/ardetype/'
 ardetype_file_tag = 'ardetype_history_file'
-bact_output_path = '/mnt/home/groups/nmrl/bact_analysis/bact_output/'
-taxonomy_parent_path = '/mnt/home/groups/nmrl/bact_analysis/bact_output/by_taxonomy/'
+bact_output_path = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/bact_output/'
+taxonomy_parent_path = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/bact_output/by_taxonomy/'
 
 
 ###HELPER FUNCTIONS
