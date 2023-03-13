@@ -26,7 +26,8 @@ rule all:
         hamr_resfinder = expand(config['output_directory']+'{sample_id}_resfinder/{sample_id}_resfinder.hamr.tab', sample_id=sample_sheet['sample_id']),
         hamr_amrpp = expand(config['output_directory']+"{sample_id}_amrpp/{sample_id}_amrplusplus.hamr.tab", sample_id=sample_sheet['sample_id']),
         hamr_rgi = expand(config['output_directory']+'{sample_id}.rgi.hamr.tab', sample_id=sample_sheet['sample_id']),
-        hamr_amrfp = expand(config['output_directory']+'{sample_id}_amrfinderplus.hamr.tab', sample_id=sample_sheet['sample_id'])
+        hamr_amrfp = expand(config['output_directory']+'{sample_id}_amrfinderplus.hamr.tab', sample_id=sample_sheet['sample_id']),
+        hamr_resfinder_pheno = expand(config['output_directory']+'{sample_id}_resfinder_pheno.txt', sample_id=sample_sheet['sample_id'])
     run:
         #Use only non-empty files (hamronization fails otherwise)
         input.hamr_resfinder = [ path for path in input.hamr_resfinder if not os.path.getsize(path) == 0]
@@ -39,6 +40,24 @@ rule all:
         singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).tsv" -t tsv {" ".join(input.hamr_amrpp)} {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_rgi)} {" ".join(input.hamr_amrfp)}
         echo bact_shell finished
         ''')
+
+        #Aggregating resfinder phenotype info
+        # create empty dataframe
+        df = pd.DataFrame()
+        # loop through all files in extract folder
+        for path in input.hamr_resfinder_pheno:
+            # read in file as dataframe
+            df_temp = pd.read_csv(path, skiprows=16,sep="\t")
+            # add column with filename but remove "_pheno_table.txt" from filename and move column to first position
+            df_temp.insert(0, "sample_id", os.path.basename(path).replace('_resfinder_pheno.txt',''))
+            # append to empty dataframe
+            df = df.append(df_temp)
+        # remove all rows that contain "No resistance" in "WGS-predicted phenotype" column
+        df = df[df["WGS-predicted phenotype"] != "No resistance"]
+        # save dataframe as csv
+        df.to_csv(f"{config['output_directory']}resfinder_pheno_table_gathered.csv", header=True, index=False)
+
+
         #Change amrpp results to show them correctly in the report (unchanged version displays separate entry for amrpp for each sample (e.g. one row for resfinder & rgi and one row for amrpp for each sample))
         # with open(f"{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).html", "r+") as report:
         #     contents = report.read()
@@ -108,6 +127,15 @@ rule resfinder:
         rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$CONTIG_FILENAME
         """
 
+rule resfinder_pheno:
+    input:
+        config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt"
+    output:
+        config['output_directory']+'{sample_id_pattern}_resfinder_pheno.txt'
+    shell:
+        '''
+        cp {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/pheno_table.txt {config[output_directory]}{wildcards.sample_id_pattern}_resfinder_pheno.txt 
+        '''
 
 #AMRFINDER+
 rule amrfinderplus:
