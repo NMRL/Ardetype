@@ -1,0 +1,18 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%environment
+	export PATH=/opt/conda/envs/cgmlstfinder/bin:$PATH
+
+%files
+	cgmlstfinder.yml cgmlstfinder.yml
+%post
+	git clone https://bitbucket.org/genomicepidemiology/cgmlstfinder.git
+	conda env create --name cgmlstfinder --file cgmlstfinder.yml
+
+%environment
+    export PATH=/opt/conda/envs/cgmlstfinder/bin:$PATH
+	export PATH=/cgmlstfinder:$PATH
+
+%runscript
+	exec "$@"
