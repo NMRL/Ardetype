@@ -43,7 +43,12 @@
             "_resfinder/ResFinder_results.txt",
             "_quast/icarus.html",
             "_mob_typer.tab",
-            "_amrfinderplus.tab"
+            "_amrfinderplus.tab",
+            "_plasmidfinder/Hit_in_genome_seq.fsa",
+            "_plasmidfinder/Plasmid_seqs.fsa",
+            "_plasmidfinder/results_tab.tsv",
+            "_plasmidfinder/results.txt",
+            "_plasmidfinder/data.json"
         ],
         "patterns": {
             "inputs": [

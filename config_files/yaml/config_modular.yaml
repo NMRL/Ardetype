@@ -150,7 +150,20 @@ shell_tool_configs:
   resfinder:
     length: 0.6
     coverage: 0.9
-    resfinder_db: /mnt/beegfs2/home/groups/nmrl/db/db-resfinder/
+    resfinder_db: /mnt/beegfs2/home/groups/nmrl/db/db-resfinder/ #pointfinder db contained within
+    pointfinder_species:
+      - campylobacter jejuni
+      - campylobacter coli
+      - salmonella enterica
+      - escherichia coli
+      - enterococcus faecalis
+      - enterococcus faecium
+      - helicobacter pylori
+      - klebsiella pneumoniae
+      - staphylococcus aureus
+  plasmidfinder:
+    plasmidfinder_sif: /mnt/beegfs2/home/groups/nmrl/image_files/plasmidfinder_latest.sif
+    plasmidfinder_db: /mnt/beegfs2/home/groups/nmrl/db/plasmidfinder_db/
 
 
 #########################
