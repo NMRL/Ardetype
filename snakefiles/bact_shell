@@ -7,12 +7,10 @@ sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
 pointfinder_species_map = dict(zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.lower()))
-for k in pointfinder_species_map:
-    print(k, pointfinder_species_map[k], pointfinder_species_map[k] in config['shell_tool_configs']['resfinder']['pointfinder_species'])
+# for k in pointfinder_species_map:
+#     print(k, pointfinder_species_map[k], pointfinder_species_map[k] in config['shell_tool_configs']['resfinder']['pointfinder_species'])
 
 
-for r in pointfinder_species_map:
-    print(pointfinder_species_map[r], pointfinder_species_map[r] in config['shell_tool_configs']['resfinder']['pointfinder_species'])
 
 
 sample_sheet.taxonomy = sample_sheet.taxonomy.str.replace(' ', "_")
@@ -61,7 +59,7 @@ rule all:
             # add column with filename but remove "_pheno_table.txt" from filename and move column to first position
             df_temp.insert(0, "sample_id", os.path.basename(path).replace('_resfinder_pheno.txt',''))
             # append to empty dataframe
-            df = df.append(df_temp)
+            df = pd.concat([df,df_temp])
         # remove all rows that contain "No resistance" in "WGS-predicted phenotype" column
         df = df[df["WGS-predicted phenotype"] != "No resistance"]
         # save dataframe as csv
@@ -136,10 +134,9 @@ rule resfinder:
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
             
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/PointFinder* {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
-            
+            rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$CONTIG_FILENAME
 
             """)
-            # rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$CONTIG_FILENAME
         else:
             os.system(f"""
             module load singularity
@@ -313,3 +310,5 @@ rule quast:
         config['output_directory']+'{sample_id_pattern}_quast/icarus.html'
     shell:
         'singularity run {input.sif_file} quast -o {config[output_directory]}{wildcards.sample_id_pattern}_quast {input.contigs}'
+
+
