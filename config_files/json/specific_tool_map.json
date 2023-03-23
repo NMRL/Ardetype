@@ -1,104 +1,92 @@
 {
-    "_meningotype.tsv":
-        {
-            "method":"serotyping for N.meningitidis",
-            "tool":"Meningotype",
-            "reference":"https://github.com/MDU-PHL/meningotype"
-        },
-    "_legsta.csv":
-        {
-            "method":"sequence-based typing (SBT) for L. Pneumophila",
-            "tool":"legsta",
-            "reference":"https://github.com/tseemann/legsta"
-        },
-    "-predictResults.txt":
-        {
-            "method":"serogrouping for L. Pneumophila",
-            "tool":"legionella_pneumophila_genomics",
-            "reference":"https://github.com/CDCgov/legionella_pneumophila_genomics"
-        },
-    "_hicap.tsv":
-        {
-            "method":"serotyping for H. Influenzae",
-            "tool":"hicap",
-            "reference":"https://github.com/scwatts/hicap"
-        },
-    "_kleborate.tsv":
-        {
-            "method":"serotyping for K.pneumoniae",
-            "tool":"kleborate",
-            "reference":"https://github.com/katholt/Kleborate"
-        },
-    "_agrvate_summary.tab":
-        {
-            "method":"agr typing for S.aureus",
-            "tool":"AgrVATE",
-            "reference":"https://github.com/VishnuRaghuram94/AgrVATE"
-        },
-    "_spatyper.txt":
-        {
-            "method":"spa typing for S.aureus",
-            "tool":"spaTyper",
-            "reference":"https://github.com/HCGB-IGTP/spaTyper"
-        },
-    "_sccmec.tsv":
-        {
-            "method":"SCCmec typing for S.aureus",
-            "tool":"staphopia-sccmec",
-            "reference":"https://github.com/staphopia/staphopia-sccmec"
-        },
-    "_emmtyper.tsv":
-        {
-            "method":"emm-type and emm-cluster prediction for S.pyogenes",
-            "tool":"emmtyper",
-            "reference":"https://github.com/MDU-PHL/emmtyper"
-        },
-    "_ngmast.json":
-        {
-            "method":"NG-MAST typing for N.gonorrhoeae",
-            "tool":"PubMLST",
-            "reference":"https://rest.pubmlst.org/db/pubmlst_neisseria_seqdef/schemes/71"
-        },
-    "_lissero.tsv":
-        {
-            "method":"serotyping for L.monocytogenes",
-            "tool":"LisSero",
-            "reference":"https://github.com/MDU-PHL/LisSero"
-        },
-    "_sistr.csv":
-        {
-            "method":"serotyping for S.enterica",
-            "tool":"SISTR",
-            "reference":"https://github.com/phac-nml/sistr_cmd"
-        },
-    "_SeqSero.tsv":
-        {
-            "method":"serotyping for S.enterica",
-            "tool":"SeqSero2",
-            "reference":"https://github.com/denglab/SeqSero2"
-        },
-    "_ab_pumblst.json":
-        {
-            "method":"7-gene MLST for A.baumannii",
-            "tool":"PubMLST",
-            "reference":"https://rest.pubmlst.org/db/pubmlst_abaumannii_seqdef/schemes/2"
-        },
-    "_ectyper.tsv":
-        {
-            "method":"serotyping for E.coli",
-            "tool":"ECTyper",
-            "reference":"https://github.com/phac-nml/ecoli_serotyping"
-        },
-    "_stecfinder.tsv":
-        {
-            "method":"Shigatoxin typing for E.coli",
-            "tool":"STECFinder",
-            "reference":"https://github.com/LanLab/STECFinder"
-        },
-    "_seroba.tsv":
-        {
-            "method":"serotyping for S.pneumoniae",
-            "tool":"SeroBA",
-            "reference":"https://github.com/sanger-pathogens/seroba"
-        }
+    "_meningotype.tsv": {
+        "method": "serotyping for N.meningitidis",
+        "tool": "Meningotype",
+        "reference": "https://github.com/MDU-PHL/meningotype"
+    },
+    "_legsta.csv": {
+        "method": "sequence-based typing (SBT) for L. Pneumophila",
+        "tool": "legsta",
+        "reference": "https://github.com/tseemann/legsta"
+    },
+    "-predictResults.txt": {
+        "method": "serogrouping for L. Pneumophila",
+        "tool": "legionella_pneumophila_genomics",
+        "reference": "https://github.com/CDCgov/legionella_pneumophila_genomics"
+    },
+    "_hicap.tsv": {
+        "method": "serotyping for H. Influenzae",
+        "tool": "hicap",
+        "reference": "https://github.com/scwatts/hicap"
+    },
+    "_kleborate.tsv": {
+        "method": "serotyping for K.pneumoniae",
+        "tool": "kleborate",
+        "reference": "https://github.com/katholt/Kleborate"
+    },
+    "_agrvate_summary.tab": {
+        "method": "agr typing for S.aureus",
+        "tool": "AgrVATE",
+        "reference": "https://github.com/VishnuRaghuram94/AgrVATE"
+    },
+    "_spatyper.txt": {
+        "method": "spa typing for S.aureus",
+        "tool": "spaTyper",
+        "reference": "https://github.com/HCGB-IGTP/spaTyper"
+    },
+    "_sccmec.tsv": {
+        "method": "SCCmec typing for S.aureus",
+        "tool": "staphopia-sccmec",
+        "reference": "https://github.com/staphopia/staphopia-sccmec"
+    },
+    "_emmtyper.tsv": {
+        "method": "emm-type and emm-cluster prediction for S.pyogenes",
+        "tool": "emmtyper",
+        "reference": "https://github.com/MDU-PHL/emmtyper"
+    },
+    "_ngmast.json": {
+        "method": "NG-MAST typing for N.gonorrhoeae",
+        "tool": "PubMLST",
+        "reference": "https://rest.pubmlst.org/db/pubmlst_neisseria_seqdef/schemes/71"
+    },
+    "_lissero.tsv": {
+        "method": "serotyping for L.monocytogenes",
+        "tool": "LisSero",
+        "reference": "https://github.com/MDU-PHL/LisSero"
+    },
+    "_sistr.csv": {
+        "method": "serotyping for S.enterica",
+        "tool": "SISTR",
+        "reference": "https://github.com/phac-nml/sistr_cmd"
+    },
+    "_SeqSero.tsv": {
+        "method": "serotyping for S.enterica",
+        "tool": "SeqSero2",
+        "reference": "https://github.com/denglab/SeqSero2"
+    },
+    "_ab_pumblst.json": {
+        "method": "7-gene MLST for A.baumannii",
+        "tool": "PubMLST",
+        "reference": "https://rest.pubmlst.org/db/pubmlst_abaumannii_seqdef/schemes/2"
+    },
+    "_ectyper.tsv": {
+        "method": "serotyping for E.coli",
+        "tool": "ECTyper",
+        "reference": "https://github.com/phac-nml/ecoli_serotyping"
+    },
+    "_stecfinder.tsv": {
+        "method": "Shigatoxin typing for E.coli",
+        "tool": "STECFinder",
+        "reference": "https://github.com/LanLab/STECFinder"
+    },
+    "_seroba.tsv": {
+        "method": "serotyping for S.pneumoniae",
+        "tool": "SeroBA",
+        "reference": "https://github.com/sanger-pathogens/seroba"
+    },
+    "_contigs.res": {
+        "method": "cgmlst typing using cgmlstfinder",
+        "tool": "cgmlstfinder",
+        "reference": "https://bitbucket.org/genomicepidemiology/cgmlstfinder"
+    }
 }

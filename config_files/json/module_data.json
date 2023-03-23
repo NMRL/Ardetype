@@ -86,7 +86,8 @@
                 "_sa_pasteur_cgmlst.json"
             ],
             "Streptococcus pyogenes": [
-                "_strp_emmtyper.tsv"
+                "_strp_emmtyper.tsv",
+                "_cgmlstfinder/data.json"
             ],
             "Neisseria gonorrhoeae": [
                 "_ngmast.json",
@@ -99,21 +100,25 @@
             "Salmonella enterica": [
                 "_sistr.csv",
                 "_SeqSero.tsv",
-                "_se_pasteur_cgmlst.json"
+                "_se_pasteur_cgmlst.json",
+                "_cgmlstfinder/data.json"
             ],
             "Acinetobacter baumannii": [
                 "_kleborate.tsv",
                 "_ab_pumblst.json",
-                "_ab_pasteur_cgmlst.json"
+                "_ab_pasteur_cgmlst.json",
+                "_cgmlstfinder/data.json"
             ],
             "Escherichia coli": [
                 "_ectyper.tsv",
                 "_ec_pasteur_cgmlst.json",
-                "_stecfinder.tsv"
+                "_stecfinder.tsv",
+                "_cgmlstfinder/data.json"
             ],
             "Streptococcus pneumoniae": [
                 "_seroba.tsv",
-                "_strp_pasteur_cgmlst.json"
+                "_strp_pasteur_cgmlst.json",
+                "_cgmlstfinder/data.json"
             ]
         },
         "patterns": {

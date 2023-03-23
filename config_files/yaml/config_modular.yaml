@@ -5,6 +5,8 @@ home_dir:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/
 work_dir:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/data/
+databases:
+  /mnt/beegfs2/home/groups/nmrl/db/
 
 
 ##############
@@ -166,6 +168,7 @@ shell_tool_configs:
     plasmidfinder_db: /mnt/beegfs2/home/groups/nmrl/db/plasmidfinder_db/
 
 
+
 #########################
 # bact_tip configuration
 #########################
@@ -193,6 +196,10 @@ tip_tool_configs:
   spatyper_saureus:
   ectyper_ecoli:
   seroba_spneumoniae:
+  cgmlstfinder:
+    cgmlstfinder_sif: /mnt/beegfs2/home/groups/nmrl/image_files/cgmlstfinder.sif
+    cgmlstfinder_db: /mnt/beegfs2/home/groups/nmrl/db/cgmlstfinder_db/
+
   
 
 #########################

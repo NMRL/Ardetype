@@ -104,6 +104,16 @@ resfinder:
   jobout: "oe"
 
 
+plasmidfinder:
+  jobname: "ardetype.plasmidfinder"
+  procs: 12
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
 amrfinderplus:
   jobname: "ardetype.amrfinderplus"
   procs: 12
@@ -162,6 +172,16 @@ hicap_hinfluenzae:
   procs: 8
   pmem: "1000mb"
   walltime: "00:01:30"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+cgmlstfinder:
+  jobname: "ardetype.cgmlstfinder"
+  procs: 20
+  pmem: "6000mb"
+  walltime: "00:10:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"

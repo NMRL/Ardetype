@@ -9,6 +9,21 @@ from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
+#mapping full species name to cgmlstfinder-accepted database format
+cgmlst_species_map = {}
+for sid, species in zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.lower()):
+    if 'salmonella' in species:
+        cgmlst_species_map[sid] = "salmonella"
+    elif 'escherichia coli' in species:
+        cgmlst_species_map[sid] = "ecoli"
+    elif 'baumannii' in species:
+        cgmlst_species_map[sid] = "abaumannii"
+    elif 'streptococcus pneumoniae' in species:
+        cgmlst_species_map[sid] = "spneumoniae"
+    elif 'streptococcus pyogenes' in species:
+        cgmlst_species_map[sid] = "streptococcus"
+
+
 #AGGREGATION RULE
 rule all:
     input: 
@@ -555,3 +570,27 @@ rule seroba_spneumoniae:
             rmdir --ignore-fail-on-non-empty ~/seroba/
         fi
         """
+
+
+rule cgmlstfinder:
+    input:
+        image_file = config['tip_tool_configs']['cgmlstfinder']['cgmlstfinder_sif'],
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        cgmlst_result = config['output_directory']+'{sample_id_pattern}_cgmlstfinder/data.json'
+    run:
+        os.system(f'''
+        module load singularity
+        CONTIG_FILENAME=$(basename {input.contigs})
+
+        cd {config['databases']}
+        cp {input.contigs} ~/
+        mkdir -p ~/{wildcards.sample_id_pattern}_cgmlstfinder/
+
+        singularity run {input.image_file} python /cgmlstfinder/cgMLST.py -db ./cgmlstfinder_db/ -i ~/$CONTIG_FILENAME -o ~/{wildcards.sample_id_pattern}_cgmlstfinder/ -s {cgmlst_species_map[wildcards.sample_id_pattern]}
+        mv -n ~/{wildcards.sample_id_pattern}_cgmlstfinder/* {config['output_directory']}{wildcards.sample_id_pattern}_cgmlstfinder/
+
+        rm -r ~/db-cgmlstfinder_{wildcards.sample_id_pattern}/ ~/{wildcards.sample_id_pattern}_cgmlstfinder/ ~/$CONTIG_FILENAME
+        ''')
+        # cp -r {config['tip_tool_configs']['cgmlstfinder']['cgmlstfinder_db']} ~/db-cgmlstfinder_{wildcards.sample_id_pattern}/
+        # ln -s {config['tip_tool_configs']['cgmlstfinder']['cgmlstfinder_db']} ./db-cgmlstfinder_{wildcards.sample_id_pattern}/
