@@ -48,7 +48,8 @@
             "_plasmidfinder/Plasmid_seqs.fsa",
             "_plasmidfinder/results_tab.tsv",
             "_plasmidfinder/results.txt",
-            "_plasmidfinder/data.json"
+            "_plasmidfinder/data.json",
+            "_rmlst.json"
         ],
         "patterns": {
             "inputs": [

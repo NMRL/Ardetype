@@ -1,7 +1,10 @@
 localrules: all, quast
 
 #define sample_id_pattern wildcard and accessing sample_sheet
-import pandas as pd, os, sys
+import pandas as pd, os, sys, json
+from Bio import SeqIO
+sys.path.insert(0, os.path.abspath('./'))
+from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 # from bs4 import BeautifulSoup #to format hamronization html report
 sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
@@ -9,8 +12,6 @@ sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 pointfinder_species_map = dict(zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.lower()))
 # for k in pointfinder_species_map:
 #     print(k, pointfinder_species_map[k], pointfinder_species_map[k] in config['shell_tool_configs']['resfinder']['pointfinder_species'])
-
-
 
 
 sample_sheet.taxonomy = sample_sheet.taxonomy.str.replace(' ', "_")
@@ -260,6 +261,33 @@ rule plasmidfinder:
         mv -n ~/plasmidfinder_output_{wildcards.sample_id_pattern}/* {config[output_directory]}{wildcards.sample_id_pattern}_plasmidfinder/
         rm -r ~/db-plasmidfinder_{wildcards.sample_id_pattern}/ ~/plasmidfinder_output_{wildcards.sample_id_pattern}/
         '''
+
+rule rmlst:
+    input:
+        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        rmlst_json = config['output_directory']+'{sample_id_pattern}_rmlst.json'
+    run:
+        fasta = [record for record in SeqIO.parse(input.contigs, "fasta")]
+        if len(fasta) > config['shell_tool_configs']['rmlst_pubmlst']['api_seq_limit']:
+            counter = 1
+            while len(fasta) > config['shell_tool_configs']['rmlst_pubmlst']['api_seq_limit']:
+                fasta = [r for r in fasta if len(r.seq) > counter * 50]
+                counter += 1
+            SeqIO.write(fasta, input.contigs.replace('_contigs.fasta', f'_ds_{counter*50}bp_contigs.fasta'), "fasta")
+            results = hk.type_fasta_scheme(
+                contig_path = input.contigs.replace('_contigs.fasta', f'_ds_{counter*50}bp_contigs.fasta'), 
+                url = config['shell_tool_configs']['rmlst_pubmlst']['schema']
+                )
+            with open(output.rmlst_json, 'w+') as outfile:
+                json.dump(results, outfile, indent=4)
+        else:
+            results = hk.type_fasta_scheme(
+                contig_path = input.contigs, 
+                url = config['shell_tool_configs']['rmlst_pubmlst']['schema']
+                )
+            with open(output.rmlst_json, 'w+') as outfile:
+                json.dump(results, outfile, indent=4)
 
 
 #MLST

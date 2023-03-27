@@ -84,6 +84,16 @@ res_gen_id:
   jobout: "oe"
 
 
+rmlst:
+  jobname: "ardetype.rmlst"
+  procs: 5
+  pmem: "1000mb"
+  walltime: "00:15:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
 mlst:
   jobname: "ardetype.mlst"
   procs: 6
