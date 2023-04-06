@@ -12,7 +12,7 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 
 #Reading data used to build module objects
 ardetype_path = os.path.dirname(Path(__file__).parents[0].absolute())
-module_data = hk.read_json_dict(f'{ardetype_path}/config_files/json/module_data.json')
+module_data   = hk.read_json_dict(f'{ardetype_path}/config_files/json/module_data.json')
 
 
 ###############################################################
@@ -40,75 +40,79 @@ def run_all(args, num_jobs):
     '''Wrapper function to run all modules sequentially.'''
     core = Ardetype_module(
             module_name='core',
-            input_path=args.input,
-            module_config=args.config,
-            output_path=args.output_dir,
-            run_mode=args.submit_modules,
-            dry_run=args.dry_run,
-            force_all=args.force_all,
-            rule_graph=args.rule_graph,
-            pack_output=args.pack_output,
-            unpack_output=args.unpack_output,
-            job_name=module_data['core']['job_name'],
-            patterns=module_data['core']['patterns'],
-            targets=module_data['core']['targets'],
-            requests=module_data['core']['requests'],
-            snakefile_path=module_data['snakefiles']['core'],
-            cluster_config_path=module_data['cluster_config']
+            input_path          = args.input,
+            module_config       = args.config,
+            output_path         = args.output_dir,
+            run_mode            = args.submit_modules,
+            dry_run             = args.dry_run,
+            force_all           = args.force_all,
+            rule_graph          = args.rule_graph,
+            pack_output         = args.pack_output,
+            unpack_output       = args.unpack_output,
+            retry_times         = args.retry_times,
+            job_name            = module_data['core']['job_name'],
+            patterns            = module_data['core']['patterns'],
+            targets             = module_data['core']['targets'],
+            requests            = module_data['core']['requests'],
+            snakefile_path      = module_data['snakefiles']['core'],
+            cluster_config_path = module_data['cluster_config']
             )
     shell = Ardetype_module(
-        module_name='shell', 
-        input_path=core.output_path, 
-        module_config=core.config_file, 
-        output_path=args.output_dir, 
-        run_mode=args.submit_modules,
-        dry_run=args.dry_run,
-        force_all=args.force_all,
-        rule_graph=args.rule_graph,
-        pack_output=args.pack_output,
-        unpack_output=args.unpack_output,
-        job_name=module_data['shell']['job_name'],
-        patterns=module_data['shell']['patterns'],
-        targets=module_data['shell']['targets'],
-        requests=module_data['shell']['requests'],
-        snakefile_path=module_data['snakefiles']['shell'],
-        cluster_config_path=module_data['cluster_config']
+        module_name         = 'shell', 
+        input_path          = core.output_path, 
+        module_config       = core.config_file, 
+        output_path         = args.output_dir, 
+        run_mode            = args.submit_modules,
+        dry_run             = args.dry_run,
+        force_all           = args.force_all,
+        rule_graph          = args.rule_graph,
+        pack_output         = args.pack_output,
+        unpack_output       = args.unpack_output,
+        retry_times         = args.retry_times,
+        job_name            = module_data['shell']['job_name'],
+        patterns            = module_data['shell']['patterns'],
+        targets             = module_data['shell']['targets'],
+        requests            = module_data['shell']['requests'],
+        snakefile_path      = module_data['snakefiles']['shell'],
+        cluster_config_path = module_data['cluster_config']
         )
     tip = Ardetype_module(
-        module_name='tip', 
-        input_path=core.output_path,
-        module_config=shell.config_file, 
-        output_path=args.output_dir, 
-        run_mode=args.submit_modules,
-        dry_run=args.dry_run,
-        force_all=args.force_all,
-        rule_graph=args.rule_graph,
-        pack_output=args.pack_output,
-        unpack_output=args.unpack_output,
-        job_name=module_data['tip']['job_name'],
-        patterns=module_data['tip']['patterns'],
-        targets=module_data['tip']['targets'],
-        requests=module_data['tip']['requests'],
-        snakefile_path=module_data['snakefiles']['tip'],
-        cluster_config_path=module_data['cluster_config']
+        module_name         = 'tip', 
+        input_path          = core.output_path,
+        module_config       = shell.config_file, 
+        output_path         = args.output_dir, 
+        run_mode            = args.submit_modules,
+        dry_run             = args.dry_run,
+        force_all           = args.force_all,
+        rule_graph          = args.rule_graph,
+        pack_output         = args.pack_output,
+        unpack_output       = args.unpack_output,
+        retry_times         = args.retry_times,
+        job_name            = module_data['tip']['job_name'],
+        patterns            = module_data['tip']['patterns'],
+        targets             = module_data['tip']['targets'],
+        requests            = module_data['tip']['requests'],
+        snakefile_path      = module_data['snakefiles']['tip'],
+        cluster_config_path = module_data['cluster_config']
     )
     shape = Ardetype_module(
-        module_name='shape', 
-        input_path=core.output_path,
-        module_config=tip.config_file, 
-        output_path=args.output_dir, 
-        run_mode=args.submit_modules,
-        dry_run=args.dry_run,
-        force_all=args.force_all,
-        rule_graph=args.rule_graph,
-        pack_output=args.pack_output,
-        unpack_output=args.unpack_output,
-        job_name=module_data['shape']['job_name'],
-        patterns=module_data['shape']['patterns'],
-        targets=module_data['shape']['targets'],
-        requests=module_data['shape']['requests'],
-        snakefile_path=module_data['snakefiles']['shape'],
-        cluster_config_path=module_data['cluster_config']
+        module_name         = 'shape', 
+        input_path          = core.output_path,
+        module_config       = tip.config_file, 
+        output_path         = args.output_dir, 
+        run_mode            = args.submit_modules,
+        dry_run             = args.dry_run,
+        force_all           = args.force_all,
+        rule_graph          = args.rule_graph,
+        pack_output         = args.pack_output,
+        unpack_output       = args.unpack_output,
+        retry_times         = args.retry_times,
+        job_name            = module_data['shape']['job_name'],
+        patterns            = module_data['shape']['patterns'],
+        targets             = module_data['shape']['targets'],
+        requests            = module_data['shape']['requests'],
+        snakefile_path      = module_data['snakefiles']['shape'],
+        cluster_config_path = module_data['cluster_config']
     )
 
     #Running core
@@ -237,22 +241,23 @@ def run_all(args, num_jobs):
 def run_core(args, num_jobs):
     '''Wrapper function to run only core module.'''
     core = Ardetype_module(
-        module_name='core',
-        input_path=args.input,
-        module_config=args.config,
-        output_path=args.output_dir,
-        run_mode=args.submit_modules,
-        dry_run=args.dry_run,
-        force_all=args.force_all,
-        rule_graph=args.rule_graph,
-        pack_output=args.pack_output,
-        unpack_output=args.unpack_output,
-        job_name=module_data['core']['job_name'],
-        patterns=module_data['core']['patterns'],
-        targets=module_data['core']['targets'],
-        requests=module_data['core']['requests'],
-        snakefile_path=module_data['snakefiles']['core'],
-        cluster_config_path=module_data['cluster_config']
+        module_name         = 'core',
+        input_path          = args.input,
+        module_config       = args.config,
+        output_path         = args.output_dir,
+        run_mode            = args.submit_modules,
+        dry_run             = args.dry_run,
+        force_all           = args.force_all,
+        rule_graph          = args.rule_graph,
+        pack_output         = args.pack_output,
+        unpack_output       = args.unpack_output,
+        retry_times         = args.retry_times,
+        job_name            = module_data['core']['job_name'],
+        patterns            = module_data['core']['patterns'],
+        targets             = module_data['core']['targets'],
+        requests            = module_data['core']['requests'],
+        snakefile_path      = module_data['snakefiles']['core'],
+        cluster_config_path = module_data['cluster_config']
     )
     core.fill_input_dict()
     core.fill_sample_sheet()
@@ -290,22 +295,23 @@ def run_core(args, num_jobs):
 def run_shell(args, num_jobs):
     '''Wrapper function to run only shell module.'''
     shell = Ardetype_module(
-        module_name='shell', 
-        input_path=args.input,
-        module_config=args.config, 
-        output_path=args.output_dir, 
-        run_mode=args.submit_modules,
-        dry_run=args.dry_run,
-        force_all=args.force_all,
-        rule_graph=args.rule_graph,
-        pack_output=args.pack_output,
-        unpack_output=args.unpack_output,
-        job_name=module_data['shell']['job_name'],
-        patterns=module_data['shell']['patterns'],
-        targets=module_data['shell']['targets'],
-        requests=module_data['shell']['requests'],
-        snakefile_path=module_data['snakefiles']['shell'],
-        cluster_config_path=module_data['cluster_config']
+        module_name         = 'shell', 
+        input_path          = args.input,
+        module_config       = args.config, 
+        output_path         = args.output_dir, 
+        run_mode            = args.submit_modules,
+        dry_run             = args.dry_run,
+        force_all           = args.force_all,
+        rule_graph          = args.rule_graph,
+        pack_output         = args.pack_output,
+        unpack_output       = args.unpack_output,
+        retry_times         = args.retry_times,
+        job_name            = module_data['shell']['job_name'],
+        patterns            = module_data['shell']['patterns'],
+        targets             = module_data['shell']['targets'],
+        requests            = module_data['shell']['requests'],
+        snakefile_path      = module_data['snakefiles']['shell'],
+        cluster_config_path = module_data['cluster_config']
     )
     shell.fill_input_dict()
     shell.fill_sample_sheet()

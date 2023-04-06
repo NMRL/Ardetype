@@ -11,7 +11,7 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 
 
 #Reading data used to build module objects
-module_data = hk.read_json_dict(f'{os.path.dirname(Path(__file__).parents[1].absolute())}/config_files/json/module_data.json')
+module_data   = hk.read_json_dict(f'{os.path.dirname(Path(__file__).parents[1].absolute())}/config_files/json/module_data.json')
 pipeline_path = os.path.dirname(Path(__file__).parents[1].absolute())
 
 
@@ -22,33 +22,53 @@ pipeline_path = os.path.dirname(Path(__file__).parents[1].absolute())
 class Module:
     '''Class represents single module of the ardetype pipeline'''
 
-    def __init__(self, module_name: str, input_path: str, module_config, output_path: str, run_mode: bool, job_name: str, patterns: dict, targets: list, requests: dict, snakefile_path: str, cluster_config_path: str, dry_run: bool, force_all: bool, rule_graph: bool, pack_output:bool, unpack_output:bool) -> None:
-        self.run_mode = run_mode #If true, snakemake will be run as single job, else - will run as job submitter on the login node
-        self.job_id = None  #Will be added if self.run_mode is True and job was submitted to HPC; filled by submit_module_job
-        self.taxonomy_dict = None   #Required if module creates different targets for different samples based on taxonomy information; filled by add_taxonomy_column
-        self.module_name = module_name #To be used in configuration file & sample_sheet file + to connect between modules (using remove_invalid_samples)
-        self.input_path = input_path #to the folder containing fasta/fastq.gz files
-        self.output_path = f"{os.path.abspath(output_path)}/" #Path to the output folder, where files will be saved (converted to full path)
-        self.target_list = None #List of all target files the module expects to create; filled by fill_target_list
-        self.sample_sheet = None #to store current state of sample_sheet dataframe; filled by create_sample_sheet; altered by fill_sample_sheet & receive_sample_sheet
-        self.aggr_taxonomy_path = f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
-        self.config_file_path = f'{os.path.abspath(self.output_path)}/config.yaml' #where to look for operational copy of the configuration file; used by submit_module_job & run_module_cluster
+    def __init__(
+            self, 
+            module_name         : str, 
+            input_path          : str, 
+            module_config, 
+            output_path         : str, 
+            run_mode            : bool, 
+            job_name            : str, 
+            patterns            : dict, 
+            targets             : list, 
+            requests            : dict, 
+            snakefile_path      : str, 
+            cluster_config_path : str,
+            retry_times         : int,
+            dry_run             : bool, 
+            force_all           : bool, 
+            rule_graph          : bool, 
+            pack_output         : bool, 
+            unpack_output:bool) -> None:
+        
+        self.run_mode            = run_mode #If true, snakemake will be run as single job, else - will run as job submitter on the login node
+        self.job_id              = None  #Will be added if self.run_mode is True and job was submitted to HPC; filled by submit_module_job
+        self.taxonomy_dict       = None   #Required if module creates different targets for different samples based on taxonomy information; filled by add_taxonomy_column
+        self.module_name         = module_name #To be used in configuration file & sample_sheet file + to connect between modules (using remove_invalid_samples)
+        self.input_path          = input_path #to the folder containing fasta/fastq.gz files
+        self.output_path         = f"{os.path.abspath(output_path)}/" #Path to the output folder, where files will be saved (converted to full path)
+        self.target_list         = None #List of all target files the module expects to create; filled by fill_target_list
+        self.sample_sheet        = None #to store current state of sample_sheet dataframe; filled by create_sample_sheet; altered by fill_sample_sheet & receive_sample_sheet
+        self.aggr_taxonomy_path  = f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
+        self.config_file_path    = f'{os.path.abspath(self.output_path)}/config.yaml' #where to look for operational copy of the configuration file; used by submit_module_job & run_module_cluster
         self.cluster_config_path = cluster_config_path #where to look for job resource definition file; used by run_module_cluster
-        self.config_file = hk.read_yaml(module_config) if isinstance(module_config, str) else module_config #read module configuration from file if string is supplied (path expected); else - reads dictionary; used by add_module_targets, add_output_dir, write_module_config
-        self.input_dict = {} #to store input file paths for each file extension; used by fill_input_dict, fill_sample_sheet, add_fasta_samples
-        self.patterns = patterns #to store file extension patterns of expected input files; used by fill_input_dict; fill_sample_sheet
-        self.job_name = job_name #to store job name if self.run_mode is True; used by check_job_completion
-        self.targets = targets #to store file extensions of expected output files; used by fill_target_list, check_module_output
-        self.requests = requests #to store file extensions for files that are neccessary to run the modules; used by remove_invalid_samples
-        self.snakefile_path = snakefile_path #to the rule file to be run as single job on HPC if self.run_mode is True; used by submit_module_job
-        self.dry_run = "-np" if dry_run else "" #to store dry-run flag if it is supplied, else empty string is stored
-        self.force_all = "--forceall" if force_all else "" #to store forceall flag if it is supplied, else empty string is stored
-        self.rule_graph = f"--rulegraph | dot -Tpdf > {self.module_name}.pdf" if rule_graph else "" #to store rule_graph flag if it is supplied, else empty string is stored
-        self.unpack_output = unpack_output #used to move files outside sample folders and do a rerun; used by unfold_output
-        self.removed_samples = pd.DataFrame() #to store dataframe containing information about samples that were deemed invalid by the module
-        self.pack_output = pack_output #switch to control putting output files into one folder named after sample_id; used by fold_output
-        self.cleanup_dict = {} #to map origin paths of input files to path in working directory; filled by move_to_wd; used by clear_working_directory
-        self.status_script = f"{os.path.dirname(Path(__file__).parents[0].absolute())}/pbs-status.py"
+        self.config_file         = hk.read_yaml(module_config) if isinstance(module_config, str) else module_config #read module configuration from file if string is supplied (path expected); else - reads dictionary; used by add_module_targets, add_output_dir, write_module_config
+        self.input_dict          = {} #to store input file paths for each file extension; used by fill_input_dict, fill_sample_sheet, add_fasta_samples
+        self.patterns            = patterns #to store file extension patterns of expected input files; used by fill_input_dict; fill_sample_sheet
+        self.job_name            = job_name #to store job name if self.run_mode is True; used by check_job_completion
+        self.targets             = targets #to store file extensions of expected output files; used by fill_target_list, check_module_output
+        self.requests            = requests #to store file extensions for files that are neccessary to run the modules; used by remove_invalid_samples
+        self.snakefile_path      = snakefile_path #to the rule file to be run as single job on HPC if self.run_mode is True; used by submit_module_job
+        self.dry_run             = "-np" if dry_run else "" #to store dry-run flag if it is supplied, else empty string is stored
+        self.retry_times         = retry_times #number of times snakemake will attempt to rerun failed jobs (default=3); used by run_module_cluster
+        self.force_all           = "--forceall" if force_all else "" #to store forceall flag if it is supplied, else empty string is stored
+        self.rule_graph          = f"--rulegraph | dot -Tpdf > {self.module_name}.pdf" if rule_graph else "" #to store rule_graph flag if it is supplied, else empty string is stored
+        self.unpack_output       = unpack_output #used to move files outside sample folders and do a rerun; used by unfold_output
+        self.removed_samples     = pd.DataFrame() #to store dataframe containing information about samples that were deemed invalid by the module
+        self.pack_output         = pack_output #switch to control putting output files into one folder named after sample_id; used by fold_output
+        self.cleanup_dict        = {} #to map origin paths of input files to path in working directory; filled by move_to_wd; used by clear_working_directory
+        self.status_script       = f"{os.path.dirname(Path(__file__).parents[0].absolute())}/pbs-status.py"
 
     def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified'], mixed:bool=False):
         '''Fills self.input_dict using self.input_path and self.module_name by
@@ -249,7 +269,7 @@ class Module:
         shell_command = f'''
         eval "$(conda shell.bash hook)";
         conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake;
-        snakemake --reason --nolock --restart-times 3 --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.dry_run} --cluster {job_submission_command} {self.rule_graph} '''
+        snakemake --reason --nolock --restart-times {self.retry_times} --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.dry_run} --cluster {job_submission_command} {self.rule_graph} '''
         try:
             subprocess.check_call(shell_command, shell=True)
         except subprocess.CalledProcessError as msg:

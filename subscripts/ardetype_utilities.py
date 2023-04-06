@@ -16,7 +16,7 @@ class Ardetype_housekeeper(hk):
         '''
         with open(contig_path, 'r') as x: #read contigs from file
             fasta = x.read()
-        payload = '{"base64":true,"details":true,"sequence":"' + base64.b64encode(fasta.encode()).decode() + '"}' #construct payload of HTTP request
+        payload  = '{"base64":true,"details":true,"sequence":"' + base64.b64encode(fasta.encode()).decode() + '"}' #construct payload of HTTP request
         response = requests.post(url, data=payload) #send the request and await the response
         if response.status_code == requests.codes.ok: #response is valid if return code is valid
             data = response.json() #get response payload into dictionary
