@@ -35,7 +35,6 @@
             ".rgi.txt",
             ".rgi.json",
             "_mlst_output.csv",
-            "_amrpp/ResistomeResults/AMR_analytic_matrix.csv",
             "_resfinder/pheno_table.txt",
             "_resfinder/ResFinder_Hit_in_genome_seq.fsa",
             "_resfinder/ResFinder_Resistance_gene_seq.fsa",
@@ -158,6 +157,7 @@
             "general": [
                 "_fastp_std.csv",
                 "_kraken2_contigs_report_std.csv",
+                "_kraken2_host_filtering_report_std.csv",
                 "_mlst_output_std.csv",
                 "_quast_std.csv"
             ],
