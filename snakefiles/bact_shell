@@ -33,20 +33,20 @@ rule all:
         hamr_sif = config['hamronization_sif'],
         #Lists of resistance reports to be harmonized, may be it can be refactored to single expand
         hamr_resfinder = expand(config['output_directory']+'{sample_id}_resfinder/{sample_id}_resfinder.hamr.tab', sample_id=sample_sheet['sample_id']),
-        hamr_amrpp = expand(config['output_directory']+"{sample_id}_amrpp/{sample_id}_amrplusplus.hamr.tab", sample_id=sample_sheet['sample_id']),
+        #hamr_amrpp = expand(config['output_directory']+"{sample_id}_amrpp/{sample_id}_amrplusplus.hamr.tab", sample_id=sample_sheet['sample_id']),
         hamr_rgi = expand(config['output_directory']+'{sample_id}.rgi.hamr.tab', sample_id=sample_sheet['sample_id']),
         hamr_amrfp = expand(config['output_directory']+'{sample_id}_amrfinderplus.hamr.tab', sample_id=sample_sheet['sample_id']),
         hamr_resfinder_pheno = expand(config['output_directory']+'{sample_id}_resfinder_pheno.txt', sample_id=sample_sheet['sample_id'])
     run:
         #Use only non-empty files (hamronization fails otherwise)
         input.hamr_resfinder = [ path for path in input.hamr_resfinder if not os.path.getsize(path) == 0]
-        input.hamr_amrpp = [ path for path in input.hamr_amrpp if not os.path.getsize(path) == 0]
+        #input.hamr_amrpp = [ path for path in input.hamr_amrpp if not os.path.getsize(path) == 0] {" ".join(input.hamr_amrpp)} 
         input.hamr_rgi = [ path for path in input.hamr_rgi if not os.path.getsize(path) == 0]
-        input.hamr_amrfp = [ path for path in input.hamr_amrfp if not os.path.getsize(path) == 0]
+        input.hamr_amrfp = [ path for path in input.hamr_amrfp if not os.path.getsize(path) == 0] 
         #Create single tsv report from all resistance inference tools
         os.system(f'''
         module load singularity
-        singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).tsv" -t tsv {" ".join(input.hamr_amrpp)} {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_rgi)} {" ".join(input.hamr_amrfp)}
+        singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).tsv" -t tsv {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_rgi)} {" ".join(input.hamr_amrfp)}
         echo bact_shell finished
         ''')
 
@@ -120,13 +120,15 @@ rule resfinder:
         config['output_directory']+'{sample_id_pattern}_resfinder/{sample_id_pattern}_resfinder.hamr.tab'
     run: #resfinder database is a separate repository that is used along with singularity image file; files are processed in user's home dir
         if pointfinder_species_map[wildcards.sample_id_pattern] in config['shell_tool_configs']['resfinder']['pointfinder_species']:
+            #singularity run {input.hamr_sif} resfinder4 ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['resfinder_version']} --reference_database_version {config['resfinder_db_version']} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab  
             os.system(f"""
             module load singularity
             CONTIG_FILENAME=$(basename {input.contigs})
             cp -r {config['shell_tool_configs']['resfinder']['resfinder_db']} ~/db-resfinder_{wildcards.sample_id_pattern}/
             cp {input.contigs} ~/ 
             singularity run {input.resfinder_sif} run_resfinder.py --point -ifa ~/$CONTIG_FILENAME -acq -l {config['shell_tool_configs']['resfinder']['length']} -t {config['shell_tool_configs']['resfinder']['coverage']} -db_res ~/db-resfinder_{wildcards.sample_id_pattern}/db_resfinder -db_point ~/db-resfinder_{wildcards.sample_id_pattern}/db_pointfinder --species "{pointfinder_species_map[wildcards.sample_id_pattern]}" -o ~/resfinder_output_{wildcards.sample_id_pattern}
-            singularity run {input.hamr_sif} resfinder4 ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['resfinder_version']} --reference_database_version {config['resfinder_db_version']} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab
+            singularity run {input.hamr_sif} resfinder ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['resfinder_version']} --reference_database_version {config['resfinder_db_version']} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab
+            
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/pheno_table.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Hit_in_genome_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Resistance_gene_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
@@ -145,7 +147,7 @@ rule resfinder:
             cp -r {config['shell_tool_configs']['resfinder']['resfinder_db']} ~/db-resfinder_{wildcards.sample_id_pattern}/
             cp {input.contigs} ~/ 
             singularity run {input.resfinder_sif} run_resfinder.py -ifa ~/$CONTIG_FILENAME -acq -l {config['shell_tool_configs']['resfinder']['length']} -t {config['shell_tool_configs']['resfinder']['coverage']} -db_res  ~/db-resfinder_{wildcards.sample_id_pattern}/db_resfinder -o ~/resfinder_output_{wildcards.sample_id_pattern}
-            singularity run {input.hamr_sif} resfinder4 ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['resfinder_version']} --reference_database_version {config['resfinder_db_version']} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab
+            singularity run {input.hamr_sif} resfinder ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['resfinder_version']} --reference_database_version {config['resfinder_db_version']} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/pheno_table.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Hit_in_genome_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Resistance_gene_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
