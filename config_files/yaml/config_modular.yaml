@@ -29,7 +29,7 @@ amrfinderplus_sif:
 amrpp_repo:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/amrplusplus_v2/
 hamronization_sif:
-  /mnt/beegfs2/home/groups/nmrl/image_files/hamronization_latest.sif
+  /mnt/home/jevgen01/nmrl_bgfs/image_files/hamronization_latest.sif
 mlst_quast_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/mlst_quast.sif
 mob_suite_sif:
@@ -37,13 +37,13 @@ mob_suite_sif:
 nextflow_env:
   /mnt/home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/nextflow.yaml
 resfinder_sif:
-  /mnt/home/groups/nmrl/image_files/resfinder.sif
+  /mnt/home/groups/nmrl/image_files/resfinder_4.1.11.sif
 rgi_env:
   /mnt/home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/rgi_env.yaml
 hamronization_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/hamronization_latest.sif
 resfinder_version: resfinder_v4.1.11
-resfinder_db_version: resfinder_2022-05-11
+resfinder_db_version: resfinder_2023-03-29
 rgi_version: rgi_v5.2.1
 rgi_db_version: card_v3.1.4
 amrplusplus_version: amrplusplus_v2.0
