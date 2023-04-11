@@ -52,7 +52,7 @@ class Ardetype_housekeeper(hk):
         with ppe(max_workers=proc_num) as executor:
             results = [executor.submit(Ardetype_housekeeper.pointfinder_results, path) for path in pf_out_list]
             for output in as_completed(results):
-                print(output.result())
+                # print(output.result())
                 summary = pd.concat([summary, output.result()])
         summary = summary.reset_index(drop=True)
         return summary

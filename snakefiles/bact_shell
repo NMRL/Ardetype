@@ -69,7 +69,7 @@ rule all:
 
         #Aggregate Pointfinder results
         pointfinder_summary = hk.aggregate_pointfinder(outfolder_path = config['output_directory'], proc_num=6)
-        pointfinder_summary.to_csv(f"{config['output_directory']}pointfinder_results_combined.csv", header=True, index=False)
+        pointfinder_summary.to_csv(f"{config['output_directory']}pointfinder_report.csv", header=True, index=False)
 
 
 
