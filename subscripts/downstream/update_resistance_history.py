@@ -30,11 +30,13 @@ def find_current_table(base_path:str):
     for file in os.listdir(base_path):
         path_to_file = f'{base_path}/{file}'
         if os.path.isfile(path_to_file) and 'resistance_summary' in file: 
-            resistance_summary, rs_df      = path_to_file, pd.read_csv(file, low_memory=False, sep='\t')
-        elif os.path.isfile(path_to_file) and 'resfinder_pheno_summary' in file:
-            resfinder_pheno_summar, rfp_df = path_to_file, pd.read_csv(file, low_memory=False)
-    if rs_df is not None and rfp_df is not None:
-        return resistance_summary, rs_df, resfinder_pheno_summar, rfp_df
+            resistance_summary, rs_df      = path_to_file, pd.read_csv(path_to_file, low_memory=False, sep='\t')
+        elif os.path.isfile(path_to_file) and 'resfinder_summary' in file:
+            resfinder_pheno_summar, rfp_df = path_to_file, pd.read_csv(path_to_file, low_memory=False)
+        elif os.path.isfile(path_to_file) and 'pointfinder_summary' in file:
+            pointfinder_summary, pf_df = path_to_file, pd.read_csv(path_to_file, low_memory=False)
+    if rs_df is not None and rfp_df is not None and pf_df is not None:
+        return resistance_summary, rs_df, resfinder_pheno_summar, rfp_df, pointfinder_summary, pf_df
     else:
         return None
 
@@ -57,9 +59,16 @@ def update_combined_resistance_file(base_path:str, report_time:str, path_to_new_
         current_df = pd.concat([current_combined_df,new_df], sort=False)
         current_df.drop_duplicates(keep='first', inplace=True)
         os.system(f'mv {path_to_current_file} {base_path}/backup/')
-        os.system(f'cp "{path_to_new_table}" {base_path}/backup/tables/{os.path.basename(path_to_new_table).replace(".csv",time.strftime("%Y_%m_%d:%H:%M:%S.csv"))}')
+        os.system(f'cp "{path_to_new_table}" {base_path}/backup/tables/{os.path.basename(path_to_new_table).replace(".csv",time.strftime("_%Y_%m_%d:%H:%M:%S.csv"))}')
         current_df.to_csv(f'{base_path}/resfinder_summary_{report_time}.csv', header=True, index=False)
         os.system(f'chmod 775 {base_path}/resfinder_summary_{report_time}.csv')
+    elif type == 'pointfinder':
+        current_df = pd.concat([current_combined_df,new_df], sort=False)
+        current_df.drop_duplicates(keep='first', inplace=True)
+        os.system(f'mv {path_to_current_file} {base_path}/backup/')
+        os.system(f'cp "{path_to_new_table}" {base_path}/backup/tables/{os.path.basename(path_to_new_table).replace(".csv",time.strftime("_%Y_%m_%d:%H:%M:%S.csv"))}')
+        current_df.to_csv(f'{base_path}/pointfinder_summary_{report_time}.csv', header=True, index=False)
+        os.system(f'chmod 775 {base_path}/pointfinder_summary_{report_time}.csv')
 
 
 if __name__ == '__main__':
@@ -71,6 +80,7 @@ if __name__ == '__main__':
     if len(args) > 1 is not None:
         res_df = process_report(args[1]) #find, read and preprocess new table
         rfp_df = pd.read_csv(args[2])
+        pf_df = pd.read_csv(args[3])
         update_combined_resistance_file( #update resistance
             base_path=full_path,
             report_time=report_time,
@@ -87,6 +97,15 @@ if __name__ == '__main__':
             current_combined_df=current_combined_tuple[3], 
             new_df=rfp_df,
             type="resfinder"
+        )
+        update_combined_resistance_file(
+            base_path=full_path,
+            report_time=report_time,
+            path_to_new_table=args[3], 
+            path_to_current_file=current_combined_tuple[4], 
+            current_combined_df=current_combined_tuple[5], 
+            new_df=pf_df,
+            type="pointfinder"
         )
     else:
         sys.exit(f'''
