@@ -67,6 +67,13 @@ rule all:
         df.to_csv(f"{config['output_directory']}resfinder_pheno_table_gathered.csv", header=True, index=False)
 
 
+        #Aggregate Pointfinder results
+        pointfinder_summary = hk.aggregate_pointfinder(outfolder_path = config['output_directory'], proc_num=6)
+        pointfinder_summary.to_csv(f"{config['output_directory']}pointfinder_results_combined.csv", header=True, index=False)
+
+
+
+
         #Change amrpp results to show them correctly in the report (unchanged version displays separate entry for amrpp for each sample (e.g. one row for resfinder & rgi and one row for amrpp for each sample))
         # with open(f"{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).html", "r+") as report:
         #     contents = report.read()
