@@ -43,6 +43,7 @@ class Ardetype_housekeeper(hk):
             df['Resistance'] = df['Resistance'].str.replace(', ','')
         return df
 
+
     @staticmethod 
     def aggregate_pointfinder(outfolder_path:str, proc_num:int):
         '''Runs pointfinder_results '''
