@@ -1,6 +1,6 @@
 localrules: all
 
-import sys, pandas as pd, os
+import sys, pandas as pd, os, json
 from datetime import date
 sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
 from ardetype_utilities import Ardetype_housekeeper as Housekeeper
@@ -29,6 +29,14 @@ rule all:
 
         #Generating combined report
         report = pd.concat(aggr_dict.values()) #combile all dataframes as rows into single report (one row for each sample_id)
+        report['average_coverage'] = round((report["r1_mean_len_af"].astype(int)+report["r2_mean_len_af"].astype(int))*report["non_host_read_pair_count"].astype(int)/report['assembly_length'].astype(int),2)
+        #formula used for coverage : ( ( ( LR1 + LR2 )/2 ) * NRP * 2 ) / AL = ( LR1 + LR2 ) * NRP / AL
+        #LR - Read length after quality filtering
+        #NRP - number of non-host read pairs (unclassified by kraken2 using human hg19-based database)
+        #AL - asembly length (sum of length of all contigs for a given sample)
+        #result is rounded to two digits after the comma
+
+
         general_columns = [ 
             "sample_id",
             "total_reads_bf",
@@ -39,13 +47,18 @@ rule all:
             "r2_mean_len_bf",
             "r1_mean_len_af",
             "r2_mean_len_af",
+            "non_host_read_pair_count",
             "gc_bf",
             "gc_af",
             "contig_count",
             "N50",
             "assembly_length",
+            "average_coverage",
             "gc_contigs",
             "MLST7_ST",
+            "rMLST",
+            "rMLST_Species",
+            "rMLST_Support_%",
             "species",
             "species_contig_%",
             "taxid"
@@ -83,10 +96,13 @@ rule extract_fastp:
 
 rule extract_kraken2:
     input:
-        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt'
+        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt',
+        config['output_directory']+'{sample_id_pattern}_kraken2_host_filtering_report.txt'
     output:
-        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report_std.csv'
+        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report_std.csv',
+        config['output_directory']+'{sample_id_pattern}_kraken2_host_filtering_report_std.csv'
     run:
+        #Contig stats
         df = pd.read_table(input[0], header=None)[[0,3,5]]
         df.columns = ['species_contig_%','taxid','species']
         try:
@@ -97,6 +113,15 @@ rule extract_kraken2:
             df = pd.DataFrame.from_dict({'species_contig_%':["None"],'taxid':["None"],'species':["None"]}) #When no typing is available at species level
             df['sample_id'] = [wildcards.sample_id_pattern]
         df.to_csv(output[0],header=True, index=False)
+
+        #Host filtering stats
+        df = pd.read_table(input[1], header=None)[[1,5]]
+        df.columns = ['non_host_read_pair_count','host']
+        df = df[df['host'] == 'unclassified']
+        df['sample_id'] = [wildcards.sample_id_pattern]
+        df.to_csv(output[1], header=True, index=False)
+
+
 
 
 rule extract_mlst:
@@ -113,6 +138,26 @@ rule extract_mlst:
         except pd.errors.EmptyDataError as e:
             df = pd.DataFrame.from_dict({'sample_id':wildcards.sample_id_pattern, 'MLST7_ST':None})
             df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_rmlst:
+    input:
+        config['output_directory']+'{sample_id_pattern}_rmlst.json'
+    output:
+        config['output_directory']+'{sample_id_pattern}_rmlst_std.csv'
+    run:
+        with open(input[0], 'r+') as file:
+            data = json.load(file)
+
+        extract = {
+            "rMLST_Species": " | ".join([s['taxon'] for s in data['taxon_prediction']]), 
+            "rMLST_Support_%": " | ".join([str(s['support']) for s in data['taxon_prediction']]), 
+            "rMLST": [data['fields']['rST'] if "fields" in data else None],
+        }
+        
+        df = pd.DataFrame.from_dict(extract)
+        df['sample_id'] = wildcards.sample_id_pattern
+        df.to_csv(output[0], header=True, index=False)
 
 
 rule extract_quast:
