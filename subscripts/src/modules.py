@@ -1,9 +1,9 @@
 from .utilities import Housekeeper as hk
-import os, warnings, re, subprocess, shutil, time, pandas as pd, glob
+import os, warnings, re, subprocess, shutil, time, pandas as pd, glob, json
 from itertools import chain
 from getpass import getuser
 from pathlib import Path
-from shutil import move
+from shutil import move, copy
 
 #Suppressing pandas warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -294,6 +294,8 @@ class Module:
 
     def clear_working_directory(self):
         '''Moves all files from working directory to source directory stored in self.cleanup_dict.'''
+        # with open(f'{self.config_file["output_directory"]}/cleanup_dict.json', 'w+') as f:
+        #     json.dump(self.cleanup_dict, f, indent=4)
         for key in self.cleanup_dict: 
             try:
                 move(key, self.cleanup_dict[key])
@@ -317,6 +319,7 @@ class Module:
                         if filter in source_path: #if match
                             map_dict[full_path] = redirect_filter[filter] #redirect
                             try:
+                                # copy(source_path, os.path.abspath(self.config_file['work_dir']))
                                 move(source_path, os.path.abspath(self.config_file['work_dir']))  #move to wd
                             except:
                                 break #match found by moving file was not succesful
@@ -324,6 +327,7 @@ class Module:
                     if full_path not in map_dict: #if all filters are parsed but no match (if match happend, the full path will be in map_dict)
                         map_dict[full_path] = source_path #no redirection
                         try:
+                            # copy(source_path, os.path.abspath(self.config_file['work_dir']))
                             move(source_path, os.path.abspath(self.config_file['work_dir']))
                         except:
                             continue
