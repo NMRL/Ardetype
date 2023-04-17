@@ -1,48 +1,66 @@
 localrules: all, quast
 
-#define sample_id_pattern wildcard and accessing sample_sheet
 import pandas as pd, os, sys, json
 from Bio import SeqIO
 sys.path.insert(0, os.path.abspath('./'))
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
-# from bs4 import BeautifulSoup #to format hamronization html report
-sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
-sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
+#from bs4 import BeautifulSoup #to format hamronization html report
 
+#define sample_id_pattern wildcard and accessing sample_sheet
+sip_wild                = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+sample_sheet            = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 pointfinder_species_map = dict(zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.lower()))
-# for k in pointfinder_species_map:
-#     print(k, pointfinder_species_map[k], pointfinder_species_map[k] in config['shell_tool_configs']['resfinder']['pointfinder_species'])
+sample_sheet.taxonomy   = sample_sheet.taxonomy.str.replace(' ', "_")
 
+#Marking samples for processing by amrfinder+ if database for a given organism is currated
+amrfinder_orgs = [
+    "Acinetobacter_baumannii", 
+    "Burkholderia_cepacia", 
+    "Burkholderia_pseudomallei", 
+    "Campylobacter", 
+    "Clostridioides_difficile", 
+    "Enterococcus_faecalis", 
+    "Enterococcus_faecium", 
+    "Escherichia", 
+    "Klebsiella", 
+    "Neisseria", 
+    "Pseudomonas_aeruginosa", 
+    "Salmonella", 
+    "Staphylococcus_aureus", 
+    "Staphylococcus_pseudintermedius", 
+    "Streptococcus_agalactiae", 
+    "Streptococcus_pneumoniae", 
+    "Streptococcus_pyogenes", 
+    "Vibrio_cholerae"]
+currated_orgs = sample_sheet[sample_sheet.taxonomy.str.contains('|'.join(amrfinder_orgs))] #keeping only samples where organisms are currated by ncbi
 
-sample_sheet.taxonomy = sample_sheet.taxonomy.str.replace(' ', "_")
-amrfinder_orgs = ["Acinetobacter_baumannii", "Burkholderia_cepacia", "Burkholderia_pseudomallei", "Campylobacter", "Clostridioides_difficile", "Enterococcus_faecalis", "Enterococcus_faecium", "Escherichia", "Klebsiella", "Neisseria", "Pseudomonas_aeruginosa", "Salmonella", "Staphylococcus_aureus", "Staphylococcus_pseudintermedius", "Streptococcus_agalactiae", "Streptococcus_pneumoniae", "Streptococcus_pyogenes", "Vibrio_cholerae"]
-currated_orgs = sample_sheet[sample_sheet.taxonomy.str.contains('|'.join(amrfinder_orgs))] #keeping only organisms that are currated by ncbi
-for org in currated_orgs.taxonomy: #replacing the taxonomy to the correct format
+for org in currated_orgs.taxonomy.unique(): #replacing the taxonomy to the correct format
     for o in amrfinder_orgs:
         if o in org:
             currated_orgs = currated_orgs.replace(org, o)
             break
 
-org_dict = dict(zip(currated_orgs['sample_id'], currated_orgs['taxonomy'])) #to use in amrfinder call
+org_dict = dict(zip(currated_orgs['sample_id'], currated_orgs['taxonomy'])) #to use in amrfinder+ rule
 
 
 #AGGREGATION RULE
 rule all:
     input: 
-        config['shell_target_files'], #path to singularity image file
-        hamr_sif = config['hamronization_sif'],
+        config['shell_target_files'], 
+        hamr_sif             = config['hamronization_sif'], #path to singularity image file
+        
         #Lists of resistance reports to be harmonized, may be it can be refactored to single expand
-        hamr_resfinder = expand(config['output_directory']+'{sample_id}_resfinder/{sample_id}_resfinder.hamr.tab', sample_id=sample_sheet['sample_id']),
-        #hamr_amrpp = expand(config['output_directory']+"{sample_id}_amrpp/{sample_id}_amrplusplus.hamr.tab", sample_id=sample_sheet['sample_id']),
-        hamr_rgi = expand(config['output_directory']+'{sample_id}.rgi.hamr.tab', sample_id=sample_sheet['sample_id']),
-        hamr_amrfp = expand(config['output_directory']+'{sample_id}_amrfinderplus.hamr.tab', sample_id=sample_sheet['sample_id']),
-        hamr_resfinder_pheno = expand(config['output_directory']+'{sample_id}_resfinder_pheno.txt', sample_id=sample_sheet['sample_id'])
+        hamr_resfinder       = expand(config['output_directory']+'{sample_id}_resfinder/{sample_id}_resfinder.hamr.tab', sample_id=sample_sheet['sample_id']),
+        hamr_rgi             = expand(config['output_directory']+'{sample_id}.rgi.hamr.tab', sample_id=sample_sheet['sample_id']),
+        hamr_amrfp           = expand(config['output_directory']+'{sample_id}_amrfinderplus.hamr.tab', sample_id=sample_sheet['sample_id']),
+        hamr_resfinder_pheno = expand(config['output_directory']+'{sample_id}_resfinder_pheno.txt', sample_id=sample_sheet['sample_id']),
+        #hamr_amrpp          = expand(config['output_directory']+"{sample_id}_amrpp/{sample_id}_amrplusplus.hamr.tab", sample_id=sample_sheet['sample_id']),
     run:
         #Use only non-empty files (hamronization fails otherwise)
         input.hamr_resfinder = [ path for path in input.hamr_resfinder if not os.path.getsize(path) == 0]
-        #input.hamr_amrpp = [ path for path in input.hamr_amrpp if not os.path.getsize(path) == 0] {" ".join(input.hamr_amrpp)} 
-        input.hamr_rgi = [ path for path in input.hamr_rgi if not os.path.getsize(path) == 0]
-        input.hamr_amrfp = [ path for path in input.hamr_amrfp if not os.path.getsize(path) == 0] 
+        #input.hamr_amrpp    = [ path for path in input.hamr_amrpp if not os.path.getsize(path) == 0] {" ".join(input.hamr_amrpp)} 
+        input.hamr_rgi       = [ path for path in input.hamr_rgi if not os.path.getsize(path) == 0]
+        input.hamr_amrfp     = [ path for path in input.hamr_amrfp if not os.path.getsize(path) == 0] 
         #Create single tsv report from all resistance inference tools
         os.system(f'''
         module load singularity
@@ -51,36 +69,29 @@ rule all:
         ''')
 
         #Aggregating resfinder phenotype info
-        # create empty dataframe
         df = pd.DataFrame()
-        # loop through all files in extract folder
         for path in input.hamr_resfinder_pheno:
-            # read in file as dataframe
-            df_temp = pd.read_csv(path, skiprows=16,sep="\t")
-            # add column with filename but remove "_pheno_table.txt" from filename and move column to first position
-            df_temp.insert(0, "sample_id", os.path.basename(path).replace('_resfinder_pheno.txt',''))
-            # append to empty dataframe
-            df = pd.concat([df,df_temp])
+            df_temp = pd.read_csv(path, skiprows=16,sep="\t") # read in file as dataframe
+            df_temp.insert(0, "sample_id", os.path.basename(path).replace('_resfinder_pheno.txt','')) # add column with filename but remove "_pheno_table.txt" from filename and move column to first position
+            df      = pd.concat([df,df_temp]) # append to empty dataframe
         # remove all rows that contain "No resistance" in "WGS-predicted phenotype" column
         df = df[df["WGS-predicted phenotype"] != "No resistance"]
         # save dataframe as csv
         df.to_csv(f"{config['output_directory']}resfinder_pheno_table_gathered.csv", header=True, index=False)
-
 
         #Aggregate Pointfinder results
         pointfinder_summary = hk.aggregate_pointfinder(outfolder_path = config['output_directory'], proc_num=6)
         pointfinder_summary.to_csv(f"{config['output_directory']}pointfinder_report.csv", header=True, index=False)
 
 
-
-
-        #Change amrpp results to show them correctly in the report (unchanged version displays separate entry for amrpp for each sample (e.g. one row for resfinder & rgi and one row for amrpp for each sample))
+        #Change amrpp results to show them correctly in the report 
+        #Unchanged version displays separate entry for amrpp for each sample (e.g. one row for resfinder & rgi and one row for amrpp for each sample)
         # with open(f"{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).html", "r+") as report:
-        #     contents = report.read()
-        #     html_string = str(BeautifulSoup(contents, features='lxml').prettify())
+        #     contents        = report.read()
+        #     html_string     = str(BeautifulSoup(contents, features='lxml').prettify())
         #     for i in sample_sheet['sample_id']:
         #         html_string = html_string.replace('}, {"input_file_name": '+ f'"{i}.amr.alignment"'+', "amrplusplus: config 0": ',  ', "amrplusplus: config 0": ')
-        #     html_string = html_string.replace(': config 0',"")
+        #     html_string     = html_string.replace(': config 0',"")
         #     report.write(html_string)
 
 
@@ -88,7 +99,7 @@ rule all:
 rule mob_recon:
     input:
         mob_suite_sif = config['mob_suite_sif'],
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
         config['output_directory']+'{sample_id_pattern}_mob_recon/chromosome.fasta', #expected in any case, unless only plasmid was sequenced
         config['output_directory']+'{sample_id_pattern}_mob_recon/contig_report.txt' #contig scanning results
@@ -102,7 +113,7 @@ rule mob_recon:
 rule mob_typer:
     input:
         mob_suite_sif = config['mob_suite_sif'],
-        recons = config['output_directory']+'{sample_id_pattern}_mob_recon/chromosome.fasta'
+        recons        = config['output_directory']+'{sample_id_pattern}_mob_recon/chromosome.fasta'
     output:
         config['output_directory']+'{sample_id_pattern}_mob_typer.tab' #plasmid typing results
     envmodules:
@@ -112,12 +123,13 @@ rule mob_typer:
         singularity run {input.mob_suite_sif} mob_typer --infile {input.recons} --out_file {config[output_directory]}{wildcards.sample_id_pattern}_mob_typer.tab
         """
 
+
 #RESFINDER
 rule resfinder:
     input:
-        hamr_sif = config['hamronization_sif'],
+        hamr_sif      = config['hamronization_sif'],
         resfinder_sif = config['resfinder_sif'],
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
         config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt",
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_Hit_in_genome_seq.fsa",
@@ -125,14 +137,16 @@ rule resfinder:
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_results_tab.txt",
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_results.txt",
         config['output_directory']+'{sample_id_pattern}_resfinder/{sample_id_pattern}_resfinder.hamr.tab'
-    run: #resfinder database is a separate repository that is used along with singularity image file; files are processed in user's home dir
+    run:
+        #if pointfinder database is available
         if pointfinder_species_map[wildcards.sample_id_pattern] in config['shell_tool_configs']['resfinder']['pointfinder_species']:
-            #singularity run {input.hamr_sif} resfinder4 ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['resfinder_version']} --reference_database_version {config['resfinder_db_version']} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab  
             os.system(f"""
             module load singularity
             CONTIG_FILENAME=$(basename {input.contigs})
+
             cp -r {config['shell_tool_configs']['resfinder']['resfinder_db']} ~/db-resfinder_{wildcards.sample_id_pattern}/
             cp {input.contigs} ~/ 
+
             singularity run {input.resfinder_sif} run_resfinder.py --point -ifa ~/$CONTIG_FILENAME -acq -l {config['shell_tool_configs']['resfinder']['length']} -t {config['shell_tool_configs']['resfinder']['coverage']} -db_res ~/db-resfinder_{wildcards.sample_id_pattern}/db_resfinder -db_point ~/db-resfinder_{wildcards.sample_id_pattern}/db_pointfinder --species "{pointfinder_species_map[wildcards.sample_id_pattern]}" -o ~/resfinder_output_{wildcards.sample_id_pattern}
             singularity run {input.hamr_sif} resfinder ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['resfinder_version']} --reference_database_version {config['resfinder_db_version']} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab
             
@@ -142,25 +156,28 @@ rule resfinder:
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
-            
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/PointFinder* {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            
             rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$CONTIG_FILENAME
-
             """)
         else:
             os.system(f"""
             module load singularity
             CONTIG_FILENAME=$(basename {input.contigs})
+
             cp -r {config['shell_tool_configs']['resfinder']['resfinder_db']} ~/db-resfinder_{wildcards.sample_id_pattern}/
             cp {input.contigs} ~/ 
+            
             singularity run {input.resfinder_sif} run_resfinder.py -ifa ~/$CONTIG_FILENAME -acq -l {config['shell_tool_configs']['resfinder']['length']} -t {config['shell_tool_configs']['resfinder']['coverage']} -db_res  ~/db-resfinder_{wildcards.sample_id_pattern}/db_resfinder -o ~/resfinder_output_{wildcards.sample_id_pattern}
             singularity run {input.hamr_sif} resfinder ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['resfinder_version']} --reference_database_version {config['resfinder_db_version']} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab
+            
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/pheno_table.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Hit_in_genome_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Resistance_gene_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            
             rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$CONTIG_FILENAME
             """)
 
@@ -177,16 +194,15 @@ rule resfinder_pheno:
 #AMRFINDER+
 rule amrfinderplus:
     input:
-        hamr_sif = config['hamronization_sif'],
+        hamr_sif      = config['hamronization_sif'],
         amrfinder_sif = config['amrfinderplus_sif'],
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
         config['output_directory']+"{sample_id_pattern}_amrfinderplus.tab",
         config['output_directory']+'{sample_id_pattern}_amrfinderplus.hamr.tab',
         config['output_directory']+"{sample_id_pattern}_amrfinderplus_point.tab"
-    # envmodules:
-    #     'singularity'
-    run: #resfinder database is a separate repository that is used along with singularity image file; files are processed in user's home dir
+    run:
+        #if organism has a currated mutation database - perform variant calling & annotation
         if wildcards.sample_id_pattern in org_dict:
             os.system(f"""
             module load singularity
@@ -201,13 +217,13 @@ rule amrfinderplus:
             touch {output[2]}
             """)
 
-#AMR++
+#AMR++ (Now it is excluded due to noisy output and long processing time)
 if 'fq1' in sample_sheet.columns:
     rule amrpp:
         input:
             hamr_sif = config['hamronization_sif'],
-            read_1 = config['work_dir']+'{sample_id_pattern}_R1_001.fastq.gz',
-            read_2 = config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz'
+            read_1   = config['work_dir']+'{sample_id_pattern}_R1_001.fastq.gz',
+            read_2   = config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz'
         output:
             config['output_directory']+"{sample_id_pattern}_amrpp/ResistomeResults/AMR_analytic_matrix.csv",
             config['output_directory']+"{sample_id_pattern}_amrpp/{sample_id_pattern}_amrplusplus.hamr.tab"
@@ -240,11 +256,11 @@ if 'fq1' in sample_sheet.columns:
             rm -r data/raw/{wildcards.sample_id_pattern} work_dir_{wildcards.sample_id_pattern}/ nextflow_output_{wildcards.sample_id_pattern}/
             """
 
-
+#INVESTIGATE
 rule plasmidfinder:
     input:
         image_file = config['shell_tool_configs']['plasmidfinder']['plasmidfinder_sif'],
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs    = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
         config['output_directory']+"{sample_id_pattern}_plasmidfinder/Hit_in_genome_seq.fsa",
         config['output_directory']+"{sample_id_pattern}_plasmidfinder/Plasmid_seqs.fsa",
@@ -258,22 +274,24 @@ rule plasmidfinder:
         module load singularity
         mkdir -p ~/plasmidfinder_output_{wildcards.sample_id_pattern}
         mkdir -p {config[output_directory]}{wildcards.sample_id_pattern}_plasmidfinder/
+        CONTIG_FILENAME=$(basename {input.contigs})
 
         cp -r {config[shell_tool_configs][plasmidfinder][plasmidfinder_db]} ~/db-plasmidfinder_{wildcards.sample_id_pattern}/
-        cp {input.contigs} ~/plasmidfinder_output_{wildcards.sample_id_pattern}/
+        cp {input.contigs} ~/$CONTIG_FILENAME
 
-        singularity run {input.image_file} plasmidfinder.py -x -i ~/plasmidfinder_output_{wildcards.sample_id_pattern}/$(basename {input.contigs}) \
+        singularity run {input.image_file} plasmidfinder.py -x -i ~/$CONTIG_FILENAME \
         -o ~/plasmidfinder_output_{wildcards.sample_id_pattern} \
         -tmp ~/plasmidfinder_output_{wildcards.sample_id_pattern} \
         -p ~/db-plasmidfinder_{wildcards.sample_id_pattern}/
 
         mv -n ~/plasmidfinder_output_{wildcards.sample_id_pattern}/* {config[output_directory]}{wildcards.sample_id_pattern}_plasmidfinder/
-        rm -r ~/db-plasmidfinder_{wildcards.sample_id_pattern}/ ~/plasmidfinder_output_{wildcards.sample_id_pattern}/
+        rm -r ~/db-plasmidfinder_{wildcards.sample_id_pattern}/ ~/plasmidfinder_output_{wildcards.sample_id_pattern}/ ~/$CONTIG_FILENAME
         '''
+
 
 rule rmlst:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs    = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
         rmlst_json = config['output_directory']+'{sample_id_pattern}_rmlst.json'
     run:
@@ -281,12 +299,15 @@ rule rmlst:
         if len(fasta) > config['shell_tool_configs']['rmlst_pubmlst']['api_seq_limit']:
             counter = 1
             while len(fasta) > config['shell_tool_configs']['rmlst_pubmlst']['api_seq_limit']:
-                fasta = [r for r in fasta if len(r.seq) > counter * 50]
+                fasta    = [r for r in fasta if len(r.seq) > counter * 50]
                 counter += 1
-            SeqIO.write(fasta, input.contigs.replace('_contigs.fasta', f'_ds_{counter*50}bp_contigs.fasta'), "fasta")
+            print(input.contigs.replace('_contigs.fasta', f'_ds_{counter*50}bp_contigs.fasta'))
+            print(os.path.isfile(input.contigs))
+            with open(input.contigs.replace('_contigs.fasta', f'_ds_{counter*50}bp_contigs.fasta'), "w+") as handle:
+                SeqIO.write(fasta, handle, "fasta")
             results = hk.type_fasta_scheme(
                 contig_path = input.contigs.replace('_contigs.fasta', f'_ds_{counter*50}bp_contigs.fasta'), 
-                url = config['shell_tool_configs']['rmlst_pubmlst']['schema']
+                url         = config['shell_tool_configs']['rmlst_pubmlst']['schema']
                 )
             with open(output.rmlst_json, 'w+') as outfile:
                 json.dump(results, outfile, indent=4)
@@ -303,9 +324,9 @@ rule rmlst:
 rule mlst: 
     input: 
         mlst_quast_path = config['mlst_quast_sif'],
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs         = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
-        mlst_output = config['output_directory']+'{sample_id_pattern}_mlst_output.csv',
+        mlst_output     = config['output_directory']+'{sample_id_pattern}_mlst_output.csv',
     threads: 4
     envmodules:
         'singularity'
@@ -319,7 +340,7 @@ rule mlst:
 rule res_gen_id: 
     input: 
         hamr_sif = config['hamronization_sif'],
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
         config['output_directory']+'{sample_id_pattern}.rgi.txt',
         config['output_directory']+'{sample_id_pattern}.rgi.json',
@@ -340,7 +361,7 @@ rule res_gen_id:
 rule quast:
     input:
         sif_file = config['mlst_quast_sif'],
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     envmodules:
         'singularity'
     output:
