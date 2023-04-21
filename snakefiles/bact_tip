@@ -149,7 +149,7 @@ rule kleborate_kpneumoniae:
         mkdir -p ~/kleborate/
         cp {input.contigs} ~/kleborate/
         
-        singularity run {input.sif_file} kleborate -o ~/kleborate/$(basename {output}) --kaptive -a ~/kleborate/$(basename {input.contigs})
+        singularity run {input.sif_file} kleborate -o ~/kleborate/$(basename {output}) --kaptive -r -a ~/kleborate/$(basename {input.contigs})
         
         if [ -f ~/kleborate/$(basename {output}) ]; then
             mv ~/kleborate/$(basename {output}) {output}
