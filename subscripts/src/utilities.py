@@ -87,7 +87,11 @@ class Housekeeper:
         if not isinstance(ss_df, pd.DataFrame): raise TypeError('Expected pandas.DataFrame as ss_df')
         elif not isinstance(info_dict, dict): raise TypeError('Expected dictionary as info_dict')
         elif id_column not in ss_df.columns: raise KeyError('id_column should be present in ss_df')
-        elif not set(info_dict.keys()).intersection(set(ss_df[id_column])): raise KeyError('No overlap between ids in ss_df.id_column and info_dict')
+        elif not set(info_dict.keys()).intersection(set(ss_df[id_column])): 
+            ss_df.to_csv('test_df.csv', header=True, index=False)
+            with open('id_check_dict.json', 'w+') as f:
+                json.dump(info_dict, f, indent=4)
+            raise KeyError('No overlap between ids in ss_df.id_column and info_dict')
 
         ss_df[new_col_name] = ss_df[id_column].map(info_dict)
         return ss_df

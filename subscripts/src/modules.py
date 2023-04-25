@@ -70,7 +70,7 @@ class Module:
         self.cleanup_dict        = {} #to map origin paths of input files to path in working directory; filled by move_to_wd; used by clear_working_directory
         self.status_script       = f"{os.path.dirname(Path(__file__).parents[0].absolute())}/pbs-status.py"
 
-    def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified'], mixed:bool=False):
+    def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified'], mixed:bool=False, empty:bool=False):
         '''Fills self.input_dict using self.input_path and self.module_name by
         mapping each file format to the list of files of that format, found in the self.input_path, 
         excluding files that contain substrings in their names (supply None to avoid excluding files).
@@ -79,14 +79,15 @@ class Module:
             for format in self.patterns['inputs']: 
                 self.input_dict[format] = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
                 if not self.input_dict[format]: raise Exception(f'Missing {format} files in input directory')
-        else:
+        elif mixed or empty:
             for format in self.patterns['inputs']['required']: 
                 self.input_dict[format] = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
                 if not self.input_dict[format]: raise Exception(f'Missing {format} files in input directory')
-            for format in self.patterns['inputs']['optional']:
-                parsed_files = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
-                if parsed_files:
-                    self.input_dict[format] = parsed_files
+            if not empty:
+                for format in self.patterns['inputs']['optional']:
+                    parsed_files = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
+                    if parsed_files:
+                        self.input_dict[format] = parsed_files
 
     def fill_sample_sheet(self):
         '''
@@ -101,13 +102,14 @@ class Module:
             self.sample_sheet = hk.map_new_column(self.sample_sheet,fasta_dict,'sample_id','fa')
 
 
-    def fill_target_list(self, taxonomy_based:bool=False, mixed:bool=False):
+    def fill_target_list(self, taxonomy_based:bool=False, mixed:bool=False, empty:bool=False):
         '''Fills self.target_list using data stored in self.sample_sheet instance variable.'''
         if taxonomy_based:#specific targets for each species
             self.target_list = [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
-        elif mixed:#both species-specific and non-specific targets
+        elif mixed or empty:#both species-specific and non-specific targets
             self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'].to_list()+self.removed_samples['sample_id'].to_list() for tmpl in self.targets['general']]
-            self.target_list += [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
+            if not empty:
+                self.target_list += [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
         else:#only non-specific targets
             self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
             
@@ -213,7 +215,9 @@ class Module:
     def save_removed(self):
         '''Generates a csv file in self.output_path folder, containing information about samples that were
         filtered as invalid by the module (see remove_invalid_samples). Does nothing if self.removed_samples is empty.'''
-        if not self.removed_samples.empty: self.removed_samples.to_csv(f"{self.output_path}removed_samples_{self.module_name}.csv", header=True, index=False)
+        if not self.removed_samples.empty: 
+            self.removed_samples.to_csv(f"{self.output_path}removed_samples_{self.module_name}.csv", header=True, index=False)
+            return self.removed_samples
     
 
     def submit_module_job(self, jobscript_path):

@@ -167,18 +167,17 @@ def run_all(args, num_jobs):
     shell.write_sample_sheet()
     shell.clear_working_directory()
 
-    # Connecting shell & core to tip
+    # Connecting shell & core to tip/shape
     tip.receive_sample_sheet(shell.supply_sample_sheet())
     samples_cleared = tip.remove_invalid_samples(connect_from_module_name='core')
     tip.save_removed()
-    if samples_cleared == 1: 
-        shape.receive_sample_sheet(tip.supply_sample_sheet())
-        samples_cleared = shape.remove_invalid_samples(connect_from_module_name='core')
-        shape.removed_samples = tip.removed_samples
+    if samples_cleared == 1:                                                            
+        shape.receive_sample_sheet(shell.supply_sample_sheet())
+        samples_cleared = shape.remove_invalid_samples(connect_from_module_name='shell')
 
         # Running shape
-        shape.fill_input_dict(substring_list=None, mixed=True)
-        shape.fill_target_list(mixed=True)
+        shape.fill_input_dict(substring_list=None, mixed=True, empty=True)               #empty sample sheet due to filtering of invalid samples
+        shape.fill_target_list(mixed=True, empty=True)
         shape.add_module_targets()
         shape.write_module_config()
         try:
