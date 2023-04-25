@@ -148,16 +148,20 @@ rule extract_rmlst:
     run:
         with open(input[0], 'r+') as file:
             data = json.load(file)
-
-        extract = {
-            "rMLST_Species": " | ".join([s['taxon'] for s in data['taxon_prediction']]), 
-            "rMLST_Support_%": " | ".join([str(s['support']) for s in data['taxon_prediction']]), 
-            "rMLST": [data['fields']['rST'] if "fields" in data else None],
-        }
         
-        df = pd.DataFrame.from_dict(extract)
-        df['sample_id'] = wildcards.sample_id_pattern
-        df.to_csv(output[0], header=True, index=False)
+        if data['exact_matches']:
+            extract = {
+                "rMLST_Species": " | ".join([s['taxon'] for s in data['taxon_prediction']]), 
+                "rMLST_Support_%": " | ".join([str(s['support']) for s in data['taxon_prediction']]), 
+                "rMLST": [data['fields']['rST'] if "fields" in data else None],
+            }
+            df = pd.DataFrame.from_dict(extract)
+            df['sample_id'] = wildcards.sample_id_pattern
+            df.to_csv(output[0], header=True, index=False)
+        else:
+            df = pd.DataFrame.from_dict({'rMLST_Species':[None], 'rMLST_Support_%':[None], 'rMLST':[None], 'sample_id':[wildcards.sample_id_pattern]})
+            df.to_csv(output[0], header=True, index=False)
+	    
 
 
 rule extract_quast:
