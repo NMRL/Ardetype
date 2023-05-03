@@ -22,6 +22,10 @@ for sid, species in zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.
         cgmlst_species_map[sid] = "spneumoniae"
     elif 'streptococcus pyogenes' in species:
         cgmlst_species_map[sid] = "streptococcus"
+    elif 'campylobacter' in species:
+        cgmlst_species_map[sid] = "campylobacter"
+    elif 'clostridium' in spedies:
+        cgmlst_species_map[sid] = "clostridium"
 
 
 #AGGREGATION RULE

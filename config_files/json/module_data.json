@@ -97,6 +97,12 @@
                 "_lissero.tsv",
                 "_lm_pasteur_cgmlst.json"
             ],
+            "Campylobacter jejuni": [
+                "_cgmlstfinder/data.json"
+            ],
+            "Campylobacter coli": [
+                "_cgmlstfinder/data.json"
+            ],
             "Salmonella enterica": [
                 "_sistr.csv",
                 "_SeqSero.tsv",
@@ -148,7 +154,11 @@
                 "Salmonella enterica",
                 "Acinetobacter baumannii",
                 "Escherichia coli",
-                "Streptococcus pneumoniae"
+                "Streptococcus pneumoniae",
+                "Campylobacter jejuni",
+                "Campylobacter coli",
+                "Clostridium botulinum",
+                "Clostridium difficile"
             ]
         }
     },

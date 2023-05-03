@@ -72,7 +72,10 @@ rule all:
         df = pd.DataFrame()
         for path in input.hamr_resfinder_pheno:
             df_temp = pd.read_csv(path, skiprows=16,sep="\t") # read in file as dataframe
-            df_temp.insert(0, "sample_id", os.path.basename(path).replace('_resfinder_pheno.txt','')) # add column with filename but remove "_pheno_table.txt" from filename and move column to first position
+            sample_id = os.path.basename(path).replace('_resfinder_pheno.txt','')
+            df_temp['sample_id'] = [sample_id for _ in df_temp.index]
+            df_temp = df_temp[df_temp.columns[::-1]]
+            # df_temp.insert(0, "sample_id", os.path.basename(path).replace('_resfinder_pheno.txt','')) # add column with filename but remove "_pheno_table.txt" from filename and move column to first position
             df      = pd.concat([df,df_temp]) # append to empty dataframe
         # remove all rows that contain "No resistance" in "WGS-predicted phenotype" column
         df = df[df["WGS-predicted phenotype"] != "No resistance"]
@@ -129,7 +132,9 @@ rule resfinder:
     input:
         hamr_sif      = config['hamronization_sif'],
         resfinder_sif = config['resfinder_sif'],
-        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        read_1        = config['work_dir']+'{sample_id_pattern}_R1_001.fastq.gz',
+        read_2        = config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz'
     output:
         config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt",
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_Hit_in_genome_seq.fsa",
@@ -160,6 +165,30 @@ rule resfinder:
             
             rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$CONTIG_FILENAME
             """)
+
+            os.system(f"""
+            module load singularity
+            READ1=$(basename {input.read_1})
+            READ2=$(basename {input.read_2})
+
+            cp -r {config['shell_tool_configs']['resfinder']['resfinder_db']} ~/db-resfinder_{wildcards.sample_id_pattern}/
+            cp {input.read_1} ~/ 
+            cp {input.read_2} ~/
+
+            singularity run {input.resfinder_sif} run_resfinder.py --point -ifq ~/$READ1 ~/$READ2 -acq -l {config['shell_tool_configs']['resfinder']['length']} -t {config['shell_tool_configs']['resfinder']['coverage']} -db_res ~/db-resfinder_{wildcards.sample_id_pattern}/db_resfinder -db_point ~/db-resfinder_{wildcards.sample_id_pattern}/db_pointfinder --species "{pointfinder_species_map[wildcards.sample_id_pattern]}" -o ~/resfinder_output_{wildcards.sample_id_pattern}
+            singularity run {input.hamr_sif} resfinder ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['resfinder_version']} --reference_database_version {config['resfinder_db_version']} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab
+            
+            mkdir {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/pheno_table.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Hit_in_genome_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Resistance_gene_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/PointFinder* {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            
+            rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$READ1 ~/$READ2
+            """)
         else:
             os.system(f"""
             module load singularity
@@ -179,6 +208,29 @@ rule resfinder:
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
             
             rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$CONTIG_FILENAME
+            """)
+
+            os.system(f"""
+            module load singularity
+            READ1=$(basename {input.read_1})
+            READ2=$(basename {input.read_2})
+
+            cp -r {config['shell_tool_configs']['resfinder']['resfinder_db']} ~/db-resfinder_{wildcards.sample_id_pattern}/
+            cp {input.read_1} ~/ 
+            cp {input.read_2} ~/
+
+            singularity run {input.resfinder_sif} run_resfinder.py --point -ifq ~/$READ1 ~/$READ2 -acq -l {config['shell_tool_configs']['resfinder']['length']} -t {config['shell_tool_configs']['resfinder']['coverage']} -db_res ~/db-resfinder_{wildcards.sample_id_pattern}/db_resfinder -o ~/resfinder_output_{wildcards.sample_id_pattern}
+            singularity run {input.hamr_sif} resfinder ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['resfinder_version']} --reference_database_version {config['resfinder_db_version']} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab
+            
+            mkdir {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/pheno_table.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Hit_in_genome_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Resistance_gene_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            
+            rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$READ1 ~/$READ2
             """)
 
 rule resfinder_pheno:
