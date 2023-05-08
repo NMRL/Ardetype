@@ -71,19 +71,22 @@
             ],
             "Legionella pneumophila": [
                 "_legsta.csv",
-                "-predictResults.txt"
+                "-predictResults.txt",
+                "_chewbbaca/results_alleles.tsv"
             ],
             "Haemophilus influenzae": [
                 "_hi_hicap.tsv"
             ],
             "Klebsiella pneumoniae": [
-                "_kleborate.tsv"
+                "_kleborate.tsv",
+                "_chewbbaca/results_alleles.tsv"
             ],
             "Staphylococcus aureus": [
                 "_agrvate_summary.tab",
                 "_spatyper.txt",
                 "_sccmec.tsv",
-                "_sa_pasteur_cgmlst.json"
+                "_sa_pasteur_cgmlst.json",
+                "_chewbbaca/results_alleles.tsv"
             ],
             "Streptococcus pyogenes": [
                 "_strp_emmtyper.tsv",
@@ -95,31 +98,37 @@
             ],
             "Listeria monocytogenes": [
                 "_lissero.tsv",
-                "_lm_pasteur_cgmlst.json"
+                "_lm_pasteur_cgmlst.json",
+                "_chewbbaca/results_alleles.tsv"
             ],
             "Campylobacter jejuni": [
-                "_cgmlstfinder/data.json"
+                "_cgmlstfinder/data.json",
+                "_chewbbaca/results_alleles.tsv"
             ],
             "Campylobacter coli": [
-                "_cgmlstfinder/data.json"
+                "_cgmlstfinder/data.json",
+                "_chewbbaca/results_alleles.tsv"
             ],
             "Salmonella enterica": [
                 "_sistr.csv",
                 "_SeqSero.tsv",
                 "_se_pasteur_cgmlst.json",
-                "_cgmlstfinder/data.json"
+                "_cgmlstfinder/data.json",
+                "_chewbbaca/results_alleles.tsv"
             ],
             "Acinetobacter baumannii": [
                 "_kleborate.tsv",
                 "_ab_pumblst.json",
                 "_ab_pasteur_cgmlst.json",
-                "_cgmlstfinder/data.json"
+                "_cgmlstfinder/data.json",
+                "_chewbbaca/results_alleles.tsv"
             ],
             "Escherichia coli": [
                 "_ectyper.tsv",
                 "_ec_pasteur_cgmlst.json",
                 "_stecfinder.tsv",
-                "_cgmlstfinder/data.json"
+                "_cgmlstfinder/data.json",
+                "_chewbbaca/results_alleles.tsv"
             ],
             "Streptococcus pneumoniae": [
                 "_seroba.tsv",
@@ -212,7 +221,9 @@
             ],
             "Streptococcus pneumoniae": [
                 "_seroba_std.csv"
-            ]
+            ],
+            "Campylobacter jejuni": [],
+            "Campylobacter coli": []
         },
         "patterns": {
             "inputs": {

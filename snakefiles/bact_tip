@@ -9,23 +9,36 @@ from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 sip_wild     = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
-#mapping full species name to cgmlstfinder-accepted database format
-cgmlst_species_map = {}
+#mapping full species name to cgmlstfinder-accepted and chewbbaca-accepted database format
+cgmlstfinder_species_map = {}
+chewbbaca_species_map     = {}
 for sid, species in zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.lower()):
     if 'salmonella' in species:
-        cgmlst_species_map[sid] = "salmonella"
+        cgmlstfinder_species_map[sid] = "salmonella"
     elif 'escherichia coli' in species:
-        cgmlst_species_map[sid] = "ecoli"
+        cgmlstfinder_species_map[sid] = "ecoli"
+        chewbbaca_species_map[sid]     = 'Escherichia_coli'
     elif 'baumannii' in species:
-        cgmlst_species_map[sid] = "abaumannii"
+        cgmlstfinder_species_map[sid] = "abaumannii"
+        chewbbaca_species_map[sid]     = 'Acinetobacter_baumannii'
     elif 'streptococcus pneumoniae' in species:
-        cgmlst_species_map[sid] = "spneumoniae"
+        cgmlstfinder_species_map[sid] = "spneumoniae"
+        chewbbaca_species_map[sid] = "Staphylococcus_aureus"
     elif 'streptococcus pyogenes' in species:
-        cgmlst_species_map[sid] = "streptococcus"
+        cgmlstfinder_species_map[sid] = "streptococcus"
     elif 'campylobacter' in species:
-        cgmlst_species_map[sid] = "campylobacter"
-    elif 'clostridium' in spedies:
-        cgmlst_species_map[sid] = "clostridium"
+        cgmlstfinder_species_map[sid] = "campylobacter"
+        chewbbaca_species_map[sid]     = 'Campylobacter_jejuni_coli'
+    elif 'clostridium' in species:
+        chewbbaca_species_map[sid] = "clostridium"
+    elif 'klebsiella' in species:
+        chewbbaca_species_map[sid] = "Klebsiella_pneumoniae_variicola_quasipneumoniae"
+    elif 'legionella' in species:
+        chewbbaca_species_map[sid] = "Legionella_pneumophila"
+    elif 'listeria' in species:
+        chewbbaca_species_map[sid] = "Listeria_monocytogenes"
+    elif 'salmonella' in species:
+        chewbbaca_species_map[sid] = "Salmonella_enterica"
 
 
 #AGGREGATION RULE
@@ -631,8 +644,31 @@ rule cgmlstfinder:
         cp {input.contigs} ~/
         mkdir -p ~/{wildcards.sample_id_pattern}_cgmlstfinder/
 
-        singularity run {input.image_file} python /cgmlstfinder/cgMLST.py -db ./cgmlstfinder_db/ -i ~/$CONTIG_FILENAME -o ~/{wildcards.sample_id_pattern}_cgmlstfinder/ -s {cgmlst_species_map[wildcards.sample_id_pattern]}
+        singularity run {input.image_file} python /cgmlstfinder/cgMLST.py -db ./cgmlstfinder_db/ -i ~/$CONTIG_FILENAME -o ~/{wildcards.sample_id_pattern}_cgmlstfinder/ -s {cgmlstfinder_species_map[wildcards.sample_id_pattern]}
         mv -n ~/{wildcards.sample_id_pattern}_cgmlstfinder/* {config['output_directory']}{wildcards.sample_id_pattern}_cgmlstfinder/
 
         rm -r ~/{wildcards.sample_id_pattern}_cgmlstfinder/ ~/$CONTIG_FILENAME
+        ''')
+
+
+rule chewbbaca_cgmlst:
+    input:
+        image_file    = config['tip_tool_configs']['chewbbaca']['chewbbaca_sif'],
+        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        chewbbaca     = config['output_directory']+'{sample_id_pattern}_chewbbaca/results_alleles.tsv'
+    run:
+        os.system(f'''
+        module load singularity
+
+        cd {config["databases"]}chewbacca_db/databases/
+        mkdir -p ~/{wildcards.sample_id_pattern}_chewbbaca_input/
+        mkdir -p {config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/
+        cp {input.contigs} ~/{wildcards.sample_id_pattern}_chewbbaca_input/
+
+        singularity run {input.image_file} chewBBACA.py AlleleCall --cpu {config["tip_tool_configs"]["chewbbaca"]["chewbbaca_cores"]} -i ~/{wildcards.sample_id_pattern}_chewbbaca_input/ -g {chewbbaca_species_map[wildcards.sample_id_pattern]} -o ~/{wildcards.sample_id_pattern}_chewbbaca/
+        mv -n ~/{wildcards.sample_id_pattern}_chewbbaca/* {config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/
+
+        rm -r ~/{wildcards.sample_id_pattern}_chewbbaca_input/
+        rm -r ~/{wildcards.sample_id_pattern}_chewbbaca
         ''')

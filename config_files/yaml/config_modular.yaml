@@ -202,6 +202,9 @@ tip_tool_configs:
   cgmlstfinder:
     cgmlstfinder_sif: /mnt/beegfs2/home/groups/nmrl/image_files/cgmlstfinder.sif
     cgmlstfinder_db: /mnt/beegfs2/home/groups/nmrl/db/cgmlstfinder_db/
+  chewbbaca:
+    chewbbaca_sif: /mnt/beegfs2/home/groups/nmrl/image_files/chewbacca_cgmlst.sif
+    chewbbaca_cores: 12
 
   
 
