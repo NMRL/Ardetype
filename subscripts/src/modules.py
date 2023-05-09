@@ -357,15 +357,25 @@ class Module:
                 except:
                     continue
 
+        # moving reports to separate directory - list of expected reports is defined in config_files/json/module_data/
+        os.makedirs(f'{self.output_path}reports', exist_ok=True)
+        outdir_listing = os.listdir(self.output_path)
+        for suffix in module_data['reports']:
+            for file in outdir_listing:
+                if file.endswith(suffix):
+                    try:
+                        move(f'{self.output_path}{file}', f'{self.output_path}reports/')
+                    except:
+                        continue
+        
 
     def unfold_output(self):
         '''Moves target files outside of folders created by fold_output method in order to avoid having to move file out manually to do a rerun.'''
-        for id in self.sample_sheet['sample_id']: 
-            for file in glob.glob(f'{self.output_path}folded_{id}_output/*'):
-                try:
-                    move(file, self.output_path)
-                except:
-                    continue
+        for file in glob.glob(f'{self.output_path}folded_*_output/*'):
+            try:
+                move(file, self.output_path)
+            except:
+                continue
 
     def set_permissions(self, permissions:str='775'):
         '''Given Linux permission string in numeric format, sets requested permissions (775 by default) recursively on the contents of self.output_path.'''

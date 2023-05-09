@@ -6,6 +6,12 @@
         "tip": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_tip",
         "shape": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shape"
     },
+    "reports": [
+        "_ardetype_report.csv",
+        "pointfinder_report.csv",
+        "resfinder_pheno_table_gathered.csv",
+        "summarized_resistance_profile_(sequencing_date)_(batch).tsv"
+    ],
     "core": {
         "targets": [
             "_contigs.fasta",

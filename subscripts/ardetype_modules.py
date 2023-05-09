@@ -116,9 +116,9 @@ def run_all(args, num_jobs):
     )
 
     #Running core
+    if core.unfold_output: core.unfold_output()
     core.fill_input_dict()
     core.fill_sample_sheet()
-    if core.unfold_output: core.unfold_output()
     core.make_output_dir()
     core.write_sample_sheet()
     core.fill_target_list()
@@ -258,9 +258,9 @@ def run_core(args, num_jobs):
         snakefile_path      = module_data['snakefiles']['core'],
         cluster_config_path = module_data['cluster_config']
     )
+    if core.unfold_output: core.unfold_output()
     core.fill_input_dict()
     core.fill_sample_sheet()
-    if core.unfold_output: core.unfold_output()
     core.make_output_dir()
     core.write_sample_sheet()
     core.fill_target_list()
@@ -312,9 +312,9 @@ def run_shell(args, num_jobs):
         snakefile_path      = module_data['snakefiles']['shell'],
         cluster_config_path = module_data['cluster_config']
     )
+    if shell.unpack_output: shell.unfold_output()
     shell.fill_input_dict()
     shell.fill_sample_sheet()
-    if shell.unpack_output: shell.unfold_output()
     shell.make_output_dir()
     shell.write_sample_sheet()
     shell.fill_target_list()
