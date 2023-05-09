@@ -1,9 +1,9 @@
 from .utilities import Housekeeper as hk
-import os, warnings, re, subprocess, shutil, time, pandas as pd, glob, json
+import os, warnings, re, subprocess, shutil, time, pandas as pd, glob
 from itertools import chain
 from getpass import getuser
 from pathlib import Path
-from shutil import move, copy
+from shutil import move
 
 #Suppressing pandas warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
