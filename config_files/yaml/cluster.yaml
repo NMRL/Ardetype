@@ -149,7 +149,7 @@ mob_recon:
   jobname: "ardetype.mob_recon"
   procs: 12
   pmem: "1000mb"
-  walltime: "00:20:00"
+  walltime: "03:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -159,7 +159,7 @@ mob_typer:
   jobname: "ardetype.mob_typer"
   procs: 12
   pmem: "1000mb"
-  walltime: "00:20:00"
+  walltime: "02:20:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -196,6 +196,16 @@ cgmlstfinder:
   queue: "batch"
   jobout: "oe"
 
+
+chewbbaca_cgmlst:
+  jobname: "ardetype.chewbbaca_cgmlst"
+  procs: 12
+  pmem: "2000mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+  
 
 meningotype_nmeningitidis:
   jobname: "ardetype.meningotype"
