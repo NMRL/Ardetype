@@ -346,7 +346,7 @@ class Module:
 
     def fold_output(self):
         '''Creates a folder for each sample_id in self.sample_sheet and self.removed_samples.
-        Structures the pipeline output by putting all tartets for each sample into curresponding folder.'''
+        Structures the pipeline output by putting all targets for each sample into curresponding folder.'''
         full_sample_list = self.sample_sheet['sample_id'].tolist() 
         if not self.removed_samples.empty: full_sample_list += self.removed_samples['sample_id'].to_list()
         for sample_id in full_sample_list: 
