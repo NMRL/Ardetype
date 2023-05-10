@@ -10,7 +10,8 @@
         "_ardetype_report.csv",
         "pointfinder_report.csv",
         "resfinder_pheno_table_gathered.csv",
-        "summarized_resistance_profile_(sequencing_date)_(batch).tsv"
+        "summarized_resistance_profile_(sequencing_date)_(batch).tsv",
+        "software_log.csv"
     ],
     "core": {
         "targets": [
@@ -119,8 +120,7 @@
                 "_sistr.csv",
                 "_SeqSero.tsv",
                 "_se_pasteur_cgmlst.json",
-                "_cgmlstfinder/data.json",
-                "_chewbbaca/results_alleles.tsv"
+                "_cgmlstfinder/data.json"
             ],
             "Acinetobacter baumannii": [
                 "_kleborate.tsv",

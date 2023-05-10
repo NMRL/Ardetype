@@ -1,5 +1,5 @@
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
-import os, warnings, sys
+import os, warnings, sys, subprocess as sp, datetime, pandas as pd
 from pathlib import Path
 sys.path.insert(0, os.path.dirname(Path(__file__).absolute()))
 
@@ -14,9 +14,180 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 ardetype_path = os.path.dirname(Path(__file__).parents[0].absolute())
 module_data   = hk.read_json_dict(f'{ardetype_path}/config_files/json/module_data.json')
 
+###############################################################
+# Wrapper to extract tool versions
+###############################################################
+class Wrapper():
+    '''Toolkit class to store wrapper methods & attributes for different tools'''
+
+    #pipeline configuration saved at module import
+    _config_dict   = hk.read_yaml(f"{ardetype_path}/config_files/yaml/config_modular.yaml")
+    _tool_ref_map  = hk.read_json_dict(f"{ardetype_path}/config_files/json/specific_tool_map.json")
+
+    def _get_datestamp(common_dir:str, name:str)->str:
+        '''
+        Returns date of latest file/folder manipulation
+        given path to common parent folder and specific file name.
+        '''
+        datestamp = datetime.datetime.fromtimestamp(os.path.getmtime(os.path.join(common_dir, name))).strftime('%Y-%m-%d')
+        return datestamp
+
+    _db_vers_map   = {
+            "kraken2"      :{
+                "filter_host"             :
+                    _get_datestamp(f'{_config_dict["databases"]}db-kraken2/','human_reference'),
+                "classify_reads"          :
+                    _get_datestamp(f'{_config_dict["databases"]}db-kraken2/','full_ref_bafp'),
+                "classify_contigs"        :
+                    _get_datestamp(f'{_config_dict["databases"]}db-kraken2/','full_ref_bafp'),
+            },
+            "cgmlstfinder" :{
+                "Salmonella enterica"     :
+                    _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','salmonella'),
+                "Escherichia coli"        :
+                    _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','ecoli'),
+                "Acinetobacter baumannii" :
+                    _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','abaumannii'),
+                "Streptococcus pneumoniae":
+                    _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','spneumoniae'),
+                "Streptococcus pyogenes"  :
+                    _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','streptococcus'),
+                "Clostridium"             :
+                    _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','clostridium'),
+                "Campylobacter"           :
+                    _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','campylobacter'),
+            },
+            "chewbbaca"    :{
+                # "Salmonella enterica"     :"",
+                "Escherichia coli"        :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Escherichia_coli'),
+                "Acinetobacter baumannii" :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Acinetobacter_baumannii'),
+                "Campylobacter"           :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Campylobacter_jejuni_coli'),
+                "Klebsiella"              :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Klebsiella_pneumoniae_variicola_quasipneumoniae'),
+                "Legionella pneumophila"  :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Legionella_pneumophila'),
+                "Listeria monocytogenes"  :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Listeria_monocytogenes'),
+                "Staphylococcus aureus"   :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Staphylococcus_aureus'),
+                
+            },
+            "resfinder"    :
+                _get_datestamp(f'{_config_dict["databases"]}db-resfinder/','db_resfinder'),
+            "plasmidfinder":
+                _get_datestamp(f'{_config_dict["databases"]}','plasmidfinder_db'),
+    }   
+
+
+    _tool_vers_map = {
+        "plasmidfinder": 
+            datetime.datetime.fromtimestamp(os.path.getmtime(_config_dict["shell_tool_configs"]["plasmidfinder"]["plasmidfinder_sif"])).strftime('%Y-%m-%d'),
+        "resfinder":
+            sp.run(
+            f'module load singularity && singularity run {_config_dict["resfinder_sif"]} run_resfinder.py --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
+        "quast":
+            sp.run(
+            f'module load singularity && singularity run {_config_dict["mlst_quast_sif"]} quast.py --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1],
+        "rgi":
+            sp.run(
+            f'eval "$(conda shell.bash hook)" && conda activate {_config_dict["rgi_env_path"]} && rgi main --version',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
+        "kraken2":
+            sp.run(
+            f'eval "$(conda shell.bash hook)" && conda activate {_config_dict["kraken2_env_path"]} && kraken2 --version',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[0],
+        "amrfinder+":
+            sp.run(f'module load singularity && singularity run {_config_dict["amrfinderplus_sif"]} amrfinder --version',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
+        "fastp": 
+            sp.run(f'module load singularity && singularity run {_config_dict["fastp_sif"]} fastp --version',
+            stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip(),
+        "mob-suite":
+            sp.run(f'module load singularity && singularity run {_config_dict["mob_suite_sif"]} mob_typer --version',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').split(" ")[-1].strip(),
+        "mlst":
+            sp.run(f'module load singularity && singularity run {_config_dict["mlst_quast_sif"]} mlst --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+        "shovill":
+            sp.run(f'module load singularity && singularity run {_config_dict["shovill_sif"]} shovill --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+        "meningotype":
+            sp.run(f'module load singularity && singularity run {_config_dict["meningotype_nmeningitidis_sif"]} meningotype --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+        "legsta":
+            sp.run(f'module load singularity && singularity run {_config_dict["legsta_lpneumophila_sif"]} legsta --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+        "legionella_pneumophila_genomics":
+            datetime.datetime.fromtimestamp(os.path.getmtime(_config_dict["lpgenomics_repo"])).strftime('%Y-%m-%d'),
+        "hicap":
+            sp.run(f'module load singularity && singularity run {_config_dict["hicap_hinfluenzae_sif"]} hicap --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+        "kleborate":
+            sp.run(f'module load singularity && singularity run {_config_dict["kleborate_kpneumoniae_sif"]} kleborate --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+        "agrvate":
+            sp.run(f'module load singularity && singularity run {_config_dict["agrvate_saureus_sif"]} agrvate --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+        "spatyper":
+            sp.run(f'module load singularity && singularity run {_config_dict["spatyper_saureus_sif"]} spaTyper --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+        "staphopia-sccmec":
+            sp.run(f'module load singularity && singularity run {_config_dict["sccmec_saureus_sif"]} staphopia-sccmec --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+        "emmtyper":
+            sp.run(f'module load singularity && singularity run {_config_dict["emmtyper_spyogenes_sif"]} emmtyper --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+        "lissero":
+            sp.run(f'module load singularity && singularity run {_config_dict["lissero_lmonocytogenes_sif"]} lissero --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+        "sistr":
+            sp.run(f'module load singularity && singularity run {_config_dict["sistr_senterica_sif"]} sistr --version ',
+            stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip().split(' ')[-1],
+        "seqsero2":
+            sp.run(f'module load singularity && singularity run {_config_dict["seqsero2_senterica_sif"]} SeqSero2_package.py --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+        "ectyper":
+            sp.run(f'module load singularity && singularity run {_config_dict["ectyper_ecoli_sif"]} ectyper --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
+        "stecfinder":
+            sp.run(f'module load singularity && singularity run {_config_dict["stecfinder_ecoli_sif"]} stecfinder --version 2> /dev/null',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+        "seroba":
+            sp.run(f'module load singularity && singularity run {_config_dict["seroba_spneumoniae_sif"]} seroba version',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
+        "cgmlstfinder":
+            sp.run(f'module load singularity && singularity run {_config_dict["tip_tool_configs"]["cgmlstfinder"]["cgmlstfinder_sif"]} python /cgmlstfinder/cgMLST.py --version',
+            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
+    }
+
+
+    @staticmethod
+    def report_tool_versions(output_path:str) -> None:
+        '''Aggregates tool versions, references and database versions in single pandas dataframe and generates a csv file named software_log.csv in output_path'''
+        specific_ref = {Wrapper._tool_ref_map[k]['tool']:Wrapper._tool_ref_map[k]['reference'] for k in Wrapper._tool_ref_map if k != 'agnostic'}
+        agnostic_ref = {Wrapper._tool_ref_map['agnostic'][k]['tool'] : Wrapper._tool_ref_map['agnostic'][k]['reference'] for k in Wrapper._tool_ref_map['agnostic']}
+        total_ref = {**specific_ref, **agnostic_ref}
+
+        df = pd.DataFrame.from_dict({'tool':[t for t in Wrapper._tool_vers_map], 'vers_list':[v for v in Wrapper._tool_vers_map.values()]})
+        df['reference'] = df['tool'].map(total_ref)
+
+        db_map = {}
+        for t in Wrapper._db_vers_map:
+            if isinstance(Wrapper._db_vers_map[t], dict):
+                db_map[t] = " | ".join([f"{r} : {v}" for r,v in Wrapper._db_vers_map[t].items()])
+            else:
+                db_map[t] = Wrapper._db_vers_map[t]
+        df['db_versions'] = df['tool'].map(db_map)
+        df.to_csv(os.path.join(output_path, 'software_log.csv'), header=True, index=False)
+
 
 ###############################################################
-# Extensing base Module class to fit the needs of the pipeline
+# Extending base Module class to fit the needs of the pipeline
 ###############################################################
 
 class Ardetype_module(Module):

@@ -15,32 +15,30 @@ chewbbaca_species_map     = {}
 for sid, species in zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.lower()):
     if 'salmonella' in species:
         cgmlstfinder_species_map[sid] = "salmonella"
-        chewbbaca_species_map[sid] = "Salmonella_enterica"
+        # chewbbaca_species_map[sid] = "Salmonella_enterica"
     elif 'escherichia coli' in species:
         cgmlstfinder_species_map[sid] = "ecoli"
-        chewbbaca_species_map[sid]     = 'Escherichia_coli'
+        chewbbaca_species_map[sid]    = 'Escherichia_coli'
     elif 'baumannii' in species:
         cgmlstfinder_species_map[sid] = "abaumannii"
-        chewbbaca_species_map[sid]     = 'Acinetobacter_baumannii'
+        chewbbaca_species_map[sid]    = 'Acinetobacter_baumannii'
     elif 'streptococcus pneumoniae' in species:
         cgmlstfinder_species_map[sid] = "spneumoniae"
     elif 'streptococcus pyogenes' in species:
         cgmlstfinder_species_map[sid] = "streptococcus"
     elif 'campylobacter' in species:
         cgmlstfinder_species_map[sid] = "campylobacter"
-        chewbbaca_species_map[sid]     = 'Campylobacter_jejuni_coli'
+        chewbbaca_species_map[sid]    = 'Campylobacter_jejuni_coli'
     elif 'clostridium' in species:
-        chewbbaca_species_map[sid] = "clostridium"
+        chewbbaca_species_map[sid]    = "clostridium"
     elif 'klebsiella' in species:
-        chewbbaca_species_map[sid] = "Klebsiella_pneumoniae_variicola_quasipneumoniae"
+        chewbbaca_species_map[sid]    = "Klebsiella_pneumoniae_variicola_quasipneumoniae"
     elif 'legionella' in species:
-        chewbbaca_species_map[sid] = "Legionella_pneumophila"
+        chewbbaca_species_map[sid]    = "Legionella_pneumophila"
     elif 'listeria' in species:
-        chewbbaca_species_map[sid] = "Listeria_monocytogenes"
-    elif 'salmonella' in species:
-        chewbbaca_species_map[sid] = "Salmonella_enterica"
+        chewbbaca_species_map[sid]    = "Listeria_monocytogenes"
     elif 'staphylococcus aureus' in species:
-        chewbbaca_species_map[sid] = "Staphylococcus_aureus"
+        chewbbaca_species_map[sid]    = "Staphylococcus_aureus"
 
 
 #AGGREGATION RULE

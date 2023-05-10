@@ -1,90 +1,177 @@
 {
+    "agnostic": {
+        "plasmidfinder": {
+            "rule": "plasmidfinder",
+            "method": "Detecting mobile genetic elements in bacterial NGS data",
+            "tool": "plasmidfinder",
+            "reference": "https://bitbucket.org/genomicepidemiology/plasmidfinder/src/master/"
+        },
+        "resfinder": {
+            "rule": "resfinder",
+            "method": "Detecting AMR markers in bacterial NGS data.",
+            "tool": "resfinder",
+            "reference": "https://bitbucket.org/genomicepidemiology/resfinder/src/master/"
+        },
+        "quast": {
+            "rule": "quast",
+            "method": "Quality control of genomes assembled from short-read NGS data.",
+            "tool": "quast",
+            "reference": "https://github.com/ablab/quast"
+        },
+        "rgi": {
+            "rule": "res_gen_id",
+            "method": "Detecting AMR markers in bacterial NGS data.",
+            "tool": "rgi",
+            "reference": "https://github.com/arpcard/rgi"
+        },
+        "kraken2": {
+            "rule": [
+                "filter_host",
+                "classify_reads",
+                "classify_contigs"
+            ],
+            "method": "Taxonomic classification of isolates based on NGS data.",
+            "tool": "kraken2",
+            "reference": "https://github.com/DerrickWood/kraken2"
+        },
+        "amrfinder+": {
+            "rule": "amrfinderplus",
+            "method": "Detecting AMR markers in bacterial NGS data.",
+            "tool": "amrfinder+",
+            "reference": "https://github.com/ncbi/amr"
+        },
+        "fastp": {
+            "rule": "quality_control",
+            "method": "Quality control of short-read NGS data.",
+            "tool": "fastp",
+            "reference": "https://github.com/OpenGene/fastp"
+        },
+        "mob-suite": {
+            "rule": [
+                "mob_recon",
+                "mob_typer"
+            ],
+            "method": "Detection and reconstruction of mobile genetic elements from bacterial NGS data",
+            "tool": "mob-suite",
+            "reference": "https://github.com/phac-nml/mob-suite"
+        },
+        "mlst": {
+            "rule": "mlst",
+            "method": "7-gene-based multi-locus sequence typing from bacterial NGS data.",
+            "tool": "mlst",
+            "reference": "https://github.com/tseemann/mlst"
+        },
+        "shovill": {
+            "rule": "contig_assembly",
+            "method": "Denovo assembly of bacterial genomes from short-read NGS data.",
+            "tool": "shovill",
+            "reference": "https://github.com/tseemann/shovill"
+        }
+    },
     "_meningotype.tsv": {
+        "rule": "meningotype_nmeningitidis",
         "method": "serotyping for N.meningitidis",
-        "tool": "Meningotype",
+        "tool": "meningotype",
         "reference": "https://github.com/MDU-PHL/meningotype"
     },
     "_legsta.csv": {
+        "rule": "legsta_lpneumophila",
         "method": "sequence-based typing (SBT) for L. Pneumophila",
         "tool": "legsta",
         "reference": "https://github.com/tseemann/legsta"
     },
     "-predictResults.txt": {
+        "rule": "lpgenomics_lpneumophila",
         "method": "serogrouping for L. Pneumophila",
         "tool": "legionella_pneumophila_genomics",
         "reference": "https://github.com/CDCgov/legionella_pneumophila_genomics"
     },
     "_hicap.tsv": {
+        "rule": "hicap_hinfluenzae",
         "method": "serotyping for H. Influenzae",
         "tool": "hicap",
         "reference": "https://github.com/scwatts/hicap"
     },
     "_kleborate.tsv": {
+        "rule": "kleborate_kpneumoniae",
         "method": "serotyping for K.pneumoniae",
         "tool": "kleborate",
         "reference": "https://github.com/katholt/Kleborate"
     },
     "_agrvate_summary.tab": {
+        "rule": "agrvate_saureus",
         "method": "agr typing for S.aureus",
-        "tool": "AgrVATE",
+        "tool": "agrvate",
         "reference": "https://github.com/VishnuRaghuram94/AgrVATE"
     },
     "_spatyper.txt": {
+        "rule": "spatyper_saureus",
         "method": "spa typing for S.aureus",
-        "tool": "spaTyper",
+        "tool": "spatyper",
         "reference": "https://github.com/HCGB-IGTP/spaTyper"
     },
     "_sccmec.tsv": {
+        "rule": "sccmec_saureus",
         "method": "SCCmec typing for S.aureus",
         "tool": "staphopia-sccmec",
         "reference": "https://github.com/staphopia/staphopia-sccmec"
     },
     "_emmtyper.tsv": {
+        "rule": "emmtyper_spyogenes",
         "method": "emm-type and emm-cluster prediction for S.pyogenes",
         "tool": "emmtyper",
         "reference": "https://github.com/MDU-PHL/emmtyper"
     },
     "_ngmast.json": {
+        "rule": "",
         "method": "NG-MAST typing for N.gonorrhoeae",
         "tool": "PubMLST",
         "reference": "https://rest.pubmlst.org/db/pubmlst_neisseria_seqdef/schemes/71"
     },
     "_lissero.tsv": {
+        "rule": "lissero_lmonocytogenes",
         "method": "serotyping for L.monocytogenes",
-        "tool": "LisSero",
+        "tool": "lissero",
         "reference": "https://github.com/MDU-PHL/LisSero"
     },
     "_sistr.csv": {
+        "rule": "sistr_senterica",
         "method": "serotyping for S.enterica",
-        "tool": "SISTR",
+        "tool": "sistr",
         "reference": "https://github.com/phac-nml/sistr_cmd"
     },
     "_SeqSero.tsv": {
+        "rule": "seqsero_senterica",
         "method": "serotyping for S.enterica",
-        "tool": "SeqSero2",
+        "tool": "seqsero2",
         "reference": "https://github.com/denglab/SeqSero2"
     },
     "_ab_pumblst.json": {
+        "rule": "",
         "method": "7-gene MLST for A.baumannii",
         "tool": "PubMLST",
         "reference": "https://rest.pubmlst.org/db/pubmlst_abaumannii_seqdef/schemes/2"
     },
     "_ectyper.tsv": {
+        "rule": "ectyper_ecoli",
         "method": "serotyping for E.coli",
-        "tool": "ECTyper",
+        "tool": "ectyper",
         "reference": "https://github.com/phac-nml/ecoli_serotyping"
     },
     "_stecfinder.tsv": {
+        "rule": "stecfinder_ecoli",
         "method": "Shigatoxin typing for E.coli",
-        "tool": "STECFinder",
+        "tool": "stecfinder",
         "reference": "https://github.com/LanLab/STECFinder"
     },
     "_seroba.tsv": {
+        "rule": "seroba_spneumoniae",
         "method": "serotyping for S.pneumoniae",
-        "tool": "SeroBA",
+        "tool": "seroba",
         "reference": "https://github.com/sanger-pathogens/seroba"
     },
     "_contigs.res": {
+        "rule": "cgmlstfinder",
         "method": "cgmlst typing using cgmlstfinder",
         "tool": "cgmlstfinder",
         "reference": "https://bitbucket.org/genomicepidemiology/cgmlstfinder"

@@ -377,6 +377,12 @@ class Module:
             except:
                 continue
 
+        for file in glob.glob(f'{self.output_path}reports/*'):
+            try:
+                move(file, self.output_path)
+            except:
+                continue
+
     def set_permissions(self, permissions:str='775'):
         '''Given Linux permission string in numeric format, sets requested permissions (775 by default) recursively on the contents of self.output_path.'''
         hk.asign_perm_rec(self.output_path, permissions)

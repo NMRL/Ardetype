@@ -4,6 +4,7 @@ import sys, pandas as pd, os, json
 from datetime import date
 sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
 from ardetype_utilities import Ardetype_housekeeper as Housekeeper
+from ardetype_modules import Wrapper as wp
 
 sip_wild = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
@@ -67,6 +68,7 @@ rule all:
         order_list = general_columns + optional_columns
         report = report[order_list]#reorder columns
         report.to_csv(output[0], header=True, index=False) #save as csv
+        wp.report_tool_versions(config['output_directory'])
 
 
 rule extract_fastp:
