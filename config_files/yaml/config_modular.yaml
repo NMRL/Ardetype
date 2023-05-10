@@ -12,6 +12,8 @@ databases:
 ##############
 # bact_core
 ##############
+kraken2_env_path:
+  /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/.snakemake/conda/2a1a64fdbb7d92bc497cb7b9567b6099
 kraken2_env:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/kraken2.yaml
 krona_sif:
@@ -38,8 +40,10 @@ nextflow_env:
   /mnt/home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/nextflow.yaml
 resfinder_sif:
   /mnt/home/groups/nmrl/image_files/resfinder_4.1.11.sif
+rgi_env_path:
+  /mnt/home/jevgen01/nmrl/bact_analysis/Ardetype/.snakemake/conda/90ebab03d6f8768a17d9bd8f7bf21eac
 rgi_env:
-  /mnt/home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/rgi_env.yaml
+  /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/rgi_env.yaml
 hamronization_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/hamronization_latest.sif
 resfinder_version: resfinder_v4.1.11
