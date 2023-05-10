@@ -175,7 +175,7 @@ class Wrapper():
         agnostic_ref = {Wrapper._tool_ref_map['agnostic'][k]['tool'] : Wrapper._tool_ref_map['agnostic'][k]['reference'] for k in Wrapper._tool_ref_map['agnostic']}
         total_ref = {**specific_ref, **agnostic_ref}
 
-        df = pd.DataFrame.from_dict({'tool':[t for t in Wrapper._tool_vers_map], 'vers_list':[v for v in Wrapper._tool_vers_map.values()]})
+        df = pd.DataFrame.from_dict({'tool':[t for t in Wrapper._tool_vers_map], 'version':[v for v in Wrapper._tool_vers_map.values()]})
         df['reference'] = df['tool'].map(total_ref)
 
         db_map = {}
