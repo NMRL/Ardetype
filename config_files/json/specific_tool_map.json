@@ -175,5 +175,11 @@
         "method": "cgmlst typing using cgmlstfinder",
         "tool": "cgmlstfinder",
         "reference": "https://bitbucket.org/genomicepidemiology/cgmlstfinder"
+    },
+    "results_alleles.tsv": {
+        "rule": "chewbbaca_cgmlst",
+        "method": "cgmlst typing using chewbbaca & redom schema",
+        "tool": "chewbbaca",
+        "reference": "https://github.com/B-UMMI/chewBBACA"
     }
 }

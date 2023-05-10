@@ -163,6 +163,8 @@ class Wrapper():
         "cgmlstfinder":
             sp.run(f'module load singularity && singularity run {_config_dict["tip_tool_configs"]["cgmlstfinder"]["cgmlstfinder_sif"]} python /cgmlstfinder/cgMLST.py --version',
             stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
+        "chewbbaca":
+            sp.run(f'module load singularity && singularity run {_config_dict["tip_tool_configs"]["chewbbaca"]["chewbbaca_sif"]} chewBBACA.py --version', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
     }
 
 
