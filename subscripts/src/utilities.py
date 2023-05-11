@@ -406,9 +406,10 @@ class Housekeeper:
 
 
     @staticmethod 
-    def name_job_logs(pipeline_name:str):
+    def name_job_logs(pipeline_name:str, path_to_log_dir:str=None):
         '''Given path to the pipeline_name_job_logs folder, adds sample id to the name of each log file (skips the file if sample id is not found in it).'''
-        path_to_log_dir:str=f"{os.path.dirname(Path(__file__).parents[1].absolute())}/{pipeline_name}_job_logs"
+        if path_to_log_dir is None:
+            path_to_log_dir:str=f"{os.path.dirname(Path(__file__).parents[1].absolute())}/{pipeline_name}_job_logs"
         log_list = [f'{path_to_log_dir}/{f}' for f in os.listdir(path_to_log_dir) if f"_{pipeline_name}" not in f and "_default" not in f] #if pipeline name in log name is preceeded by _ it is already annotated
         print(f'\nAdding sample ids to log file names.\n')
         log_count = len(log_list)

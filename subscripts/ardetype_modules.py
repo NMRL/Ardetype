@@ -1,6 +1,7 @@
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 import os, warnings, sys, subprocess as sp, datetime, pandas as pd
 from pathlib import Path
+from shutil import copy
 sys.path.insert(0, os.path.dirname(Path(__file__).absolute()))
 
 from src.modules import Module
@@ -203,6 +204,21 @@ class Ardetype_module(Module):
         if kwargs['input_path'] is None:
             sys.exit(f'Input must be included to run the pipeline in any mode except log_analysis.')
         super(Ardetype_module, self).__init__(*args, **kwargs) #running method as it is defined in the base class
+        self.job_log_path = f"{ardetype_path}/ardetype_job_logs/"
+
+
+    def config_cluster(self) -> None:
+        '''
+        Change pre-set parameters in default config_cluster.yaml,
+        copy cluster.yaml into self.output_path/logs/
+        and change self.config_file_path to self.output_path/logs/
+        '''
+        self.job_log_path     = f'{self.output_path}logs/'
+        cluster_config        = hk.read_yaml(self.cluster_config_path)
+        os.makedirs(f'{self.output_path}logs/', exist_ok=True)
+        hk.edit_nested_dict(cluster_config,'outdir', f'{self.output_path}logs/')
+        hk.write_yaml(cluster_config, f'{self.output_path}config_cluster.yaml')
+        self.cluster_config_path = f'{self.output_path}config_cluster.yaml'
 
 
 ###############################################
@@ -297,6 +313,7 @@ def run_all(args, num_jobs):
     core.fill_target_list()
     core.add_module_targets()
     core.add_output_dir()
+    core.config_cluster()
     core.write_module_config()
     core.files_to_wd(redirect_filter={"001.fastq.gz":core.output_path})
     try:
@@ -329,6 +346,7 @@ def run_all(args, num_jobs):
     shell.write_sample_sheet()
     shell.fill_target_list()
     shell.add_module_targets()
+    shell.config_cluster()
     shell.write_module_config()
     shell.files_to_wd()
     try:
@@ -352,6 +370,7 @@ def run_all(args, num_jobs):
         shape.fill_input_dict(substring_list=None, mixed=True, empty=True)               #empty sample sheet due to filtering of invalid samples
         shape.fill_target_list(mixed=True, empty=True)
         shape.add_module_targets()
+        shape.config_cluster()
         shape.write_module_config()
         try:
             shape.run_module(job_count=num_jobs)
@@ -369,6 +388,7 @@ def run_all(args, num_jobs):
         tip.write_sample_sheet()
         tip.fill_target_list(taxonomy_based=True)
         tip.add_module_targets()
+        tip.config_cluster()
         tip.write_module_config()
         tip.files_to_wd()
         try:
@@ -392,6 +412,7 @@ def run_all(args, num_jobs):
     shape.fill_input_dict(substring_list=None, mixed=True)
     shape.fill_target_list(mixed=True)
     shape.add_module_targets()
+    shape.config_cluster()
     shape.write_module_config()
     try:
         shape.run_module(job_count=num_jobs)
@@ -404,7 +425,7 @@ def run_all(args, num_jobs):
 
     #Housekeeping the log files
     hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
-    hk.name_job_logs('ardetype')
+    hk.name_job_logs('ardetype', shape.job_log_path)
     if args.clean_job_logs:
         hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
 
@@ -439,6 +460,7 @@ def run_core(args, num_jobs):
     core.fill_target_list()
     core.add_module_targets()
     core.add_output_dir()
+    core.config_cluster()
     core.write_module_config()
     core.files_to_wd()
     try:
@@ -459,7 +481,7 @@ def run_core(args, num_jobs):
 
     #Housekeeping the log files
     hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
-    hk.name_job_logs('ardetype')
+    hk.name_job_logs('ardetype', core.job_log_path)
     if args.clean_job_logs:
         hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
 
@@ -493,6 +515,7 @@ def run_shell(args, num_jobs):
     shell.fill_target_list()
     shell.add_module_targets()
     shell.add_output_dir()
+    shell.config_cluster()
     shell.write_module_config()
     shell.files_to_wd()
     try:
@@ -508,6 +531,6 @@ def run_shell(args, num_jobs):
 
     #Housekeeping the log files
     hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
-    hk.name_job_logs('ardetype')
+    hk.name_job_logs('ardetype', shell.job_log_path)
     if args.clean_job_logs:
         hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
