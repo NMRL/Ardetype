@@ -120,7 +120,8 @@
                 "_sistr.csv",
                 "_SeqSero.tsv",
                 "_se_pasteur_cgmlst.json",
-                "_cgmlstfinder/data.json"
+                "_cgmlstfinder/data.json",
+                "_chewbbaca/results_alleles.tsv"
             ],
             "Acinetobacter baumannii": [
                 "_kleborate.tsv",

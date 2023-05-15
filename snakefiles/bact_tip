@@ -11,11 +11,11 @@ sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
 #mapping full species name to cgmlstfinder-accepted and chewbbaca-accepted database format
 cgmlstfinder_species_map = {}
-chewbbaca_species_map     = {}
+chewbbaca_species_map    = {}
 for sid, species in zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.lower()):
     if 'salmonella' in species:
         cgmlstfinder_species_map[sid] = "salmonella"
-        # chewbbaca_species_map[sid] = "Salmonella_enterica"
+        chewbbaca_species_map[sid]    = "Salmonella_enterica"
     elif 'escherichia coli' in species:
         cgmlstfinder_species_map[sid] = "ecoli"
         chewbbaca_species_map[sid]    = 'Escherichia_coli'
