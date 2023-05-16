@@ -62,6 +62,7 @@ classify_contigs:
 
 contig_assembly:
   jobname: "ardetype.contig_assembly"
+  nodes: 1
   procs: 36
   pmem: "2000mb"
   walltime: "10:40:00"
