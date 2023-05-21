@@ -62,14 +62,13 @@ classify_contigs:
 
 contig_assembly:
   jobname: "ardetype.contig_assembly"
-  nodes: 1
   procs: 36
   pmem: "2000mb"
   walltime: "10:40:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
-
+  nodes: 1
 
 
 ##############
@@ -109,7 +108,7 @@ resfinder:
   jobname: "ardetype.resfinder"
   procs: 12
   pmem: "1000mb"
-  walltime: "00:30:00"
+  walltime: "05:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"

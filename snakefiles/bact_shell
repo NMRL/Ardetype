@@ -219,10 +219,10 @@ rule resfinder:
             cp {input.read_1} ~/ 
             cp {input.read_2} ~/
 
-            singularity run {input.resfinder_sif} run_resfinder.py --point -ifq ~/$READ1 ~/$READ2 -acq -l {config['shell_tool_configs']['resfinder']['length']} -t {config['shell_tool_configs']['resfinder']['coverage']} -db_res ~/db-resfinder_{wildcards.sample_id_pattern}/db_resfinder -o ~/resfinder_output_{wildcards.sample_id_pattern}
+            singularity run {input.resfinder_sif} run_resfinder.py -ifq ~/$READ1 ~/$READ2 -acq -l {config['shell_tool_configs']['resfinder']['length']} -t {config['shell_tool_configs']['resfinder']['coverage']} -db_res ~/db-resfinder_{wildcards.sample_id_pattern}/db_resfinder -o ~/resfinder_output_{wildcards.sample_id_pattern}
             singularity run {input.hamr_sif} resfinder ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['resfinder_version']} --reference_database_version {config['resfinder_db_version']} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab
             
-            mkdir {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
+            mkdir -p {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/pheno_table.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Hit_in_genome_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/
             mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Resistance_gene_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/reads/

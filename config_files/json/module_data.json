@@ -88,6 +88,19 @@
                 "_kleborate.tsv",
                 "_chewbbaca/results_alleles.tsv"
             ],
+            "Klebsiella quasipneumoniae": [
+                "_kleborate.tsv",
+                "_chewbbaca/results_alleles.tsv"
+            ],
+            "Enterococcus faecalis": [
+                "_chewbbaca/results_alleles.tsv"
+            ],
+            "Enterococcus faecium": [
+                "_chewbbaca/results_alleles.tsv"
+            ],
+            "Pseudomonas aeruginosa": [
+                "_chewbbaca/results_alleles.tsv"
+            ],
             "Staphylococcus aureus": [
                 "_agrvate_summary.tab",
                 "_spatyper.txt",
@@ -174,7 +187,11 @@
                 "Campylobacter jejuni",
                 "Campylobacter coli",
                 "Clostridium botulinum",
-                "Clostridium difficile"
+                "Clostridium difficile",
+                "Klebsiella quasipneumoniae",
+                "Enterococcus faecalis",
+                "Enterococcus faecium",
+                "Pseudomonas aeruginosa"
             ]
         }
     },
@@ -199,6 +216,9 @@
                 "_hicap_std.csv"
             ],
             "Klebsiella pneumoniae": [
+                "_kleborate_std.csv"
+            ],
+            "Klebsiella quasipneumoniae": [
                 "_kleborate_std.csv"
             ],
             "Staphylococcus aureus": [
@@ -230,7 +250,10 @@
                 "_seroba_std.csv"
             ],
             "Campylobacter jejuni": [],
-            "Campylobacter coli": []
+            "Campylobacter coli": [],
+            "Enterococcus faecalis": [],
+            "Enterococcus faecium": [],
+            "Pseudomonas aeruginosa": []
         },
         "patterns": {
             "inputs": {
