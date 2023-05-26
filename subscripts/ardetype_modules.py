@@ -59,7 +59,8 @@ class Wrapper():
                     _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','campylobacter'),
             },
             "chewbbaca"    :{
-                # "Salmonella enterica"     :"",
+                "Salmonella enterica"     :
+                     _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Salmonella_enterica'),
                 "Escherichia coli"        :
                     _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Escherichia_coli'),
                 "Acinetobacter baumannii" :
@@ -74,6 +75,12 @@ class Wrapper():
                     _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Listeria_monocytogenes'),
                 "Staphylococcus aureus"   :
                     _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Staphylococcus_aureus'),
+                "Enterococcus faecalis"   :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Enterococcus_faecalis_cgMLST'),
+                "Enterococcus faeciumT"   :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Enterococcus_faecium_cgMLST'),
+                "Pseudomonas aeruginosa"   :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Pseudomonas_aeruginosa_cgMLST'),
                 
             },
             "resfinder"    :
