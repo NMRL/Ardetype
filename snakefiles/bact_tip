@@ -266,7 +266,7 @@ rule emmtyper_spyogenes:
     envmodules:
         'singularity'
     output:
-        config['output_directory']+'{sample_id_pattern}_emmtyper.tsv'
+        config['output_directory']+'{sample_id_pattern}_strp_emmtyper.tsv'
     shell:
         """
         mkdir -p ~/emmtyper/

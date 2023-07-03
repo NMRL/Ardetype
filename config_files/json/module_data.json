@@ -11,7 +11,9 @@
         "pointfinder_report.csv",
         "resfinder_pheno_table_gathered.csv",
         "summarized_resistance_profile_(sequencing_date)_(batch).tsv",
-        "software_log.csv"
+        "software_log.csv",
+        "mobtyper_summary.csv",
+        "plasmidfinder_summary.csv"
     ],
     "core": {
         "targets": [

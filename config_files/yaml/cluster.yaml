@@ -8,7 +8,7 @@ __default__:
   pmem: "1000mb"
   walltime: "00:30:00"
   account: "rakus"
-  feature: "rudens"
+  feature: "vasara"
   queue: "batch"
   jobout: "oe"
   outdir: "ardetype_job_logs/"
@@ -189,9 +189,9 @@ hicap_hinfluenzae:
 
 cgmlstfinder:
   jobname: "ardetype.cgmlstfinder"
-  procs: 20
+  procs: 30
   pmem: "6000mb"
-  walltime: "00:10:00"
+  walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -230,8 +230,8 @@ legsta_lpneumophila:
 lpgenomics_lpneumophila:
   jobname: "ardetype.lpgenomics"
   procs: 24
-  pmem: "1000mb"
-  walltime: "06:30:00"
+  pmem: "3000mb"
+  walltime: "10:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"

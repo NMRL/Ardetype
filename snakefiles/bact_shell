@@ -1,4 +1,4 @@
-localrules: all, quast
+localrules: all#, quast
 
 import pandas as pd, os, sys, json
 from Bio import SeqIO
@@ -55,6 +55,9 @@ rule all:
         hamr_amrfp           = expand(config['output_directory']+'{sample_id}_amrfinderplus.hamr.tab', sample_id=sample_sheet['sample_id']),
         hamr_resfinder_pheno = expand(config['output_directory']+'{sample_id}_resfinder_pheno.txt', sample_id=sample_sheet['sample_id']),
         #hamr_amrpp          = expand(config['output_directory']+"{sample_id}_amrpp/{sample_id}_amrplusplus.hamr.tab", sample_id=sample_sheet['sample_id']),
+        
+        plasmidfinder        = expand(config['output_directory']+'{sample_id}_plasmidfinder/results_tab.tsv', sample_id=sample_sheet['sample_id']),
+        mobtyper             = expand(config['output_directory']+'{sample_id}_mob_typer.tab', sample_id=sample_sheet['sample_id'])
     run:
         #Use only non-empty files (hamronization fails otherwise)
         input.hamr_resfinder = [ path for path in input.hamr_resfinder if not os.path.getsize(path) == 0]
@@ -67,24 +70,60 @@ rule all:
         singularity run {input.hamr_sif} summarize -o "{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).tsv" -t tsv {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_rgi)} {" ".join(input.hamr_amrfp)}
         echo bact_shell finished
         ''')
+        
+        #add output folder name as analysis batch id
+        res_sum = pd.read_csv(f"{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).tsv", sep='\t')
+        res_sum.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in res_sum.index])
+        res_sum.to_csv(f"{config['output_directory']}summarized_resistance_profile_(sequencing_date)_(batch).tsv", sep='\t', header=True, index=False)
+
 
         #Aggregating resfinder phenotype info
         df = pd.DataFrame()
         for path in input.hamr_resfinder_pheno:
             df_temp = pd.read_csv(path, skiprows=16,sep="\t") # read in file as dataframe
             sample_id = os.path.basename(path).replace('_resfinder_pheno.txt','')
-            df_temp['sample_id'] = [sample_id for _ in df_temp.index]
-            df_temp = df_temp[df_temp.columns[::-1]]
-            # df_temp.insert(0, "sample_id", os.path.basename(path).replace('_resfinder_pheno.txt','')) # add column with filename but remove "_pheno_table.txt" from filename and move column to first position
+            df_temp.insert(0, 'sample_id', [sample_id for _ in df_temp.index])
+            df_temp.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in df_temp.index])
             df      = pd.concat([df,df_temp]) # append to empty dataframe
-        # remove all rows that contain "No resistance" in "WGS-predicted phenotype" column
-        df = df[df["WGS-predicted phenotype"] != "No resistance"]
+
+        #filtering
+        #remove all rows that contain "No resistance" in "WGS-predicted phenotype" column
+        df   = df[df["WGS-predicted phenotype"] != "No resistance"]
+        #remove warnings
+        df   = df[~df['Genetic background'].isna()]
+        #keep warnings for accounting reasons
+        dbf  = df[df['Genetic background'].isna()]
+
         # save dataframe as csv
         df.to_csv(f"{config['output_directory']}resfinder_pheno_table_gathered.csv", header=True, index=False)
 
         #Aggregate Pointfinder results
         pointfinder_summary = hk.aggregate_pointfinder(outfolder_path = config['output_directory'], proc_num=6)
         pointfinder_summary.to_csv(f"{config['output_directory']}pointfinder_report.csv", header=True, index=False)
+
+        
+        #aggregating plasmidfinder
+        plf = pd.DataFrame()
+        for f in input.plasmidfinder:
+            sample_id = os.path.dirname(f).replace('_plasmidfinder', '')
+            df = pd.read_csv(f, sep='\t')
+            df.insert(0, 'sample_id', [sample_id for _ in df.index])
+            df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in df.index])
+            plf = pd.concat([plf,df])
+
+        #aggregating mob_typer
+        mbt = pd.DataFrame()
+        for f in input.mobtyper:
+            sample_id = os.path.basename(f).replace('_mob_typer.tab', '')
+            df = pd.read_csv(f, sep='\t')
+            df.rename(columns = {'sample_id': 'genetic_element'}, inplace=True)
+            df.insert(0, 'sample_id', [sample_id for _ in df.index])
+            df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in df.index])
+            mbt = pd.concat([mbt,df])
+
+        #Aggregate plasmid results
+        plf.to_csv(f"{config['output_directory']}plasmidfinder_summary.csv", header=True, index=False)
+        mbt.to_csv(f"{config['output_directory']}mobtyper_summary.csv", header=True, index=False)
 
 
         #Change amrpp results to show them correctly in the report 
@@ -233,6 +272,7 @@ rule resfinder:
             rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$READ1 ~/$READ2
             """)
 
+
 rule resfinder_pheno:
     input:
         config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt"
@@ -242,6 +282,7 @@ rule resfinder_pheno:
         '''
         cp {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/pheno_table.txt {config[output_directory]}{wildcards.sample_id_pattern}_resfinder_pheno.txt 
         '''
+
 
 #AMRFINDER+
 rule amrfinderplus:
