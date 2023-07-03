@@ -326,9 +326,20 @@ def run_all(args, num_jobs):
     try:
         core.run_module(job_count=num_jobs)
     except Exception as e:
-        core.clear_working_directory() #to avoid manually moving files back to input
-        raise e
+        if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
+            print(f'WARNING: The {core.module_name} module have failed to process one or more samples.\n')
+            core.clear_working_directory() #to avoid manually moving files back to input
+            core.check_module_output()     #to track failed samples
+            core.pack_failed()          #separate all files for failed samples
+            sys.exit(f'Files related to failed samples can be found in {os.path.abspath(core.output_path)}_failed_{core.module_name}_{core.failed_stamp}')
+        else:
+            core.clear_working_directory() #to avoid manually moving files back to input
+            raise e
     core.check_module_output()
+    #get list of samples that have failed jobs - check self.sample_sheet and search for any False in check_note_{self.module_name} column
+    #create failed folder under output
+    #move all existing files for failed samples to output/failed/
+    #reinit pipeline from input parsing step for all non-failed samples
     try:
         core.add_taxonomy_column()
     except FileNotFoundError as e: #it should be raised in dry-run mode as rule all of bact_core is not executed
@@ -359,8 +370,16 @@ def run_all(args, num_jobs):
     try:
         shell.run_module(job_count=num_jobs)
     except Exception as e:
-        shell.clear_working_directory()
-        raise e
+        if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
+            print(f'WARNING: The {shell.module_name} module have failed to process one or more samples.\n')
+            shell.clear_working_directory() #to avoid manually moving files back to input
+            shell.check_module_output()     #to track failed samples
+            shell.pack_failed()          #separate all files for failed samples
+            sys.exit(f'Files related to failed samples can be found in {os.path.abspath(shell.output_path)}_failed_{shell.module_name}_{shell.failed_stamp}')
+            
+        else:
+            shell.clear_working_directory() #to avoid manually moving files back to input
+            raise e
     shell.check_module_output()
     shell.write_sample_sheet()
     shell.clear_working_directory()
@@ -382,7 +401,16 @@ def run_all(args, num_jobs):
         try:
             shape.run_module(job_count=num_jobs)
         except Exception as e:
-            raise e
+            if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
+                print(f'WARNING: The {shell.module_name} module have failed to process one or more samples.\n')
+                shape.clear_working_directory() #to avoid manually moving files back to input
+                shape.check_module_output()     #to track failed samples
+                shape.pack_failed()          #separate all files for failed samples
+                sys.exit(f'Files related to failed samples can be found in {os.path.abspath(shape.output_path)}_failed_{shape.module_name}_{shape.failed_stamp}')
+                
+            else:
+                shape.clear_working_directory() #to avoid manually moving files back to input
+                raise e
         shape.check_module_output(mixed=True)
         shape.write_sample_sheet()
         if shape.pack_output: tip.fold_output()
@@ -401,8 +429,16 @@ def run_all(args, num_jobs):
         try:
             tip.run_module(job_count=num_jobs)
         except Exception as e:
-            tip.clear_working_directory()
-            raise e
+            if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
+                print(f'WARNING: The {tip.module_name} module have failed to process one or more samples.\n')
+                tip.clear_working_directory() #to avoid manually moving files back to input
+                tip.check_module_output()     #to track failed samples
+                tip.pack_failed()          #separate all files for failed samples
+                sys.exit(f'Files related to failed samples can be found in {os.path.abspath(tip.output_path)}_failed_{tip.module_name}_{tip.failed_stamp}')
+                        
+            else:
+                tip.clear_working_directory() #to avoid manually moving files back to input
+                raise e
         tip.check_module_output()
         tip.write_sample_sheet()
         tip.clear_working_directory()
@@ -424,7 +460,16 @@ def run_all(args, num_jobs):
     try:
         shape.run_module(job_count=num_jobs)
     except Exception as e:
-        raise e
+        if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
+            print(f'WARNING: The {tip.module_name} module have failed to process one or more samples.\n')
+            tip.clear_working_directory() #to avoid manually moving files back to input
+            tip.check_module_output()     #to track failed samples
+            tip.pack_failed()          #separate all files for failed samples
+            sys.exit(f'Files related to failed samples can be found in {os.path.abspath(tip.output_path)}_failed_{tip.module_name}_{tip.failed_stamp}')
+                                
+        else:
+            tip.clear_working_directory() #to avoid manually moving files back to input
+            raise e
     shape.check_module_output(mixed=True)
     shape.write_sample_sheet()
     if shape.pack_output: tip.fold_output()
@@ -473,8 +518,16 @@ def run_core(args, num_jobs):
     try:
         core.run_module(job_count=num_jobs)
     except Exception as e:
-        core.clear_working_directory()
-        raise e
+        if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
+            print(f'WARNING: The {core.module_name} module have failed to process one or more samples.\n')
+            core.clear_working_directory() #to avoid manually moving files back to input
+            core.check_module_output()     #to track failed samples
+            core.pack_failed()          #separate all files for failed samples
+            sys.exit(f'Files related to failed samples can be found in {os.path.abspath(core.output_path)}_failed_{core.module_name}_{core.failed_stamp}')
+                        
+        else:
+            core.clear_working_directory() #to avoid manually moving files back to input
+            raise e
     core.check_module_output()
     try:
         core.add_taxonomy_column()
@@ -528,8 +581,16 @@ def run_shell(args, num_jobs):
     try:
         shell.run_module(job_count=num_jobs)
     except Exception as e:
-        shell.clear_working_directory()
-        raise e
+        if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
+            print(f'WARNING: The {shell.module_name} module have failed to process one or more samples.\n')
+            shell.clear_working_directory() #to avoid manually moving files back to input
+            shell.check_module_output()     #to track failed samples
+            shell.pack_failed()             #separate all files for failed samples
+            sys.exit(f'Files related to failed samples can be found in {os.path.abspath(shell.output_path)}_failed_{shell.module_name}_{shell.failed_stamp}')
+                        
+        else:
+            shell.clear_working_directory() #to avoid manually moving files back to input
+            raise e
     shell.check_module_output()
     shell.write_sample_sheet()
     shell.clear_working_directory()

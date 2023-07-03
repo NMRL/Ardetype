@@ -1,5 +1,6 @@
 from .utilities import Housekeeper as hk
 import os, warnings, re, subprocess, shutil, time, pandas as pd, glob
+from datetime import datetime
 from itertools import chain
 from getpass import getuser
 from pathlib import Path
@@ -69,6 +70,7 @@ class Module:
         self.pack_output         = pack_output #switch to control putting output files into one folder named after sample_id; used by fold_output
         self.cleanup_dict        = {} #to map origin paths of input files to path in working directory; filled by move_to_wd; used by clear_working_directory
         self.status_script       = f"{os.path.dirname(Path(__file__).parents[0].absolute())}/pbs-status.py"
+        self.failed_stamp        = None #added if module has failed to produce requested files for 1 or more steps of the workflow
 
     def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified'], mixed:bool=False, empty:bool=False):
         '''Fills self.input_dict using self.input_path and self.module_name by
@@ -155,7 +157,7 @@ class Module:
         else:
             id_check_dict = {id:"" for id in self.sample_sheet['sample_id']}
         for file in check_dict:
-            two_dirs_up = os.path.basename(os.path.dirname(os.path.dirname(file)))+"/"+os.path.basename(os.path.dirname(file))+"/"+os.path.basename(file) #required for outputs where directory patters are defined in addition to file extensions
+            two_dirs_up = os.path.basename(os.path.dirname(os.path.dirname(file)))+"/"+os.path.basename(os.path.dirname(file))+"/"+os.path.basename(file) #required for outputs where directory patterns are defined in addition to file extensions
             if isinstance(self.targets, list): #if only un-specific targets are supplied
                 id = os.path.basename(re.sub("("+"|".join(self.targets)+")","",two_dirs_up))
             elif isinstance(self.targets, dict): #if taxonomy-based targets are supplied - all species-specific target lists are to be merged into one list using chain.from_iterables
@@ -277,9 +279,44 @@ class Module:
         conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake;
         snakemake --reason --nolock --restart-times {self.retry_times} --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.dry_run} --cluster {job_submission_command} {self.rule_graph} '''
         try:
-            subprocess.check_call(shell_command, shell=True)
-        except subprocess.CalledProcessError as msg:
-            raise Exception(f"{self.module_name} module process running error: {msg}")
+            process_data = subprocess.check_call(shell_command, shell=True, stdout=subprocess.PIPE)
+        except subprocess.CalledProcessError as smk_error:
+            smk_log            = process_data #unassigned - need to fix
+            failed_samples_tag = 'Out of jobs ready to be started, but not all files built yet.'
+
+            if re.search(failed_samples_tag, smk_log):
+                raise Exception(f"{self.module_name} module process: {failed_samples_tag}")
+                #case 1: snakemake throws an error if it is out of jobs - workflow restart required
+            else:
+                #case 2: snakemake throws an error if there is a bug in the workflow code - fix required
+                raise Exception(f"{self.module_name} module process running error: {smk_error}")
+        except KeyboardInterrupt as ki:
+            raise Exception(f"{self.module_name} was interrupted by the user: {ki}")
+            #case 3 - keyboard interrupt by the user
+        else:
+            #if the workflow finished normally
+            print(process_data)
+
+
+    def pack_failed(self):
+        '''
+        Parses check_note_{self.module_name} of {self.sample_sheet} to get list of samples with at least 1 missing file.
+        Creates {self.output_path}_failed_{self.module_name}_{timestamp} folder under parent folder of {self.output_path}.
+        Moves all folders and files related to failed samples 
+        from {self.output_path} to {self.output_path}_failed_{self.module_name}_{timestamp}.
+        Sets {self.failed_stamp} to {timestamp} (default = None).
+        '''
+        failed_samples  = self.sample_sheet[self.sample_sheet[f'check_note_{self.module_name}'].str.contains('False')]['sample_id'].tolist()
+        timestamp       = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+        failed_dir_path = f'{os.path.abspath(self.output_path)}_failed_{self.module_name}_{timestamp}'
+
+        os.makedirs(failed_dir_path, mode=775, exist_ok=True)
+
+        for id in failed_samples:
+            for f in glob.glob(f'{self.output_path}{id}*'):
+                move(f, f'{failed_dir_path}/')
+
+        self.failed_stamp = timestamp
 
 
     def run_module(self, job_count, jobscript_path='./subscripts/ardetype_jobscript.sh'):

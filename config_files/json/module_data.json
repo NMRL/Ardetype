@@ -10,10 +10,11 @@
         "_ardetype_report.csv",
         "pointfinder_report.csv",
         "resfinder_pheno_table_gathered.csv",
-        "summarized_resistance_profile_(sequencing_date)_(batch).tsv",
+        "harmonized_resistance_profile.tsv",
         "software_log.csv",
         "mobtyper_summary.csv",
-        "plasmidfinder_summary.csv"
+        "plasmidfinder_summary.csv",
+        "kleborate_report.csv"
     ],
     "core": {
         "targets": [

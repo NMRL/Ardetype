@@ -47,7 +47,6 @@ for sid, species in zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.
         chewbbaca_species_map[sid]    = "Enterococcus_faecium_cgMLST"
 
 
-#AGGREGATION RULE
 rule all:
     input: 
         config['tip_target_files']
@@ -63,7 +62,7 @@ rule hicap_hinfluenzae:
         'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_hi_hicap.tsv'
-    shell: #creating empty file just in case to make snakemake not stop if typing has failed for tool-specific reasons
+    shell: 
         """
         mkdir -p ~/hicap/
         cp {input.contigs} ~/hicap/
@@ -72,6 +71,7 @@ rule hicap_hinfluenzae:
         if [ -f ~/hicap/{wildcards.sample_id_pattern}.tsv ]; then
             mv ~/hicap/{wildcards.sample_id_pattern}.tsv {output}
         else
+            #creating empty file just in case to make snakemake not stop if typing has failed for tool-specific reasons
             touch {config[output_directory]}{wildcards.sample_id_pattern}_hi_hicap.tsv
         fi
 
@@ -122,6 +122,8 @@ rule legsta_lpneumophila:
         """
 
 
+#script is launched from git repository; blank file is created to avoid snakemake failing if typing has failed; 
+#lock file is created for each sample under temp to indicate that it is being used
 rule lpgenomics_lpneumophila:
     input:
         read_1     = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
@@ -132,7 +134,7 @@ rule lpgenomics_lpneumophila:
         'singularity'
     output:
         config['output_directory']+"{sample_id_pattern}-predictResults.txt"
-    shell: #script is run from git repository; blank file is created to avoid snakemake failing if typing has failed; lock file is created for each sample under temp to indicate that it is being used
+    shell: 
         """
         cd {input.repository}
         mkdir -p lpgenomics_temp/
@@ -362,12 +364,13 @@ rule lissero_lmonocytogenes:
         """
 
 
+#typing via network can be done from nodes other than login node as it does not require job submission, only internet connection
 rule pasteur_pcr_serogroup_lmonocytogenes:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
         config['output_directory']+'{sample_id_pattern}_pasteur_pcr_serogroup.json'
-    run: #typing via network can be done from nodes other than login node as it does not require job submission, only internet connection
+    run:
         filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
         hk.filter_contigs_length(input.contigs, filtered_contigs)
         api_output = hk.type_contigs_api(filtered_contigs, 'Listeria monocytogenes')
