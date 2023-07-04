@@ -80,17 +80,22 @@ class Ardetype_housekeeper(hk):
         '''Returns a dataframe - containing valid resistance genes.'''
         df = pd.read_csv(rfp_result_path, skiprows=16,sep="\t")
         sample_id = re.sub(r'_S[0-9]*_resfinder_pheno.txt', '', os.path.basename(rfp_result_path))
-        df.insert(0, 'sample_id', [sample_id for _ in df.index])
-        df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
         
         #remove all rows that contain "No resistance" in "WGS-predicted phenotype" column
-        df  = df[df["WGS-predicted phenotype"] != "No resistance"]
-        df  = df[~df['Genetic background'].isna()] #remove warnings
+        df = df[df["WGS-predicted phenotype"] != "No resistance"] #remove rows with missing phenotype
+        df = df[~df['Genetic background'].isna()] #remove warnings
+        df = df[df['# Antimicrobial'] != "# Feature_ID"] #remove redundant headers
+
+        #Add identifiers
+        df.insert(0, 'sample_id', [sample_id for _ in df.index])
+        df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
+
         return df
     
 
     @staticmethod
     def plasmidfinder_results(plf_result_path:str, batch:str) -> pd.DataFrame:
+        ''''''
         sample_id = re.sub(r'_S[0-9]*_plasmidfinder', '', os.path.basename(os.path.dirname(plf_result_path)))
         df = pd.read_csv(plf_result_path, sep='\t')
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
@@ -100,6 +105,7 @@ class Ardetype_housekeeper(hk):
 
     @staticmethod
     def mobtyper_results(mbt_result_path:str, batch:str) -> pd.DataFrame:
+        ''''''
         sample_id = re.sub(r'_S[0-9]*_mob_typer.tab', '', os.path.basename(mbt_result_path))
         df = pd.read_csv(mbt_result_path, sep='\t')
         df.rename(columns = {'sample_id': 'genetic_element'}, inplace=True)
@@ -107,6 +113,59 @@ class Ardetype_housekeeper(hk):
         df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
         return df
 
+
+    @staticmethod
+    def kraken2contigs_results(k2c_report_path:str, batch:str) -> pd.DataFrame:
+        ''''''
+        sample_id = re.sub(r'_S[0-9]*_kraken2_contigs_report.txt', '', os.path.basename(k2c_report_path))
+        columns = [
+            "cl_cov_frac",
+            "cl_cov_abs",
+            "tax_cov_abs",
+            "rank_code",
+            "taxid",
+            "tax_name"
+        ]
+        df         = pd.read_csv(k2c_report_path, sep='\t', header=None)
+        df.columns = columns
+        df.tax_name = df.tax_name.str.strip()
+        df.insert(0, 'sample_id', [sample_id for _ in df.index])
+        df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
+        return df
+
+
+    @staticmethod
+    def kraken2reads_results(k2r_report_path:str, batch:str) -> pd.DataFrame:
+        ''''''
+        sample_id = re.sub(r'_S[0-9]*_kraken2_reads_report.txt', '', os.path.basename(k2r_report_path))
+        columns = [
+            "cl_cov_frac",
+            "cl_cov_abs",
+            "tax_cov_abs",
+            "rank_code",
+            "taxid",
+            "tax_name"
+        ]
+        df = pd.read_csv(k2r_report_path, sep='\t', header=None)
+        df.columns = columns
+        df.tax_name = df.tax_name.str.strip()
+        df.insert(0, 'sample_id', [sample_id for _ in df.index])
+        df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
+        return df
+
+
+    @staticmethod
+    def quast_results(qst_report_path:str, batch:str) -> pd.DataFrame:
+        ''''''
+        df = pd.read_csv(qst_report_path, header=None, sep='\t')
+        df = df.T
+        df.columns = df.iloc[0]
+        df = df.drop(0)
+        df.rename(columns={'Assembly':'sample_id'}, inplace=True)
+        df.sample_id = df.sample_id.str.replace(r'_S[0-9]*_contigs', '', regex=True)
+        df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
+        return df
+    
 
     @staticmethod
     def aggregator(outfolder_path:str, proc_num:int, wildcard:str=None, extractor=pointfinder_results, pathlist:list=None):

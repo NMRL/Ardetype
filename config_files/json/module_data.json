@@ -14,7 +14,10 @@
         "software_log.csv",
         "mobtyper_summary.csv",
         "plasmidfinder_summary.csv",
-        "kleborate_report.csv"
+        "kleborate_report.csv",
+        "kraken2contigs_report.csv",
+        "kraken2reads_report.csv",
+        "quast_report.csv"
     ],
     "core": {
         "targets": [

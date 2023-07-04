@@ -1,6 +1,10 @@
 localrules: all, contig_id
 
-import pandas as pd
+import sys, pandas as pd
+sys.path.insert(0, os.path.abspath('./'))
+from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
+
+
 sip_wild     = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
@@ -8,12 +12,16 @@ sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 rule all:
     input: 
         config["core_target_files"],                                                                            #reads all expected outputs from config file                                                                                   
-        file_list = expand(
+        k2c_list = expand(
             config['output_directory']+'{sample_id}_kraken2_contigs_report.txt', 
-            sample_id=sample_sheet['sample_id'])                                                                #Creates a list of kraken contig reports to summarize taxonomy for all samples
+            sample_id=sample_sheet['sample_id']),                                                              #Creates a list of kraken contig reports to summarize taxonomy for all samples
+        k2r_list = expand(
+            config['output_directory']+'{sample_id}_kraken2_reads_report.txt', 
+            sample_id=sample_sheet['sample_id'])
+    
     run:
         total_dict = {}
-        for file in input.file_list:                                                                            #looping over reports
+        for file in input.k2c_list:                                                                             #looping over reports
             df         = pd.read_table(file, header=None)[[0,3,5]]                                              #read columns
             df.columns = ['read_%','taxid','name']                                                              #rename 
             df         = df[df['taxid'] == "S"].reset_index(drop=True)                                          #extract only species rows
@@ -24,6 +32,14 @@ rule all:
         with open(config['output_directory']+'core_aggregated_taxonomy.json', "w+") as json_handle:             #write top hit for each sample to json file
             json.dump(total_dict, json_handle)
         print('bact_core finished')
+
+        #Aggregate kraken2 read results
+        kraken2reads_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.kraken2reads_results, pathlist = input.k2r_list)
+        kraken2reads_summary.to_csv(f"{config['output_directory']}kraken2reads_report.csv", header=True, index=False)
+
+        #Aggregate kraken2 contig results
+        kraken2contigs_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.kraken2contigs_results, pathlist = input.k2c_list)
+        kraken2contigs_summary.to_csv(f"{config['output_directory']}kraken2contigs_report.csv", header=True, index=False)
 
 
 rule quality_control:

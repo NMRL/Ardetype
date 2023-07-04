@@ -193,6 +193,7 @@ class Wrapper():
             else:
                 db_map[t] = Wrapper._db_vers_map[t]
         df['db_versions'] = df['tool'].map(db_map)
+        df.insert(0, 'analysis_batch_id', [os.path.basename(os.path.dirname(output_path)) for _ in df.index])
         df.to_csv(os.path.join(output_path, 'software_log.csv'), header=True, index=False)
 
 

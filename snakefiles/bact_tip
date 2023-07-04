@@ -51,7 +51,9 @@ rule all:
     input: 
         config['tip_target_files']
     run:
-        print('bact_tip finished')
+        #Aggregate Kleborate results
+        kleborate_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_kleborate.tsv", extractor = hk.kleborate_results)
+        kleborate_summary.to_csv(f"{config['output_directory']}kleborate_report.csv", header=True, index=False)
 
 
 rule hicap_hinfluenzae:

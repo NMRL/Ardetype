@@ -87,10 +87,6 @@ rule all:
         #Aggregate Pointfinder results
         pointfinder_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*/PointFinder_results.txt", extractor = hk.pointfinder_results)
         pointfinder_summary.to_csv(f"{config['output_directory']}pointfinder_report.csv", header=True, index=False)
-
-        #Aggregate Kleborate results
-        kleborate_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_kleborate.tsv", extractor = hk.kleborate_results)
-        kleborate_summary.to_csv(f"{config['output_directory']}kleborate_report.csv", header=True, index=False)
         
         #Aggregate plasmidfinder
         plf = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.plasmidfinder_results, pathlist = input.plasmidfinder)
@@ -100,8 +96,11 @@ rule all:
         mbt = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.mobtyper_results, pathlist = input.mobtyper)
         mbt.to_csv(f"{config['output_directory']}mobtyper_summary.csv", header=True, index=False)
 
+        #Aggregate quast results
+        qst = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.quast_results, wildcard = "*quast/report.tsv")
+        qst.to_csv(f"{config['output_directory']}quast_report.csv", header=True, index=False)
 
-#MOB-SUITE
+
 rule mob_recon:
     input:
         mob_suite_sif = config['mob_suite_sif'],
@@ -131,7 +130,6 @@ rule mob_typer:
         """
 
 
-#RESFINDER
 rule resfinder:
     input:
         hamr_sif      = config['hamronization_sif'],
@@ -250,7 +248,6 @@ rule resfinder_pheno:
         '''
 
 
-#AMRFINDER+
 rule amrfinderplus:
     input:
         hamr_sif      = config['hamronization_sif'],

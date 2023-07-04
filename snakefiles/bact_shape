@@ -15,9 +15,7 @@ specific_tool_map = Housekeeper.read_json_dict("/mnt/beegfs2/home/groups/nmrl/ba
 
 rule all:
     input:
-        config['shape_target_files']
-    output:
-        config['output_directory']+f'{date}_ardetype_report.csv'
+        config['shape_target_files']        
     run:
         aggr_dict = {}
         
@@ -77,7 +75,7 @@ rule all:
         report.sample_id = report.sample_id.str.replace(r'_S[0-9]*', '', regex=True)
         
         #save as csv
-        report.to_csv(output[0], header=True, index=False) 
+        report.to_csv(config['output_directory']+f'{date}_ardetype_report.csv', header=True, index=False) 
         wp.report_tool_versions(config['output_directory'])
 
 
