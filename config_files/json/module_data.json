@@ -9,6 +9,7 @@
     "reports": [
         "_ardetype_report.csv",
         "pointfinder_report.csv",
+        "amrfp_mutation_report.csv",
         "resfinder_pheno_table_gathered.csv",
         "harmonized_resistance_profile.tsv",
         "software_log.csv",
@@ -17,7 +18,15 @@
         "kleborate_report.csv",
         "kraken2contigs_report.csv",
         "kraken2reads_report.csv",
-        "quast_report.csv"
+        "quast_report.csv",
+        "ectyper_report.csv",
+        "stectfinder_report.csv",
+        "agrvate_report.csv",
+        "seqsero2_report.csv",
+        "sistr_report.csv",
+        "lissero_report.csv",
+        "meningotype_report.csv",
+        "legsta_report.csv"
     ],
     "core": {
         "targets": [
