@@ -372,7 +372,8 @@ class Module:
                         try:
                             # copy(source_path, os.path.abspath(self.config_file['work_dir']))
                             move(source_path, os.path.abspath(self.config_file['work_dir']))
-                        except:
+                        except Exception as e:
+                            print(e)
                             continue
                 else: #if no filtering required during function call
                     map_dict[full_path] = source_path

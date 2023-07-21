@@ -416,6 +416,15 @@ extract_mlst:
   queue: "batch"
   jobout: "oe"
 
+extract_rmlst:
+  jobname: "ardetype.extract_rmlst"
+  procs: 6
+  pmem: "1000mb"
+  walltime: "00:60:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
 extract_quast:
   jobname: "ardetype.extract_quast"
   procs: 3
