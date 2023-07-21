@@ -7,6 +7,8 @@ work_dir:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/data/
 databases:
   /mnt/beegfs2/home/groups/nmrl/db/
+status_script_path:
+  /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/status_script.py
 
 
 ##############

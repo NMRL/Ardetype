@@ -213,7 +213,8 @@ class Ardetype_module(Module):
             sys.exit(f'Input must be included to run the pipeline in any mode except log_analysis.')
         super(Ardetype_module, self).__init__(*args, **kwargs) #running method as it is defined in the base class
         self.job_log_path = f"{ardetype_path}/ardetype_job_logs/"
-
+        self.status_script = self.config_file['status_script_path']
+        
 
     def config_cluster(self) -> None:
         '''
