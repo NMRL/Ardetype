@@ -8,7 +8,7 @@ work_dir:
 databases:
   /mnt/beegfs2/home/groups/nmrl/db/
 status_script_path:
-  /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/status_script.py
+  /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/pbs-status.py
 
 
 ##############
@@ -138,8 +138,8 @@ core_tool_configs:
     #24576
   shovill:
     minlen: 1
-    cpus: 24
-    ram: 48
+    cpus: 35
+    ram: 100
     depth: 100
     modules: --noreadcorr
 

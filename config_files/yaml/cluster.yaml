@@ -62,7 +62,7 @@ classify_contigs:
 
 contig_assembly:
   jobname: "ardetype.contig_assembly"
-  procs: 36
+  procs: 38
   pmem: "2000mb"
   walltime: "10:40:00"
   account: "rakus"

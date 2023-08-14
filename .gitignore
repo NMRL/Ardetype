@@ -1,14 +1,25 @@
-#Untracked files
-subscripts/__pycache__/*
-subscripts/src/__pycache__/*
-.snakemake/*
+# Specific files
 *.fastq.gz
-ardetype_job_logs/*
-historical/*
 log_summary.html
-test/*
-test_1/*
-ardetype_big_test/*
-ardetype_output/*
-unittests/__pycache__/*
-__pycache__/*
+
+
+# Various system folders
+/.snakemake
+.ipynb_checkpoints
+__pycache__
+
+# Old legacy pipeline
+/historical
+
+# Working directories
+/ardetype_job_logs
+/ardetype_output
+/input_files
+/data
+
+# Analysis directories 
+/test_cases
+/special_processing
+/latest_integrated_output
+
+/23*
