@@ -45,6 +45,8 @@ for sid, species in zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.
         chewbbaca_species_map[sid]    = "Enterococcus_faecalis_cgMLST"
     elif 'enterococcus faecium' in species:
         chewbbaca_species_map[sid]    = "Enterococcus_faecium_cgMLST"
+    elif 'yersinia' in species:
+        chewbbaca_species_map[sid]    = "Yersinia.cgMLSTv1_chewbbaca"
 
 
 rule all:

@@ -169,6 +169,9 @@
                 "_seroba.tsv",
                 "_strp_pasteur_cgmlst.json",
                 "_cgmlstfinder/data.json"
+            ],
+            "Yersinia enterocolitica": [
+                "_chewbbaca/results_alleles.tsv"
             ]
         },
         "patterns": {
@@ -206,7 +209,8 @@
                 "Klebsiella quasipneumoniae",
                 "Enterococcus faecalis",
                 "Enterococcus faecium",
-                "Pseudomonas aeruginosa"
+                "Pseudomonas aeruginosa",
+                "Yersinia enterocolitica"
             ]
         }
     },
@@ -268,7 +272,8 @@
             "Campylobacter coli": [],
             "Enterococcus faecalis": [],
             "Enterococcus faecium": [],
-            "Pseudomonas aeruginosa": []
+            "Pseudomonas aeruginosa": [],
+            "Yersinia enterocolitica": []
         },
         "patterns": {
             "inputs": {
