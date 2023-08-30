@@ -176,7 +176,7 @@ class Wrapper():
                 sp.run(f'module load singularity && singularity run {_config_dict["tip_tool_configs"]["chewbbaca"]["chewbbaca_sif"]} chewBBACA.py --version', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
         }
     except Exception as e:
-        print(e)
+        print('Version parsing issue - expected for testing environment. Otherwise please verify presence of containers and paths config_modular.yaml.')
 
 
     @staticmethod
