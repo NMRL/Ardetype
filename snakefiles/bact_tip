@@ -6,35 +6,111 @@ sys.path.insert(0, os.path.abspath('./'))
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 
 #define sample_id_pattern wildcard and accessing sample_sheet
-sip_wild = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+sip_wild     = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
-#AGGREGATION RULE
+#mapping full species name to cgmlstfinder-accepted and chewbbaca-accepted database format
+cgmlstfinder_species_map = {}
+chewbbaca_species_map    = {}
+for sid, species in zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.lower()):
+    if 'salmonella' in species:
+        cgmlstfinder_species_map[sid] = "salmonella"
+        chewbbaca_species_map[sid]    = "Salmonella_enterica"
+    elif 'escherichia coli' in species:
+        cgmlstfinder_species_map[sid] = "ecoli"
+        chewbbaca_species_map[sid]    = 'Escherichia_coli'
+    elif 'baumannii' in species:
+        cgmlstfinder_species_map[sid] = "abaumannii"
+        chewbbaca_species_map[sid]    = 'Acinetobacter_baumannii'
+    elif 'streptococcus pneumoniae' in species:
+        cgmlstfinder_species_map[sid] = "spneumoniae"
+    elif 'streptococcus pyogenes' in species:
+        cgmlstfinder_species_map[sid] = "streptococcus"
+    elif 'campylobacter' in species:
+        cgmlstfinder_species_map[sid] = "campylobacter"
+        chewbbaca_species_map[sid]    = 'Campylobacter_jejuni_coli'
+    elif 'clostridium' in species:
+        chewbbaca_species_map[sid]    = "clostridium"
+    elif 'klebsiella' in species:
+        chewbbaca_species_map[sid]    = "Klebsiella_pneumoniae_variicola_quasipneumoniae"
+    elif 'legionella' in species:
+        chewbbaca_species_map[sid]    = "Legionella_pneumophila"
+    elif 'listeria' in species:
+        chewbbaca_species_map[sid]    = "Listeria_monocytogenes"
+    elif 'staphylococcus aureus' in species:
+        chewbbaca_species_map[sid]    = "Staphylococcus_aureus"
+    elif 'pseudomona' in species:
+        chewbbaca_species_map[sid]    = "Pseudomonas_aeruginosa_cgMLST"
+    elif 'enterococcus faecalis' in species:
+        chewbbaca_species_map[sid]    = "Enterococcus_faecalis_cgMLST"
+    elif 'enterococcus faecium' in species:
+        chewbbaca_species_map[sid]    = "Enterococcus_faecium_cgMLST"
+    elif 'yersinia' in species:
+        chewbbaca_species_map[sid]    = "Yersinia.cgMLSTv1_chewbbaca"
+
+
 rule all:
     input: 
         config['tip_target_files']
     run:
-        print('bact_tip finished')
+        #Aggregate Kleborate results
+        kleborate_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_kleborate.tsv", extractor = hk.kleborate_results)
+        kleborate_summary.to_csv(f"{config['output_directory']}kleborate_report.csv", header=True, index=False)
+
+        #Aggregate Ectyper results
+        ectyper_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_ectyper.tsv", extractor = hk.ectyper_results)
+        ectyper_summary.to_csv(f"{config['output_directory']}ectyper_report.csv", header=True, index=False)
+
+        #Aggregate Stecfinder results
+        stecfinder_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_stecfinder.tsv", extractor = hk.stecfinder_results)
+        stecfinder_summary.to_csv(f"{config['output_directory']}stectfinder_report.csv", header=True, index=False)
+
+        #Aggregate Agrvate results
+        agrvate_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_agrvate_summary.tab", extractor = hk.agrvate_results)
+        agrvate_summary.to_csv(f"{config['output_directory']}agrvate_report.csv", header=True, index=False)
+
+        #Aggregate SeqSero2 results
+        seqsero2_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_SeqSero.tsv", extractor = hk.seqsero2_results)
+        seqsero2_summary.to_csv(f"{config['output_directory']}seqsero2_report.csv", header=True, index=False)
+
+        #Aggregate Sistr results
+        sistr_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*sistr.csv", extractor = hk.sistr_results)
+        sistr_summary.to_csv(f"{config['output_directory']}sistr_report.csv", header=True, index=False)
+
+        #Aggregate Lissero results
+        lissero_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_lissero.tsv", extractor = hk.lissero_results)
+        lissero_summary.to_csv(f"{config['output_directory']}lissero_report.csv", header=True, index=False)
+
+        #Aggregate Meningotype results
+        meningotype_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*meningotype.tsv", extractor = hk.meningotype_results)
+        meningotype_summary.to_csv(f"{config['output_directory']}meningotype_report.csv", header=True, index=False)
+
+        #Aggregate legsta results
+        legsta_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*legsta.csv", extractor = hk.legsta_results)
+        legsta_summary.to_csv(f"{config['output_directory']}legsta_report.csv", header=True, index=False)
 
 
 rule hicap_hinfluenzae:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
         sif_file = config['hicap_hinfluenzae_sif']
     envmodules:
         'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_hi_hicap.tsv'
-    shell: #creating empty file just in case to make snakemake not stop if typing has failed for tool-specific reasons
+    shell: 
         """
         mkdir -p ~/hicap/
         cp {input.contigs} ~/hicap/
-        singularity run {input.sif_file} hicap -q ~/hicap/$(basename {input.contigs}) -o ~/hicap/
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} hicap -q ~/hicap/$(basename {input.contigs}) -o ~/hicap/
+        
         if [ -f ~/hicap/{wildcards.sample_id_pattern}.tsv ]; then
             mv ~/hicap/{wildcards.sample_id_pattern}.tsv {output}
         else
+            #creating empty file just in case to make snakemake not stop if typing has failed for tool-specific reasons
             touch {config[output_directory]}{wildcards.sample_id_pattern}_hi_hicap.tsv
         fi
+
         rm -r ~/hicap/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/hicap/
         """
@@ -42,7 +118,7 @@ rule hicap_hinfluenzae:
 
 rule meningotype_nmeningitidis:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
         sif_file = config['meningotype_nmeningitidis_sif']
     envmodules:
         'singularity'
@@ -52,7 +128,9 @@ rule meningotype_nmeningitidis:
         """
         mkdir -p ~/meningotype/
         cp {input.contigs} ~/meningotype/
-        singularity run {input.sif_file} meningotype ~/meningotype/$(basename {input.contigs}) > ~/meningotype/$(basename {output})
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} meningotype ~/meningotype/$(basename {input.contigs}) > ~/meningotype/$(basename {output})
+        
         mv ~/meningotype/$(basename {output}) {output}
         rm -r ~/meningotype/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/meningotype/
@@ -61,7 +139,7 @@ rule meningotype_nmeningitidis:
 
 rule legsta_lpneumophila:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
         sif_file = config['legsta_lpneumophila_sif']
     envmodules:
         'singularity'
@@ -71,41 +149,49 @@ rule legsta_lpneumophila:
         """
         mkdir -p ~/legsta/
         cp {input.contigs} ~/legsta/
-        singularity run {input.sif_file} legsta --csv ~/legsta/$(basename {input.contigs}) >> ~/legsta/$(basename {output})
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} legsta --csv ~/legsta/$(basename {input.contigs}) >> ~/legsta/$(basename {output})
+        
         mv ~/legsta/$(basename {output}) {output}
         rm -r ~/legsta/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/legsta/
         """
 
 
+#script is launched from git repository; blank file is created to avoid snakemake failing if typing has failed; 
+#lock file is created for each sample under temp to indicate that it is being used
 rule lpgenomics_lpneumophila:
     input:
-        read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
-        read_2 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        read_1     = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        read_2     = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
         repository = config['lpgenomics_repo'],
-        pigz_sif = config['pigz_sif']
+        pigz_sif   = config['pigz_sif']
     envmodules:
         'singularity'
     output:
         config['output_directory']+"{sample_id_pattern}-predictResults.txt"
-    shell: #script is run from git repository; blank file is created to avoid snakemake failing if typing has failed; lock file is created for each sample under temp to indicate that it is being used
+    shell: 
         """
         cd {input.repository}
         mkdir -p lpgenomics_temp/
         chmod 775 lpgenomics_temp/
         cp {input.read_1} lpgenomics_temp/
         cp {input.read_2} lpgenomics_temp/
-        singularity run {input.pigz_sif} -d lpgenomics_temp/$(basename {input.read_1}) lpgenomics_temp/$(basename {input.read_2})
+        
+        singularity --silent run --bind {config[lpgenomics_repo]}lpgenomics_temp,{config[output_directory]},{config[work_dir]}:{config[lpgenomics_repo]}lpgenomics_temp,{config[output_directory]},{config[work_dir]} {input.pigz_sif} -d {config[lpgenomics_repo]}lpgenomics_temp/$(basename {input.read_1}) {config[lpgenomics_repo]}lpgenomics_temp/$(basename {input.read_2})
         R1_FASTQ=lpgenomics_temp/{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq
         R2_FASTQ=lpgenomics_temp/{wildcards.sample_id_pattern}_bact_reads_classified_2.fastq
+        
         touch lpgenomics_temp/{wildcards.sample_id_pattern}.lock
         bash pipeline.sh --reference=supportFiles/Phila_NC_002942.fna --gff=supportFiles/NC_002942.gff --r1=$R1_FASTQ --r2=$R2_FASTQ --isolate={wildcards.sample_id_pattern} --output=./{wildcards.sample_id_pattern}_output
+        
         if [ -f ./{wildcards.sample_id_pattern}_output/predict/$(basename {output}) ]; then
             mv ./{wildcards.sample_id_pattern}_output/predict/$(basename {output}) {output}
             mv ./{wildcards.sample_id_pattern}_output/ {config[output_directory]}{wildcards.sample_id_pattern}_legionella_serogroup_prediction/
         else
             touch {output}
         fi
+
         rm -r lpgenomics_temp/{wildcards.sample_id_pattern}.lock $R1_FASTQ $R2_FASTQ
         rmdir --ignore-fail-on-non-empty lpgenomics_temp/
         """
@@ -113,7 +199,7 @@ rule lpgenomics_lpneumophila:
 
 rule kleborate_kpneumoniae:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
         sif_file = config['kleborate_kpneumoniae_sif']
     envmodules:
         'singularity'
@@ -123,12 +209,15 @@ rule kleborate_kpneumoniae:
         """
         mkdir -p ~/kleborate/
         cp {input.contigs} ~/kleborate/
-        singularity run {input.sif_file} kleborate -o ~/kleborate/$(basename {output}) --kaptive -a ~/kleborate/$(basename {input.contigs})
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} kleborate -o ~/kleborate/$(basename {output}) --kaptive -r -a ~/kleborate/$(basename {input.contigs})
+        
         if [ -f ~/kleborate/$(basename {output}) ]; then
             mv ~/kleborate/$(basename {output}) {output}
         else
             touch {output}
         fi
+
         rm -r ~/kleborate/{wildcards.sample_id_pattern}* 2> /dev/null
         rmdir --ignore-fail-on-non-empty ~/kleborate/ 2> /dev/null
         """
@@ -136,7 +225,7 @@ rule kleborate_kpneumoniae:
 
 rule agrvate_saureus:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
         sif_file = config['agrvate_saureus_sif']
     envmodules:
         'singularity'
@@ -147,12 +236,15 @@ rule agrvate_saureus:
         mkdir -p ~/agrvate/
         cp {input.contigs} ~/agrvate/
         cd ~/agrvate/
-        singularity run {input.sif_file} agrvate -t -f -i ~/agrvate/$(basename {input.contigs})
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} agrvate -t -f -i ~/agrvate/$(basename {input.contigs})
+        
         if [ -f ~/agrvate/{wildcards.sample_id_pattern}_contigs-results/{wildcards.sample_id_pattern}_contigs-summary.tab ]; then
             mv ~/agrvate/{wildcards.sample_id_pattern}_contigs-results/{wildcards.sample_id_pattern}_contigs-summary.tab {output}
         else
             touch {output}
         fi
+        
         rm -r ~/agrvate/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/agrvate/
         """
@@ -160,7 +252,7 @@ rule agrvate_saureus:
 
 rule spatyper_saureus:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
         sif_file = config['spatyper_saureus_sif']
     envmodules:
         'singularity'
@@ -170,12 +262,15 @@ rule spatyper_saureus:
         """
         mkdir -p ~/spatyper/
         cp {input.contigs} ~/spatyper/
-        singularity run {input.sif_file} spaTyper -f ~/spatyper/$(basename {input.contigs}) --output ~/spatyper/$(basename {output})
+
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} spaTyper -f ~/spatyper/$(basename {input.contigs}) --output ~/spatyper/$(basename {output})
+        
         if [ -f ~/spatyper/$(basename {output}) ]; then
             mv ~/spatyper/$(basename {output})  {output}
         else
             touch {output}
         fi
+
         rm -r ~/spatyper/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/spatyper/
         """
@@ -183,7 +278,7 @@ rule spatyper_saureus:
 
 rule sccmec_saureus:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
         sif_file = config['sccmec_saureus_sif']
     envmodules:
         'singularity'
@@ -193,7 +288,9 @@ rule sccmec_saureus:
         """
         mkdir -p ~/sccmec/
         cp {input.contigs} ~/sccmec/
-        singularity run {input.sif_file} staphopia-sccmec --assembly ~/sccmec/$(basename {input.contigs}) > ~/sccmec/$(basename {output})
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} staphopia-sccmec --assembly ~/sccmec/$(basename {input.contigs}) > ~/sccmec/$(basename {output})
+        
         mv ~/sccmec/$(basename {output})  {output}
         rm -r ~/sccmec/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/sccmec/
@@ -202,22 +299,25 @@ rule sccmec_saureus:
 
 rule emmtyper_spyogenes:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
         sif_file = config['emmtyper_spyogenes_sif']
     envmodules:
         'singularity'
     output:
-        config['output_directory']+'{sample_id_pattern}_emmtyper.tsv'
+        config['output_directory']+'{sample_id_pattern}_strp_emmtyper.tsv'
     shell:
         """
         mkdir -p ~/emmtyper/
         cp {input.contigs} ~/emmtyper/
-        singularity run {input.sif_file} emmtyper ~/emmtyper/$(basename {input.contigs}) -o ~/emmtyper/$(basename {output})
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} emmtyper ~/emmtyper/$(basename {input.contigs}) -o ~/emmtyper/$(basename {output})
+        
         if [ -f ~/emmtyper/$(basename {output}) ]; then
             mv ~/emmtyper/$(basename {output}) {output}
         else
             touch {output}
         fi
+
         rm -r ~/emmtyper/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/emmtyper/
         """
@@ -225,8 +325,8 @@ rule emmtyper_spyogenes:
 
 rule seqsero_senterica:
     input:
-        read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
-        read_2 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        read_1   = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        read_2   = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
         sif_file = config['seqsero2_senterica_sif']
     threads:
         config['tip_tool_configs']['seqsero_senterica']['threads']
@@ -239,12 +339,15 @@ rule seqsero_senterica:
         mkdir -p ~/seqsero/
         cp {input.read_1} ~/seqsero/
         cp {input.read_2} ~/seqsero/
-        singularity run {input.sif_file} SeqSero2_package.py -d ~/seqsero/{wildcards.sample_id_pattern} -n {wildcards.sample_id_pattern} -p {threads} -t 2 -i ~/seqsero/{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq.gz ~/seqsero/{wildcards.sample_id_pattern}_bact_reads_classified_2.fastq.gz
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} SeqSero2_package.py -d ~/seqsero/{wildcards.sample_id_pattern} -n {wildcards.sample_id_pattern} -p {threads} -t 2 -i ~/seqsero/{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq.gz ~/seqsero/{wildcards.sample_id_pattern}_bact_reads_classified_2.fastq.gz
+        
         if [ -f ~/seqsero/{wildcards.sample_id_pattern}/SeqSero_result.tsv ]; then
             mv ~/seqsero/{wildcards.sample_id_pattern}/SeqSero_result.tsv  {output}
         else
             touch {output}
         fi
+
         rm -r ~/seqsero/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/seqsero/
         """
@@ -252,7 +355,7 @@ rule seqsero_senterica:
 
 rule sistr_senterica:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
         sif_file = config['sistr_senterica_sif']
     envmodules:
         'singularity'
@@ -262,12 +365,15 @@ rule sistr_senterica:
         """
         mkdir -p ~/sistr/
         cp {input.contigs} ~/sistr/
-        singularity run {input.sif_file} sistr --qc -f csv -o ~/sistr/$(basename {output}) ~/sistr/$(basename {input.contigs})
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} sistr --qc -f csv -o ~/sistr/$(basename {output}) ~/sistr/$(basename {input.contigs})
+        
         if [ -f ~/sistr/$(basename {output}) ]; then
             mv ~/sistr/$(basename {output}) {output}
         else
             touch {output}
         fi
+
         rm -r ~/sistr/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/sistr/
         """
@@ -285,19 +391,22 @@ rule lissero_lmonocytogenes:
         """
         mkdir -p ~/lissero/
         cp {input.contigs} ~/lissero/
-        singularity run {input.sif_file} lissero ~/lissero/$(basename {input.contigs}) > ~/lissero/$(basename {output})
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} lissero ~/lissero/$(basename {input.contigs}) > ~/lissero/$(basename {output})
+        
         mv ~/lissero/$(basename {output}) {output}
         rm -r ~/lissero/$(basename {input.contigs})
         rmdir --ignore-fail-on-non-empty ~/lissero/
         """
 
 
+#typing via network can be done from nodes other than login node as it does not require job submission, only internet connection
 rule pasteur_pcr_serogroup_lmonocytogenes:
     input:
         contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
         config['output_directory']+'{sample_id_pattern}_pasteur_pcr_serogroup.json'
-    run: #typing via network can be done from nodes other than login node as it does not require job submission, only internet connection
+    run:
         filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
         hk.filter_contigs_length(input.contigs, filtered_contigs)
         api_output = hk.type_contigs_api(filtered_contigs, 'Listeria monocytogenes')
@@ -500,7 +609,9 @@ rule ectyper_ecoli:
         """
         mkdir -p ~/ectyper/
         cp {input.contigs} ~/ectyper/
-        singularity run {input.sif_file} ectyper -i ~/ectyper/$(basename {input.contigs}) -o ~/ectyper/
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} ectyper -i ~/ectyper/$(basename {input.contigs}) -o ~/ectyper/
+        
         mv ~/ectyper/output.tsv {output}
         rm -r ~/ectyper/$(basename {input.contigs})
         rmdir --ignore-fail-on-non-empty ~/ectyper/
@@ -509,11 +620,11 @@ rule ectyper_ecoli:
 
 rule stecfinder_ecoli:
     input:
-        read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
-        read_2 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        read_1   = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        read_2   = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
         sif_file = config['stecfinder_ecoli_sif']
     output:
-        result = config['output_directory']+'{sample_id_pattern}_stecfinder.tsv'
+        result   = config['output_directory']+'{sample_id_pattern}_stecfinder.tsv'
     envmodules:
         'singularity'
     shell:
@@ -521,7 +632,9 @@ rule stecfinder_ecoli:
         mkdir -p ~/stecfinder/
         cp {input.read_1} ~/stecfinder/
         cp {input.read_2} ~/stecfinder/
-        singularity run {input.sif_file} stecfinder -r -i ~/stecfinder/{wildcards.sample_id_pattern}* --output ~/stecfinder/$(basename {output.result})
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} stecfinder -r -i ~/stecfinder/{wildcards.sample_id_pattern}* --output ~/stecfinder/$(basename {output.result})
+        
         mv ~/stecfinder/$(basename {output.result}) {output.result}
         rm -r ~/stecfinder/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/stecfinder/
@@ -530,8 +643,8 @@ rule stecfinder_ecoli:
 
 rule seroba_spneumoniae:
     input:
-        read_1 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
-        read_2 = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        read_1   = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        read_2   = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
         sif_file = config['seroba_spneumoniae_sif']
     output:
         config['output_directory']+'{sample_id_pattern}_seroba.tsv'
@@ -543,15 +656,64 @@ rule seroba_spneumoniae:
         cp -r {config[seroba_spneumoniae_database]} ~/db_seroba_{wildcards.sample_id_pattern}
         cp {input.read_1} ~/seroba/
         cp {input.read_2} ~/seroba/
-        singularity run {input.sif_file} seroba runSerotyping --coverage 20 ~/db_seroba_{wildcards.sample_id_pattern} ~/seroba/$(basename {input.read_1}) ~/seroba/$(basename {input.read_2}) ~/seroba/{wildcards.sample_id_pattern}
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} seroba runSerotyping --coverage 20 ~/db_seroba_{wildcards.sample_id_pattern} ~/seroba/$(basename {input.read_1}) ~/seroba/$(basename {input.read_2}) ~/seroba/{wildcards.sample_id_pattern}
+        
         if [ -f ~/seroba/{wildcards.sample_id_pattern}/pred.tsv ]; then
             mv ~/seroba/{wildcards.sample_id_pattern}/pred.tsv {output}
         else
             touch {output}
         fi
+
         rm -r ~/seroba/{wildcards.sample_id_pattern}*
-        rm -r ~/db_seroba_{wildcards.sample_id_pattern}
+        rm -r ~/db_seroba_{wildcards.sample_id_pattern}\
+
         if [ -d ~/seroba/ ]; then
             rmdir --ignore-fail-on-non-empty ~/seroba/
         fi
         """
+
+
+rule cgmlstfinder:
+    input:
+        image_file    = config['tip_tool_configs']['cgmlstfinder']['cgmlstfinder_sif'],
+        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        cgmlst_result = config['output_directory']+'{sample_id_pattern}_cgmlstfinder/data.json'
+    run:
+        os.system(f'''
+        module load singularity
+        CONTIG_FILENAME=$(basename {input.contigs})
+
+        cd {config['databases']}
+        cp {input.contigs} ~/
+        mkdir -p ~/{wildcards.sample_id_pattern}_cgmlstfinder/
+
+        singularity --silent exec --bind {config["output_directory"]},{config["work_dir"]},{config['databases']}:{config["output_directory"]},{config["work_dir"]},{config['databases']} {input.image_file} python /cgmlstfinder/cgMLST.py -db ./cgmlstfinder_db/ -i ~/$CONTIG_FILENAME -o ~/{wildcards.sample_id_pattern}_cgmlstfinder/ -s {cgmlstfinder_species_map[wildcards.sample_id_pattern]}
+        mv -n ~/{wildcards.sample_id_pattern}_cgmlstfinder/* {config['output_directory']}{wildcards.sample_id_pattern}_cgmlstfinder/
+
+        rm -r ~/{wildcards.sample_id_pattern}_cgmlstfinder/ ~/$CONTIG_FILENAME
+        ''')
+
+
+rule chewbbaca_cgmlst:
+    input:
+        image_file    = config['tip_tool_configs']['chewbbaca']['chewbbaca_sif'],
+        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        chewbbaca     = config['output_directory']+'{sample_id_pattern}_chewbbaca/results_alleles.tsv'
+    run:
+        os.system(f'''
+        module load singularity
+
+        cd {config["databases"]}chewbacca_db/databases/
+        mkdir -p ~/{wildcards.sample_id_pattern}_chewbbaca_input/
+        mkdir -p {config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/
+        cp {input.contigs} ~/{wildcards.sample_id_pattern}_chewbbaca_input/
+
+        singularity --silent exec --bind {config["output_directory"]},{config["work_dir"]},{config["databases"]}chewbacca_db/databases/:{config["output_directory"]},{config["work_dir"]},{config["databases"]}chewbacca_db/databases/ {input.image_file} chewBBACA.py AlleleCall --cpu {config["tip_tool_configs"]["chewbbaca"]["chewbbaca_cores"]} -i ~/{wildcards.sample_id_pattern}_chewbbaca_input/ -g {chewbbaca_species_map[wildcards.sample_id_pattern]} -o ~/{wildcards.sample_id_pattern}_chewbbaca/
+        mv -n ~/{wildcards.sample_id_pattern}_chewbbaca/* {config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/
+
+        rm -r ~/{wildcards.sample_id_pattern}_chewbbaca_input/
+        rm -r ~/{wildcards.sample_id_pattern}_chewbbaca
+        ''')

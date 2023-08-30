@@ -87,7 +87,11 @@ class Housekeeper:
         if not isinstance(ss_df, pd.DataFrame): raise TypeError('Expected pandas.DataFrame as ss_df')
         elif not isinstance(info_dict, dict): raise TypeError('Expected dictionary as info_dict')
         elif id_column not in ss_df.columns: raise KeyError('id_column should be present in ss_df')
-        elif not set(info_dict.keys()).intersection(set(ss_df[id_column])): raise KeyError('No overlap between ids in ss_df.id_column and info_dict')
+        elif not set(info_dict.keys()).intersection(set(ss_df[id_column])): 
+            ss_df.to_csv('test_df.csv', header=True, index=False)
+            with open('id_check_dict.json', 'w+') as f:
+                json.dump(info_dict, f, indent=4)
+            raise KeyError('No overlap between ids in ss_df.id_column and info_dict')
 
         ss_df[new_col_name] = ss_df[id_column].map(info_dict)
         return ss_df
@@ -402,9 +406,10 @@ class Housekeeper:
 
 
     @staticmethod 
-    def name_job_logs(pipeline_name:str):
+    def name_job_logs(pipeline_name:str, path_to_log_dir:str=None):
         '''Given path to the pipeline_name_job_logs folder, adds sample id to the name of each log file (skips the file if sample id is not found in it).'''
-        path_to_log_dir:str=f"{os.path.dirname(Path(__file__).parents[1].absolute())}/{pipeline_name}_job_logs"
+        if path_to_log_dir is None:
+            path_to_log_dir:str=f"{os.path.dirname(Path(__file__).parents[1].absolute())}/{pipeline_name}_job_logs"
         log_list = [f'{path_to_log_dir}/{f}' for f in os.listdir(path_to_log_dir) if f"_{pipeline_name}" not in f and "_default" not in f] #if pipeline name in log name is preceeded by _ it is already annotated
         print(f'\nAdding sample ids to log file names.\n')
         log_count = len(log_list)

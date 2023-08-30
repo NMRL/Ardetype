@@ -1,21 +1,21 @@
 localrules: all
 
-import sys, pandas as pd, os
+import sys, pandas as pd, os, json
 from datetime import date
-sys.path.insert(0, '/mnt/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
+sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
 from ardetype_utilities import Ardetype_housekeeper as Housekeeper
+from ardetype_modules import Wrapper as wp
+
 
 sip_wild = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 date = date.today().strftime("%Y-%m-%d")
-specific_tool_map = Housekeeper.read_json_dict("/mnt/home/groups/nmrl/bact_analysis/Ardetype/config_files/json/specific_tool_map.json")
+specific_tool_map = Housekeeper.read_json_dict("/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/json/specific_tool_map.json")
 
 
 rule all:
     input:
-        config['shape_target_files']
-    output:
-        config['output_directory']+f'{date}_ardetype_report.csv'
+        config['shape_target_files']        
     run:
         aggr_dict = {}
         
@@ -27,8 +27,17 @@ rule all:
             else:
                 aggr_dict[df['sample_id'][0]] = df #add all columns
 
-        #Generating combined report
+
         report = pd.concat(aggr_dict.values()) #combile all dataframes as rows into single report (one row for each sample_id)
+        report['average_coverage'] = round((report["r1_mean_len_af"].astype(int)+report["r2_mean_len_af"].astype(int))*report["non_host_read_pair_count"].astype(int)/report['assembly_length'].astype(int),2)
+        #formula used for coverage : ( ( ( LR1 + LR2 )/2 ) * NRP * 2 ) / AL = ( LR1 + LR2 ) * NRP / AL
+        #LR - Read length after quality filtering
+        #NRP - number of non-host read pairs (unclassified by kraken2 using human hg19-based database)
+        #AL - asembly length (sum of length of all contigs for a given sample)
+        #result is rounded to two digits after the comma
+
+
+        #Generating combined report
         general_columns = [ 
             "sample_id",
             "total_reads_bf",
@@ -39,21 +48,35 @@ rule all:
             "r2_mean_len_bf",
             "r1_mean_len_af",
             "r2_mean_len_af",
+            "non_host_read_pair_count",
             "gc_bf",
             "gc_af",
             "contig_count",
             "N50",
             "assembly_length",
+            "average_coverage",
             "gc_contigs",
             "MLST7_ST",
+            "rMLST",
+            "rMLST_Species",
+            "rMLST_Support_%",
             "species",
             "species_contig_%",
             "taxid"
         ]
+
+        #reorder columns
         optional_columns = sorted(list(set(report.columns) - set(general_columns)))
         order_list = general_columns + optional_columns
-        report = report[order_list]#reorder columns
-        report.to_csv(output[0], header=True, index=False) #save as csv
+        report = report[order_list]
+
+        #add output folder name as analysis batch id
+        report.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in report.index])
+        report.sample_id = report.sample_id.str.replace(r'_S[0-9]*', '', regex=True)
+        
+        #save as csv
+        report.to_csv(config['output_directory']+f'{date}_ardetype_report.csv', header=True, index=False) 
+        wp.report_tool_versions(config['output_directory'])
 
 
 rule extract_fastp:
@@ -83,9 +106,11 @@ rule extract_fastp:
 
 rule extract_kraken2:
     input:
-        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt'
+        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt',
+        config['output_directory']+'{sample_id_pattern}_kraken2_host_filtering_report.txt'
     output:
-        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report_std.csv'
+        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report_std.csv',
+        config['output_directory']+'{sample_id_pattern}_kraken2_host_filtering_report_std.csv'
     run:
         df = pd.read_table(input[0], header=None)[[0,3,5]]
         df.columns = ['species_contig_%','taxid','species']
@@ -94,9 +119,17 @@ rule extract_kraken2:
             df['species'] = [df['species'].reset_index(drop=True)[0].strip()]
             df['sample_id'] = [wildcards.sample_id_pattern]
         except:
-            df = pd.DataFrame.from_dict({'species_contig_%':["None"],'taxid':["None"],'species':["None"]}) #When no typing is available at species level
+            #When no typing is available at species level
+            df = pd.DataFrame.from_dict({'species_contig_%':["None"],'taxid':["None"],'species':["None"]})
             df['sample_id'] = [wildcards.sample_id_pattern]
         df.to_csv(output[0],header=True, index=False)
+
+        #Host filtering stats
+        df = pd.read_table(input[1], header=None)[[1,5]]
+        df.columns = ['non_host_read_pair_count','host']
+        df = df[df['host'] == 'unclassified']
+        df['sample_id'] = [wildcards.sample_id_pattern]
+        df.to_csv(output[1], header=True, index=False)
 
 
 rule extract_mlst:
@@ -113,6 +146,30 @@ rule extract_mlst:
         except pd.errors.EmptyDataError as e:
             df = pd.DataFrame.from_dict({'sample_id':wildcards.sample_id_pattern, 'MLST7_ST':None})
             df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_rmlst:
+    input:
+        config['output_directory']+'{sample_id_pattern}_rmlst.json'
+    output:
+        config['output_directory']+'{sample_id_pattern}_rmlst_std.csv'
+    run:
+        with open(input[0], 'r+') as file:
+            data = json.load(file)
+        
+        if data['exact_matches']:
+            extract = {
+                "rMLST_Species": " | ".join([s['taxon'] for s in data['taxon_prediction']]), 
+                "rMLST_Support_%": " | ".join([str(s['support']) for s in data['taxon_prediction']]), 
+                "rMLST": [data['fields']['rST'] if "fields" in data else None],
+            }
+            df = pd.DataFrame.from_dict(extract)
+            df['sample_id'] = wildcards.sample_id_pattern
+            df.to_csv(output[0], header=True, index=False)
+        else:
+            df = pd.DataFrame.from_dict({'rMLST_Species':[None], 'rMLST_Support_%':[None], 'rMLST':[None], 'sample_id':[wildcards.sample_id_pattern]})
+            df.to_csv(output[0], header=True, index=False)
+	    
 
 
 rule extract_quast:
@@ -133,7 +190,7 @@ rule extract_quast:
         df.to_csv(output[0], header=True, index=False)
 
 
-rule extract_Meningotype: #OK
+rule extract_Meningotype:
     input: 
         config['output_directory']+'{sample_id_pattern}_meningotype.tsv'
     output:
@@ -160,7 +217,7 @@ rule extract_Meningotype: #OK
             df.to_csv(output[0],header=True, index=False)
 
 
-rule extract_legsta: #OK
+rule extract_legsta:
     input: 
         config['output_directory']+'{sample_id_pattern}_legsta.csv'
     output:
@@ -187,7 +244,7 @@ rule extract_legsta: #OK
             df.to_csv(output[0],header=True, index=False)
 
 
-rule extract_legionella_pneumophila_genomics: #OK
+rule extract_legionella_pneumophila_genomics:
     input: 
         config['output_directory']+"{sample_id_pattern}-predictResults.txt"
     output:
@@ -214,7 +271,7 @@ rule extract_legionella_pneumophila_genomics: #OK
             df.to_csv(output[0],header=True, index=False)
 
 
-rule extract_hicap: #OK
+rule extract_hicap:
     input: 
         config['output_directory']+'{sample_id_pattern}_hi_hicap.tsv'
     output:
@@ -241,7 +298,7 @@ rule extract_hicap: #OK
             df.to_csv(output[0],header=True, index=False)
 
 
-rule extract_kleborate: #OK
+rule extract_kleborate:
     input: 
         config['output_directory']+'{sample_id_pattern}_kleborate.tsv'
     output:
@@ -269,7 +326,7 @@ rule extract_kleborate: #OK
             df.to_csv(output[0],header=True, index=False)
 
 
-rule extract_AgrVATE: #OK
+rule extract_AgrVATE:
     input: 
         config['output_directory']+'{sample_id_pattern}_agrvate_summary.tab'
     output:
@@ -296,7 +353,7 @@ rule extract_AgrVATE: #OK
             df.to_csv(output[0],header=True, index=False)
 
 
-rule extract_spaTyper: #OK
+rule extract_spaTyper:
     input: 
         config['output_directory']+'{sample_id_pattern}_spatyper.txt'
     output:
@@ -305,6 +362,8 @@ rule extract_spaTyper: #OK
         try:
             key = "_spatyper.txt"
             report = pd.read_csv(input[0], sep="\t")
+            if report.empty: raise pd.errors.EmptyDataError
+
             report = report[["Type"]]
             report.columns = ["type"]
             report["sample_id"] = wildcards.sample_id_pattern
@@ -312,18 +371,19 @@ rule extract_spaTyper: #OK
             report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
             report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
             report.to_csv(output[0], header=True, index=False)
+            
         except pd.errors.EmptyDataError:
             key = "_spatyper.txt"
             df = pd.DataFrame.from_dict({
                 'sample_id':[wildcards.sample_id_pattern], 
-                f"method|{specific_tool_map[key]['tool']}":[None],
-                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
-                f'type|{specific_tool_map[key]["tool"]}':[None]
+                f"method|{specific_tool_map[key]['tool']}":['NA'],
+                f"tool_reference|{specific_tool_map[key]['tool']}":['NA'],
+                f'type|{specific_tool_map[key]["tool"]}':['NA']
                 })
             df.to_csv(output[0],header=True, index=False)
 
 
-rule extract_sccmec: #OK
+rule extract_sccmec: 
     input: 
         config['output_directory']+'{sample_id_pattern}_sccmec.tsv'
     output:
@@ -354,14 +414,14 @@ rule extract_sccmec: #OK
 
 rule extract_emmtyper:
     input: 
-        config['output_directory']+'{sample_id_pattern}_emmtyper.tsv'
+        config['output_directory']+'{sample_id_pattern}_strp_emmtyper.tsv'
     output:
         config['output_directory']+'{sample_id_pattern}_emmtyper_std.csv'
     run:
         try:
             key = "_emmtyper.tsv"
             report = pd.read_csv(input[0], sep="\t", header=None)
-            report = report.iloc[:, 2]
+            report = report[[2]]
             report.columns = ["type"]
             report["sample_id"] = wildcards.sample_id_pattern
             report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
@@ -379,7 +439,7 @@ rule extract_emmtyper:
             df.to_csv(output[0],header=True, index=False)
 
 
-rule extract_LisSero: #OK
+rule extract_LisSero: 
     input: 
         config['output_directory']+'{sample_id_pattern}_lissero.tsv'
     output:
@@ -406,7 +466,7 @@ rule extract_LisSero: #OK
             df.to_csv(output[0],header=True, index=False)
 
 
-rule extract_SISTR: #OK
+rule extract_SISTR: 
     input: 
         config['output_directory']+'{sample_id_pattern}_sistr.csv'
     output:
@@ -434,7 +494,7 @@ rule extract_SISTR: #OK
             df.to_csv(output[0],header=True, index=False)
 
 
-rule extract_SeqSero2: #OK
+rule extract_SeqSero2: 
     input: 
         config['output_directory']+'{sample_id_pattern}_SeqSero.tsv'
     output:
@@ -461,7 +521,7 @@ rule extract_SeqSero2: #OK
             df.to_csv(output[0],header=True, index=False)
 
 
-rule extract_ECTyper: #OK
+rule extract_ECTyper: 
     input: 
         config['output_directory']+'{sample_id_pattern}_ectyper.tsv'
     output:
@@ -488,7 +548,7 @@ rule extract_ECTyper: #OK
             df.to_csv(output[0],header=True, index=False)
 
 
-rule extract_STECFinder: #OK
+rule extract_STECFinder: 
     input: 
         config['output_directory']+'{sample_id_pattern}_stecfinder.tsv'
     output:
