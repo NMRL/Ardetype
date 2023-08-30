@@ -62,7 +62,9 @@ rule quality_control:
         -h {config[output_directory]}{wildcards.sample_id_pattern}.fastp.html \
         --in1 {input.read_1} --in2 {input.read_2} \
         --out1 {output.read_1_tr} --out2 {output.read_2_tr} \
-        --thread {threads}
+        --thread {threads} \
+        --max_len1 {config[core_tool_configs][fastp][max_len1]} \
+        --max_len2 {config[core_tool_configs][fastp][max_len2]}
         """
 
 
