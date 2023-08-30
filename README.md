@@ -1,4 +1,4 @@
-# ARDETYPE (v.1.0)
+# ARDETYPE
 
 NGS data processing pipeline designed to perform species-agnostic and species-specific analysis of short paired-end (PE) bacterial reads.
 
