@@ -172,6 +172,15 @@
             ],
             "Yersinia enterocolitica": [
                 "_chewbbaca/results_alleles.tsv"
+            ],
+            "Yersinia intermedia": [
+                "_chewbbaca/results_alleles.tsv"
+            ],
+            "Yersinia kristensenii": [
+                "_chewbbaca/results_alleles.tsv"
+            ],
+            "Yersinia frederiksenii": [
+                "_chewbbaca/results_alleles.tsv"
             ]
         },
         "patterns": {
@@ -210,7 +219,10 @@
                 "Enterococcus faecalis",
                 "Enterococcus faecium",
                 "Pseudomonas aeruginosa",
-                "Yersinia enterocolitica"
+                "Yersinia enterocolitica",
+                "Yersinia intermedia",
+                "Yersinia kristensenii",
+                "Yersinia frederiksenii"
             ]
         }
     },
@@ -273,7 +285,10 @@
             "Enterococcus faecalis": [],
             "Enterococcus faecium": [],
             "Pseudomonas aeruginosa": [],
-            "Yersinia enterocolitica": []
+            "Yersinia enterocolitica": [],
+            "Yersinia intermedia": [],
+            "Yersinia kristensenii": [],
+            "Yersinia frederiksenii": []
         },
         "patterns": {
             "inputs": {
