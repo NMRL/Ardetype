@@ -409,13 +409,16 @@ rule pasteur_pcr_serogroup_lmonocytogenes:
     run:
         filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
         hk.filter_contigs_length(input.contigs, filtered_contigs)
-        api_output = hk.type_contigs_api(filtered_contigs, 'Listeria monocytogenes')
-        if isinstance(api_output, dict):
-            hk.write_json(api_output, output[0])
-            os.remove(filtered_contigs)
-        else:
-            os.system(f"touch {output[0]}")
-            os.remove(filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Listeria monocytogenes')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
 
 
 rule pasteur_cgmlst_lmonocytogenes:
@@ -426,13 +429,16 @@ rule pasteur_cgmlst_lmonocytogenes:
     run:
         filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
         hk.filter_contigs_length(input.contigs, filtered_contigs)
-        api_output = hk.type_contigs_api(filtered_contigs, 'Listeria monocytogenes', scheme_num=1)
-        if isinstance(api_output, dict):
-            hk.write_json(api_output, output[0])
-            os.remove(filtered_contigs)
-        else:
-            os.system(f"touch {output[0]}")
-            os.remove(filtered_contigs)         
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Listeria monocytogenes', scheme_num=1)
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')     
 
 
 rule pasteur_cgmlst_nmeningitidis:
@@ -443,13 +449,16 @@ rule pasteur_cgmlst_nmeningitidis:
     run:
         filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
         hk.filter_contigs_length(input.contigs, filtered_contigs)
-        api_output = hk.type_contigs_api(filtered_contigs, 'Neisseria meningitidis')
-        if isinstance(api_output, dict):
-            hk.write_json(api_output, output[0])
-            os.remove(filtered_contigs)
-        else:
-            os.system(f"touch {output[0]}")
-            os.remove(filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Neisseria meningitidis')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
 
 
 rule pasteur_cgmlst_ngonorrhoeae:
@@ -460,13 +469,16 @@ rule pasteur_cgmlst_ngonorrhoeae:
     run:
         filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
         hk.filter_contigs_length(input.contigs, filtered_contigs)
-        api_output = hk.type_contigs_api(filtered_contigs, 'Neisseria gonorrhoeae', scheme_num=1)
-        if isinstance(api_output, dict):
-            hk.write_json(api_output, output[0])
-            os.remove(filtered_contigs)
-        else:
-            os.system(f"touch {output[0]}")
-            os.remove(filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Neisseria gonorrhoeae', scheme_num=1)
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
 
 
 rule pasteur_cgmlst_kpneumoniae:
@@ -477,13 +489,16 @@ rule pasteur_cgmlst_kpneumoniae:
     run:
         filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
         hk.filter_contigs_length(input.contigs, filtered_contigs)
-        api_output = hk.type_contigs_api(filtered_contigs, 'Klebsiella pneumoniae')
-        if isinstance(api_output, dict):
-            hk.write_json(api_output, output[0])
-            os.remove(filtered_contigs)
-        else:
-            os.system(f"touch {output[0]}")
-            os.remove(filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Klebsiella pneumoniae')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
 
 
 rule pasteur_cgmlst_saureus:
@@ -494,13 +509,16 @@ rule pasteur_cgmlst_saureus:
     run:
         filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
         hk.filter_contigs_length(input.contigs, filtered_contigs)
-        api_output = hk.type_contigs_api(filtered_contigs, 'Staphylococcus aureus')
-        if isinstance(api_output, dict):
-            hk.write_json(api_output, output[0])
-            os.remove(filtered_contigs)
-        else:
-            os.system(f"touch {output[0]}")
-            os.remove(filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Staphylococcus aureus')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
 
 
 rule pasteur_cgmlst_senterica:
@@ -511,13 +529,16 @@ rule pasteur_cgmlst_senterica:
     run:
         filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
         hk.filter_contigs_length(input.contigs, filtered_contigs)
-        api_output = hk.type_contigs_api(filtered_contigs, 'Salmonella enterica')
-        if isinstance(api_output, dict):
-            hk.write_json(api_output, output[0])
-            os.remove(filtered_contigs)
-        else:
-            os.system(f"touch {output[0]}")
-            os.remove(filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Salmonella enterica')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
 
 
 rule pasteur_cgmlst_ecoli:
@@ -528,13 +549,16 @@ rule pasteur_cgmlst_ecoli:
     run:
         filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
         hk.filter_contigs_length(input.contigs, filtered_contigs)
-        api_output = hk.type_contigs_api(filtered_contigs, 'Escherichia coli')
-        if isinstance(api_output, dict):
-            hk.write_json(api_output, output[0])
-            os.remove(filtered_contigs)
-        else:
-            os.system(f"touch {output[0]}")
-            os.remove(filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Escherichia coli')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
 
 
 rule pasteur_cgmlst_spneumoniae:
@@ -545,13 +569,16 @@ rule pasteur_cgmlst_spneumoniae:
     run:
         filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
         hk.filter_contigs_length(input.contigs, filtered_contigs)
-        api_output = hk.type_contigs_api(filtered_contigs, 'Streptococcus pneumoniae')
-        if isinstance(api_output, dict):
-            hk.write_json(api_output, output[0])
-            os.remove(filtered_contigs)
-        else:
-            os.system(f"touch {output[0]}")
-            os.remove(filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Streptococcus pneumoniae')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
 
 
 rule pasteur_cgmlst_abaumanii:
@@ -562,13 +589,16 @@ rule pasteur_cgmlst_abaumanii:
     run:
         filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
         hk.filter_contigs_length(input.contigs, filtered_contigs)
-        api_output = hk.type_contigs_api(filtered_contigs, 'Acinetobacter baumanii', scheme_num=1)
-        if isinstance(api_output, dict):
-            hk.write_json(api_output, output[0])
-            os.remove(filtered_contigs)
-        else:
-            os.system(f"touch {output[0]}")
-            os.remove(filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Acinetobacter baumanii', scheme_num=1)
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
 
 
 rule publmst_ngonorrhoe:
@@ -577,11 +607,14 @@ rule publmst_ngonorrhoe:
     output:
         config['output_directory']+'{sample_id_pattern}_ngmast.json'
     run:
-        api_output = hk.type_contigs_api(input.contigs, 'Neisseria gonorrhoeae')
-        if isinstance(api_output, dict):
-            hk.write_json(api_output, output[0])
-        else:
-            os.system(f"touch {output[0]}")
+        try:
+            api_output = hk.type_contigs_api(input.contigs, 'Neisseria gonorrhoeae')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+            else:
+                os.system(f"touch {output[0]}")
+        except:
+            os.system(f'touch {output[0]}')
         
 
 rule pubmlst_abaumanii:
@@ -590,12 +623,15 @@ rule pubmlst_abaumanii:
     output:
         config['output_directory']+'{sample_id_pattern}_ab_pumblst.json'
     run:
-        api_output = hk.type_contigs_api(input.contigs, 'Acinetobacter baumanii')
-        if isinstance(api_output, dict):
-            hk.write_json(api_output, output[0])
-        else:
-            os.system(f"touch {output[0]}")
-
+        try:
+            api_output = hk.type_contigs_api(input.contigs, 'Acinetobacter baumanii')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+            else:
+                os.system(f"touch {output[0]}")
+        except:
+            os.system(f'touch {output[0]}')
+            
 
 rule ectyper_ecoli:
     input:
