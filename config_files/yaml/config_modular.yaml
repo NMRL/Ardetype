@@ -10,7 +10,7 @@ databases:
 status_script_path:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/pbs-status.py
 ardetype_version:
-  v0.0.1-dev
+  v0.1.0-dev
 
 
 ##############
