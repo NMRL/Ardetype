@@ -65,7 +65,7 @@ class Module:
         self.retry_times         = retry_times #number of times snakemake will attempt to rerun failed jobs (default=3); used by run_module_cluster
         self.force_all           = "--forceall" if force_all else "" #to store forceall flag if it is supplied, else empty string is stored
         self.rule_graph          = f"--rulegraph | dot -Tpdf > {self.module_name}.pdf" if rule_graph else "" #to store rule_graph flag if it is supplied, else empty string is stored
-        self.unpack_output       = unpack_output #used to move files outside sample folders and do a rerun; used by unfold_output
+        self.unpack_output       = True if force_all else unpack_output #used to move files outside sample folders and do a rerun; used by unfold_output
         self.removed_samples     = pd.DataFrame() #to store dataframe containing information about samples that were deemed invalid by the module
         self.pack_output         = pack_output #switch to control putting output files into one folder named after sample_id; used by fold_output
         self.cleanup_dict        = {} #to map origin paths of input files to path in working directory; filled by move_to_wd; used by clear_working_directory
