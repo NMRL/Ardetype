@@ -1,7 +1,7 @@
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
-import os, warnings, sys, subprocess as sp, datetime, pandas as pd
+import os, warnings, sys, subprocess as sp, datetime, pandas as pd, re
 from pathlib import Path
-from shutil import copy
+from shutil import move
 sys.path.insert(0, os.path.dirname(Path(__file__).absolute()))
 
 from src.modules import Module
@@ -215,7 +215,38 @@ class Ardetype_module(Module):
         super(Ardetype_module, self).__init__(*args, **kwargs) #running method as it is defined in the base class
         self.job_log_path = f"{ardetype_path}/ardetype_job_logs/"
         self.status_script = self.config_file['status_script_path']
-        
+
+        #if reprocess
+        if self.force_all:
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            #change timestamp
+            if re.match(r'_[0-9]{8}_[0-9]{6}', self.output_path[-17:-1]):
+                new_path = self.output_path[:-17] + "_" + timestamp + "/"
+            else:
+                #if timestamp is missing - add timestamp
+                new_path = os.path.dirname(self.output_path) + "_" + timestamp + "/"
+            move(self.output_path, new_path)
+            if new_path not in self.aggr_taxonomy_path:
+                self.aggr_taxonomy_path  = self.aggr_taxonomy_path.replace(os.path.abspath(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
+            if new_path not in self.config_file_path:
+                self.config_file_path    = self.config_file_path.replace(os.path.dirname(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/config.yaml' #where to look for operational copy of the configuration file; used by submit_module_job & run_module_cluster
+            if os.path.basename(os.path.dirname(self.output_path)) == os.path.dirname(self.input_path):
+                self.input_path = os.path.dirname(new_path)            
+            self.output_path = new_path
+
+        #if not reprocess but no timestamp
+        elif not re.match(r'_[0-9]{8}_[0-9]{6}', self.output_path[-17:-1]):
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            new_path  = os.path.dirname(self.output_path) + "_" + timestamp + "/"
+            move(self.output_path, new_path)
+            if new_path not in self.aggr_taxonomy_path:
+                self.aggr_taxonomy_path  = self.aggr_taxonomy_path.replace(os.path.abspath(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
+            if new_path not in self.config_file_path:
+                self.config_file_path    = self.config_file_path.replace(os.path.dirname(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/config.yaml' #where to look for operational copy of the configuration file; used by submit_module_job & run_module_cluster
+            if os.path.basename(os.path.dirname(self.output_path)) == os.path.dirname(self.input_path):
+                self.input_path = os.path.dirname(new_path)
+            self.output_path         = new_path
+            
 
     def config_cluster(self) -> None:
         '''
@@ -260,7 +291,7 @@ def run_all(args, num_jobs):
         module_name         = 'shell', 
         input_path          = core.output_path, 
         module_config       = core.config_file, 
-        output_path         = args.output_dir, 
+        output_path         = core.output_path, 
         run_mode            = args.submit_modules,
         dry_run             = args.dry_run,
         force_all           = args.force_all,
@@ -279,7 +310,7 @@ def run_all(args, num_jobs):
         module_name         = 'tip', 
         input_path          = core.output_path,
         module_config       = shell.config_file, 
-        output_path         = args.output_dir, 
+        output_path         = core.output_path, 
         run_mode            = args.submit_modules,
         dry_run             = args.dry_run,
         force_all           = args.force_all,
@@ -298,7 +329,7 @@ def run_all(args, num_jobs):
         module_name         = 'shape', 
         input_path          = core.output_path,
         module_config       = tip.config_file, 
-        output_path         = args.output_dir, 
+        output_path         = core.output_path, 
         run_mode            = args.submit_modules,
         dry_run             = args.dry_run,
         force_all           = args.force_all,
@@ -416,7 +447,9 @@ def run_all(args, num_jobs):
                 raise e
         shape.check_module_output(mixed=True)
         shape.write_sample_sheet()
-        if shape.pack_output: tip.fold_output()
+        if shape.pack_output: 
+            shape.output_path = tip.output_path
+            tip.fold_output()
         shape.set_permissions()
         sys.exit("bact_shape finished")
     else:
@@ -475,7 +508,9 @@ def run_all(args, num_jobs):
             raise e
     shape.check_module_output(mixed=True)
     shape.write_sample_sheet()
-    if shape.pack_output: tip.fold_output()
+    if shape.pack_output:
+        shape.output_path = tip.output_path
+        tip.fold_output()
     shape.set_permissions()
 
     #Housekeeping the log files
