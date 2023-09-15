@@ -140,6 +140,7 @@ core_tool_configs:
     #24576
   shovill:
     minlen: 1
+    mincov: 0 #2
     cpus: 35
     ram: 100
     depth: 100

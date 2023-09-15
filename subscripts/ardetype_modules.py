@@ -246,6 +246,7 @@ class Ardetype_module(Module):
             if os.path.basename(os.path.dirname(self.output_path)) == os.path.dirname(self.input_path):
                 self.input_path = os.path.dirname(new_path)
             self.output_path         = new_path
+
             
 
     def config_cluster(self) -> None:

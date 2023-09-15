@@ -116,6 +116,7 @@ rule contig_assembly:
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} shovill {config[core_tool_configs][shovill][modules]} \
         --depth {config[core_tool_configs][shovill][depth]} --ram {config[core_tool_configs][shovill][ram]} \
         --cpus {threads} --minlen {config[core_tool_configs][shovill][minlen]} \
+        --mincov {config[core_tool_configs][shovill][mincov]} \
         --force --outdir {config[output_directory]}{wildcards.sample_id_pattern}_contigs \
         --R1 {input.read_1} --R2 {input.read_2}
         """

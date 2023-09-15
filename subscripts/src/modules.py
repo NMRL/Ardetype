@@ -1,5 +1,5 @@
 from .utilities import Housekeeper as hk
-import os, warnings, re, subprocess, shutil, time, pandas as pd, glob
+import os, warnings, re, subprocess, shutil, time, pandas as pd, glob, sys
 from datetime import datetime
 from itertools import chain
 from getpass import getuser
@@ -279,9 +279,9 @@ class Module:
         conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake;
         snakemake --reason --nolock --restart-times {self.retry_times} --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.dry_run} --cluster {job_submission_command} {self.rule_graph} '''
         try:
-            process_data = subprocess.check_call(shell_command, shell=True, stdout=subprocess.PIPE)
+            process_data = subprocess.check_call(shell_command, shell=True, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as smk_error:
-            smk_log            = process_data #unassigned - need to fix
+            smk_log            = smk_error.output
             failed_samples_tag = 'Out of jobs ready to be started, but not all files built yet.'
 
             if re.search(failed_samples_tag, smk_log):
@@ -289,7 +289,7 @@ class Module:
                 #case 1: snakemake throws an error if it is out of jobs - workflow restart required
             else:
                 #case 2: snakemake throws an error if there is a bug in the workflow code - fix required
-                raise Exception(f"{self.module_name} module process running error: {smk_error}")
+                raise Exception(f"{self.module_name} module process running error: {smk_error.output}")
         except KeyboardInterrupt as ki:
             raise Exception(f"{self.module_name} was interrupted by the user: {ki}")
             #case 3 - keyboard interrupt by the user
