@@ -14,6 +14,7 @@
         "harmonized_resistance_profile.tsv",
         "software_log.csv",
         "mobtyper_summary.csv",
+        "mobtyper_contig_summary.csv",
         "plasmidfinder_summary.csv",
         "kleborate_report.csv",
         "kraken2contigs_report.csv",
@@ -26,7 +27,8 @@
         "sistr_report.csv",
         "lissero_report.csv",
         "meningotype_report.csv",
-        "legsta_report.csv"
+        "legsta_report.csv",
+        "resfinder_mobtyper_mapping.csv"
     ],
     "core": {
         "targets": [

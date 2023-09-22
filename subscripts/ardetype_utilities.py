@@ -6,9 +6,21 @@ import re
 import pathlib
 import pandas as pd
 from pathlib import Path
+from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor as ppe, as_completed
 sys.path.insert(0, os.path.dirname(os.path.dirname(Path(__file__).absolute())))
+sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/utils/phylogenetics_tools/')
 from subscripts.src.utilities import Housekeeper as hk
+from process_chewbacca_profiles_edits import initialize_logging, gather_chewbacca_data, cluster_analysis, cluster_counter
+
+
+###############
+#Global configs
+###############
+
+cluster_counter = 0
+
+###############
 
 
 class Ardetype_housekeeper(hk):
@@ -93,14 +105,27 @@ class Ardetype_housekeeper(hk):
     @staticmethod
     def mobtyper_results(mbt_result_path: str, batch: str) -> pd.DataFrame:
         '''To combine mob_typer reports and map them to sample_id-batch pair.'''
-        sample_id = re.sub(r'_S[0-9]*_mob_typer.tab',
-                           '', os.path.basename(mbt_result_path))
+        sample_id = re.sub(r'(_S[0-9]*_mob_recon|_mob_recon)',
+                        '', os.path.basename(os.path.dirname(mbt_result_path)))
         df = pd.read_csv(mbt_result_path, sep='\t')
         df.rename(columns={'sample_id': 'genetic_element'}, inplace=True)
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
+
+    
+    @staticmethod
+    def mobtyper_contig_results(contig_result_path: str, batch:str) -> pd.DataFrame:
+        '''To aggregate information about plasmid location in the assembly'''
+        df = pd.read_csv(contig_result_path, sep='\t')
+        df['sample_id'] = df['sample_id'].str.replace("_contigs","", regex=False)
+        df['sample_id'] = df['sample_id'].str.replace(r"_S[0-9]*", "", regex=True)
+        df = df[df['molecule_type'] == 'plasmid'] #keep only information about plasmids
+        df.insert(1, 'analysis_batch_id', [os.path.basename(
+            os.path.dirname(batch)) for _ in df.index])
+        return df
+
 
     @staticmethod
     def kraken2contigs_results(k2c_report_path: str, batch: str) -> pd.DataFrame:
@@ -143,6 +168,7 @@ class Ardetype_housekeeper(hk):
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
+
 
     @staticmethod
     def quast_results(qst_report_path: str, batch: str) -> pd.DataFrame:
@@ -304,6 +330,60 @@ class Ardetype_housekeeper(hk):
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
         df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
         return df
+
+####################
+#Special aggregation
+####################
+
+    @staticmethod
+    def hamr_plasmid_map(hamr_report_path:str, mbt_contig_report_path:str) -> pd.DataFrame:
+        '''Matching plasmid reports with contig reports for Resfinder & mobtyper to search for potentially plasmid-localized AMRs'''
+        hr = pd.read_csv(hamr_report_path, sep='\t')
+        cr = pd.read_csv(mbt_contig_report_path)
+        hr = hr[hr.reference_database_name == 'resfinder']
+        hr.input_sequence_id = hr.input_sequence_id.str.replace(" ", "_")
+        cr.sample_id = cr.sample_id.str.replace(r"_S[0-9]*", '', regex=True)
+        hamr_pls_merge = hr.merge(cr, 
+                                  how='right', 
+                                  left_on=['input_file_name', 'input_sequence_id'], 
+                                  right_on=['sample_id', 'contig_id'])
+        hamr_pls_merge.dropna(subset=['input_file_name'], inplace=True)
+        hamr_pls_merge = hamr_pls_merge[[
+            'sample_id', 
+            'analysis_batch_id_x', 
+            'gene_name', 
+            'sequence_identity',
+            'coverage_percentage',
+            'analysis_software_version', 
+            'reference_database_version',
+            'rep_type(s)',
+            'primary_cluster_id',
+            'contig_id',
+            "input_gene_start",
+            "input_gene_stop",
+            "reference_accession",
+            "rep_type_accession(s)"
+            ]]
+        hamr_pls_merge.rename(columns={'analysis_batch_id_x': 'analysis_batch_id'}, inplace=True)
+        return hamr_pls_merge
+
+
+    @staticmethod
+    def cgmlst_cluster_analysis(path:str, wildcard:str="folded*/*_chewbbaca/results_alleles.tsv", thresholds:list=[], linkage:str='single', log_scale:bool=True, rem_outlier:int=None):
+        current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        output_path = os.path.join(path, 'cgmlst_clusters')
+        os.makedirs(output_path, mode=0o775, exist_ok=True)
+        initialize_logging(path = output_path, current_datetime = current_datetime)
+        chew_dict = gather_chewbacca_data(path = path, wildcard = wildcard)
+        cluster_analysis(
+            path = path,
+            output_path = output_path,
+            thresholds = thresholds,
+            df_dict=chew_dict,
+            singularity=True, 
+            linkage_method=linkage, 
+            log_scale=log_scale, 
+            outlier_filter=rem_outlier)
 
 
 ###########################

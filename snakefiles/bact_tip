@@ -89,6 +89,13 @@ rule all:
         legsta_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*legsta.csv", extractor = hk.legsta_results)
         legsta_summary.to_csv(f"{config['output_directory']}legsta_report.csv", header=True, index=False)
 
+        #Run cluster analysis
+        hk.cgmlst_cluster_analysis(
+            path = config['output_directory'],
+            wildcard='*_chewbbaca/results_alleles.tsv',
+            thresholds=[i+1 for i in range(25)],
+            log_scale=True,
+            rem_outlier=100)
 
 rule hicap_hinfluenzae:
     input:

@@ -2,6 +2,7 @@ localrules: all
 
 import pandas as pd, os, sys, json
 from Bio import SeqIO
+from pathlib import Path
 sys.path.insert(0, os.path.abspath('./'))
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 
@@ -63,13 +64,15 @@ rule all:
 
         #Lists of plasmid reports to aggregate
         plasmidfinder        = expand(config['output_directory']+'{sample_id}_plasmidfinder/results_tab.tsv', sample_id=sample_sheet['sample_id']),
-        mobtyper             = expand(config['output_directory']+'{sample_id}_mob_typer.tab', sample_id=sample_sheet['sample_id'])
+        mobtyper             = expand(config['output_directory']+'{sample_id}_mob_recon/mobtyper_results.txt', sample_id=sample_sheet['sample_id']),
+        mobtyper_contigs     = expand(config['output_directory']+'{sample_id}_mob_recon/contig_report.txt', sample_id=sample_sheet['sample_id'])
     run:
         #Use only non-empty files (hamronization fails otherwise or easier to implement custom aggregation)
         input.hamr_resfinder = [ path for path in input.hamr_resfinder if not os.path.getsize(path) == 0]
         input.hamr_rgi       = [ path for path in input.hamr_rgi if not os.path.getsize(path) == 0]
         input.hamr_amrfp     = [ path for path in input.hamr_amrfp if not os.path.getsize(path) == 0]
         input.amrfp_mut      = [ path for path in input.amrfp_mut if not os.path.getsize(path) == 0]
+        input.mobtyper       = [ path for path in input.mobtyper if not os.path.getsize(path) == 0]
 
         #Create single tsv report from all resistance inference tools
         os.system(f'''
@@ -100,6 +103,10 @@ rule all:
         mbt = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.mobtyper_results, pathlist = input.mobtyper)
         mbt.to_csv(f"{config['output_directory']}mobtyper_summary.csv", header=True, index=False)
 
+        #Aggregate mob_typer_contig_info
+        mbtc = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.mobtyper_contig_results, pathlist = input.mobtyper_contigs)
+        mbtc.to_csv(f"{config['output_directory']}mobtyper_contig_summary.csv", header=True, index=False)
+
         #Aggregate quast results
         qst = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.quast_results, wildcard = "*quast/report.tsv")
         qst.to_csv(f"{config['output_directory']}quast_report.csv", header=True, index=False)
@@ -108,6 +115,15 @@ rule all:
         amfp = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.amrfpm_results, pathlist = input.amrfp_mut)
         amfp.to_csv(f"{config['output_directory']}amrfp_mutation_report.csv", header=True, index=False)
 
+        #Search for AMR-plasmid associations in resfinder & mobtyper output
+        if not os.path.getsize(f"{config['output_directory']}mobtyper_contig_summary.csv") == 0:
+            hamr_pls = hk.hamr_plasmid_map(
+                hamr_report_path=f"{config['output_directory']}harmonized_resistance_profile.tsv",
+                mbt_contig_report_path=f"{config['output_directory']}mobtyper_contig_summary.csv")
+            hamr_pls.to_csv(f"{config['output_directory']}resfinder_mobtyper_mapping.csv", header=True, index=False)
+        else:
+            Path(f"{config['output_directory']}mobtyper_contig_summary.csv").touch()
+
 
 rule mob_recon:
     input:
@@ -115,12 +131,16 @@ rule mob_recon:
         contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
     output:
         config['output_directory']+'{sample_id_pattern}_mob_recon/chromosome.fasta', #expected in any case, unless only plasmid was sequenced
-        config['output_directory']+'{sample_id_pattern}_mob_recon/contig_report.txt' #contig scanning results
+        config['output_directory']+'{sample_id_pattern}_mob_recon/contig_report.txt', #contig scanning results
+        config['output_directory']+'{sample_id_pattern}_mob_recon/mobtyper_results.txt'
     envmodules:
         'singularity'
     shell:
         """
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.mob_suite_sif} mob_recon --infile {input.contigs} --force --outdir {config[output_directory]}{wildcards.sample_id_pattern}_mob_recon/
+        if ! [ -f {output[2]} ]; then
+            touch {output[2]}
+        fi
         """
 
 
