@@ -268,7 +268,7 @@ class Module:
         '''
         #job_submission command to be used by snakmake to automatically submit jobs to HPC; stuff in curly brackets are snakemake arguments, not python variables
         if os.path.basename(self.cluster_config_path) == 'cluster.yaml':
-            job_submission_command = '"qsub -N {cluster.jobname} -l nodes={cluster.nodes}:ppn={cluster.procs},pmem={cluster.pmem},walltime={cluster.walltime},feature={cluster.feature} -q {cluster.queue} -j {cluster.jobout} -o {cluster.outdir} -V"'
+            job_submission_command = '"qsub -N {cluster.jobname} -l nodes={cluster.nodes}:ppn={cluster.procs},pmem={cluster.pmem},walltime={cluster.walltime},feature={cluster.feature},file={cluster.file} -q {cluster.queue} -j {cluster.jobout} -o {cluster.outdir} -V"'
         elif os.path.basename(self.cluster_config_path) == 'cluster_slurm.yaml':
             job_submission_command = '"sbatch --job-name {cluster.jobname} -N {cluster.nodes} --ntasks={cluster.ppn} --mem-per-cpu={cluster.mempc} -t {cluster.time} -o {cluster.outdir}{cluster.output} -e {cluster.outdir}{cluster.error} --export=ALL"'
         else:

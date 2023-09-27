@@ -12,6 +12,7 @@ __default__:
   queue: "batch"
   jobout: "oe"
   outdir: "ardetype_job_logs/"
+  file: 2048
 
 
 ##############
@@ -63,9 +64,10 @@ classify_contigs:
 contig_assembly:
   jobname: "ardetype.contig_assembly"
   procs: 38
-  pmem: "2000mb"
+  pmem: "6000mb"
   walltime: "10:40:00"
   account: "rakus"
+  feature: "largescratch"
   queue: "batch"
   jobout: "oe"
   nodes: 1

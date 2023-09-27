@@ -27,7 +27,7 @@ rule all:
             df         = df[df['taxid'] == "S"].reset_index(drop=True)                                          #extract only species rows
             top_hit    = df.loc[df["read_%"] ==df["read_%"].max()]['name'].reset_index(drop=True)[0].strip()    #extract top hit
             total_dict[
-                os.path.basename(file).replace("_kraken2_contigs_report.txt","")                                
+                os.path.basename(file).replace("_kraken2_contigs_report.txt","")                              
                 ]      = top_hit                                                                                #save info for current samples
         with open(config['output_directory']+'core_aggregated_taxonomy.json', "w+") as json_handle:             #write top hit for each sample to json file
             json.dump(total_dict, json_handle)
@@ -113,12 +113,22 @@ rule contig_assembly:
         'singularity'
     shell:
         """
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} shovill {config[core_tool_configs][shovill][modules]} \
+        FOLDER_NAME=/scratch/{wildcards.sample_id_pattern}_assembly_tmp_$(date +%Y-%m-%d_%H-%M-%S)
+        cleanup_scratch() {{
+            rm -rf $FOLDER_NAME
+        }}
+        trap cleanup_scratch EXIT
+        ulimit -n 2048
+        mkdir -m 775 $FOLDER_NAME
+        singularity --silent exec --bind ${{FOLDER_NAME}},{config[output_directory]},{config[work_dir]}:${{FOLDER_NAME}},{config[output_directory]},{config[work_dir]} {input.sif_file} shovill {config[core_tool_configs][shovill][modules]} \
         --depth {config[core_tool_configs][shovill][depth]} --ram {config[core_tool_configs][shovill][ram]} \
         --cpus {threads} --minlen {config[core_tool_configs][shovill][minlen]} \
         --mincov {config[core_tool_configs][shovill][mincov]} \
         --force --outdir {config[output_directory]}{wildcards.sample_id_pattern}_contigs \
-        --R1 {input.read_1} --R2 {input.read_2}
+        --R1 {input.read_1} --R2 {input.read_2}\
+        --tmpdir $FOLDER_NAME
+
+        rm -r $FOLDER_NAME
         """
 
 
