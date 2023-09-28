@@ -1,0 +1,2 @@
+name: lrefinder
+prefix: /home/$(whoami)/miniconda3/envs/lrefinder
