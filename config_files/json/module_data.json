@@ -110,10 +110,12 @@
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Enterococcus faecalis": [
-                "_chewbbaca/results_alleles.tsv"
+                "_chewbbaca/results_alleles.tsv",
+                "_lrefinder/lrefinder.tsv"
             ],
             "Enterococcus faecium": [
-                "_chewbbaca/results_alleles.tsv"
+                "_chewbbaca/results_alleles.tsv",
+                "_lrefinder/lrefinder.tsv"
             ],
             "Pseudomonas aeruginosa": [
                 "_chewbbaca/results_alleles.tsv"

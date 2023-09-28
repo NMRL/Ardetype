@@ -1,0 +1,19 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+env_defs/lrefinder.yml lrefinder.yml
+%post
+    conda env create --name lrefinder --file lrefinder.yml
+    conda install python=3
+    conda install -c anaconda make
+    conda install -c conda-forge gcc
+    pip install tabulate biopython cgecore gitpython python-dateutil
+    conda install -c "bioconda/label/cf201901" kma
+    git clone https://bitbucket.org/genomicepidemiology/lre-finder.git
+    cd lre-finder && make
+%environment
+    export PATH=/opt/conda/envs/lrefinder/bin:$PATH
+    export PATH=/lre-finder:$PATH
+%runscript
+    exec "$@"

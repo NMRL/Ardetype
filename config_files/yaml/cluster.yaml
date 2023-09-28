@@ -386,6 +386,14 @@ seroba_spneumoniae:
   queue: "batch"
   jobout: "oe"
 
+lrefinder_efaecium_efaecalis:
+  jobname: "ardetype.lrefinder_efaecium_efaecalis"
+  procs: 12
+  pmem: "2000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
 
 
 ##############

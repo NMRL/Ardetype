@@ -342,6 +342,9 @@ class Ardetype_housekeeper(hk):
         cr = pd.read_csv(mbt_contig_report_path)
         hr = hr[hr.reference_database_name == 'resfinder']
         hr.input_sequence_id = hr.input_sequence_id.str.replace(" ", "_")
+        hr.input_sequence_id = hr.input_sequence_id.astype(str)
+        hr.input_file_name = hr.input_file_name.astype(str)
+        cr.sample_id = cr.sample_id.astype(str)
         cr.sample_id = cr.sample_id.str.replace(r"_S[0-9]*", '', regex=True)
         hamr_pls_merge = hr.merge(cr, 
                                   how='right', 
