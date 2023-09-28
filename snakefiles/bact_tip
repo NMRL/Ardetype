@@ -760,3 +760,32 @@ rule chewbbaca_cgmlst:
         rm -r ~/{wildcards.sample_id_pattern}_chewbbaca_input/
         rm -r ~/{wildcards.sample_id_pattern}_chewbbaca
         ''')
+
+
+rule lrefinder_efaecium_efaecalis:
+    input:
+        image_file = config['lrefinder_efaecium_efaecalis_sif'],
+        read_1     = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
+        read_2     = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+    output:
+        lrefinder = config['output_directory']+'{sample_id_pattern}_lrefinder/lrefinder.tsv'
+    run:
+        os.system(f'''
+        module load singularity
+
+        cd {config["databases"]}
+        mkdir -p ~/{wildcards.sample_id_pattern}_lrefinder/input/
+        mkdir -p {config["output_directory"]}{wildcards.sample_id_pattern}_lrefinder/
+        cp {input.read_1} ~/{wildcards.sample_id_pattern}_lrefinder/input/
+        cp {input.read_2} ~/{wildcards.sample_id_pattern}_lrefinder/input/
+
+        singularity --silent exec --bind {config["output_directory"]},{config["work_dir"]},{config["databases"]}db-lrefinder/:{config["output_directory"]},{config["work_dir"]},{config["databases"]}db-lrefinder/ {input.image_file}\
+            LRE-Finder.py -ipe {input.read_1} {input.read_2} \
+            -o ~/{wildcards.sample_id_pattern}_lrefinder/{wildcards.sample_id_pattern} \
+            -t_db {config["databases"]}db-lrefinder/elm -cge -matrix \
+            -ID {config["tip_tool_configs"]["lrefinder_efaecium_efaecalis"]["id"]} -1t1
+        mv -n ~/{wildcards.sample_id_pattern}_lrefinder/* {config["output_directory"]}{wildcards.sample_id_pattern}_lrefinder/
+        mv -n {config["output_directory"]}{wildcards.sample_id_pattern}_lrefinder/{wildcards.sample_id_pattern}.res {config["output_directory"]}{wildcards.sample_id_pattern}_lrefinder/lrefinder.tsv
+        rm -r {config["output_directory"]}{wildcards.sample_id_pattern}_lrefinder/input/
+        rm -r ~/{wildcards.sample_id_pattern}_lrefinder/
+        ''')

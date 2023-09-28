@@ -99,7 +99,10 @@ pigz_sif:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/image_files/pigz_latest.sif
 stecfinder_ecoli_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/stecfinder_ecoli.sif
-
+lrefinder_efaecium_efaecalis_sif:
+  /mnt/beegfs2/home/groups/nmrl/image_files/lre_finder.sif
+lrefinder_database:
+  /mnt/beegfs2/home/groups/nmrl/db/db-lrefinder
 
 
 ##############
@@ -216,6 +219,8 @@ tip_tool_configs:
   chewbbaca:
     chewbbaca_sif: /mnt/beegfs2/home/groups/nmrl/image_files/chewbacca_cgmlst.sif
     chewbbaca_cores: 12
+  lrefinder_efaecium_efaecalis:
+    id: 80
 
   
 
