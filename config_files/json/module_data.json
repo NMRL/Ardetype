@@ -185,6 +185,9 @@
             ],
             "Yersinia frederiksenii": [
                 "_chewbbaca/results_alleles.tsv"
+            ],
+            "Clostridioides difficile": [
+                "_chewbbaca/results_alleles.tsv"
             ]
         },
         "patterns": {
@@ -226,7 +229,8 @@
                 "Yersinia enterocolitica",
                 "Yersinia intermedia",
                 "Yersinia kristensenii",
-                "Yersinia frederiksenii"
+                "Yersinia frederiksenii",
+                "Clostridioides difficile"
             ]
         }
     },
