@@ -84,7 +84,8 @@ rule all:
         #add output folder name as analysis batch id
         res_sum = pd.read_csv(f"{config['output_directory']}harmonized_resistance_profile.tsv", sep='\t')
         res_sum.input_file_name = res_sum.input_file_name.str.replace(r'_S[0-9]*', '', regex=True)
-        res_sum.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in res_sum.index])
+        if 'analysis_batch_id' not in res_sum.columns:
+            res_sum.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in res_sum.index])
         res_sum.to_csv(f"{config['output_directory']}harmonized_resistance_profile.tsv", sep='\t', header=True, index=False)
 
         #Aggregating resfinder phenotype info
