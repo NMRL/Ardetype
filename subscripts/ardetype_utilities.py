@@ -339,6 +339,15 @@ class Ardetype_housekeeper(hk):
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
         df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
         return df
+    
+    @staticmethod
+    def cgmlst_quality_results(lrefinder_pos_path:str, batch: str):
+        '''To combine chewbbaca allele calling reports and map them to sample_id-batch pair.'''
+        df = pd.read_csv(lrefinder_pos_path, sep='\t')
+        df.rename(columns={'FILE': 'sample_id'}, inplace=True)
+        df.sample_id = df.sample_id.str.replace(r'_S[0-9]*_contigs', '', regex=True)
+        df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
+        return df
 
 ####################
 #Special aggregation
