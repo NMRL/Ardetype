@@ -331,6 +331,15 @@ class Ardetype_housekeeper(hk):
         df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
         return df
 
+    @staticmethod
+    def lrefinder_results(lrefinder_pos_path:str, batch: str):
+        '''To combine lrefinder mutation reports and map them to sample_id-batch pair.'''
+        df = pd.read_csv(lrefinder_pos_path, sep='\t')
+        sample_id = re.sub(r'_S[0-9]*.pos', '', os.path.basename(lrefinder_pos_path))
+        df.insert(0, 'sample_id', [sample_id for _ in df.index])
+        df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
+        return df
+
 ####################
 #Special aggregation
 ####################

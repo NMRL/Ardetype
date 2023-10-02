@@ -28,7 +28,8 @@
         "lissero_report.csv",
         "meningotype_report.csv",
         "legsta_report.csv",
-        "resfinder_mobtyper_mapping.csv"
+        "resfinder_mobtyper_mapping.csv",
+        "lrefinder_report.csv"
     ],
     "core": {
         "targets": [

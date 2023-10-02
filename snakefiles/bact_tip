@@ -90,6 +90,10 @@ rule all:
         legsta_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*legsta.csv", extractor = hk.legsta_results)
         legsta_summary.to_csv(f"{config['output_directory']}legsta_report.csv", header=True, index=False)
 
+        #Aggregate LRE-Finder results
+        lrefinder_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_lrefinder/*.pos", extractor = hk.lrefinder_results)
+        lrefinder_summary.to_csv(f"{config['output_directory']}lrefinder_report.csv", header=True, index=False)
+
         #Run cluster analysis
         hk.cgmlst_cluster_analysis(
             path = config['output_directory'],
