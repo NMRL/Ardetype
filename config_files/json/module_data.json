@@ -131,7 +131,8 @@
             ],
             "Streptococcus pyogenes": [
                 "_strp_emmtyper.tsv",
-                "_cgmlstfinder/data.json"
+                "_cgmlstfinder/data.json",
+                "_chewbbaca/results_alleles.tsv"
             ],
             "Neisseria gonorrhoeae": [
                 "_ngmast.json",
