@@ -94,6 +94,10 @@ rule all:
         lrefinder_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_lrefinder/*.pos", extractor = hk.lrefinder_results)
         lrefinder_summary.to_csv(f"{config['output_directory']}lrefinder_report.csv", header=True, index=False)
 
+        #Aggregate chewbbaca allela calling statistics
+        chewbacca_qc = = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_chewbbaca/results_statistics.tsv", extractor = hk.cgmlst_quality_results)
+        chewbacca_qc.to_csv(f"{config['output_directory']}chewbbaca_qc_report.csv", header=True, index=False)
+
         #Run cluster analysis
         hk.cgmlst_cluster_analysis(
             path = config['output_directory'],
