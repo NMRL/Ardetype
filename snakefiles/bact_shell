@@ -129,7 +129,7 @@ rule all:
 rule mob_recon:
     input:
         mob_suite_sif = ancient(config['mob_suite_sif']),
-        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_mob_recon/chromosome.fasta', #expected in any case, unless only plasmid was sequenced
         config['output_directory']+'{sample_id_pattern}_mob_recon/contig_report.txt', #contig scanning results
@@ -149,9 +149,9 @@ rule resfinder:
     input:
         hamr_sif      = ancient(config['hamronization_sif']),
         resfinder_sif = ancient(config['resfinder_sif']),
-        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
-        read_1        = config['work_dir']+'{sample_id_pattern}_R1_001.fastq.gz',
-        read_2        = config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz'
+        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        read_1        = ancient(config['work_dir']+'{sample_id_pattern}_R1_001.fastq.gz'),
+        read_2        = ancient(config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz')
     output:
         config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt",
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_Hit_in_genome_seq.fsa",
@@ -254,7 +254,7 @@ rule resfinder:
 
 rule resfinder_pheno:
     input:
-        config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt"
+        ancient(config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt")
     output:
         config['output_directory']+'{sample_id_pattern}_resfinder_pheno.txt'
     shell:
@@ -267,7 +267,7 @@ rule amrfinderplus:
     input:
         hamr_sif      = ancient(config['hamronization_sif']),
         amrfinder_sif = ancient(config['amrfinderplus_sif']),
-        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+"{sample_id_pattern}_amrfinderplus.tab",
         config['output_directory']+'{sample_id_pattern}_amrfinderplus.hamr.tab',
@@ -292,7 +292,7 @@ rule amrfinderplus:
 rule plasmidfinder:
     input:
         image_file = ancient(config['shell_tool_configs']['plasmidfinder']['plasmidfinder_sif']),
-        contigs    = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs    = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+"{sample_id_pattern}_plasmidfinder/Hit_in_genome_seq.fsa",
         config['output_directory']+"{sample_id_pattern}_plasmidfinder/Plasmid_seqs.fsa",
@@ -323,7 +323,7 @@ rule plasmidfinder:
 
 rule rmlst:
     input:
-        contigs    = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs    = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         rmlst_json = config['output_directory']+'{sample_id_pattern}_rmlst.json'
     run:
@@ -355,7 +355,7 @@ rule rmlst:
 rule mlst: 
     input: 
         mlst_quast_path = ancient(config['mlst_quast_sif']),
-        contigs         = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs         = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         mlst_output     = config['output_directory']+'{sample_id_pattern}_mlst_output.csv',
     threads: 4
@@ -370,7 +370,7 @@ rule mlst:
 rule res_gen_id: 
     input: 
         hamr_sif = ancient(config['hamronization_sif']),
-        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}.rgi.txt',
         config['output_directory']+'{sample_id_pattern}.rgi.json',
@@ -390,7 +390,7 @@ rule res_gen_id:
 rule quast:
     input:
         sif_file = ancient(config['mlst_quast_sif']),
-        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     envmodules:
         'singularity'
     output:

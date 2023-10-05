@@ -211,7 +211,7 @@ class Ardetype_module(Module):
         which cannot be covered by altering the configuration file.
         '''
         if kwargs['input_path'] is None:
-            sys.exit(f'Input must be included to run the pipeline in any mode except log_analysis.')
+            sys.exit(f'Input must be included to run the pipeline in any mode except log_analysis and merge.')
         super(Ardetype_module, self).__init__(*args, **kwargs) #running method as it is defined in the base class
         self.job_log_path = f"{ardetype_path}/ardetype_job_logs/"
         self.status_script = self.config_file['status_script_path']
@@ -230,8 +230,8 @@ class Ardetype_module(Module):
                 self.aggr_taxonomy_path  = self.aggr_taxonomy_path.replace(os.path.abspath(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
             if new_path not in self.config_file_path:
                 self.config_file_path    = self.config_file_path.replace(os.path.dirname(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/config.yaml' #where to look for operational copy of the configuration file; used by submit_module_job & run_module_cluster
-            if os.path.basename(os.path.dirname(self.output_path)) == os.path.dirname(self.input_path):
-                self.input_path = os.path.dirname(new_path)            
+            if os.path.normpath(self.output_path) == os.path.normpath(self.input_path):
+                self.input_path = new_path
             self.output_path = new_path
 
         #if not reprocess but no timestamp
@@ -243,10 +243,9 @@ class Ardetype_module(Module):
                 self.aggr_taxonomy_path  = self.aggr_taxonomy_path.replace(os.path.abspath(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
             if new_path not in self.config_file_path:
                 self.config_file_path    = self.config_file_path.replace(os.path.dirname(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/config.yaml' #where to look for operational copy of the configuration file; used by submit_module_job & run_module_cluster
-            if os.path.basename(os.path.dirname(self.output_path)) == os.path.dirname(self.input_path):
-                self.input_path = os.path.dirname(new_path)
-            self.output_path         = new_path
-
+            if os.path.normpath(self.output_path) == os.path.normpath(self.input_path):
+                self.input_path = new_path
+            self.output_path    = new_path
             
 
     def config_cluster(self) -> None:
@@ -288,6 +287,7 @@ def run_all(args, num_jobs):
             snakefile_path      = module_data['snakefiles']['core'],
             cluster_config_path = module_data['cluster_config']
             )
+
     shell = Ardetype_module(
         module_name         = 'shell', 
         input_path          = core.output_path, 
@@ -641,3 +641,18 @@ def run_shell(args, num_jobs):
     hk.name_job_logs('ardetype', shell.job_log_path)
     if args.clean_job_logs:
         hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
+
+
+def run_merge(args, num_jobs):
+    '''Wrapper function to combine outputs from multiple folders and run all modules on the result.'''
+    if args.merge_from is None:
+        raise ValueError('Must have at least 1 argument passed to --merge_from to run `merge` mode')
+    if args.output_dir is None:
+        raise ValueError('Must pass --output_dir to run `merge` mode')
+    merge_inputs = args.merge_from
+    merge_target = args.output_dir
+    hk.merge_paths(src_list=merge_inputs, target_folder = merge_target)
+    args.input = os.path.abspath(args.output_dir)
+    args.unpack_output = True
+    args.pack_output = True
+    run_all(args, num_jobs)

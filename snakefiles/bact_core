@@ -44,9 +44,9 @@ rule all:
 
 rule quality_control:
     input:
-        sif_file = config["fastp_sif"],                                                                         #path to singularity image file
-        read_1   = config['work_dir']+'{sample_id_pattern}_R1_001.fastq.gz',
-        read_2   = config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz'
+        sif_file = ancient(config["fastp_sif"]),                                                                         #path to singularity image file
+        read_1   = ancient(config['work_dir']+'{sample_id_pattern}_R1_001.fastq.gz'),
+        read_2   = ancient(config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz')
     threads: 4                                                                                                  #to be moved to config
     envmodules:
         'singularity'
@@ -70,8 +70,8 @@ rule quality_control:
 
 rule filter_host:
     input:                                                                                                          #quality-trimmed reads
-        read_1 = config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz',
-        read_2 = config['output_directory']+'{sample_id_pattern}_fastp_2.fastq.gz'
+        read_1 = ancient(config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz'),
+        read_2 = ancient(config['output_directory']+'{sample_id_pattern}_fastp_2.fastq.gz')
     output:                                                                                                         #host reads (temp)
         temp(config['output_directory']+'{sample_id_pattern}_host_1.fastq'),
         temp(config['output_directory']+'{sample_id_pattern}_host_2.fastq'),                                        
@@ -102,9 +102,9 @@ rule filter_host:
 
 rule contig_assembly:
     input:
-        sif_file = config["shovill_sif"],
-        read_1   = config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz',
-        read_2   = config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz',
+        sif_file = ancient(config["shovill_sif"]),
+        read_1   = ancient(config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz'),
+        read_2   = ancient(config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz'),
     threads: 
         config["core_tool_configs"]["shovill"]["cpus"]
     output:
@@ -134,7 +134,7 @@ rule contig_assembly:
 
 rule contig_id:                                                                                                     #keeps only finals shovill output annotated with sample_id
     input:
-        cnt = f'{config["output_directory"]}'+'{sample_id_pattern}_contigs/contigs.fa',
+        cnt = ancient(f'{config["output_directory"]}'+'{sample_id_pattern}_contigs/contigs.fa'),
     envmodules:
         'singularity'
     output:
@@ -148,9 +148,9 @@ rule contig_id:                                                                 
 
 rule classify_reads:
     input:                                                                                                          #quality-trimmed, host-filtered reads
-        sif_file = config["krona_sif"],
-        read_1   = config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz',           
-        read_2   = config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz'    
+        sif_file = ancient(config["krona_sif"]),
+        read_1   = ancient(config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz'),           
+        read_2   = ancient(config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz')    
     output:
         config['output_directory']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',                          #classified reads
         config['output_directory']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
@@ -187,8 +187,8 @@ rule classify_reads:
 
 rule classify_contigs:
     input:
-        sif_file = config["krona_sif"],
-        contigs  = config['output_directory']+'{sample_id_pattern}_contigs.fasta'
+        sif_file = ancient(config["krona_sif"]),
+        contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta')
     output:
         report_name    = config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt',
         filtering_data = temp(config['output_directory']+'{sample_id_pattern}_kraken2_contig_data.txt')
