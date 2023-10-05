@@ -744,8 +744,15 @@ rule cgmlstfinder:
         mkdir -p ~/{wildcards.sample_id_pattern}_cgmlstfinder/
 
         singularity --silent exec --bind {config["output_directory"]},{config["work_dir"]},{config['databases']}:{config["output_directory"]},{config["work_dir"]},{config['databases']} {input.image_file} python /cgmlstfinder/cgMLST.py -db ./cgmlstfinder_db/ -i ~/$CONTIG_FILENAME -o ~/{wildcards.sample_id_pattern}_cgmlstfinder/ -s {cgmlstfinder_species_map[wildcards.sample_id_pattern]}
-        mv -n ~/{wildcards.sample_id_pattern}_cgmlstfinder/* {config['output_directory']}{wildcards.sample_id_pattern}_cgmlstfinder/
-
+        if [ -f {output.cgmlst_result} ]; then
+            mv -n ~/{wildcards.sample_id_pattern}_cgmlstfinder/* {config['output_directory']}{wildcards.sample_id_pattern}_cgmlstfinder/
+        else
+            #creating empty file just in case to make snakemake not stop if typing has failed for tool-specific reasons
+            mkdir -m 775 -p {config['output_directory']}{wildcards.sample_id_pattern}_cgmlstfinder/
+            mv -n ~/{wildcards.sample_id_pattern}_cgmlstfinder/*
+            touch {output.cgmlst_result}
+        fi
+        
         rm -r ~/{wildcards.sample_id_pattern}_cgmlstfinder/ ~/$CONTIG_FILENAME
         ''')
 
