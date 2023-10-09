@@ -39,7 +39,6 @@ class Ardetype_housekeeper(hk):
                 raise ValueError(f"Collision detected at destination path '{dst}'")
             os.system(f'chmod -R 775 {src}')
             os.system(f'mv {src} {dst}')
-            # move(src, dst)
 
         if not target_folder:
             raise ValueError("target_folder argument is required")
@@ -52,7 +51,6 @@ class Ardetype_housekeeper(hk):
                 raise ValueError("Source and target folders cannot be the same.")
             
             for item in os.listdir(src):
-                item_path = os.path.join(src, item)
                 dest_path = os.path.join(target_folder, item)
                 
                 if not ignore_collisions:
