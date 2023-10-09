@@ -651,7 +651,15 @@ def run_merge(args, num_jobs):
         raise ValueError('Must pass --output_dir to run `merge` mode')
     merge_inputs = args.merge_from
     merge_target = args.output_dir
-    hk.merge_paths(src_list=merge_inputs, target_folder = merge_target)
+    exclude_files = [
+        'sample_sheet.csv', 
+        'remove_samples_tip.csv', 
+        'core_aggregated_taxonomy.json', 
+        'cluster.yaml', 
+        'config_cluste.yaml' , 
+        'removed_samples_tip.csv'
+        ]
+    hk.merge_paths(src_list=merge_inputs, target_folder = merge_target, exclude_files = exclude_files)
     args.input = os.path.abspath(args.output_dir)
     args.unpack_output = True
     args.pack_output = True

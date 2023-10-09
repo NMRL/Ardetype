@@ -5,7 +5,6 @@ import base64
 import re
 import pathlib
 import pandas as pd
-from shutil import move
 from pathlib import Path
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor as ppe, as_completed, ThreadPoolExecutor
@@ -26,11 +25,12 @@ cluster_counter = 0
 
 class Ardetype_housekeeper(hk):
     '''Class extends the standard housekeeper class to implement functions required by specific pipeline'''
-
+        
     @staticmethod
-    def merge_paths(src_list, target_folder=None, ignore_collisions=True):
+    def merge_paths(src_list, target_folder=None, ignore_collisions=True, exclude_files=[]):
         '''
         Combines contents from all paths supplied as src_list under target_folder.
+        Excludes and deletes files from source paths specified in exclude_files.
         '''
 
         def move_item(src, dst):
@@ -39,6 +39,10 @@ class Ardetype_housekeeper(hk):
                 raise ValueError(f"Collision detected at destination path '{dst}'")
             os.system(f'chmod -R 775 {src}')
             os.system(f'mv {src} {dst}')
+
+        def delete_item(src):
+            """Delete the specified item."""
+            os.system(f'rm -rf {src}')
 
         if not target_folder:
             raise ValueError("target_folder argument is required")
@@ -49,7 +53,7 @@ class Ardetype_housekeeper(hk):
         for src in src_list:
             if os.path.abspath(src) == os.path.abspath(target_folder):
                 raise ValueError("Source and target folders cannot be the same.")
-            
+                
             for item in os.listdir(src):
                 dest_path = os.path.join(target_folder, item)
                 
@@ -67,12 +71,15 @@ class Ardetype_housekeeper(hk):
                 for item in os.listdir(src):
                     src_item_path = os.path.join(src, item)
                     dest_item_path = os.path.join(target_folder, item)
-                    futures.append(executor.submit(move_item, src_item_path, dest_item_path))
+                    if os.path.basename(item) in exclude_files:
+                        futures.append(executor.submit(delete_item, src_item_path))
+                    else:
+                        futures.append(executor.submit(move_item, src_item_path, dest_item_path))
 
             for future in as_completed(futures):
                 # Handle any exceptions or errors that might have occurred
                 future.result()
-        
+
 
     @staticmethod
     def type_fasta_scheme(contig_path: str, url: str) -> dict:
