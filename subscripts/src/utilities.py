@@ -355,6 +355,8 @@ class Housekeeper:
         #Flags
         for flag in arg_dict['optional']['flags']: parser.add_argument(flag[0], flag[1], help = flag[2], action='store_true')
 
+        for flag in arg_dict['optional']['nargs']: parser.add_argument(flag[0], flag[1], nargs='+', help=flag[2])
+
         #If no arguments provided - display help and stop the script
         if len(sys.argv)==1: 
             parser.print_help(sys.stderr)

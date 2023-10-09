@@ -196,6 +196,7 @@ cgmlstfinder:
   walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
+  nodes: 1
   jobout: "oe"
 
 
@@ -303,7 +304,7 @@ sistr_senterica:
   jobname: "ardetype.sistr"
   procs: 10
   pmem: "1000mb"
-  walltime: "00:01:00"
+  walltime: "00:10:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"

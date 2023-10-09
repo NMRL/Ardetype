@@ -51,7 +51,7 @@ org_dict = dict(zip(currated_orgs['sample_id'], currated_orgs['taxonomy']))
 rule all:
     input: 
         config['shell_target_files'], 
-        hamr_sif             = config['hamronization_sif'], #path to singularity image file
+        hamr_sif             = ancient(config['hamronization_sif']), #path to singularity image file
         
         #Lists of resistance reports to be harmonized, may be it can be refactored to single expand
         hamr_resfinder       = expand(config['output_directory']+'{sample_id}_resfinder/{sample_id}_resfinder.hamr.tab', sample_id=sample_sheet['sample_id']),
@@ -128,8 +128,8 @@ rule all:
 
 rule mob_recon:
     input:
-        mob_suite_sif = config['mob_suite_sif'],
-        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        mob_suite_sif = ancient(config['mob_suite_sif']),
+        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_mob_recon/chromosome.fasta', #expected in any case, unless only plasmid was sequenced
         config['output_directory']+'{sample_id_pattern}_mob_recon/contig_report.txt', #contig scanning results
@@ -145,27 +145,13 @@ rule mob_recon:
         """
 
 
-rule mob_typer:
-    input:
-        mob_suite_sif = config['mob_suite_sif'],
-        recons        = config['output_directory']+'{sample_id_pattern}_mob_recon/chromosome.fasta'
-    output:
-        config['output_directory']+'{sample_id_pattern}_mob_typer.tab' #plasmid typing results
-    envmodules:
-        'singularity'
-    shell:
-        """
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.mob_suite_sif} mob_typer --infile {input.recons} --out_file {config[output_directory]}{wildcards.sample_id_pattern}_mob_typer.tab
-        """
-
-
 rule resfinder:
     input:
-        hamr_sif      = config['hamronization_sif'],
-        resfinder_sif = config['resfinder_sif'],
-        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
-        read_1        = config['work_dir']+'{sample_id_pattern}_R1_001.fastq.gz',
-        read_2        = config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz'
+        hamr_sif      = ancient(config['hamronization_sif']),
+        resfinder_sif = ancient(config['resfinder_sif']),
+        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        read_1        = ancient(config['work_dir']+'{sample_id_pattern}_R1_001.fastq.gz'),
+        read_2        = ancient(config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz')
     output:
         config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt",
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_Hit_in_genome_seq.fsa",
@@ -268,7 +254,7 @@ rule resfinder:
 
 rule resfinder_pheno:
     input:
-        config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt"
+        ancient(config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt")
     output:
         config['output_directory']+'{sample_id_pattern}_resfinder_pheno.txt'
     shell:
@@ -279,9 +265,9 @@ rule resfinder_pheno:
 
 rule amrfinderplus:
     input:
-        hamr_sif      = config['hamronization_sif'],
-        amrfinder_sif = config['amrfinderplus_sif'],
-        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        hamr_sif      = ancient(config['hamronization_sif']),
+        amrfinder_sif = ancient(config['amrfinderplus_sif']),
+        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+"{sample_id_pattern}_amrfinderplus.tab",
         config['output_directory']+'{sample_id_pattern}_amrfinderplus.hamr.tab',
@@ -305,8 +291,8 @@ rule amrfinderplus:
 
 rule plasmidfinder:
     input:
-        image_file = config['shell_tool_configs']['plasmidfinder']['plasmidfinder_sif'],
-        contigs    = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        image_file = ancient(config['shell_tool_configs']['plasmidfinder']['plasmidfinder_sif']),
+        contigs    = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+"{sample_id_pattern}_plasmidfinder/Hit_in_genome_seq.fsa",
         config['output_directory']+"{sample_id_pattern}_plasmidfinder/Plasmid_seqs.fsa",
@@ -337,7 +323,7 @@ rule plasmidfinder:
 
 rule rmlst:
     input:
-        contigs    = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs    = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         rmlst_json = config['output_directory']+'{sample_id_pattern}_rmlst.json'
     run:
@@ -368,8 +354,8 @@ rule rmlst:
 
 rule mlst: 
     input: 
-        mlst_quast_path = config['mlst_quast_sif'],
-        contigs         = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        mlst_quast_path = ancient(config['mlst_quast_sif']),
+        contigs         = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         mlst_output     = config['output_directory']+'{sample_id_pattern}_mlst_output.csv',
     threads: 4
@@ -383,8 +369,8 @@ rule mlst:
 
 rule res_gen_id: 
     input: 
-        hamr_sif = config['hamronization_sif'],
-        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        hamr_sif = ancient(config['hamronization_sif']),
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}.rgi.txt',
         config['output_directory']+'{sample_id_pattern}.rgi.json',
@@ -403,8 +389,8 @@ rule res_gen_id:
 
 rule quast:
     input:
-        sif_file = config['mlst_quast_sif'],
-        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        sif_file = ancient(config['mlst_quast_sif']),
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     envmodules:
         'singularity'
     output:

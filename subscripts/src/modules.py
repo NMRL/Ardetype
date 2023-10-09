@@ -394,7 +394,8 @@ class Module:
             for file in glob.glob(f'{self.output_path}{sample_id}*'): 
                 try:
                     move(file, f'{self.output_path}folded_{sample_id}_output/')
-                except:
+                except Exception as e:
+                    print(file, e)
                     continue
 
         # moving reports to separate directory - list of expected reports is defined in config_files/json/module_data/

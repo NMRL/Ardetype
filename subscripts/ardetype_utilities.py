@@ -7,7 +7,7 @@ import pathlib
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
-from concurrent.futures import ProcessPoolExecutor as ppe, as_completed
+from concurrent.futures import ProcessPoolExecutor as ppe, as_completed, ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.dirname(Path(__file__).absolute())))
 sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/utils/phylogenetics_tools/')
 from subscripts.src.utilities import Housekeeper as hk
@@ -25,6 +25,61 @@ cluster_counter = 0
 
 class Ardetype_housekeeper(hk):
     '''Class extends the standard housekeeper class to implement functions required by specific pipeline'''
+        
+    @staticmethod
+    def merge_paths(src_list, target_folder=None, ignore_collisions=True, exclude_files=[]):
+        '''
+        Combines contents from all paths supplied as src_list under target_folder.
+        Excludes and deletes files from source paths specified in exclude_files.
+        '''
+
+        def move_item(src, dst):
+            """Move item from src to dst."""
+            if os.path.exists(dst):
+                raise ValueError(f"Collision detected at destination path '{dst}'")
+            os.system(f'chmod -R 775 {src}')
+            os.system(f'mv {src} {dst}')
+
+        def delete_item(src):
+            """Delete the specified item."""
+            os.system(f'rm -rf {src}')
+
+        if not target_folder:
+            raise ValueError("target_folder argument is required")
+
+        # Check for naming collisions among source directories and with the target directory
+        src_name_to_paths = {}
+        os.system(f'mkdir -m 775 -p {target_folder}')
+        for src in src_list:
+            if os.path.abspath(src) == os.path.abspath(target_folder):
+                raise ValueError("Source and target folders cannot be the same.")
+                
+            for item in os.listdir(src):
+                dest_path = os.path.join(target_folder, item)
+                
+                if not ignore_collisions:
+                    if item in src_name_to_paths:
+                        raise ValueError(f"Naming collision detected for '{item}' in sources '{src_name_to_paths[item]}' and '{src}'")
+                    if os.path.exists(dest_path):
+                        raise ValueError(f"Naming collision detected for '{item}' between source '{src}' and target '{target_folder}'")
+
+                    src_name_to_paths[item] = src
+
+        with ThreadPoolExecutor() as executor:
+            futures = []
+            for src in src_list:
+                for item in os.listdir(src):
+                    src_item_path = os.path.join(src, item)
+                    dest_item_path = os.path.join(target_folder, item)
+                    if os.path.basename(item) in exclude_files:
+                        futures.append(executor.submit(delete_item, src_item_path))
+                    else:
+                        futures.append(executor.submit(move_item, src_item_path, dest_item_path))
+
+            for future in as_completed(futures):
+                # Handle any exceptions or errors that might have occurred
+                future.result()
+
 
     @staticmethod
     def type_fasta_scheme(contig_path: str, url: str) -> dict:

@@ -4,7 +4,7 @@
         [
             "-m",
             "--mode",
-            "Selecting mode that allows to run specific modules of the pipeline:\nall - run all modules (starting from fastq files)\ncore - run only bact_core module (starting from fastq files)\nshell - run only bact_shell module (starting from fasta & fastq file).\nlog_analysis - summarise logs of all jobs and update log_summary.html (no input required)"
+            "Selecting mode that allows to run specific modules of the pipeline:\nall - run all modules (starting from fastq files)\ncore - run only bact_core module (starting from fastq files)\nshell - run only bact_shell module (starting from fasta & fastq file).\nlog_analysis - summarise logs of all jobs and update log_summary.html (no input required).\nmerge - move files from --merge_from one or many paths into --output_path, and run all modules to produce unified reports"
         ]
     ],
     "optional": {
@@ -80,6 +80,13 @@
                 "-l",
                 "--clean_job_logs",
                 "Flag to remove all job log files that are older than 30 days."
+            ]
+        ],
+        "nargs": [
+            [
+                "-mf",
+                "--merge_from",
+                "Argument to supply paths to folders containing ardetype output that should be combined."
             ]
         ]
     }

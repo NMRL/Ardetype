@@ -26,6 +26,7 @@ for sid, species in zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.
         cgmlstfinder_species_map[sid] = "spneumoniae"
     elif 'streptococcus pyogenes' in species:
         cgmlstfinder_species_map[sid] = "streptococcus"
+        chewbbaca_species_map[sid]    = "spyogenes_wgMLST"
     elif 'campylobacter' in species:
         cgmlstfinder_species_map[sid] = "campylobacter"
         chewbbaca_species_map[sid]    = 'Campylobacter_jejuni_coli'
@@ -49,8 +50,7 @@ for sid, species in zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.
         chewbbaca_species_map[sid]    = "Yersinia.cgMLSTv1_chewbbaca"
     elif 'clostridioides' in species:
         chewbbaca_species_map[sid]    = "Clostridioides_difficile_db"
-    elif 'pyogenes' in species:
-        chewbbaca_species_map[sid]    = "Streptococcus_pyogenes_cgMLST_alleles_db"
+
 
 rule all:
     input: 
@@ -110,8 +110,8 @@ rule all:
 
 rule hicap_hinfluenzae:
     input:
-        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
-        sif_file = config['hicap_hinfluenzae_sif']
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['hicap_hinfluenzae_sif'])
     envmodules:
         'singularity'
     output:
@@ -136,8 +136,8 @@ rule hicap_hinfluenzae:
 
 rule meningotype_nmeningitidis:
     input:
-        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
-        sif_file = config['meningotype_nmeningitidis_sif']
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['meningotype_nmeningitidis_sif'])
     envmodules:
         'singularity'
     output:
@@ -157,8 +157,8 @@ rule meningotype_nmeningitidis:
 
 rule legsta_lpneumophila:
     input:
-        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
-        sif_file = config['legsta_lpneumophila_sif']
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['legsta_lpneumophila_sif'])
     envmodules:
         'singularity'
     output:
@@ -180,10 +180,10 @@ rule legsta_lpneumophila:
 #lock file is created for each sample under temp to indicate that it is being used
 rule lpgenomics_lpneumophila:
     input:
-        read_1     = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
-        read_2     = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        read_1     = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz'),
+        read_2     = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz'),
         repository = config['lpgenomics_repo'],
-        pigz_sif   = config['pigz_sif']
+        pigz_sif   = ancient(config['pigz_sif'])
     envmodules:
         'singularity'
     output:
@@ -217,8 +217,8 @@ rule lpgenomics_lpneumophila:
 
 rule kleborate_kpneumoniae:
     input:
-        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
-        sif_file = config['kleborate_kpneumoniae_sif']
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['kleborate_kpneumoniae_sif'])
     envmodules:
         'singularity'
     output:
@@ -243,8 +243,8 @@ rule kleborate_kpneumoniae:
 
 rule agrvate_saureus:
     input:
-        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
-        sif_file = config['agrvate_saureus_sif']
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['agrvate_saureus_sif'])
     envmodules:
         'singularity'
     output:
@@ -270,8 +270,8 @@ rule agrvate_saureus:
 
 rule spatyper_saureus:
     input:
-        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
-        sif_file = config['spatyper_saureus_sif']
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['spatyper_saureus_sif'])
     envmodules:
         'singularity'
     output:
@@ -296,8 +296,8 @@ rule spatyper_saureus:
 
 rule sccmec_saureus:
     input:
-        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
-        sif_file = config['sccmec_saureus_sif']
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['sccmec_saureus_sif'])
     envmodules:
         'singularity'
     output:
@@ -317,8 +317,8 @@ rule sccmec_saureus:
 
 rule emmtyper_spyogenes:
     input:
-        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
-        sif_file = config['emmtyper_spyogenes_sif']
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['emmtyper_spyogenes_sif'])
     envmodules:
         'singularity'
     output:
@@ -343,9 +343,9 @@ rule emmtyper_spyogenes:
 
 rule seqsero_senterica:
     input:
-        read_1   = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
-        read_2   = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
-        sif_file = config['seqsero2_senterica_sif']
+        read_1   = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz'),
+        read_2   = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz'),
+        sif_file = ancient(config['seqsero2_senterica_sif'])
     threads:
         config['tip_tool_configs']['seqsero_senterica']['threads']
     envmodules:
@@ -373,8 +373,8 @@ rule seqsero_senterica:
 
 rule sistr_senterica:
     input:
-        contigs  = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
-        sif_file = config['sistr_senterica_sif']
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['sistr_senterica_sif'])
     envmodules:
         'singularity'
     output:
@@ -399,8 +399,8 @@ rule sistr_senterica:
 
 rule lissero_lmonocytogenes:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
-        sif_file = config['lissero_lmonocytogenes_sif']
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['lissero_lmonocytogenes_sif'])
     envmodules:
         'singularity'
     output:
@@ -421,7 +421,7 @@ rule lissero_lmonocytogenes:
 #typing via network can be done from nodes other than login node as it does not require job submission, only internet connection
 rule pasteur_pcr_serogroup_lmonocytogenes:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_pasteur_pcr_serogroup.json'
     run:
@@ -441,7 +441,7 @@ rule pasteur_pcr_serogroup_lmonocytogenes:
 
 rule pasteur_cgmlst_lmonocytogenes:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_lm_pasteur_cgmlst.json'
     run:
@@ -461,7 +461,7 @@ rule pasteur_cgmlst_lmonocytogenes:
 
 rule pasteur_cgmlst_nmeningitidis:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json'
     run:
@@ -481,7 +481,7 @@ rule pasteur_cgmlst_nmeningitidis:
 
 rule pasteur_cgmlst_ngonorrhoeae:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_ng_pasteur_cgmlst.json'
     run:
@@ -501,7 +501,7 @@ rule pasteur_cgmlst_ngonorrhoeae:
 
 rule pasteur_cgmlst_kpneumoniae:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_kp_pasteur_cgmlst.json'
     run:
@@ -521,7 +521,7 @@ rule pasteur_cgmlst_kpneumoniae:
 
 rule pasteur_cgmlst_saureus:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_sa_pasteur_cgmlst.json'
     run:
@@ -541,7 +541,7 @@ rule pasteur_cgmlst_saureus:
 
 rule pasteur_cgmlst_senterica:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_se_pasteur_cgmlst.json'
     run:
@@ -561,7 +561,7 @@ rule pasteur_cgmlst_senterica:
 
 rule pasteur_cgmlst_ecoli:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_ec_pasteur_cgmlst.json'
     run:
@@ -581,7 +581,7 @@ rule pasteur_cgmlst_ecoli:
 
 rule pasteur_cgmlst_spneumoniae:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_strp_pasteur_cgmlst.json'
     run:
@@ -601,7 +601,7 @@ rule pasteur_cgmlst_spneumoniae:
 
 rule pasteur_cgmlst_abaumanii:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_ab_pasteur_cgmlst.json'
     run:
@@ -621,7 +621,7 @@ rule pasteur_cgmlst_abaumanii:
 
 rule publmst_ngonorrhoe:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_ngmast.json'
     run:
@@ -637,7 +637,7 @@ rule publmst_ngonorrhoe:
 
 rule pubmlst_abaumanii:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_ab_pumblst.json'
     run:
@@ -653,7 +653,7 @@ rule pubmlst_abaumanii:
 
 rule ectyper_ecoli:
     input:
-        contigs = config['work_dir']+'{sample_id_pattern}_contigs.fasta',
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = config['ectyper_ecoli_sif']
     output:
         config['output_directory']+'{sample_id_pattern}_ectyper.tsv'
@@ -674,9 +674,9 @@ rule ectyper_ecoli:
 
 rule stecfinder_ecoli:
     input:
-        read_1   = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
-        read_2   = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
-        sif_file = config['stecfinder_ecoli_sif']
+        read_1   = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz'),
+        read_2   = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz'),
+        sif_file = ancient(config['stecfinder_ecoli_sif'])
     output:
         result   = config['output_directory']+'{sample_id_pattern}_stecfinder.tsv'
     envmodules:
@@ -697,9 +697,9 @@ rule stecfinder_ecoli:
 
 rule seroba_spneumoniae:
     input:
-        read_1   = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
-        read_2   = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
-        sif_file = config['seroba_spneumoniae_sif']
+        read_1   = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz'),
+        read_2   = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz'),
+        sif_file = ancient(config['seroba_spneumoniae_sif'])
     output:
         config['output_directory']+'{sample_id_pattern}_seroba.tsv'
     envmodules:
@@ -730,8 +730,8 @@ rule seroba_spneumoniae:
 
 rule cgmlstfinder:
     input:
-        image_file    = config['tip_tool_configs']['cgmlstfinder']['cgmlstfinder_sif'],
-        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        image_file    = ancient(config['tip_tool_configs']['cgmlstfinder']['cgmlstfinder_sif']),
+        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         cgmlst_result = config['output_directory']+'{sample_id_pattern}_cgmlstfinder/data.json'
     run:
@@ -744,16 +744,23 @@ rule cgmlstfinder:
         mkdir -p ~/{wildcards.sample_id_pattern}_cgmlstfinder/
 
         singularity --silent exec --bind {config["output_directory"]},{config["work_dir"]},{config['databases']}:{config["output_directory"]},{config["work_dir"]},{config['databases']} {input.image_file} python /cgmlstfinder/cgMLST.py -db ./cgmlstfinder_db/ -i ~/$CONTIG_FILENAME -o ~/{wildcards.sample_id_pattern}_cgmlstfinder/ -s {cgmlstfinder_species_map[wildcards.sample_id_pattern]}
-        mv -n ~/{wildcards.sample_id_pattern}_cgmlstfinder/* {config['output_directory']}{wildcards.sample_id_pattern}_cgmlstfinder/
-
+        if [ -f {output.cgmlst_result} ]; then
+            mv -n ~/{wildcards.sample_id_pattern}_cgmlstfinder/* {config['output_directory']}{wildcards.sample_id_pattern}_cgmlstfinder/
+        else
+            #creating empty file just in case to make snakemake not stop if typing has failed for tool-specific reasons
+            mkdir -m 775 -p {config['output_directory']}{wildcards.sample_id_pattern}_cgmlstfinder/
+            mv -n ~/{wildcards.sample_id_pattern}_cgmlstfinder/*
+            touch {output.cgmlst_result}
+        fi
+        
         rm -r ~/{wildcards.sample_id_pattern}_cgmlstfinder/ ~/$CONTIG_FILENAME
         ''')
 
 
 rule chewbbaca_cgmlst:
     input:
-        image_file    = config['tip_tool_configs']['chewbbaca']['chewbbaca_sif'],
-        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+        image_file    = ancient(config['tip_tool_configs']['chewbbaca']['chewbbaca_sif']),
+        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         chewbbaca     = config['output_directory']+'{sample_id_pattern}_chewbbaca/results_alleles.tsv'
     run:
@@ -775,9 +782,9 @@ rule chewbbaca_cgmlst:
 
 rule lrefinder_efaecium_efaecalis:
     input:
-        image_file = config['lrefinder_efaecium_efaecalis_sif'],
-        read_1     = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz',
-        read_2     = config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
+        image_file = ancient(config['lrefinder_efaecium_efaecalis_sif']),
+        read_1     = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz'),
+        read_2     = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz'),
     output:
         lrefinder = config['output_directory']+'{sample_id_pattern}_lrefinder/lrefinder.tsv'
     run:
