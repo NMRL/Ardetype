@@ -404,7 +404,7 @@ extract_fastp:
   jobname: "ardetype.extract_fastp"
   procs: 3
   pmem: "1000mb"
-  walltime: "00:01:00"
+  walltime: "00:05:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -413,7 +413,7 @@ extract_kraken2:
   jobname: "ardetype.extract_kraken2"
   procs: 3
   pmem: "1000mb"
-  walltime: "00:01:00"
+  walltime: "00:05:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -422,7 +422,7 @@ extract_mlst:
   jobname: "ardetype.extract_mlst"
   procs: 3
   pmem: "1000mb"
-  walltime: "00:01:00"
+  walltime: "00:05:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -440,7 +440,7 @@ extract_quast:
   jobname: "ardetype.extract_quast"
   procs: 3
   pmem: "1000mb"
-  walltime: "00:01:00"
+  walltime: "00:05:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
