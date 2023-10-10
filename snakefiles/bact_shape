@@ -70,13 +70,16 @@ rule all:
         order_list = general_columns + optional_columns
         report = report[order_list]
 
+        #generate per-sample and per-batch tool reports
+        wp.report_tool_versions(config['output_directory'], sample_ids = report.sample_id)
+
         #add output folder name as analysis batch id
         report.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in report.index])
         report.sample_id = report.sample_id.str.replace(r'_S[0-9]*', '', regex=True)
         
         #save as csv
         report.to_csv(config['output_directory']+f'{date}_ardetype_report.csv', header=True, index=False) 
-        wp.report_tool_versions(config['output_directory'])
+        
 
 
 rule extract_fastp:

@@ -177,7 +177,7 @@ class Wrapper():
 
 
     @staticmethod
-    def report_tool_versions(output_path:str) -> None:
+    def report_tool_versions(output_path:str, sample_ids:list) -> None:
         '''Aggregates tool versions, references and database versions in single pandas dataframe and generates a csv file named software_log.csv in output_path'''
         specific_ref = {Wrapper._tool_ref_map[k]['tool']:Wrapper._tool_ref_map[k]['reference'] for k in Wrapper._tool_ref_map if k != 'agnostic'}
         agnostic_ref = {Wrapper._tool_ref_map['agnostic'][k]['tool'] : Wrapper._tool_ref_map['agnostic'][k]['reference'] for k in Wrapper._tool_ref_map['agnostic']}
@@ -195,7 +195,11 @@ class Wrapper():
         df['db_versions'] = df['tool'].map(db_map)
         df.insert(0, 'analysis_batch_id', [os.path.basename(os.path.dirname(output_path)) for _ in df.index])
         df['ardetype_version'] = Wrapper._config_dict['ardetype_version']
-        df.to_csv(os.path.join(output_path, 'software_log.csv'), header=True, index=False)
+        log_path = os.path.join(output_path, 'software_log.csv')
+        if not os.path.isfile(log_path):
+            df.to_csv(log_path, header=True, index=False)
+        for sid in sample_ids:
+            df.to_csv(os.path.join(output_path, f'{sid}_tool_log.csv'), header=True, index=False)
 
 
 ###############################################################

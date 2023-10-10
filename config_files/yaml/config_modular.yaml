@@ -163,6 +163,25 @@ shell_tool_configs:
 #Configuration settings for each tool used by bact_shell snakefile
   amr_plusplus:
     threads: 24
+  amrfinderplus_species:
+    - Acinetobacter_baumanniiae
+    - Burkholderia_cepaciaae
+    - Burkholderia_pseudomalleiae
+    - Campylobacterae
+    - Clostridioides_difficileae
+    - Enterococcus_faecalisae
+    - Enterococcus_faeciumae
+    - Escherichiaae
+    - Klebsiellaae
+    - Neisseriaae
+    - Pseudomonas_aeruginosaae
+    - Salmonellaae
+    - Staphylococcus_aureusae
+    - Staphylococcus_pseudintermediusae
+    - Streptococcus_agalactiaeae
+    - Streptococcus_pneumoniaeae
+    - Streptococcus_pyogenesae
+    - Vibrio_cholerae
   resfinder:
     length: 0.6
     coverage: 0.9
@@ -216,9 +235,32 @@ tip_tool_configs:
   cgmlstfinder:
     cgmlstfinder_sif: /mnt/beegfs2/home/groups/nmrl/image_files/cgmlstfinder.sif
     cgmlstfinder_db: /mnt/beegfs2/home/groups/nmrl/db/cgmlstfinder_db/
+    cgmlstfinder_orgs:
+      salmonella: salmonella
+      escherichia coli: ecoli
+      baumannii: abaumannii
+      streptococcus pneumoniae: spneumoniae
+      streptococcus pyogenes: streptococcus
+      campylobacter: campylobacter
   chewbbaca:
     chewbbaca_sif: /mnt/beegfs2/home/groups/nmrl/image_files/chewbacca_cgmlst.sif
     chewbbaca_cores: 12
+    chewbbaca_orgs:
+      salmonella: Salmonella_enterica
+      escherichia coli: Escherichia_coli
+      baumannii: Acinetobacter_baumannii
+      streptococcus pyogenes: spyogenes_wgMLST
+      campylobacter: Campylobacter_jejuni_coli
+      clostridium: clostridium
+      klebsiella: Klebsiella_pneumoniae_variicola_quasipneumoniae
+      legionella: Legionella_pneumophila
+      listeria: Listeria_monocytogenes
+      staphylococcus aureus: Staphylococcus_aureus
+      pseudomona: Pseudomonas_aeruginosa_cgMLST
+      enterococcus faecalis: Enterococcus_faecalis_cgMLST
+      enterococcus faecium: Enterococcus_faecium_cgMLST
+      yersinia: Yersinia.cgMLSTv1_chewbbaca
+      clostridioides: Clostridioides_difficile_db
   lrefinder_efaecium_efaecalis:
     id: 80
 

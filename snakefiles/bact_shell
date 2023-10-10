@@ -13,26 +13,7 @@ pointfinder_species_map = dict(zip(sample_sheet['sample_id'], sample_sheet['taxo
 sample_sheet.taxonomy   = sample_sheet.taxonomy.str.replace(' ', "_")
 
 #Marking samples for processing by amrfinder+ if database for a given organism is currated
-amrfinder_orgs = [
-    "Acinetobacter_baumannii", 
-    "Burkholderia_cepacia", 
-    "Burkholderia_pseudomallei", 
-    "Campylobacter", 
-    "Clostridioides_difficile", 
-    "Enterococcus_faecalis", 
-    "Enterococcus_faecium", 
-    "Escherichia", 
-    "Klebsiella", 
-    "Neisseria", 
-    "Pseudomonas_aeruginosa", 
-    "Salmonella", 
-    "Staphylococcus_aureus", 
-    "Staphylococcus_pseudintermedius", 
-    "Streptococcus_agalactiae", 
-    "Streptococcus_pneumoniae", 
-    "Streptococcus_pyogenes", 
-    "Vibrio_cholerae"
-    ]
+amrfinder_orgs = config["shell_tool_configs"]["amrfinderplus_species"]
 
 #keeping only samples where organisms are currated by ncbi
 currated_orgs = sample_sheet[sample_sheet.taxonomy.str.contains('|'.join(amrfinder_orgs))] 

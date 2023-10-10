@@ -9,47 +9,23 @@ from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 sip_wild     = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
+
+#keeping only samples where organisms are covered by the existing cgmlst databases
+cgmlstfinder_orgs = config["tip_tool_configs"]["cgmlstfinder"]["cgmlstfinder_orgs"]
+chewbbaca_orgs    = config["tip_tool_configs"]["chewbbaca"]["chewbbaca_orgs"]
+covered_orgs      = list(cgmlstfinder_orgs.keys()) + list(chewbbaca_orgs.keys())
+
 #mapping full species name to cgmlstfinder-accepted and chewbbaca-accepted database format
+species_id_map           = zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.lower())
 cgmlstfinder_species_map = {}
 chewbbaca_species_map    = {}
-for sid, species in zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.lower()):
-    if 'salmonella' in species:
-        cgmlstfinder_species_map[sid] = "salmonella"
-        chewbbaca_species_map[sid]    = "Salmonella_enterica"
-    elif 'escherichia coli' in species:
-        cgmlstfinder_species_map[sid] = "ecoli"
-        chewbbaca_species_map[sid]    = 'Escherichia_coli'
-    elif 'baumannii' in species:
-        cgmlstfinder_species_map[sid] = "abaumannii"
-        chewbbaca_species_map[sid]    = 'Acinetobacter_baumannii'
-    elif 'streptococcus pneumoniae' in species:
-        cgmlstfinder_species_map[sid] = "spneumoniae"
-    elif 'streptococcus pyogenes' in species:
-        cgmlstfinder_species_map[sid] = "streptococcus"
-        chewbbaca_species_map[sid]    = "spyogenes_wgMLST"
-    elif 'campylobacter' in species:
-        cgmlstfinder_species_map[sid] = "campylobacter"
-        chewbbaca_species_map[sid]    = 'Campylobacter_jejuni_coli'
-    elif 'clostridium' in species:
-        chewbbaca_species_map[sid]    = "clostridium"
-    elif 'klebsiella' in species:
-        chewbbaca_species_map[sid]    = "Klebsiella_pneumoniae_variicola_quasipneumoniae"
-    elif 'legionella' in species:
-        chewbbaca_species_map[sid]    = "Legionella_pneumophila"
-    elif 'listeria' in species:
-        chewbbaca_species_map[sid]    = "Listeria_monocytogenes"
-    elif 'staphylococcus aureus' in species:
-        chewbbaca_species_map[sid]    = "Staphylococcus_aureus"
-    elif 'pseudomona' in species:
-        chewbbaca_species_map[sid]    = "Pseudomonas_aeruginosa_cgMLST"
-    elif 'enterococcus faecalis' in species:
-        chewbbaca_species_map[sid]    = "Enterococcus_faecalis_cgMLST"
-    elif 'enterococcus faecium' in species:
-        chewbbaca_species_map[sid]    = "Enterococcus_faecium_cgMLST"
-    elif 'yersinia' in species:
-        chewbbaca_species_map[sid]    = "Yersinia.cgMLSTv1_chewbbaca"
-    elif 'clostridioides' in species:
-        chewbbaca_species_map[sid]    = "Clostridioides_difficile_db"
+
+for org in cgmlstfinder_orgs:
+    for sid, species in species_id_map:
+        if org in species and org in cgmlstfinder_orgs:
+            cgmlstfinder_species_map[sid] = cgmlstfinder_orgs[org]
+        elif org in species and org in chewbbaca_orgs:
+            chewbbaca_species_map[sid] = chewbbaca_orgs[org]
 
 
 rule all:
