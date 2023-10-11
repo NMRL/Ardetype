@@ -246,21 +246,66 @@ tip_tool_configs:
     chewbbaca_sif: /mnt/beegfs2/home/groups/nmrl/image_files/chewbacca_cgmlst.sif
     chewbbaca_cores: 12
     chewbbaca_orgs:
-      salmonella: Salmonella_enterica
-      escherichia coli: Escherichia_coli
-      baumannii: Acinetobacter_baumannii
-      streptococcus pyogenes: spyogenes_wgMLST
-      campylobacter: Campylobacter_jejuni_coli
-      clostridium: clostridium
-      klebsiella: Klebsiella_pneumoniae_variicola_quasipneumoniae
-      legionella: Legionella_pneumophila
-      listeria: Listeria_monocytogenes
-      staphylococcus aureus: Staphylococcus_aureus
-      pseudomona: Pseudomonas_aeruginosa_cgMLST
-      enterococcus faecalis: Enterococcus_faecalis_cgMLST
-      enterococcus faecium: Enterococcus_faecium_cgMLST
-      yersinia: Yersinia.cgMLSTv1_chewbbaca
-      clostridioides: Clostridioides_difficile_db
+      salmonella: 
+        db: Salmonella_enterica
+        version: 1
+        origin: 2 
+      escherichia coli: 
+        db: Escherichia_coli
+        version: 1
+        origin: 2 
+      baumannii: 
+        db: Acinetobacter_baumannii
+        version: 1
+        origin: 2
+      streptococcus pyogenes: 
+        db: spyogenes_wgMLST
+        version: 1
+        origin: 2
+      campylobacter: 
+        db: Campylobacter_jejuni_coli
+        version: 1
+        origin: 2 
+      clostridium: 
+        db: clostridium
+        version: 1
+        origin: 2
+      klebsiella: 
+        db: Klebsiella_pneumoniae_variicola_quasipneumoniae
+        version: 1
+        origin: 2
+      legionella: 
+        db: Legionella_pneumophila
+        version: 1
+        origin: 2
+      listeria: 
+        db: Listeria_monocytogenes
+        version: 1
+        origin: 2
+      staphylococcus aureus: 
+        db: Staphylococcus_aureus
+        version: 1
+        origin: 2
+      pseudomona: 
+        db: Pseudomonas_aeruginosa_cgMLST
+        version: 1
+        origin: 2
+      enterococcus faecalis: 
+        db: Enterococcus_faecalis_cgMLST
+        version: 1
+        origin: 2
+      enterococcus faecium: 
+        db: Enterococcus_faecium_cgMLST
+        version: 1
+        origin: 2
+      yersinia: 
+        db: Yersinia.cgMLSTv1_chewbbaca
+        version: 1
+        origin: 2
+      clostridioides: 
+        db: Clostridioides_difficile_db
+        version: 1
+        origin: 2
   lrefinder_efaecium_efaecalis:
     id: 80
 

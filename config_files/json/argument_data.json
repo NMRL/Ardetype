@@ -87,6 +87,11 @@
                 "-mf",
                 "--merge_from",
                 "Argument to supply paths to folders containing ardetype output that should be combined."
+            ],
+            [
+                "-fc",
+                "--force_rules",
+                "Argument to specify names of the rules that ardetype should rerun."
             ]
         ]
     }
