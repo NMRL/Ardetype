@@ -20,7 +20,7 @@ species_id_map           = zip(sample_sheet['sample_id'], sample_sheet['taxonomy
 cgmlstfinder_species_map = {}
 chewbbaca_species_map    = {}
 
-for org in cgmlstfinder_orgs:
+for org in covered_orgs:
     for sid, species in species_id_map:
         if org in species and org in cgmlstfinder_orgs:
             cgmlstfinder_species_map[sid] = cgmlstfinder_orgs[org]
