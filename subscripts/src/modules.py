@@ -72,8 +72,8 @@ class Module:
         self.cleanup_dict        = {} #to map origin paths of input files to path in working directory; filled by move_to_wd; used by clear_working_directory
         self.status_script       = f"{os.path.dirname(Path(__file__).parents[0].absolute())}/pbs-status.py"
         self.failed_stamp        = None #added if module has failed to produce requested files for 1 or more steps of the workflow
-        rules_to_rerun           = [rule for rule in rules_to_rerun if rule in self._get_rule_names_from_snakefile(self.snakefile_path)]
-        self.force_specific      = f"-R {' '.join(rules_to_rerun)}" if rules_to_rerun else ""
+        self.rules_to_rerun      = [rule for rule in rules_to_rerun if rule in self._get_rule_names_from_snakefile(self.snakefile_path)] if rules_to_rerun is not None else []
+        self.force_specific      = f"-R {' '.join(self.rules_to_rerun)}" if self.rules_to_rerun else ""
 
     @staticmethod
     def _get_rule_names_from_snakefile(snakefile_path):
