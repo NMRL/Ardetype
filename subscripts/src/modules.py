@@ -41,6 +41,7 @@ class Module:
             force_all           : bool, 
             rule_graph          : bool, 
             pack_output         : bool, 
+            rules_to_rerun      : list,
             unpack_output:bool) -> None:
         
         self.run_mode            = run_mode #If true, snakemake will be run as single job, else - will run as job submitter on the login node
@@ -71,6 +72,20 @@ class Module:
         self.cleanup_dict        = {} #to map origin paths of input files to path in working directory; filled by move_to_wd; used by clear_working_directory
         self.status_script       = f"{os.path.dirname(Path(__file__).parents[0].absolute())}/pbs-status.py"
         self.failed_stamp        = None #added if module has failed to produce requested files for 1 or more steps of the workflow
+        self.rules_to_rerun      = [rule for rule in rules_to_rerun if rule in self._get_rule_names_from_snakefile(self.snakefile_path)] if rules_to_rerun is not None else []
+        self.force_specific      = f"-R {' '.join(self.rules_to_rerun)}" if self.rules_to_rerun else ""
+
+    @staticmethod
+    def _get_rule_names_from_snakefile(snakefile_path):
+        rule_names = []
+        with open(snakefile_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('rule '):
+                    rule_name = line.split(' ')[1].strip(':')
+                    rule_names.append(rule_name)
+        return rule_names
+
 
     def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified'], mixed:bool=False, empty:bool=False):
         '''Fills self.input_dict using self.input_path and self.module_name by
@@ -277,7 +292,7 @@ class Module:
         shell_command = f'''
         eval "$(conda shell.bash hook)";
         conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake;
-        snakemake --reason --nolock --restart-times {self.retry_times} --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.dry_run} --cluster {job_submission_command} {self.rule_graph} '''
+        snakemake --reason --nolock --restart-times {self.retry_times} --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific} {self.dry_run} --cluster {job_submission_command} {self.rule_graph} '''
         try:
             process_data = subprocess.check_call(shell_command, shell=True, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as smk_error:

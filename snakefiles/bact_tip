@@ -13,19 +13,28 @@ sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 #keeping only samples where organisms are covered by the existing cgmlst databases
 cgmlstfinder_orgs = config["tip_tool_configs"]["cgmlstfinder"]["cgmlstfinder_orgs"]
 chewbbaca_orgs    = config["tip_tool_configs"]["chewbbaca"]["chewbbaca_orgs"]
-covered_orgs      = list(cgmlstfinder_orgs.keys()) + list(chewbbaca_orgs.keys())
 
 #mapping full species name to cgmlstfinder-accepted and chewbbaca-accepted database format
-species_id_map           = zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.lower())
+species_id_map           = dict(zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.lower()))
 cgmlstfinder_species_map = {}
 chewbbaca_species_map    = {}
 
+
 for org in cgmlstfinder_orgs:
-    for sid, species in species_id_map:
-        if org in species and org in cgmlstfinder_orgs:
+    for sid, species in species_id_map.items():
+        if org in species:
             cgmlstfinder_species_map[sid] = cgmlstfinder_orgs[org]
-        elif org in species and org in chewbbaca_orgs:
-            chewbbaca_species_map[sid] = chewbbaca_orgs[org]
+
+
+for org in chewbbaca_orgs:
+    for sid, species in species_id_map.items():
+        if org in species:
+            chewbbaca_species_map[sid] = {
+                'db'           : chewbbaca_orgs[org]['db'],
+                'version'      : chewbbaca_orgs[org]['version'],
+                'origin'       : chewbbaca_orgs[org]['origin'],
+                'allele_count' : chewbbaca_orgs[org]['allele_count'],
+            }
 
 
 rule all:
@@ -748,12 +757,18 @@ rule chewbbaca_cgmlst:
         mkdir -p {config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/
         cp {input.contigs} ~/{wildcards.sample_id_pattern}_chewbbaca_input/
 
-        singularity --silent exec --bind {config["output_directory"]},{config["work_dir"]},{config["databases"]}chewbacca_db/databases/:{config["output_directory"]},{config["work_dir"]},{config["databases"]}chewbacca_db/databases/ {input.image_file} chewBBACA.py AlleleCall --no-inferred --cpu {config["tip_tool_configs"]["chewbbaca"]["chewbbaca_cores"]} -i ~/{wildcards.sample_id_pattern}_chewbbaca_input/ -g {chewbbaca_species_map[wildcards.sample_id_pattern]} -o ~/{wildcards.sample_id_pattern}_chewbbaca/
+        singularity --silent exec --bind {config["output_directory"]},{config["work_dir"]},{config["databases"]}chewbacca_db/databases/:{config["output_directory"]},{config["work_dir"]},{config["databases"]}chewbacca_db/databases/ {input.image_file} chewBBACA.py AlleleCall --no-inferred --cpu {config["tip_tool_configs"]["chewbbaca"]["chewbbaca_cores"]} -i ~/{wildcards.sample_id_pattern}_chewbbaca_input/ -g {chewbbaca_species_map[wildcards.sample_id_pattern]['db']} -o ~/{wildcards.sample_id_pattern}_chewbbaca/
         mv -n ~/{wildcards.sample_id_pattern}_chewbbaca/* {config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/
 
         rm -r ~/{wildcards.sample_id_pattern}_chewbbaca_input/
         rm -r ~/{wildcards.sample_id_pattern}_chewbbaca
         ''')
+        qc_data_path = f'{config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/results_statistics.tsv'
+        df = pd.read_csv(qc_data_path, sep='\t')
+        df['scheme_version'] = [chewbbaca_species_map[wildcards.sample_id_pattern]['version'] for _ in df.index]
+        df['scheme_origin']  = [chewbbaca_species_map[wildcards.sample_id_pattern]['origin'] for _ in df.index]
+        df['allele_count']   = [chewbbaca_species_map[wildcards.sample_id_pattern]['allele_count'] for _ in df.index]
+        df.to_csv(qc_data_path, sep='\t', header=True, index=False)
 
 
 rule lrefinder_efaecium_efaecalis:
