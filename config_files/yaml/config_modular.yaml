@@ -242,70 +242,81 @@ tip_tool_configs:
       streptococcus pneumoniae: spneumoniae
       streptococcus pyogenes: streptococcus
       campylobacter: campylobacter
+      clostridium: clostridium
   chewbbaca:
     chewbbaca_sif: /mnt/beegfs2/home/groups/nmrl/image_files/chewbacca_cgmlst.sif
     chewbbaca_cores: 12
     chewbbaca_orgs:
       salmonella: 
         db: Salmonella_enterica
-        version: 1
-        origin: 2 
+        version: 2.0
+        origin: https://www.cgmlst.org/ncs/schema/4792159/
+        allele_count: 3001
       escherichia coli: 
         db: Escherichia_coli
-        version: 1
-        origin: 2 
+        version: 1.0
+        origin: https://www.cgmlst.org/ncs/schema/5064703/
+        allele_count: 2513
       baumannii: 
         db: Acinetobacter_baumannii
-        version: 1
-        origin: 2
+        version: 1.0
+        origin: https://www.cgmlst.org/ncs/schema/3956907/
+        allele_count: 2390
       streptococcus pyogenes: 
         db: spyogenes_wgMLST
-        version: 1
-        origin: 2
+        version: '2021-07-27'
+        origin: https://chewbbaca.online/species/1
+        allele_count: 3044
       campylobacter: 
         db: Campylobacter_jejuni_coli
-        version: 1
-        origin: 2 
-      clostridium: 
-        db: clostridium
-        version: 1
-        origin: 2
+        version: '2023-05-03'
+        origin: https://www.cgmlst.org/ncs/schema/145039/
+        allele_count: 637
       klebsiella: 
         db: Klebsiella_pneumoniae_variicola_quasipneumoniae
-        version: 1
-        origin: 2
+        version: 1.0
+        origin: https://www.cgmlst.org/ncs/schema/2187931/
+        allele_count: 2358
       legionella: 
         db: Legionella_pneumophila
-        version: 1
-        origin: 2
+        version: 1.1
+        origin: https://www.cgmlst.org/ncs/schema/1025099/
+        allele_count: 1521
       listeria: 
         db: Listeria_monocytogenes
-        version: 1
-        origin: 2
+        version: 2.1
+        origin: https://www.cgmlst.org/ncs/schema/690488/
+        allele_count: 1701
       staphylococcus aureus: 
         db: Staphylococcus_aureus
-        version: 1
-        origin: 2
+        version: 1.3
+        origin: https://www.cgmlst.org/ncs/schema/141106/
+        allele_count: 1861
       pseudomona: 
         db: Pseudomonas_aeruginosa_cgMLST
-        version: 1
-        origin: 2
+        version: 1.0
+        origin: https://www.cgmlst.org/ncs/schema/16115339/
+        allele_count: 3867
       enterococcus faecalis: 
         db: Enterococcus_faecalis_cgMLST
-        version: 1
-        origin: 2
+        version: 1.0
+        origin: https://www.cgmlst.org/ncs/schema/3887469/
+        allele_count: 1972
       enterococcus faecium: 
         db: Enterococcus_faecium_cgMLST
-        version: 1
-        origin: 2
+        version: 1.1
+        origin: https://www.cgmlst.org/ncs/schema/991893/
+        allele_count: 1423
       yersinia: 
         db: Yersinia.cgMLSTv1_chewbbaca
-        version: 1
-        origin: 2
+        version: '2023-08-16'
+        origin: https://enterobase.warwick.ac.uk/schemes/Yersinia.cgMLSTv1/
+        allele_count: 1553
       clostridioides: 
         db: Clostridioides_difficile_db
-        version: 1
-        origin: 2
+        version: 2.0
+        origin: https://www.cgmlst.org/ncs/schema/12556067/
+        allele_count: 2147
   lrefinder_efaecium_efaecalis:
     id: 80
 

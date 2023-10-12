@@ -30,9 +30,10 @@ for org in chewbbaca_orgs:
     for sid, species in species_id_map.items():
         if org in species:
             chewbbaca_species_map[sid] = {
-                'db'     : chewbbaca_orgs[org]['db'],
-                'version': chewbbaca_orgs[org]['version'],
-                'origin' : chewbbaca_orgs[org]['origin']
+                'db'           : chewbbaca_orgs[org]['db'],
+                'version'      : chewbbaca_orgs[org]['version'],
+                'origin'       : chewbbaca_orgs[org]['origin'],
+                'allele_count' : chewbbaca_orgs[org]['allele_count'],
             }
 
 
@@ -766,6 +767,7 @@ rule chewbbaca_cgmlst:
         df = pd.read_csv(qc_data_path, sep='\t')
         df['scheme_version'] = [chewbbaca_species_map[wildcards.sample_id_pattern]['version'] for _ in df.index]
         df['scheme_origin']  = [chewbbaca_species_map[wildcards.sample_id_pattern]['origin'] for _ in df.index]
+        df['allele_count']   = [chewbbaca_species_map[wildcards.sample_id_pattern]['allele_count'] for _ in df.index]
         df.to_csv(qc_data_path, sep='\t', header=True, index=False)
 
 
