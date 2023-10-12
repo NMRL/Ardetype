@@ -224,7 +224,7 @@ class Ardetype_module(Module):
         if self.force_all:
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             #change timestamp
-            if re.match(r'_[0-9]{8}_[0-9]{6}', self.output_path[-17:-1]):
+            if re.match(r'_[0-9]{8}_[0-9]{6}/', self.output_path[-17:]):
                 new_path = self.output_path[:-17] + "_" + timestamp + "/"
             else:
                 #if timestamp is missing - add timestamp
@@ -234,12 +234,12 @@ class Ardetype_module(Module):
                 self.aggr_taxonomy_path  = self.aggr_taxonomy_path.replace(os.path.abspath(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
             if new_path not in self.config_file_path:
                 self.config_file_path    = self.config_file_path.replace(os.path.dirname(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/config.yaml' #where to look for operational copy of the configuration file; used by submit_module_job & run_module_cluster
-            if os.path.normpath(self.output_path) == os.path.normpath(self.input_path):
+            if os.path.normpath(self.output_path) != os.path.normpath(self.input_path):
                 self.input_path = new_path
             self.output_path = new_path
 
         #if not reprocess but no timestamp
-        elif not re.match(r'_[0-9]{8}_[0-9]{6}', self.output_path[-17:-1]):
+        elif not re.match(r'_[0-9]{8}_[0-9]{6}/', self.output_path[-17:]):
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             new_path  = os.path.dirname(self.output_path) + "_" + timestamp + "/"
             move(self.output_path, new_path)
@@ -247,10 +247,10 @@ class Ardetype_module(Module):
                 self.aggr_taxonomy_path  = self.aggr_taxonomy_path.replace(os.path.abspath(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
             if new_path not in self.config_file_path:
                 self.config_file_path    = self.config_file_path.replace(os.path.dirname(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/config.yaml' #where to look for operational copy of the configuration file; used by submit_module_job & run_module_cluster
-            if os.path.normpath(self.output_path) == os.path.normpath(self.input_path):
+            if os.path.normpath(self.output_path) != os.path.normpath(self.input_path):
                 self.input_path = new_path
             self.output_path    = new_path
-            
+
 
     def config_cluster(self) -> None:
         '''
