@@ -14,6 +14,9 @@ jobs:
       uses: wei/wget@v1
       with:
         args: -O AQUAMIS_thresholds.json https://gitlab.com/bfr_bioinformatics/AQUAMIS/-/raw/master/resources/AQUAMIS_thresholds.json?ref_type=heads
+    - name: Assign permissions
+      run: 
+        chmod 775 /home/runner/work/Ardetype/Ardetype/AQUAMIS_thresholds.json
     - name: Update thresholds on HPC
       uses: garygrossgarten/github-action-scp@release
       with:
