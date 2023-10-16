@@ -1,6 +1,6 @@
 localrules: all
 
-import sys, pandas as pd, os, json
+import sys, pandas as pd, os, json, time
 from datetime import date
 sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
 from ardetype_utilities import Ardetype_housekeeper as Housekeeper
@@ -11,11 +11,13 @@ sip_wild = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 date = date.today().strftime("%Y-%m-%d")
 specific_tool_map = Housekeeper.read_json_dict("/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/json/specific_tool_map.json")
+aquamis_qc_db = Housekeeper.read_json_dict(config["aquamis_qc_reference"])
+aquamis_update_timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(config["aquamis_qc_reference"])))
 
 
 rule all:
     input:
-        config['shape_target_files']        
+        config['shape_target_files']      
     run:
         aggr_dict = {}
         
@@ -75,10 +77,29 @@ rule all:
 
         #add output folder name as analysis batch id
         report.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in report.index])
-        report.sample_id = report.sample_id.str.replace(r'_S[0-9]*', '', regex=True)
+        #generate aquamis-based qc reports
+        aquamis_qc_report = pd.DataFrame()
+        for sid, bid, spc in zip(report['sample_id'],report['analysis_batch_id'], report['species']):
+            qc_report = Housekeeper.check_quality_thr(
+                thresholds_db = aquamis_qc_db, 
+                sample_id = sid, 
+                batch_id = bid, 
+                species = spc, 
+                ardetype_report = report, 
+                quast_report_path = config['output_directory']+f'{sid}_quast/transposed_report.tsv', 
+                thresholds_db_timestamp = aquamis_update_timestamp
+                )
+            aquamis_qc_report = pd.concat([aquamis_qc_report, qc_report])
         
+        #Prettify ids
+        report.sample_id = report.sample_id.str.replace(r'_S[0-9]*', '', regex=True)
+        aquamis_qc_report.sample_id = aquamis_qc_report.sample_id.str.replace(r'_S[0-9]*', '', regex=True)
+
         #save as csv
-        report.to_csv(config['output_directory']+f'{date}_ardetype_report.csv', header=True, index=False) 
+        report.to_csv(config['output_directory']+f'{date}_ardetype_report.csv', header=True, index=False)
+        aquamis_qc_report.to_csv(config['output_directory']+f'{date}_aquamis_qc_report.csv', header=True, index=False)
+
+
         
 
 

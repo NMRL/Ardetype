@@ -8,6 +8,7 @@ import pandas as pd
 from pathlib import Path
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor as ppe, as_completed, ThreadPoolExecutor
+from bisect import bisect_left
 sys.path.insert(0, os.path.dirname(os.path.dirname(Path(__file__).absolute())))
 sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/utils/phylogenetics_tools/')
 from subscripts.src.utilities import Housekeeper as hk
@@ -102,6 +103,128 @@ class Ardetype_housekeeper(hk):
             Typing has failed with the following status code: {response.status_code}.
             The following warning message was recieved: {response.text}
             ''')
+
+#######################
+# Quality control check
+#######################
+    @staticmethod
+    def check_quality_thr(thresholds_db:dict, sample_id:str, batch_id:str, species:str, ardetype_report:pd.DataFrame, quast_report_path:str, thresholds_db_timestamp:str):
+        '''Generate QC report using aquamis thresholds
+        Applies species thresholds, where thresholds are available.
+        Applies genus thresholds where genus match and thresholds are available and not covered by species-specific thr.
+        Applies all Species thresholds, where specific thresholds are not available or metric not covered by specific thr.
+        Returns pandas dataframe.
+        '''
+        #read quast report
+        qst_rep = pd.read_csv(quast_report_path, sep="\t")
+
+        #list of metrics to include
+        quast_metrics = [
+            'GC (%)', 
+            'N50', 
+            'Total length',
+            '# contigs (>= 0 bp)', 
+            '# contigs (>= 1000 bp)', 
+            ]
+        ardetype_metrics = [
+            'assembly_coverageDepth',
+            'contig_hit1_species_fraction', 
+            'q30_rate_after'
+        ]
+        metrics = quast_metrics + ardetype_metrics
+
+        #adding columns
+        columns = []
+        for metric in metrics:
+            for suffix in ['value', 'range', 'status', 'color']:
+                columns.append(f"{metric} {suffix}")
+
+        #keeping genus from kraken2-assigned species
+        genus = species.split(" ")[0]
+
+        #get thresholds
+        species_thr = thresholds_db['thresholds'].get(species,dict())
+        genus_thr   = thresholds_db['thresholds'].get(genus, dict())
+        all_thr     = thresholds_db['thresholds'].get('all Species')
+
+        #threshold filters
+        species_filter = ["GC (%)", "Total length", "N50", "contigs (>= 0 bp)", "assembly_coverageDepth"]
+        genus_filter   = ["GC (%)", "Total length", "N50", "contigs (>= 0 bp)", "assembly_coverageDepth", "assembly_coverageDepth"]
+        all_filter     = ["q30_rate_after", "assembly_coverageDepth", "contig_hit1_species_fraction"]
+
+        #combine thresholds
+        thr = {k:v for k,v in species_thr.items() if k in species_filter}
+        thr.update({k:v for k,v in genus_thr.items() if k not in thr and k in genus_filter})
+        thr.update({k:v for k,v in all_thr.items() if k not in thr and k in all_filter})
+
+        #get ardetype data
+        adt = ardetype_report[(ardetype_report['sample_id'] == sample_id) & (ardetype_report['analysis_batch_id'] == batch_id)][[
+            'q30_raf', 
+            "average_coverage", 
+            "species_contig_%"
+        ]]
+        adt.rename(columns = {
+            'q30_raf':'q30_rate_after', 
+            "average_coverage": 'assembly_coverageDepth', 
+            "species_contig_%":'contig_hit1_species_fraction'}, inplace=True)
+        adt['contig_hit1_species_fraction'] = adt['contig_hit1_species_fraction']/100
+
+        #get quast data
+        qst = qst_rep[quast_metrics]
+
+        #combine results
+        data = pd.concat([df.reset_index(drop=True) for df in [adt, qst]], axis=1).to_dict(orient='list')
+
+        #apply qc thresholds
+        upd_data = {}
+        for key in data:
+            check                     = {}
+            check[f"{key} value"]     = data[key][0]
+            if key in thr:
+                check[f"{key} range"]  = thr[key][0]['interval']
+
+                placement = bisect_left(check[f"{key} range"], check[f"{key} value"])
+                check[f"{key} color"] = [thr[key][0]["bincolor"][placement]]
+                check[f"{key} value"] = [check[f"{key} value"]]
+
+                max_score = len(check[f"{key} range"])
+                score     = max_score - placement
+                #if between to pass
+                if thr[key][0]['binscore'][-1] == thr[key][0]['binscore'][0]:
+                    if score > 0 and score < max_score:
+                        check[f"{key} status"] = ['PASS']
+                    else:
+                        check[f"{key} status"] = ['FAIL']
+                #if >= to pass
+                if thr[key][0]['binscore'][-1] < thr[key][0]['binscore'][0]:
+                    if score != max_score:
+                        check[f"{key} status"] = ['PASS']
+                    else:
+                        check[f"{key} status"] = ['FAIL']
+                # if <= to pass
+                if thr[key][0]['binscore'][-1] > thr[key][0]['binscore'][0]:
+                    if score != 0:
+                        check[f"{key} status"] = ['FAIL']
+                    else:
+                        check[f"{key} status"] = ['PASS']
+            else:
+                check[f"{key} status"]   = 'N/A'
+                check[f"{key} color"]    = 'N/A'
+                check[f"{key} range"] = 'N/A'
+            upd_data.update(check)
+            if upd_data[f"{key} range"] != 'N/A': upd_data[f"{key} range"] = "-".join([str(v) for v in upd_data[f"{key} range"]])
+
+        data.update(upd_data)
+        data['sample_id']              = [sample_id]
+        data['analysis_batch_id']      = [batch_id]
+        data['species']                = [species]
+        data['threshold_db_sync_date'] = [thresholds_db_timestamp]
+        df = pd.DataFrame.from_dict(data)[['sample_id', 'analysis_batch_id', 'species']+columns+['threshold_db_sync_date']]
+        return df
+
+
+
+
 
 
 ####################
