@@ -30,7 +30,8 @@
         "legsta_report.csv",
         "resfinder_mobtyper_mapping.csv",
         "lrefinder_report.csv",
-        "chewbbaca_qc_report.csv"
+        "chewbbaca_qc_report.csv",
+        "aquamis_qc_report.csv"
     ],
     "core": {
         "targets": [
