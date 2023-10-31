@@ -148,8 +148,8 @@ class Ardetype_housekeeper(hk):
         all_thr     = thresholds_db['thresholds'].get('all Species')
 
         #threshold filters
-        species_filter = ["GC (%)", "Total length", "N50", "contigs (>= 0 bp)", "assembly_coverageDepth"]
-        genus_filter   = ["GC (%)", "Total length", "N50", "contigs (>= 0 bp)", "assembly_coverageDepth", "assembly_coverageDepth"]
+        species_filter = ["GC (%)", "Total length", "N50", "# contigs (>= 0 bp)", "# contigs (>= 1000 bp) ", "assembly_coverageDepth"]
+        genus_filter   = ["GC (%)", "Total length", "N50", "# contigs (>= 0 bp)", "# contigs (>= 1000 bp) ", "assembly_coverageDepth", "assembly_coverageDepth"]
         all_filter     = ["q30_rate_after", "assembly_coverageDepth", "contig_hit1_species_fraction"]
 
         #combine thresholds
@@ -197,13 +197,13 @@ class Ardetype_housekeeper(hk):
                         check[f"{key} status"] = ['FAIL']
                 #if >= to pass
                 if thr[key][0]['binscore'][-1] < thr[key][0]['binscore'][0]:
-                    if score != max_score:
+                    if score == 0:
                         check[f"{key} status"] = ['PASS']
                     else:
                         check[f"{key} status"] = ['FAIL']
                 # if <= to pass
                 if thr[key][0]['binscore'][-1] > thr[key][0]['binscore'][0]:
-                    if score != 0:
+                    if score != max_score:
                         check[f"{key} status"] = ['FAIL']
                     else:
                         check[f"{key} status"] = ['PASS']
