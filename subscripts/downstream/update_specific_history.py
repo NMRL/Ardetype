@@ -1,5 +1,4 @@
-import sys, os, time
-from pathlib import Path
+import sys
 sys.path.insert(0,'/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/')
 from subscripts.downstream import update_utilities as uu
 
@@ -22,6 +21,12 @@ arg_dict = {
     "chewbbaca_qc" : ["--cbc", "chewbbaca_qc_report.csv"],
     "lrefinder"    : ["--lrf", "lrefinder_report.csv"],
 }
+proc_dict = uu.proc_dict
+
+#setting primary key to None to ensure that records will be deduplicated only if all column value match
+for report in ['lrf']:
+    proc_dict[report] = proc_dict['default'].copy()
+    proc_dict[report]['primary_key'] = None #infer uniqueness of rows from all columns
 
 ##############
 #Runtime logic
@@ -31,4 +36,4 @@ if __name__ == '__main__':
     parser = uu.parse_arguments(arg_dict)
     uu.create_backup(full_path)
     current_tables = uu.find_current_tables(full_path, arg_dict)
-    uu.update_files(arg_dict, parser, current_tables, report_time, full_path)
+    uu.update_files(arg_dict, parser, current_tables, report_time, full_path, proc_dict)
