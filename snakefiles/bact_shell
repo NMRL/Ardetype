@@ -8,8 +8,8 @@ from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 
 #define sample_id_pattern wildcard and accessing sample_sheet
 sip_wild                = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
-sample_sheet            = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
-pointfinder_species_map = dict(zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.lower()))
+sample_sheet            = pd.read_csv(f"{config['output_directory']}sample_sheet.csv").astype(str)
+pointfinder_species_map = dict(zip(sample_sheet['sample_id'].astype(str), sample_sheet['taxonomy'].str.lower()))
 sample_sheet.taxonomy   = sample_sheet.taxonomy.str.replace(' ', "_")
 
 #Marking samples for processing by amrfinder+ if database for a given organism is currated
@@ -63,7 +63,7 @@ rule all:
         ''')
         
         #add output folder name as analysis batch id
-        res_sum = pd.read_csv(f"{config['output_directory']}harmonized_resistance_profile.tsv", sep='\t')
+        res_sum = pd.read_csv(f"{config['output_directory']}harmonized_resistance_profile.tsv", sep='\t').astype(str)
         res_sum.input_file_name = res_sum.input_file_name.str.replace(r'_S[0-9]*', '', regex=True)
         if 'analysis_batch_id' not in res_sum.columns:
             res_sum.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in res_sum.index])

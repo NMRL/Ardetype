@@ -94,7 +94,7 @@ def process_report(
     try:
         #Try to read dataframe
         df = pd.read_csv(path_to_df, sep=delimiter)
-
+        
         #Rename columns if needed
         df = df.rename(columns=col_rename_dict)
 
@@ -114,8 +114,9 @@ def process_report(
             df.analysis_batch_id = df.analysis_batch_id.str.replace(regex, '')
 
         #Applying custom processing functions
-        for func in custom_functions:
-            df = func(df)
+        if custom_functions is not None:
+            for func in custom_functions:
+                df = func(df)
         
         return df
     except pd.errors.EmptyDataError:

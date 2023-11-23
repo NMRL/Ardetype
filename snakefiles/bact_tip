@@ -7,7 +7,7 @@ from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 
 #define sample_id_pattern wildcard and accessing sample_sheet
 sip_wild     = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
-sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
+sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv").astype(str)
 
 
 #keeping only samples where organisms are covered by the existing cgmlst databases
