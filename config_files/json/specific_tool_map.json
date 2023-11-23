@@ -1,5 +1,11 @@
 {
     "agnostic": {
+        "virulencefinder": {
+            "rule": "virulencefinder",
+            "method": "Detecting virulence genetic elements in bacterial NGS data",
+            "tool": "virulencefinder",
+            "reference": "https://bitbucket.org/genomicepidemiology/virulencefinder/src/master/"
+        },
         "plasmidfinder": {
             "rule": "plasmidfinder",
             "method": "Detecting mobile genetic elements in bacterial NGS data",

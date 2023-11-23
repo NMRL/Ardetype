@@ -16,6 +16,7 @@
         "mobtyper_summary.csv",
         "mobtyper_contig_summary.csv",
         "plasmidfinder_summary.csv",
+        "virulencefinder_summary.csv",
         "kleborate_report.csv",
         "kraken2contigs_report.csv",
         "kraken2reads_report.csv",
@@ -75,6 +76,11 @@
             "_plasmidfinder/results_tab.tsv",
             "_plasmidfinder/results.txt",
             "_plasmidfinder/data.json",
+            "_virulencefinder/Hit_in_genome_seq.fsa",
+            "_virulencefinder/Virulence_genes.fsa",
+            "_virulencefinder/results_tab.tsv",
+            "_virulencefinder/results.txt",
+            "_virulencefinder/data.json",
             "_rmlst.json"
         ],
         "patterns": {
