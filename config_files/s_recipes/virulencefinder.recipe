@@ -1,0 +1,17 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+env_defs/virulencefinder.yml virulencefinder.yml
+%post
+    conda env create --name virulencefinder --file virulencefinder.yml
+    conda install python=3
+    pip install tabulate biopython cgecore gitpython python-dateutil
+    conda install -c bioconda kma
+    conda install -c bioconda blast
+    git clone https://bitbucket.org/genomicepidemiology/virulencefinder.git
+%environment
+    export PATH=/opt/conda/envs/virulencefinder/bin:$PATH
+    export PATH=/virulencefinder:$PATH
+%runscript
+    exec "$@"
