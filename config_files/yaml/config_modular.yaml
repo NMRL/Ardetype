@@ -201,6 +201,9 @@ shell_tool_configs:
   plasmidfinder:
     plasmidfinder_sif: /mnt/beegfs2/home/groups/nmrl/image_files/plasmidfinder_latest.sif
     plasmidfinder_db: /mnt/beegfs2/home/groups/nmrl/db/plasmidfinder_db/
+  virulencefinder:
+    virulencefinder_sif: /mnt/beegfs2/home/groups/nmrl/image_files/virulencefinder.sif
+    virulencefinder_db: /mnt/beegfs2/home/groups/nmrl/db/virulencefinder_db/
   rmlst_pubmlst:
     schema: http://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1/sequence
     api_seq_limit: 5000

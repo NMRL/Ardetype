@@ -272,13 +272,26 @@ class Ardetype_housekeeper(hk):
     @staticmethod
     def plasmidfinder_results(plf_result_path: str, batch: str) -> pd.DataFrame:
         '''To combine plasmidfinder reports and map them to sample_id-batch pair.'''
-        sample_id = re.sub(r'_S[0-9]*_plasmidfinder', '',
+        sample_id = re.sub(r'(_S[0-9]*)?_plasmidfinder', '',
                            os.path.basename(os.path.dirname(plf_result_path)))
         df = pd.read_csv(plf_result_path, sep='\t')
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
+
+
+    @staticmethod
+    def virulencefinder_results(plf_result_path: str, batch: str) -> pd.DataFrame:
+        '''To combine virulencefinder reports and map them to sample_id-batch pair.'''
+        sample_id = re.sub(r'(_S[0-9]*)?_virulencefinder', '',
+                           os.path.basename(os.path.dirname(plf_result_path)))
+        df = pd.read_csv(plf_result_path, sep='\t')
+        df.insert(0, 'sample_id', [sample_id for _ in df.index])
+        df.insert(1, 'analysis_batch_id', [os.path.basename(
+            os.path.dirname(batch)) for _ in df.index])
+        return df
+
 
     @staticmethod
     def mobtyper_results(mbt_result_path: str, batch: str) -> pd.DataFrame:
