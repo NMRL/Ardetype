@@ -282,11 +282,11 @@ class Ardetype_housekeeper(hk):
 
 
     @staticmethod
-    def virulencefinder_results(plf_result_path: str, batch: str) -> pd.DataFrame:
+    def virulencefinder_results(vir_result_path: str, batch: str) -> pd.DataFrame:
         '''To combine virulencefinder reports and map them to sample_id-batch pair.'''
         sample_id = re.sub(r'(_S[0-9]*)?_virulencefinder', '',
-                           os.path.basename(os.path.dirname(plf_result_path)))
-        df = pd.read_csv(plf_result_path, sep='\t')
+                           os.path.basename(os.path.dirname(vir_result_path)))
+        df = pd.read_csv(vir_result_path, sep='\t')
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
@@ -338,6 +338,18 @@ class Ardetype_housekeeper(hk):
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
+
+    @staticmethod
+    def spatyper_results(spa_result_path: str, batch: str) -> pd.DataFrame:
+        '''To combine virulencefinder reports and map them to sample_id-batch pair.'''
+        sample_id = re.sub(r'(_S[0-9]*)?_spatyper.txt', '',
+                           os.path.basename(spa_result_path))
+        df = pd.read_csv(spa_result_path, sep='\t')
+        df.insert(0, 'sample_id', [sample_id for _ in df.index])
+        df.insert(1, 'analysis_batch_id', [os.path.basename(
+            os.path.dirname(batch)) for _ in df.index])
+        return df
+
 
     @staticmethod
     def kraken2reads_results(k2r_report_path: str, batch: str) -> pd.DataFrame:
