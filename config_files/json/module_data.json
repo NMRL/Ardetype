@@ -32,7 +32,8 @@
         "resfinder_mobtyper_mapping.csv",
         "lrefinder_report.csv",
         "chewbbaca_qc_report.csv",
-        "aquamis_qc_report.csv"
+        "aquamis_qc_report.csv",
+        "spatyper_report.csv"
     ],
     "core": {
         "targets": [
