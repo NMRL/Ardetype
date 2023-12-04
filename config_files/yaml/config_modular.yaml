@@ -322,6 +322,11 @@ tip_tool_configs:
         version: 2.0
         origin: https://www.cgmlst.org/ncs/schema/12556067/
         allele_count: 2147
+      clostridium: 
+        db: clostridium_wgmlst_chewie_db
+        version: '2023-01-12'
+        origin: https://enterobase.warwick.ac.uk/schemes/clostridium.wgMLST/
+        allele_count: 13745
   lrefinder_efaecium_efaecalis:
     id: 80
 
