@@ -199,6 +199,9 @@
             ],
             "Clostridioides difficile": [
                 "_chewbbaca/results_alleles.tsv"
+            ],
+            "Enterobacter hormaechei": [
+                "_chewbbaca/results_alleles.tsv"
             ]
         },
         "patterns": {
@@ -241,7 +244,8 @@
                 "Yersinia intermedia",
                 "Yersinia kristensenii",
                 "Yersinia frederiksenii",
-                "Clostridioides difficile"
+                "Clostridioides difficile",
+                "Enterobacter hormaechei"
             ]
         }
     },
@@ -307,7 +311,8 @@
             "Yersinia enterocolitica": [],
             "Yersinia intermedia": [],
             "Yersinia kristensenii": [],
-            "Yersinia frederiksenii": []
+            "Yersinia frederiksenii": [],
+            "Enterobacter hormaechei": []
         },
         "patterns": {
             "inputs": {

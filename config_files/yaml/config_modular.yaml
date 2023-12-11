@@ -137,7 +137,8 @@ core_tool_configs:
     threads: 12
     human_db: /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/human_reference/
     ram_host_mb: 262144
-    bact_db: /mnt/beegfs2/home/groups/nmrl/bact_analysis/AQUAMIS/reference_db/kraken
+    bact_db: /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/human_reference/minikraken_bact/
+    # /mnt/beegfs2/home/groups/nmrl/bact_analysis/AQUAMIS/reference_db/kraken
     # /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/full_ref_bafp/
     # /mnt/beegfs2/home/groups/nmrl/bact_analysis/AQUAMIS/reference_db/kraken
     # 
@@ -257,7 +258,12 @@ tip_tool_configs:
         version: 2.0
         origin: https://www.cgmlst.org/ncs/schema/4792159/
         allele_count: 3001
-      escherichia coli: 
+      escherichia: 
+        db: Escherichia_coli
+        version: 1.0
+        origin: https://www.cgmlst.org/ncs/schema/5064703/
+        allele_count: 2513
+      enterobacter: 
         db: Escherichia_coli
         version: 1.0
         origin: https://www.cgmlst.org/ncs/schema/5064703/
