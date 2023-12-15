@@ -103,11 +103,11 @@ class Wrapper():
             stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1],
         "rgi":
             sp.run(
-            f'eval "$(conda shell.bash hook)" && conda activate {_config_dict["rgi_env_path"]} && rgi main --version',
+            f'eval "$(conda shell.bash hook)" && source activate {_config_dict["rgi_env_path"]} && rgi main --version',
             stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
         "kraken2":
             sp.run(
-            f'eval "$(conda shell.bash hook)" && conda activate {_config_dict["kraken2_env_path"]} && kraken2 --version',
+            f'eval "$(conda shell.bash hook)" && source activate {_config_dict["kraken2_env_path"]} && kraken2 --version',
             stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[0],
         "amrfinder+":
             sp.run(f'module load singularity && singularity run {_config_dict["amrfinderplus_sif"]} amrfinder --version',

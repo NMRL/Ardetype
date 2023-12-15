@@ -231,11 +231,11 @@ class Housekeeper:
         else
             echo Running with --install_snakemake flag:
             conda create -n mamba_env
-            conda activate mamba_env
+            source activate mamba_env
             conda install python=3.9
             conda install -c conda-forge mamba
             mamba create -c conda-forge -c bioconda -n snakemake snakemake=7.6.1
-            conda activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake
+            source activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake
             pip install PyYAML bs4 lxml
         fi    
         '''
@@ -616,7 +616,7 @@ class Housekeeper:
         os.system(
             f'''
             eval "$(conda shell.bash hook)" 
-            conda activate {env_path}
+            source activate {env_path}
             jupyter nbconvert --to html --execute --no-input {notebook_path} --output-dir={output_dir}
             chmod 775 {output_dir} 2>/dev/null
             ''')
