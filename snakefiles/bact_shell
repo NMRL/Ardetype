@@ -58,12 +58,15 @@ rule all:
         input.amrfp_mut      = [ path for path in input.amrfp_mut if not os.path.getsize(path) == 0]
         input.mobtyper       = [ path for path in input.mobtyper if not os.path.getsize(path) == 0]
 
-        #Create single tsv report from all resistance inference tools
-        os.system(f'''
-        module load singularity
-        singularity --silent run --bind {config["output_directory"]},{config["work_dir"]}:{config["output_directory"]},{config["work_dir"]} {input.hamr_sif} summarize -o "{config['output_directory']}harmonized_resistance_profile.tsv" -t tsv {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_rgi)} {" ".join(input.hamr_amrfp)}
-        echo bact_shell finished
-        ''')
+        #Create single tsv report from all resistance inference tools.
+        command = f'''
+module load singularity
+singularity --silent run --bind {config["output_directory"]},{config["work_dir"]}:{config["output_directory"]},{config["work_dir"]} {input.hamr_sif} summarize -o "{config['output_directory']}harmonized_resistance_profile.tsv" -t tsv {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_rgi)} {" ".join(input.hamr_amrfp)}
+echo bact_shell finished
+        '''
+        with open(f'{config["output_directory"]}/harmonization_command.sh', 'w+') as f:
+            f.write(command)
+        os.system(f'bash {config["output_directory"]}/harmonization_command.sh')
         
         #add output folder name as analysis batch id
         res_sum = pd.read_csv(f"{config['output_directory']}harmonized_resistance_profile.tsv", sep='\t').astype(str)
