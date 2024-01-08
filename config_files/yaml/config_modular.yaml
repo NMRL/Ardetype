@@ -137,7 +137,7 @@ core_tool_configs:
     threads: 12
     human_db: /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/human_reference/
     ram_host_mb: 262144
-    bact_db: /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/human_reference/minikraken_bact/
+    bact_db: /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/minikraken_bact/
     # /mnt/beegfs2/home/groups/nmrl/bact_analysis/AQUAMIS/reference_db/kraken
     # /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/full_ref_bafp/
     # /mnt/beegfs2/home/groups/nmrl/bact_analysis/AQUAMIS/reference_db/kraken
@@ -207,7 +207,7 @@ shell_tool_configs:
     virulencefinder_db: /mnt/beegfs2/home/groups/nmrl/db/virulencefinder_db/
   rmlst_pubmlst:
     schema: http://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1/sequence
-    api_seq_limit: 5000
+    api_seq_limit: 100 # changed from 5000 by reivan on 02.01.2023
 
 
 

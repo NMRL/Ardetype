@@ -312,7 +312,8 @@
             "Yersinia intermedia": [],
             "Yersinia kristensenii": [],
             "Yersinia frederiksenii": [],
-            "Enterobacter hormaechei": []
+            "Enterobacter hormaechei": [],
+            "Clostridioides difficile": []
         },
         "patterns": {
             "inputs": {
