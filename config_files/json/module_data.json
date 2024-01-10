@@ -202,6 +202,9 @@
             ],
             "Enterobacter hormaechei": [
                 "_chewbbaca/results_alleles.tsv"
+            ],
+            "Shigella sonnei": [
+                "_chewbbaca/results_alleles.tsv"
             ]
         },
         "patterns": {
@@ -245,7 +248,8 @@
                 "Yersinia kristensenii",
                 "Yersinia frederiksenii",
                 "Clostridioides difficile",
-                "Enterobacter hormaechei"
+                "Enterobacter hormaechei",
+                "Shigella sonnei"
             ]
         }
     },
@@ -313,7 +317,8 @@
             "Yersinia kristensenii": [],
             "Yersinia frederiksenii": [],
             "Enterobacter hormaechei": [],
-            "Clostridioides difficile": []
+            "Clostridioides difficile": [],
+            "Shigella sonnei": []
         },
         "patterns": {
             "inputs": {
