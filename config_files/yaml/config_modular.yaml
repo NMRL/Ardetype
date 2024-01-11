@@ -105,6 +105,8 @@ lrefinder_efaecium_efaecalis_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/lre_finder.sif
 lrefinder_database:
   /mnt/beegfs2/home/groups/nmrl/db/db-lrefinder
+shigatyper_shigella_sif: 
+  /mnt/beegfs2/home/groups/nmrl/image_files/shigatyper_latest.sif
 
 
 ##############
@@ -340,6 +342,7 @@ tip_tool_configs:
         allele_count: 13745
   lrefinder_efaecium_efaecalis:
     id: 80
+  shigatyper_shigella:
 
   
 

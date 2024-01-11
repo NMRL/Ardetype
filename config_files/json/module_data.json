@@ -204,7 +204,8 @@
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Shigella sonnei": [
-                "_chewbbaca/results_alleles.tsv"
+                "_chewbbaca/results_alleles.tsv",
+                "_shigatyper/shigatyper.tsv"
             ]
         },
         "patterns": {
