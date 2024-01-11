@@ -173,6 +173,10 @@ class Wrapper():
             stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
         "chewbbaca":
             sp.run(f'module load singularity && singularity run {_config_dict["tip_tool_configs"]["chewbbaca"]["chewbbaca_sif"]} chewBBACA.py --version', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+        'lrefinder':
+            sp.run(f'module load singularity && singularity run  {_config_dict["lrefinder_efaecium_efaecalis_sif"]} LRE-Finder.py -v', stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip().split(' ')[-1],
+        "shigatyper":
+            sp.run(f'module load singularity && singularity run {_config_dict["shigatyper_shigella_sif"]} shigatyper --version', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1]
     }
 
 

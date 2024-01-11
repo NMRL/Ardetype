@@ -188,10 +188,16 @@
         "tool": "chewbbaca",
         "reference": "https://github.com/B-UMMI/chewBBACA"
     },
-    "_shigatyper.tsv": {
-        "rule": "shigatyper_shigella",
+    "shigatyper.tsv": {
+        "rule": "shigatyper",
         "method": "serotyping for Shigella",
         "tool": "shigatyper",
         "reference": "https://github.com/CFSAN-Biostatistics/shigatyper"
+    },
+    "lrefinder.tsv": {
+        "rule": "lrefinder_efaecium_efaecalis",
+        "method": "predicting linezolid resistance in Enterococci faecalis and E. faecium",
+        "tool": "lrefinder",
+        "reference": "https://bitbucket.org/genomicepidemiology/lre-finder"
     }
 }
