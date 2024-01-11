@@ -12,7 +12,7 @@ proc_dict = {
     'default' : {
         "delimiter"       :',', 
         "col_rename_dict" : {}, 
-        "batch_regex"     : [r'_[0-9]{8}_[0-9]{6}'],
+        "batch_regex"     : [],#[r'_[0-9]{8}_[0-9]{6}'],
         "id_column"       : 'sample_id',
         "id_regex"        : [r"_S[0-9]*"],
         "batch_column"    : "analysis_batch_id",
