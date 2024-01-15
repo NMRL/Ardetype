@@ -552,7 +552,7 @@ class Ardetype_housekeeper(hk):
 
     @staticmethod
     def shigatyper_results(shigatyper_result_path:str, batch: str):
-        '''To combine lrefinder mutation reports and map them to sample_id-batch pair.'''
+        '''To combine shigatyper reports and map them to sample_id-batch pair.'''
         df = pd.read_csv(shigatyper_result_path, sep='\t')
         df.rename(columns={'sample':'sample_id'}, inplace=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
