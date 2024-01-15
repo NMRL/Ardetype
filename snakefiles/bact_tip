@@ -81,6 +81,10 @@ rule all:
         lrefinder_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_lrefinder/*.pos", extractor = hk.lrefinder_results)
         lrefinder_summary.to_csv(f"{config['output_directory']}lrefinder_report.csv", header=True, index=False)
 
+        #Aggregate LRE-Finder results
+        shigatyper_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_shigatyper/shigatyper.tsv", extractor = hk.shigatyper_results)
+        shigatyper_summary.to_csv(f"{config['output_directory']}shigatyper_report.csv", header=True, index=False)
+
         #Aggregate chewbbaca allela calling statistics
         chewbacca_qc = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_chewbbaca/results_statistics.tsv", extractor = hk.cgmlst_quality_results)
         chewbacca_qc.to_csv(f"{config['output_directory']}chewbbaca_qc_report.csv", header=True, index=False)
@@ -801,4 +805,29 @@ rule lrefinder_efaecium_efaecalis:
         mv -n {config["output_directory"]}{wildcards.sample_id_pattern}_lrefinder/{wildcards.sample_id_pattern}.res {config["output_directory"]}{wildcards.sample_id_pattern}_lrefinder/lrefinder.tsv
         rm -r {config["output_directory"]}{wildcards.sample_id_pattern}_lrefinder/input/
         rm -r ~/{wildcards.sample_id_pattern}_lrefinder/
+        ''')
+
+
+rule shigatyper:
+    input:
+        image_file = ancient(config['shigatyper_shigella_sif']),
+        read_1     = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz'),
+        read_2     = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz'),
+    output:
+        shigatyper_hits = config['output_directory']+'{sample_id_pattern}_shigatyper/{sample_id_pattern}-hits.tsv',
+        shigatyper = config['output_directory']+'{sample_id_pattern}_shigatyper/shigatyper.tsv'
+    run:
+        os.system(f'''
+        module load singularity
+
+        singularity --silent exec \
+        --bind {config["output_directory"]},{config["work_dir"]}:{config["output_directory"]},{config["work_dir"]} {input.image_file} shigatyper \
+        --R1 {input.read_1} \
+        --R2 {input.read_2} \
+        --name {wildcards.sample_id_pattern} \
+        --outdir {config["output_directory"]}{wildcards.sample_id_pattern}_shigatyper/ \
+        --verbose 
+
+        mv {config["output_directory"]}{wildcards.sample_id_pattern}_shigatyper/{wildcards.sample_id_pattern}.tsv \
+        {config["output_directory"]}{wildcards.sample_id_pattern}_shigatyper/shigatyper.tsv
         ''')

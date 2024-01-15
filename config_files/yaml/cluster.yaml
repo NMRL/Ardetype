@@ -407,6 +407,15 @@ lrefinder_efaecium_efaecalis:
   jobout: "oe"
 
 
+shigatyper:
+  jobname: "ardetype.shigatyper"
+  procs: 1
+  pmem: "6000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
 ##############
 # bact_shape
 ##############

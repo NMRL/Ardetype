@@ -21,6 +21,7 @@ arg_dict = {
     "chewbbaca_qc" : ["--cbc", "chewbbaca_qc_report.csv"],
     "lrefinder"    : ["--lrf", "lrefinder_report.csv"],
     "spatyper"     : ["--spa", "spatyper_report.csv"],
+    "shigatyper"   : ["--sht", "shigatyper_report.csv"],
 }
 proc_dict = uu.proc_dict
 
