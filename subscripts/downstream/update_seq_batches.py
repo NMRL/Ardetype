@@ -47,13 +47,14 @@ arg_dict = {
 
 full_path   = str(pathlib.Path(os.path.dirname(os.path.realpath(__file__)))) #path to scripts
 
-
+#date helper
+date = datetime.now().isoformat()  #datetime.now().strftime('%Y-%m-%d-%H-%M')
 
 ##########
 #Functions
 ##########
 
-def update_seq_batch() -> pd.DataFrame:
+def update_seq_batch(date:str) -> pd.DataFrame:
     '''
     Reads summary files from aquamis & ardetype subfolders.
     Combines unique identifiers (sample_id+analysis_batch_id) into separate tables.
@@ -79,24 +80,42 @@ def update_seq_batch() -> pd.DataFrame:
     pf_df = pd.read_csv(pfr_summary_path)
     mb_df = pd.read_csv(mtbseq_summary_path)
     mt_df = pd.read_csv(mobtyper_summary_path)
+    
 
     #preprocess summaries
+    batch_timestamp_pattern = r'(_[0-9]{8}_[0-9]{6})'
+
+    def extract_batch_timestamp(df:pd.DataFrame, batch_timestamp_pattern:str=batch_timestamp_pattern) -> pd.DataFrame:
+        '''Extracting timestamp substring from seq_batch_id'''
+        df['seq_batch_timestamp'] = df['analysis_batch_id'].str.extract(batch_timestamp_pattern)[0].str.lstrip('_')
+        return df
+
     ar_b = ar_df[['sample_id', 'analysis_batch_id']]
-    ar_b['tag'], ar_b['timestamp']  = [np.nan for _ in ar_b.index], [datetime.now().strftime('%Y-%m-%d-%H-%M') for _ in ar_b.index]
+    ar_b['tag'], ar_b['tag_timestamp']  = [np.nan for _ in ar_b.index], [date for _ in ar_b.index]
+    ar_b = extract_batch_timestamp(ar_b)
+
     aq_b = aq_df[['Sample_Name', 'analysis_batch_id']]
     aq_b = aq_b.rename(columns={'Sample_Name':'sample_id'})
-    aq_b['tag'], aq_b['timestamp']  = [np.nan for _ in aq_b.index], [datetime.now().strftime('%Y-%m-%d-%H-%M') for _ in aq_b.index]
+    aq_b['tag'], aq_b['tag_timestamp']  = [np.nan for _ in aq_b.index], [date for _ in aq_b.index]
+    aq_b = extract_batch_timestamp(aq_b)
+
     pf_b = pf_df[['sample_id', 'analysis_batch_id']]
     pf_b = pf_b[pf_b.sample_id.str.contains('reads')]
-    pf_b['tag'], pf_b['timestamp']  = [np.nan for _ in pf_b.index], [datetime.now().strftime('%Y-%m-%d-%H-%M') for _ in pf_b.index]
+    pf_b['tag'], pf_b['tag_timestamp']  = [np.nan for _ in pf_b.index], [date for _ in pf_b.index]
+    pf_b = extract_batch_timestamp(pf_b)
+
     mb_b = mb_df[['sample_id', 'analysis_batch_id']]
-    mb_b['tag'], mb_b['timestamp']  = [np.nan for _ in mb_b.index], [datetime.now().strftime('%Y-%m-%d-%H-%M') for _ in mb_b.index]
+    mb_b['tag'], mb_b['tag_timestamp']  = [np.nan for _ in mb_b.index], [date for _ in mb_b.index]
+    mb_b = extract_batch_timestamp(mb_b)
+
     mt_df = mt_df[['sample_id', 'analysis_batch_id']]
-    mt_df['tag'], mt_df['timestamp']  = [np.nan for _ in mt_df.index], [datetime.now().strftime('%Y-%m-%d-%H-%M') for _ in mt_df.index]
+    mt_df['tag'], mt_df['tag_timestamp']  = [np.nan for _ in mt_df.index], [date for _ in mt_df.index]
+    mt_df = extract_batch_timestamp(mt_df)
+    print(mt_df.columns)
 
     #generate map
     seq_map = pd.read_csv(os.path.join(full_path,'seq_batch_map.csv'))
-    seq_map = pd.concat([seq_map, ar_b, aq_b, pf_b, mt_df]).reset_index(drop=True).drop_duplicates(subset=['sample_id', 'analysis_batch_id'], keep='first').reset_index(drop=True)
+    seq_map = pd.concat([seq_map, ar_b, aq_b, pf_b, mt_df], sort=False).reset_index(drop=True).drop_duplicates(subset=['sample_id', 'analysis_batch_id'], keep='first').reset_index(drop=True)
     return seq_map
 
 
@@ -114,13 +133,18 @@ def check_batch_presence(seq_batch_map: pd.DataFrame) -> tuple:
     to_exclude = ['backup', 'old', 'aquamis', 'ardetype', 'software']
     seq_batch_map['key'] = seq_batch_map['sample_id'].astype(str).str.cat(seq_batch_map['analysis_batch_id'].astype(str), sep='_')
     seq_batch_map_set = set(seq_batch_map['key'])
+    sample_id_columns = ['input_file_name']
 
     summary_in_map_list = []
     map_in_summary_list = []
 
     for f in summary_iterator:
         if not any(s in str(f) for s in to_exclude):
+            print(f)
             df = pd.read_csv(f, low_memory=False)
+            for c in sample_id_columns:
+                if c in df.columns:
+                    df.rename(columns={c:'sample_id'}, inplace=True)
             df = df.dropna(subset=['sample_id', 'analysis_batch_id'])
             df['sample_id'] = df['sample_id'].astype(str)
             df['analysis_batch_id'] = df['analysis_batch_id'].astype(str)
@@ -141,7 +165,7 @@ def check_batch_presence(seq_batch_map: pd.DataFrame) -> tuple:
     return summary_in_map, map_in_summary
 
 
-def apply_tags(tag_file_path:str, sbm_path:str) -> pd.DataFrame:
+def apply_tags(tag_file_path:str, sbm_path:str, date:str) -> pd.DataFrame:
     '''
     input:
         tag_file_path - full path to a csv file with the following structure
@@ -179,14 +203,14 @@ def apply_tags(tag_file_path:str, sbm_path:str) -> pd.DataFrame:
     tag_file = pd.read_csv(tag_file_path, dtype={'sample_id':str,'analysis_batch_id':str})
     seq_batch_map = pd.read_csv(sbm_path, dtype={'sample_id':str,'analysis_batch_id':str})
     #generate timestamps at the moment when the tags are applied
-    tag_file['timestamp'] = [datetime.now().strftime('%Y-%m-%d-%H-%M') for _ in tag_file.index]
+    tag_file['tag_timestamp'] = [date for _ in tag_file.index]
     #combine tags and seq_batch_map
     merge = seq_batch_map.merge(tag_file, how='left', on=['sample_id', 'analysis_batch_id'])
     #Apply column merging logic described in the docstring
     merge['tag'] = merge['tag_y'].combine_first(merge['tag_x'])
-    merge['timestamp'] = merge['timestamp_y'].combine_first(merge['timestamp_x'])
+    merge['tag_timestamp'] = merge['tag_timestamp_y'].combine_first(merge['tag_timestamp_x'])
     #remove helper columns
-    merge = merge.drop(['tag_x','tag_y', 'timestamp_x', 'timestamp_y'], axis=1)
+    merge = merge.drop(['tag_x','tag_y', 'tag_timestamp_x', 'tag_timestamp_y'], axis=1)
     return merge
 
 ###############
@@ -196,7 +220,7 @@ def apply_tags(tag_file_path:str, sbm_path:str) -> pd.DataFrame:
 if __name__ == '__main__':
     args = hk.parse_arguments(arg_dict)
     if args.mode == 'update':
-        new_map = update_seq_batch()
+        new_map = update_seq_batch(date=date)
         new_map.to_csv(f'seq_batch_map.csv', header=True, index=False)
         sum_in_map, map_in_sum = check_batch_presence(new_map)
         sum_in_map.to_csv(f'missing_in_map.csv', header=True, index=False)
@@ -205,6 +229,6 @@ if __name__ == '__main__':
         #get full path to seq_batch_map.csv
         sbm_path = os.path.join(full_path,'seq_batch_map.csv')
         #apply tags from file
-        tagged_sbm = apply_tags(tag_file_path=args.tag_file, sbm_path=sbm_path)
+        tagged_sbm = apply_tags(tag_file_path=args.tag_file, sbm_path=sbm_path, date=date)
         #save tagged seq_batch_map to the original path
         tagged_sbm.to_csv(sbm_path, header=True, index=False)
