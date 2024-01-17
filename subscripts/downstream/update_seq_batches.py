@@ -1,4 +1,5 @@
-import sys, pandas as pd, time, os, pathlib, numpy as np
+import sys, pandas as pd, os, pathlib
+import concurrent.futures
 from datetime import datetime
 sys.path.insert(0, f'/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
 from src.utilities import Housekeeper as hk
@@ -45,78 +46,110 @@ arg_dict = {
     }
 }
 
+#global static variables
 full_path   = str(pathlib.Path(os.path.dirname(os.path.realpath(__file__)))) #path to scripts
-
-#date helper
-date = datetime.now().isoformat()  #datetime.now().strftime('%Y-%m-%d-%H-%M')
+date = datetime.now().isoformat(' ', 'microseconds')  #1st argument defines date and time separator, 2nd - precision - see https://www.geeksforgeeks.org/isoformat-method-of-datetime-class-in-python/
 
 ##########
 #Functions
 ##########
 
-def update_seq_batch(date:str) -> pd.DataFrame:
+def update_seq_batch(date:str, null_plh='None') -> pd.DataFrame:
     '''
     Reads summary files from aquamis & ardetype subfolders.
     Combines unique identifiers (sample_id+analysis_batch_id) into separate tables.
     Pipeline columns, indicating the summary file of origin.
     '''
-    #get paths to representative folder
-    ardetype_path    = os.path.join(full_path,'ardetype')
-    aquamis_path     = os.path.join(full_path,'aquamis')
-    pointfinder_path = os.path.join(full_path,'resistance') #to include ids tagged with _reads
-    mtbseq_path      = os.path.join(full_path,'mtbseq')     #to include mtbseq-only batches
-    mobtyper_path    = os.path.join(full_path,'plasmids')     #to include mtbseq-only batches
+    #name folders under analysis_history/ that contain reports for all samples in all batches
+    #folder name is mapped to the name of the report file
+    rep_map = {
+        'ardetype':'ardetype',
+        'aquamis':'aquamis',
+        'resistance':'pointfinder', #to include ids tagged with _reads
+        'mtbseq':'classification', #to include mtbseq-only batches
+        'plasmids':'mobtyper' #to include mtbseq-only batches
+    }
+    #convert to full paths
+    rep_fold_paths = [os.path.join(full_path, folder_name) for folder_name in rep_map]   
 
     #get paths to current summaries
-    ardetype_summary_path = next(pathlib.Path(ardetype_path).rglob('*ardetype_summary*.csv'), None)
-    aquamis_summary_path  = next(pathlib.Path(aquamis_path).rglob('*aquamis_summary*.csv'), None) 
-    pfr_summary_path      = next(pathlib.Path(pointfinder_path).rglob('*pointfinder_summary*.csv'), None)
-    mtbseq_summary_path   = next(pathlib.Path(mtbseq_path).rglob('*classification_summary*.csv'), None)
-    mobtyper_summary_path = next(pathlib.Path(mobtyper_path).rglob('*mobtyper_summary*.csv'), None)  
+    cur_summary_paths = [next(pathlib.Path(rep_fold_path).rglob(f'*{rep_map[folder_name]}_summary*.csv')) for rep_fold_path, folder_name in zip(rep_fold_paths, rep_map.keys())]
 
     #read summaries
-    ar_df = pd.read_csv(ardetype_summary_path)
-    aq_df = pd.read_csv(aquamis_summary_path)
-    pf_df = pd.read_csv(pfr_summary_path)
-    mb_df = pd.read_csv(mtbseq_summary_path)
-    mt_df = pd.read_csv(mobtyper_summary_path)
+    summary_list = [pd.read_csv(path) for path in cur_summary_paths]
     
-
     #preprocess summaries
-    batch_timestamp_pattern = r'(_[0-9]{8}_[0-9]{6})'
-
-    def extract_batch_timestamp(df:pd.DataFrame, batch_timestamp_pattern:str=batch_timestamp_pattern) -> pd.DataFrame:
-        '''Extracting timestamp substring from seq_batch_id'''
+    def extract_batch_timestamp(
+            df:pd.DataFrame, 
+            batch_timestamp_pattern:str=r'(_[0-9]{8}_[0-9]{6})', 
+            sbt__in_format:str='%Y%m%d_%H%M%S', 
+            sbt_out_format:str='%Y-%m-%d_%H-%M-%S',
+            null_placeholder:str=null_plh,
+            ) -> pd.DataFrame:
+        '''
+        Extracting timestamp substring from seq_batch_id
+        '''
         df['seq_batch_timestamp'] = df['analysis_batch_id'].str.extract(batch_timestamp_pattern)[0].str.lstrip('_')
+        df['seq_batch_timestamp'] = pd.to_datetime(df['seq_batch_timestamp'], format=sbt__in_format).dt.strftime(sbt_out_format).astype(str)
+        df['seq_batch_timestamp'] = df['seq_batch_timestamp'].replace('NaT', null_placeholder)
         return df
 
-    ar_b = ar_df[['sample_id', 'analysis_batch_id']]
-    ar_b['tag'], ar_b['tag_timestamp']  = [np.nan for _ in ar_b.index], [date for _ in ar_b.index]
-    ar_b = extract_batch_timestamp(ar_b)
+    #define column names to be normalized to single format
+    special_id_cases = ['Sample_Name', 'input_file_name']
+    special_batch_cases = []
+    for i,df in enumerate(summary_list):
+        #normalize column names
+        for case in special_id_cases: df.rename(columns={case:'sample_id'}, inplace=True)
+        for case in special_batch_cases: df.rename(columns={case:'analysis_batch_id'}, inplace=True)
 
-    aq_b = aq_df[['Sample_Name', 'analysis_batch_id']]
-    aq_b = aq_b.rename(columns={'Sample_Name':'sample_id'})
-    aq_b['tag'], aq_b['tag_timestamp']  = [np.nan for _ in aq_b.index], [date for _ in aq_b.index]
-    aq_b = extract_batch_timestamp(aq_b)
+        #keep GUIDs only
+        df = df[['sample_id', 'analysis_batch_id']]
 
-    pf_b = pf_df[['sample_id', 'analysis_batch_id']]
-    pf_b = pf_b[pf_b.sample_id.str.contains('reads')]
-    pf_b['tag'], pf_b['tag_timestamp']  = [np.nan for _ in pf_b.index], [date for _ in pf_b.index]
-    pf_b = extract_batch_timestamp(pf_b)
+        #add tag and tag_timestamp for new records
+        df['tag'], df['tag_timestamp']  = [null_plh for _ in df.index], [date for _ in df.index]
 
-    mb_b = mb_df[['sample_id', 'analysis_batch_id']]
-    mb_b['tag'], mb_b['tag_timestamp']  = [np.nan for _ in mb_b.index], [date for _ in mb_b.index]
-    mb_b = extract_batch_timestamp(mb_b)
+        #separate seq_batch_timestamp into separate column in defined format
+        df = extract_batch_timestamp(df)
+        summary_list[i] = df
 
-    mt_df = mt_df[['sample_id', 'analysis_batch_id']]
-    mt_df['tag'], mt_df['tag_timestamp']  = [np.nan for _ in mt_df.index], [date for _ in mt_df.index]
-    mt_df = extract_batch_timestamp(mt_df)
-    print(mt_df.columns)
-
-    #generate map
+    #get existing map
     seq_map = pd.read_csv(os.path.join(full_path,'seq_batch_map.csv'))
-    seq_map = pd.concat([seq_map, ar_b, aq_b, pf_b, mt_df], sort=False).reset_index(drop=True).drop_duplicates(subset=['sample_id', 'analysis_batch_id'], keep='first').reset_index(drop=True)
+    #adding existing records to avoid overwriting timestamps
+    summary_list.insert(0,seq_map)
+    #combine existing map with any new records keeping existing records when duplicates are dropped
+    seq_map = pd.concat(summary_list, sort=False).reset_index(drop=True).drop_duplicates(subset=['sample_id', 'analysis_batch_id'], keep='first').reset_index(drop=True)
     return seq_map
+
+def process_file_wrapper(args):
+    '''To make the function suitable for concurrency'''
+    def process_file(f, seq_batch_map_set, sample_id_columns, to_exclude):
+        '''GUID extractor to check presence in seq_batch_map'''
+        if not any(s in str(f) for s in to_exclude):
+            df = pd.read_csv(f, low_memory=False)
+            #normalize id column to sample_id
+            for c in sample_id_columns:
+                if c in df.columns:
+                    df.rename(columns={c:'sample_id'}, inplace=True)
+            #remove records with missing GUIDS
+            df = df.dropna(subset=['sample_id', 'analysis_batch_id'])
+            #cast GUIDs to strings to apply cat operation
+            df[['sample_id', 'analysis_batch_id']] = df[['sample_id', 'analysis_batch_id']].astype(str)
+            #merge two-column GUID to single column
+            df['key'] = df['sample_id'].str.cat(df['analysis_batch_id'], sep='_')
+            #casting to set 
+            df_set = set(df['key'])
+            #detect ids present in summary but missing in map using set difference operation
+            missing_in_map = df_set - seq_batch_map_set
+            #keeping the results (f stands for summary file name)
+            missing_in_map_df = pd.DataFrame({'key': list(missing_in_map), 'present': str(f)})
+            
+            #same for present in seq_batch_map but missing in specific report
+            missing_in_summary = seq_batch_map_set - df_set
+            missing_in_summary_df = pd.DataFrame({'key': list(missing_in_summary), 'missing': str(f)})
+            
+            return missing_in_map_df, missing_in_summary_df
+        return pd.DataFrame(), pd.DataFrame()
+    return process_file(*args)
 
 
 def check_batch_presence(seq_batch_map: pd.DataFrame) -> tuple:
@@ -129,8 +162,8 @@ def check_batch_presence(seq_batch_map: pd.DataFrame) -> tuple:
     First contains list of unique batch ids from seq_batch_map and corresponding status in every summary dataframe.
     Second contains list of unique batch ids from every dataframe and corresponding status in seq_batch_map.
     '''
-    summary_iterator = pathlib.Path('./').rglob('*_summary*.csv')
-    to_exclude = ['backup', 'old', 'aquamis', 'ardetype', 'software']
+    summary_iterator = list(pathlib.Path('./').rglob('*_summary*.csv'))
+    to_exclude = ['backup', 'old', 'aquamis', 'ardetype', 'software', 'k2reads']
     seq_batch_map['key'] = seq_batch_map['sample_id'].astype(str).str.cat(seq_batch_map['analysis_batch_id'].astype(str), sep='_')
     seq_batch_map_set = set(seq_batch_map['key'])
     sample_id_columns = ['input_file_name']
@@ -138,27 +171,19 @@ def check_batch_presence(seq_batch_map: pd.DataFrame) -> tuple:
     summary_in_map_list = []
     map_in_summary_list = []
 
-    for f in summary_iterator:
-        if not any(s in str(f) for s in to_exclude):
-            print(f)
-            df = pd.read_csv(f, low_memory=False)
-            for c in sample_id_columns:
-                if c in df.columns:
-                    df.rename(columns={c:'sample_id'}, inplace=True)
-            df = df.dropna(subset=['sample_id', 'analysis_batch_id'])
-            df['sample_id'] = df['sample_id'].astype(str)
-            df['analysis_batch_id'] = df['analysis_batch_id'].astype(str)
-            df['key'] = df['sample_id'].str.cat(df['analysis_batch_id'], sep='_')
-            df_set = set(df['key'])
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        # Prepare the arguments for the helper function
+        args = [(f, seq_batch_map_set, sample_id_columns, to_exclude) for f in summary_iterator]
 
-            missing_in_map = df_set - seq_batch_map_set
-            missing_in_map_df = pd.DataFrame({'key': list(missing_in_map), 'present': str(f)})
+        # Use the helper function with executor.map
+        results = executor.map(process_file_wrapper, args)
+        
+        #aggregate per-summary results
+        for missing_in_map_df, missing_in_summary_df in results:
             summary_in_map_list.append(missing_in_map_df)
-
-            missing_in_summary = seq_batch_map_set - df_set
-            missing_in_summary_df = pd.DataFrame({'key': list(missing_in_summary), 'missing': str(f)})
             map_in_summary_list.append(missing_in_summary_df)
 
+    #combine into single dataframe
     summary_in_map = pd.concat(summary_in_map_list).reset_index(drop=True)
     map_in_summary = pd.concat(map_in_summary_list).reset_index(drop=True)
 
