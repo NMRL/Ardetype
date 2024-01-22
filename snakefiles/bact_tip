@@ -81,7 +81,7 @@ rule all:
         lrefinder_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_lrefinder/*.pos", extractor = hk.lrefinder_results)
         lrefinder_summary.to_csv(f"{config['output_directory']}lrefinder_report.csv", header=True, index=False)
 
-        #Aggregate LRE-Finder results
+        #Aggregate Shigatyper results
         shigatyper_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_shigatyper/shigatyper.tsv", extractor = hk.shigatyper_results)
         shigatyper_summary.to_csv(f"{config['output_directory']}shigatyper_report.csv", header=True, index=False)
 

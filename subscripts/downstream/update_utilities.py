@@ -73,7 +73,7 @@ def process_report(
         path_to_df:str, 
         delimiter:str=',', 
         col_rename_dict:dict={}, 
-        batch_regex:list=[r'_[0-9]{8}_[0-9]{6}'],
+        batch_regex:list=[],#r'_[0-9]{8}_[0-9]{6}'
         id_column:str='sample_id',
         id_regex:list=[r"_S[0-9]*"],
         insert_batch:str=None,
@@ -107,11 +107,11 @@ def process_report(
         df[batch_column] = df[batch_column].astype(str)
         #Remove substrings from id_column
         for regex in id_regex:
-            df[id_column].str.replace(regex, '')
+            df[id_column] = df[id_column].str.replace(regex, '')
 
         #Remove substings from batch id
         for regex in batch_regex:
-            df.analysis_batch_id = df.analysis_batch_id.str.replace(regex, '')
+            df[batch_column] = df[batch_column].str.replace(regex, '')
 
         #Applying custom processing functions
         if custom_functions is not None:
