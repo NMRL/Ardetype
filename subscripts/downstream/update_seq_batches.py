@@ -48,7 +48,7 @@ arg_dict = {
 
 #global static variables
 full_path   = str(pathlib.Path(os.path.dirname(os.path.realpath(__file__)))) #path to scripts
-date = datetime.now().isoformat(' ', 'microseconds')  #1st argument defines date and time separator, 2nd - precision - see https://www.geeksforgeeks.org/isoformat-method-of-datetime-class-in-python/
+date = datetime.now().isoformat(' ', 'milliseconds')  #1st argument defines date and time separator, 2nd - precision - see https://www.geeksforgeeks.org/isoformat-method-of-datetime-class-in-python/
 
 ##########
 #Functions
