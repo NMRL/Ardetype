@@ -524,6 +524,7 @@ class Ardetype_housekeeper(hk):
         df.rename(columns={'Sample name': 'sample_id'}, inplace=True)
         df.drop('Output directory', inplace=True, axis=1)
         df.drop('Input files', inplace=True, axis=1)
+        df['sample_id'] = df['sample_id'].astype(str)
         df['sample_id'] = df['sample_id'].apply(
             lambda x: os.path.basename(x)).astype(str)
         df.sample_id = df.sample_id.str.replace(
