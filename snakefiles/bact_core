@@ -17,6 +17,11 @@ rule all:
             sample_id=sample_sheet['sample_id']),                                                              #Creates a list of kraken contig reports to summarize taxonomy for all samples
         k2r_list = expand(
             config['output_directory']+'{sample_id}_kraken2_reads_report.txt', 
+            sample_id=sample_sheet['sample_id']),
+
+        # list of all contig files in output
+        contig_list = expand(
+            config['output_directory']+'{sample_id}_contigs.fasta', 
             sample_id=sample_sheet['sample_id'])
     
     run:
@@ -30,8 +35,8 @@ rule all:
                 os.path.basename(file).replace("_kraken2_contigs_report.txt","")                              
                 ]      = top_hit                                                                                #save info for current samples
         with open(config['output_directory']+'core_aggregated_taxonomy.json', "w+") as json_handle:             #write top hit for each sample to json file
-            json.dump(total_dict, json_handle)
-        print('bact_core finished')
+            json.dump(total_dict, json_handle, indent=4)
+        
 
         #Aggregate kraken2 read results
         kraken2reads_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.kraken2reads_results, pathlist = input.k2r_list)
@@ -40,7 +45,14 @@ rule all:
         #Aggregate kraken2 contig results
         kraken2contigs_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.kraken2contigs_results, pathlist = input.k2c_list)
         kraken2contigs_summary.to_csv(f"{config['output_directory']}kraken2contigs_report.csv", header=True, index=False)
-
+        
+        #Creating copy of contigs in the species-specific folder
+        hk.copy_contigs_by_species(
+            taxonomy_map = total_dict,
+            file_list = input.contig_list,
+            contig_repo_path = config['contig_collection_path']
+        )
+        print('bact_core finished')
 
 rule quality_control:
     input:

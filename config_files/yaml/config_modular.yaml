@@ -13,6 +13,8 @@ ardetype_version:
   v0.1.0-dev
 aquamis_qc_reference: 
   /mnt/beegfs2/home/groups/nmrl/db/AQUAMIS_thresholds.json
+contig_collection_path:
+  /mnt/beegfs2/home/groups/nmrl/bact_analysis/tax_contig_collections
 
 
 ##############

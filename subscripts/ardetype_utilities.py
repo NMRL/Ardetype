@@ -4,6 +4,7 @@ import requests
 import base64
 import re
 import pathlib
+import shutil
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
@@ -104,6 +105,56 @@ class Ardetype_housekeeper(hk):
             The following warning message was recieved: {response.text}
             ''')
 
+
+    @staticmethod
+    def copy_contigs_by_species(taxonomy_map:dict, file_list:list, contig_repo_path:str) -> None:
+        '''
+        Creates a copy of each file in file_list in the contig_repo_path 
+        according to inferred taxonomy of the corresponding sample.
+        If the species folder does not exist, it will be created.
+        '''
+        files_df = pd.DataFrame(file_list, columns=['file_path'])
+        files_df['sample_id'] = files_df['file_path'].apply(lambda x: [id for id in taxonomy_map if id in x][0])
+        # Extract batch ID from each file's directory name
+        files_df['batch_id'] = files_df['file_path'].apply(lambda x: os.path.basename((os.path.dirname(x))))
+        
+        taxonomy_df = pd.DataFrame(list(taxonomy_map.items()), columns=['sample_id', 'taxonomy'])
+        merged_df = pd.merge(files_df, taxonomy_df, on='sample_id', how='left')
+        # Adjust the new_path to include the batch_id in the filename
+        merged_df['new_path'] = merged_df.apply(
+            lambda row: os.path.join(
+                contig_repo_path,
+                row['taxonomy'].replace(" ", "_"),
+                f"{row['sample_id']}_{row['batch_id']}_contigs.fasta"  # Adjusted filename format
+            ),
+            axis=1
+        )
+        
+        # Prepare a list of tuples (src, dst) for copying
+        file_operations = list(merged_df[['file_path', 'new_path']].itertuples(index=False, name=None))
+
+        def copy_file(src, dst):
+            '''
+            Copies a single file from src to dst.
+            Creates the destination directory if it does not exist.
+            '''
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copy(src, dst)
+
+        # Use ThreadPoolExecutor to copy files in parallel
+        with ThreadPoolExecutor() as executor:
+            # Submit all the file copy operations to the executor
+            futures = [executor.submit(copy_file, src, dst) for src, dst in file_operations]
+            
+            # Optionally, wait for all futures to complete and handle exceptions
+            for future in futures:
+                try:
+                    future.result()  # This will raise exceptions from the copy operation, if any
+                except Exception as e:
+                    print(f"Error copying file: {e}")
+        os.system(f'chmod -R 775 {contig_repo_path}')
+
+                    
 #######################
 # Quality control check
 #######################
