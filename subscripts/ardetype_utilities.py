@@ -107,7 +107,7 @@ class Ardetype_housekeeper(hk):
 
 
     @staticmethod
-    def copy_contigs_by_species(taxonomy_map:dict, file_list:list, contig_repo_path:str) -> None:
+    def copy_files_by_species(taxonomy_map:dict, file_list:list, collection_path:str, batch_depth:int=1, extension:str='contigs.fasta') -> None:
         '''
         Creates a copy of each file in file_list in the contig_repo_path 
         according to inferred taxonomy of the corresponding sample.
@@ -115,17 +115,26 @@ class Ardetype_housekeeper(hk):
         '''
         files_df = pd.DataFrame(file_list, columns=['file_path'])
         files_df['sample_id'] = files_df['file_path'].apply(lambda x: [id for id in taxonomy_map if id in x][0])
+        
+        def get_batch_id_from_path(path, depth):
+            '''Recursive logic to get folder name at a given depth'''
+            if depth == 0:
+                return os.path.basename(path)
+            else:
+                return get_batch_id_from_path(os.path.dirname(path), depth - 1)
+
+
         # Extract batch ID from each file's directory name
-        files_df['batch_id'] = files_df['file_path'].apply(lambda x: os.path.basename((os.path.dirname(x))))
+        files_df['batch_id'] = files_df['file_path'].apply(lambda x: get_batch_id_from_path(x, batch_depth))
         
         taxonomy_df = pd.DataFrame(list(taxonomy_map.items()), columns=['sample_id', 'taxonomy'])
         merged_df = pd.merge(files_df, taxonomy_df, on='sample_id', how='left')
         # Adjust the new_path to include the batch_id in the filename
         merged_df['new_path'] = merged_df.apply(
             lambda row: os.path.join(
-                contig_repo_path,
+                collection_path,
                 row['taxonomy'].replace(" ", "_"),
-                f"{row['sample_id']}_{row['batch_id']}_contigs.fasta"  # Adjusted filename format
+                f"{row['sample_id']}_{row['batch_id']}_{extension}"  # Adjusted filename format
             ),
             axis=1
         )
@@ -152,7 +161,7 @@ class Ardetype_housekeeper(hk):
                     future.result()  # This will raise exceptions from the copy operation, if any
                 except Exception as e:
                     print(f"Error copying file: {e}")
-        os.system(f'chmod -R 775 {contig_repo_path}')
+        os.system(f'chmod -R 775 {collection_path}')
 
                     
 #######################

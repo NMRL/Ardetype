@@ -15,7 +15,8 @@ aquamis_qc_reference:
   /mnt/beegfs2/home/groups/nmrl/db/AQUAMIS_thresholds.json
 contig_collection_path:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/tax_contig_collections
-
+cgmlst_prof_col_path:
+  /mnt/beegfs2/home/groups/nmrl/bact_analysis/tax_profile_collections
 
 ##############
 # bact_core

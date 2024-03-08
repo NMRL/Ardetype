@@ -1,7 +1,8 @@
 localrules: all
 
 #imports
-import sys, pandas as pd, os
+import sys, pandas as pd, os, json
+from glob import glob
 sys.path.insert(0, os.path.abspath('./'))
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 
@@ -39,7 +40,9 @@ for org in chewbbaca_orgs:
 
 rule all:
     input: 
-        config['tip_target_files']
+        config['tip_target_files'],
+
+        
     run:
         #Aggregate Kleborate results
         kleborate_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_kleborate.tsv", extractor = hk.kleborate_results)
@@ -100,6 +103,21 @@ rule all:
             thresholds=[i+1 for i in range(25)],
             log_scale=True,
             rem_outlier=100)
+
+
+
+        cgmlst_profile_list = list(glob(os.path.join(config['output_directory'],'*_chewbbaca/results_alleles.tsv')))
+        #Creating copy of cgmlst_profiles in the species-specific folder
+        with open(config['output_directory']+'core_aggregated_taxonomy.json', "r+") as json_handle:             #write top hit for each sample to json file
+            taxonomy_map = json.load(json_handle)
+
+        hk.copy_files_by_species(
+            taxonomy_map = taxonomy_map,
+            file_list = cgmlst_profile_list,
+            collection_path = config['cgmlst_prof_col_path'],
+            extension='results_alleles.tsv',
+            batch_depth=2,
+        )
 
 rule hicap_hinfluenzae:
     input:

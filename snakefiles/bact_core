@@ -47,10 +47,12 @@ rule all:
         kraken2contigs_summary.to_csv(f"{config['output_directory']}kraken2contigs_report.csv", header=True, index=False)
         
         #Creating copy of contigs in the species-specific folder
-        hk.copy_contigs_by_species(
+        hk.copy_files_by_species(
             taxonomy_map = total_dict,
             file_list = input.contig_list,
-            contig_repo_path = config['contig_collection_path']
+            collection_path = config['contig_collection_path'],
+            extension='contigs.fasta',
+            batch_depth=2,
         )
         print('bact_core finished')
 
