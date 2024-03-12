@@ -7,6 +7,7 @@ import pandas as pd
 import subprocess
 import sys
 import numpy as np
+import re
 
 from glob import glob
 from collections import defaultdict
@@ -60,10 +61,12 @@ def parse_args():
     parser.add_argument("-ro", "--rem_outlier", required=False, help="Option to filter outliers from distance matrix; provide numeric distance threshold; all isolates that are further than threshold from nearest isolate will be excluded from clustering", type=int, default=None)
     parser.add_argument("-wc", "--wildcard", required=False, help="Option to specify wildcard to be used to identify allelic profiles in the <path> folder.", type=str, default="*_profile.tsv")
     parser.add_argument('-t', "--thresholds", help = "cgmlst distances for primary and secondary clustering; at least 1 value expected; separate by <space> if many", nargs='+', type=int, default=[5, 15])
-    parser.add_argument('-st', "--skip_timestamp", help = "Set to false to avoid ", type=bool, default=False)
+    parser.add_argument('-st', "--skip_timestamp", help = "Set to True to avoid adding timestamp to output file names", type=bool, default=False)
+    parser.add_argument('-sd', "--skip_dendrogram", help = "Set to True to avoid generating dendrogram image", type=bool, default=False)
+    parser.add_argument("-sc", "--min_sample_count", help = 'Set to int value to avoid analyzing species with too few samples', type=int, default=1)
     parser.add_argument('-s', "--singularity", help = "Use singularity container for cgmlst-dists istead of local installation", action='store_true')
     parser.add_argument("-ls", "--log_scale", help="Log-scale the dendrogram image", action='store_true')  # New argument
-
+    
     args = parser.parse_args()
     # show help text if run without required arguments
     if len(sys.argv)==1: 
@@ -177,16 +180,19 @@ def filter_distance_outliers(dist_matr_df, outlier_threshold=500, keep_outgroup=
 #Functions
 ###########
 
-def gather_chewbacca_data(path:str, wildcard:str = "*_profile.tsv") -> defaultdict: #"folded*/*_chewbbaca/results_alleles.tsv"
+def gather_chewbacca_data(path:str, wildcard:str = "*_profile.tsv", min_sample_count:int = 1) -> defaultdict: #"folded*/*_chewbbaca/results_alleles.tsv"
     '''
     path - path to folder containing allelic profiles produced by chewbbaca
     wildcard - pattern used to locate chewbbaca allelic profiles in the <path>
     '''
     # create a dictionary of dataframes, one for each bin
     df_dict = defaultdict(lambda: pd.DataFrame())
+    path_list = list(glob(os.path.join(path,wildcard)))
+    if len(path_list) < min_sample_count:
+        sys.exit(f'Less than {min_sample_count} files in {path} - Terminating.')
     
     # loop through all files matching the wildcard pattern
-    for chew_path in glob(os.path.join(path,wildcard)):
+    for chew_path in path_list:
         try:
             df_temp = pd.read_csv(chew_path, sep="\t")
             if df_temp.shape[0] > 2:  # Ignore files with more than 2 rows
@@ -196,9 +202,9 @@ def gather_chewbacca_data(path:str, wildcard:str = "*_profile.tsv") -> defaultdi
             
             # trim sample_id's in "FILE" column
             if 'FILE' in df_temp.columns:
-                df_temp["FILE"] = df_temp["FILE"].str.split("_").str[0]
+                df_temp["FILE"] = os.path.basename(chew_path).replace(wildcard.replace('/','').replace('*',''), '') #df_temp["FILE"].str.split("_").str[0]
             elif "Genome" in df_temp.columns:
-                df_temp["Genome"] = df_temp["Genome"].str.split("_").str[0]
+                df_temp["Genome"] = os.path.basename(chew_path).replace(wildcard.replace('/','').replace('*',''), '') #df_temp["Genome"].str.split("_").str[0]
             
             # get number of columns as bin number minux sample_id column
             bin_number = df_temp.shape[1] - 1
@@ -210,7 +216,7 @@ def gather_chewbacca_data(path:str, wildcard:str = "*_profile.tsv") -> defaultdi
     return df_dict
 
 
-def perform_clustering(distance_file:str, thresholds:list, linkage_method:str, log_scale=False, outlier_filter:int=None) -> pd.DataFrame:
+def perform_clustering(distance_file:str, thresholds:list, linkage_method:str, log_scale=False, outlier_filter:int=None, plot_dendrogram:bool=True) -> pd.DataFrame:
     '''
     distance_file - path to the distance matrix in tsv format
     threshold - allelic distancee threshold to evaluate (list)
@@ -263,15 +269,16 @@ def perform_clustering(distance_file:str, thresholds:list, linkage_method:str, l
             if log_scale:
                 y_label = f'log10(Allelic distance) defined by {linkage_method} linkage'
                 thresholds = [np.log1p(threshold) for threshold in thresholds]
-                
-            plot_dendrogram(
-                clusters=clusters, 
-                thresholds=thresholds,
-                labels=distance_df.index,
-                img_path=img_path,
-                x_label=f'{bin_stamp}',
-                y_label=y_label,
-                )
+            
+            if plot_dendrogram:
+                plot_dendrogram(
+                    clusters=clusters, 
+                    thresholds=thresholds,
+                    labels=distance_df.index,
+                    img_path=img_path,
+                    x_label=f'{bin_stamp}',
+                    y_label=y_label,
+                    )
 
         # Create DataFrame from cluster labels
         temp_df = pd.DataFrame(cluster_labels, index=distance_df.index, columns=["cluster_id"])
@@ -301,7 +308,8 @@ def cluster_analysis(
         current_datetime:datetime=current_datetime,
         outlier_filter:int=None,
         log_scale=False,
-        use_timestamp=True) -> None:
+        use_timestamp=True,
+        skip_dendrogram=False) -> None:
     '''
     df_dict - profiles mapped to bin number
     threshold - allelic distancee threshold to evaluate (list)
@@ -338,7 +346,7 @@ def cluster_analysis(
             logging.info(f"Successfully ran cgmlst-dists for {tsv_path}. Distances written to {dist_file}")
 
             # Perform clustering on distances file
-            cluster_df   = perform_clustering(dist_file, thresholds=thresholds, linkage_method=linkage_method, log_scale=log_scale, outlier_filter=outlier_filter)
+            cluster_df   = perform_clustering(dist_file, thresholds=thresholds, linkage_method=linkage_method, log_scale=log_scale, outlier_filter=outlier_filter, plot_dendrogram=not skip_dendrogram)
             if use_timestamp:
                 cluster_path = os.path.join(output_path, f"clusters_{bin_number}_{current_datetime}.csv")
             else:
@@ -363,7 +371,7 @@ def cluster_analysis(
 def main():
     args = parse_args()
     initialize_logging(args.path, current_datetime, use_timestamp = not args.skip_timestamp)
-    chew_dict = gather_chewbacca_data(args.path, wildcard=args.wildcard)
+    chew_dict = gather_chewbacca_data(args.path, wildcard=args.wildcard, min_sample_count=args.min_sample_count)
     if args.singularity:
         cluster_analysis(
             path = args.path, 
@@ -373,7 +381,8 @@ def main():
             linkage_method=args.linkage, 
             log_scale=args.log_scale, 
             outlier_filter=args.rem_outlier,
-            use_timestamp=not args.skip_timestamp)
+            use_timestamp=not args.skip_timestamp,
+            skip_dendrogram=args.skip_dendrogram)
     else:
         cluster_analysis(
             path = args.path, 
@@ -382,7 +391,8 @@ def main():
             linkage_method=args.linkage, 
             log_scale=args.log_scale, 
             outlier_filter=args.rem_outlier,
-            use_timestamp=not args.skip_timestamp)
+            use_timestamp=not args.skip_timestamp,
+            skip_dendrogram=args.skip_dendrogram)
 
 
 if __name__ == "__main__":
