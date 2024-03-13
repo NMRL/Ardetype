@@ -43,17 +43,23 @@ def process_species_folder(species_folder):
     """Processes each species folder to handle clustering and file organization."""
     species_name = os.path.basename(species_folder)
     cluster_files = glob.glob(os.path.join(species_folder, 'clusters*.csv'))
-    if not cluster_files:
-        print(f"No cluster file found for {species_name}, skipping.")
+    distance_files = glob.glob(os.path.join(species_folder, 'distances*.tsv'))
+
+    if not cluster_files or not distance_files:
+        print(f"No cluster or distance file found for {species_name}, skipping.")
         return
 
-    df = pd.read_csv(cluster_files[0])
+    # Assuming the first file is what we want for both clusters and distances
+    clusters_df = pd.read_csv(cluster_files[0])
+    distance_df = pd.read_csv(distance_files[0], index_col=0, sep='\t')
     # Assuming the cluster label is in the second column
-    df['cluster_20_thr'] = df.iloc[:, 1].fillna('outgroup')
-    clusters = df.groupby('cluster_20_thr')
+    clusters_df['cluster_20_thr'] = clusters_df.iloc[:, 1].fillna('outgroup')
+    clusters = clusters_df.groupby('cluster_20_thr')
 
     prepare_contig_collections(species_name, clusters.groups.keys())
     move_files_to_clusters(species_name, clusters)
+    create_cluster_distance_matrices(species_name, clusters, distance_df)
+
 
 def prepare_contig_collections(species_name, cluster_labels):
     """Prepares the directories in CONTIG_COLLECTIONS based on cluster labels."""
@@ -81,6 +87,14 @@ def move_files_to_clusters(species_name, clusters):
             # Assuming contigs follow a naming convention that includes the sample_id
             for contig_file in glob.glob(os.path.join(species_contig_path, f"{sample_id}*.fasta")):
                 shutil.move(contig_file, target_dir)
+
+
+def create_cluster_distance_matrices(species_name, clusters, distance_df):
+    species_contig_path = os.path.join(CONTIG_COLLECTIONS, species_name)
+    for label, group in clusters:
+        cluster_samples = group['sample_id']
+        cluster_distance_matrix = distance_df.loc[cluster_samples, cluster_samples]
+        cluster_distance_matrix.to_csv(os.path.join(species_contig_path, label, f"{label}_distance_matrix.tsv"), sep='\t')
 
 
 def main():
