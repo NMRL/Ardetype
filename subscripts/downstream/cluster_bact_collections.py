@@ -69,9 +69,13 @@ def prepare_contig_collections(species_name, cluster_labels):
     existing_folders = {folder for folder in os.listdir(species_contig_path) if os.path.isdir(os.path.join(species_contig_path, folder))}
     for folder in existing_folders:
         folder_path = os.path.join(species_contig_path, folder)
+        
         for file in os.listdir(folder_path):
-            shutil.move(os.path.join(folder_path, file), species_contig_path)
-        os.rmdir(folder_path)
+            if '_contigs.fasta' in file:
+                shutil.move(os.path.join(folder_path, file), species_contig_path)
+        shutil.rmtree(folder_path)
+    
+    #Remove old distance matrices
 
     # Create new directories based on cluster labels
     for label in cluster_labels:
@@ -94,7 +98,7 @@ def create_cluster_distance_matrices(species_name, clusters, distance_df):
     for label, group in clusters:
         cluster_samples = group['sample_id']
         cluster_distance_matrix = distance_df.loc[cluster_samples, cluster_samples]
-        cluster_distance_matrix.to_csv(os.path.join(species_contig_path, label, f"{label}_distance_matrix.tsv"), sep='\t')
+        cluster_distance_matrix.to_csv(os.path.join(species_contig_path, f"{label}_distance_matrix.tsv"), sep='\t')
 
 
 def main():
