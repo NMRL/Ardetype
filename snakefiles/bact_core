@@ -52,7 +52,7 @@ rule all:
             file_list = input.contig_list,
             collection_path = config['contig_collection_path'],
             extension='contigs.fasta',
-            batch_depth=2,
+            batch_depth=1,
         )
         print('bact_core finished')
 
