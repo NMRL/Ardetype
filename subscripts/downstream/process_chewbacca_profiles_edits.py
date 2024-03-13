@@ -202,9 +202,15 @@ def gather_chewbacca_data(path:str, wildcard:str = "*_profile.tsv", min_sample_c
             
             # trim sample_id's in "FILE" column
             if 'FILE' in df_temp.columns:
-                df_temp["FILE"] = os.path.basename(chew_path).replace(wildcard.replace('/','').replace('*',''), '') #df_temp["FILE"].str.split("_").str[0]
+                if '_results_alleles.tsv' in chew_path:
+                    df_temp["FILE"] = os.path.basename(chew_path).replace('_results_alleles.tsv', '')
+                else:
+                    df_temp["FILE"] = os.path.basename(chew_path).replace(wildcard.replace('/','').replace('*',''), '') #df_temp["FILE"].str.split("_").str[0]
             elif "Genome" in df_temp.columns:
-                df_temp["Genome"] = os.path.basename(chew_path).replace(wildcard.replace('/','').replace('*',''), '') #df_temp["Genome"].str.split("_").str[0]
+                if '_results_alleles.tsv' in chew_path:
+                    df_temp["FILE"] = os.path.basename(chew_path).replace('_results_alleles.tsv', '')
+                else:
+                    df_temp["Genome"] = os.path.basename(chew_path).replace(wildcard.replace('/','').replace('*',''), '') #df_temp["Genome"].str.split("_").str[0]
             
             # get number of columns as bin number minux sample_id column
             bin_number = df_temp.shape[1] - 1
@@ -216,7 +222,7 @@ def gather_chewbacca_data(path:str, wildcard:str = "*_profile.tsv", min_sample_c
     return df_dict
 
 
-def perform_clustering(distance_file:str, thresholds:list, linkage_method:str, log_scale=False, outlier_filter:int=None, plot_dendrogram:bool=True) -> pd.DataFrame:
+def perform_clustering(distance_file:str, thresholds:list, linkage_method:str, log_scale=False, outlier_filter:int=None, make_dendrogram:bool=True) -> pd.DataFrame:
     '''
     distance_file - path to the distance matrix in tsv format
     threshold - allelic distancee threshold to evaluate (list)
@@ -270,7 +276,7 @@ def perform_clustering(distance_file:str, thresholds:list, linkage_method:str, l
                 y_label = f'log10(Allelic distance) defined by {linkage_method} linkage'
                 thresholds = [np.log1p(threshold) for threshold in thresholds]
             
-            if plot_dendrogram:
+            if make_dendrogram:
                 plot_dendrogram(
                     clusters=clusters, 
                     thresholds=thresholds,
@@ -346,7 +352,7 @@ def cluster_analysis(
             logging.info(f"Successfully ran cgmlst-dists for {tsv_path}. Distances written to {dist_file}")
 
             # Perform clustering on distances file
-            cluster_df   = perform_clustering(dist_file, thresholds=thresholds, linkage_method=linkage_method, log_scale=log_scale, outlier_filter=outlier_filter, plot_dendrogram=not skip_dendrogram)
+            cluster_df   = perform_clustering(dist_file, thresholds=thresholds, linkage_method=linkage_method, log_scale=log_scale, outlier_filter=outlier_filter, make_dendrogram=not skip_dendrogram)
             if use_timestamp:
                 cluster_path = os.path.join(output_path, f"clusters_{bin_number}_{current_datetime}.csv")
             else:
