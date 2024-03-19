@@ -3,12 +3,13 @@ import pandas as pd
 import shutil
 import glob
 import subprocess
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 
 # Constants
 PROFILE_COLLECTIONS = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/tax_profile_collections/'
 CONTIG_COLLECTIONS = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/tax_contig_collections/'
 CLUSTERING_SCRIPT_PATH = '/mnt/beegfs2/home/groups/nmrl/utils/phylogenetics_tools/process_chewbacca_profiles_edits.py'
+CSP2_PATH = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/phylogenetics/CSP2'
 
 
 # Functions
@@ -34,9 +35,65 @@ def run_clustering_script(*args, **kwargs):
     try:
         result = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     except subprocess.CalledProcessError as e:
-        print(f"Command failed with error:\n{e.stderr}")
+        print(f"Clustering failed with error:\n{e.stderr}")
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"Clustering - an error occurred: {e}")
+
+
+def run_refchooser(species_name, clusters):
+    '''Runs refchooser to generate top-1 reference for each species and each cluster (including outgroup)'''
+    species_contig_path = os.path.join(CONTIG_COLLECTIONS, species_name)
+    sketch_dir = os.path.join(CONTIG_COLLECTIONS, 'sketches')
+    for label, group in clusters:
+        target_dir = os.path.join(species_contig_path, label)
+        num_files = len(os.listdir(target_dir))
+        refch_rank_path = os.path.join(species_contig_path, f'{label}_refchooser.tsv')
+        cmd = f"source activate nf && refchooser metrics --sort Score --top {num_files} {target_dir} {sketch_dir} > {refch_rank_path}"
+
+        try:
+            print(f"Running Refchooser for {target_dir}")
+            result = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Refchooser failed with error:\n{e.stderr}")
+        except Exception as e:
+            print(f"Refchooser - an error occurred: {e}")
+
+
+def run_csp2(species_name, clusters):
+    '''Runs CSP2 based on refchooser-selected reference to attempt constructing cluster-specific SNP-based distance matrix (excluding outgroup)'''
+    species_contig_path = os.path.join(CONTIG_COLLECTIONS, species_name)
+    for label, group in clusters:
+        if label != 'outgroup':
+            target_dir = os.path.join(species_contig_path, label)
+            refch_rank_path = os.path.join(species_contig_path, f'{label}_refchooser.tsv')
+            refch_rank = pd.read_csv(refch_rank_path, sep='\t')
+            nf_log_path = os.path.join(species_contig_path, f'{label}_nf.log')
+            config_path = os.path.join(species_contig_path, f'{label}_nf.config')
+            nf_work_dir = os.path.join(species_contig_path, f'{label}_nf_wd')
+            if os.path.isdir(nf_work_dir):
+                shutil.rmtree(nf_work_dir)
+            os.makedirs(nf_work_dir)
+            ref_fasta = list(refch_rank['Path'])[0]
+            output_path = os.path.join(species_contig_path, f'{label}_CSP2')
+            # Remove old results if present
+            if os.path.isdir(output_path):
+                shutil.rmtree(output_path)
+            # Add config file for cluster if not already present
+            if not os.path.isfile(config_path):
+                shutil.copy(os.path.join(CSP2_PATH, 'nextflow.config'), config_path)
+            # Remove old logs if present
+            if os.path.isfile(nf_log_path):
+                os.remove(nf_log_path)
+            
+            cmd = f"source activate nf && cd {CSP2_PATH} && nextflow -C {config_path} -log {nf_log_path} run -w {nf_work_dir} CSP2.nf --runmode snp --fasta {target_dir} --outroot {species_contig_path} --out {label}_CSP2 --ref_fasta {ref_fasta}"
+            print(cmd)
+            try:
+                print(f"Running CSP2 for {target_dir}")
+                result = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            except subprocess.CalledProcessError as e:
+                print(f"CSP2 failed with error:\n{e.stderr}")
+            except Exception as e:
+                print(f"CSP2 - an error occurred: {e}")
 
 
 def process_species_folder(species_folder):
@@ -59,6 +116,8 @@ def process_species_folder(species_folder):
     prepare_contig_collections(species_name, clusters.groups.keys())
     move_files_to_clusters(species_name, clusters)
     create_cluster_distance_matrices(species_name, clusters, distance_df)
+    run_refchooser(species_name, clusters)
+    #run_csp2(species_name, clusters)
 
 
 def prepare_contig_collections(species_name, cluster_labels):
@@ -94,6 +153,7 @@ def move_files_to_clusters(species_name, clusters):
 
 
 def create_cluster_distance_matrices(species_name, clusters, distance_df):
+    '''Create cgmlst distance matrix only for samples present in cluster'''
     species_contig_path = os.path.join(CONTIG_COLLECTIONS, species_name)
     for label, group in clusters:
         cluster_samples = group['sample_id']
@@ -118,8 +178,8 @@ def main():
         for path in profile_paths
     ]
     
-    # Execute tasks concurrently
-    with ProcessPoolExecutor(max_workers=len(tasks)) as executor:
+    # Execute cgmost clustering concurrently
+    with ThreadPoolExecutor(max_workers=len(tasks)) as executor:
         future_to_task = {executor.submit(run_clustering_script, **task): task for task in tasks}
         
         for future in as_completed(future_to_task):
@@ -131,8 +191,9 @@ def main():
                 print(f"Task failed for {task}: {e}")
 
 
+    # Prepare contigs collections and run refchooser concurrently
     profile_paths = get_collections(ctype='profiles')
-    with ProcessPoolExecutor(max_workers=os.cpu_count()) as executor:
+    with ThreadPoolExecutor(max_workers=28) as executor:
         futures = [executor.submit(process_species_folder, profile_path) for profile_path in profile_paths]
         for future in as_completed(futures):
             try:
