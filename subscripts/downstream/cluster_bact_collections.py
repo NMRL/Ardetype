@@ -1,15 +1,21 @@
 import os
+import sys
 import pandas as pd
 import shutil
 import glob
 import subprocess
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+sys.path.insert(0,'/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/')
+from subscripts.downstream import update_utilities as uu
 
 # Constants
 PROFILE_COLLECTIONS = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/tax_profile_collections/'
 CONTIG_COLLECTIONS = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/tax_contig_collections/'
 CLUSTERING_SCRIPT_PATH = '/mnt/beegfs2/home/groups/nmrl/utils/phylogenetics_tools/process_chewbacca_profiles_edits.py'
 CSP2_PATH = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/phylogenetics/CSP2'
+REPORT_TIME = uu.get_current_timestamp()
+OUTPUT_PATH = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/tax_profile_collections/bact_clusters/'
+BACKUP_PATH = os.path.join(OUTPUT_PATH, 'backup')
 
 
 # Functions
@@ -120,6 +126,22 @@ def process_species_folder(species_folder):
     #run_csp2(species_name, clusters)
 
 
+def get_species_clusters(species_folder):
+    """Processes each species folder to handle clustering result extraction."""
+    species_name = os.path.basename(species_folder)
+    cluster_files = glob.glob(os.path.join(species_folder, 'clusters*.csv'))
+
+    if not cluster_files:
+        print(f"No cluster files found for {species_name}, skipping.")
+        return
+
+    # Assuming the first file is what we want for both clusters
+    clusters_df = pd.read_csv(cluster_files[0])
+    clusters_df['cluster_20_thr'] = clusters_df.iloc[:, 1].fillna('outgroup')
+    clusters_df['species'] = species_name.replace("_", " ")
+    return clusters_df
+
+
 def prepare_contig_collections(species_name, cluster_labels):
     """Prepares the directories in CONTIG_COLLECTIONS based on cluster labels."""
     species_contig_path = os.path.join(CONTIG_COLLECTIONS, species_name)
@@ -201,6 +223,29 @@ def main():
             except Exception as e:
                 print(f"An error occurred: {e}")
 
-# Ensure runtime block is correct
+    # Aggregate clusters for all species
+    profile_paths = get_collections(ctype='profiles')
+    aggregated_clusters = pd.DataFrame()
+    with ProcessPoolExecutor(max_workers=28) as executor:
+        futures = [executor.submit(get_species_clusters, profile_path) for profile_path in profile_paths]
+        for future in as_completed(futures):
+            try:
+                result = future.result()
+                if result is not None:
+                    aggregated_clusters = pd.concat([aggregated_clusters, result])
+            except Exception as e:
+                print(f"An error occurred: {e}")
+
+    #Find current aggregation file
+    current_cluster_file = glob.glob(os.path.join(OUTPUT_PATH, 'bact_clusters*.csv'))
+    if current_cluster_file:
+        current_cluster_file = glob.glob(os.path.join(OUTPUT_PATH, 'bact_clusters*.csv'))[0]
+        cur_file_name = os.path.basename(current_cluster_file)
+        #Move to backup
+        shutil.move(current_cluster_file, os.path.join(BACKUP_PATH, cur_file_name))
+    aggregated_clusters.to_csv(os.path.join(OUTPUT_PATH, f'bact_clusters_{REPORT_TIME}.csv'), header=True, index=False)
+
+
+# Runtime
 if __name__ == "__main__":
     main()
