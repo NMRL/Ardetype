@@ -134,7 +134,7 @@ class Ardetype_housekeeper(hk):
             lambda row: os.path.join(
                 collection_path,
                 row['taxonomy'].replace(" ", "_"),
-                f"{row['sample_id']}_{row['batch_id']}_{extension}"  # Adjusted filename format
+                f"{re.sub(r"_S[0-9]*_","_",row['sample_id'])}_{row['batch_id']}_{extension}"  # Adjusted filename format
             ),
             axis=1
         )
