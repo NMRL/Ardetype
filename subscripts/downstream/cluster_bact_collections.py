@@ -4,6 +4,7 @@ import pandas as pd
 import shutil
 import glob
 import subprocess
+from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 sys.path.insert(0,'/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/')
 from subscripts.downstream import update_utilities as uu
@@ -102,7 +103,7 @@ def run_csp2(species_name, clusters):
                 print(f"CSP2 - an error occurred: {e}")
 
 
-def process_species_folder(species_folder):
+def process_species_folder(species_folder, th=20):
     """Processes each species folder to handle clustering and file organization."""
     species_name = os.path.basename(species_folder)
     cluster_files = glob.glob(os.path.join(species_folder, 'clusters*.csv'))
@@ -116,8 +117,8 @@ def process_species_folder(species_folder):
     clusters_df = pd.read_csv(cluster_files[0])
     distance_df = pd.read_csv(distance_files[0], index_col=0, sep='\t')
     # Assuming the cluster label is in the second column
-    clusters_df['cluster_20_thr'] = clusters_df.iloc[:, 1].fillna('outgroup')
-    clusters = clusters_df.groupby('cluster_20_thr')
+    clusters_df[f'cluster_{th}_thr'] = clusters_df.iloc[:, 1].fillna('outgroup')
+    clusters = clusters_df.groupby(f'cluster_{th}_thr')
 
     prepare_contig_collections(species_name, clusters.groups.keys())
     move_files_to_clusters(species_name, clusters)
@@ -126,7 +127,7 @@ def process_species_folder(species_folder):
     #run_csp2(species_name, clusters)
 
 
-def get_species_clusters(species_folder):
+def get_species_clusters(species_folder, th=20):
     """Processes each species folder to handle clustering result extraction."""
     species_name = os.path.basename(species_folder)
     cluster_files = glob.glob(os.path.join(species_folder, 'clusters*.csv'))
@@ -137,7 +138,7 @@ def get_species_clusters(species_folder):
 
     # Assuming the first file is what we want for both clusters
     clusters_df = pd.read_csv(cluster_files[0])
-    clusters_df['cluster_20_thr'] = clusters_df.iloc[:, 1].fillna('outgroup')
+    clusters_df[f'cluster_{th}_thr'] = clusters_df.iloc[:, 1].fillna('outgroup')
     clusters_df['species'] = species_name.replace("_", " ")
     return clusters_df
 
@@ -187,7 +188,7 @@ def main():
     # Constant arguments
     kwargs = {
         'wildcard': '*_result*_alleles.tsv',
-        'distance_threshold': 20,
+        'distance_threshold': 15,
         'min_sample_count': 3
     }
     
@@ -216,7 +217,7 @@ def main():
     # Prepare contigs collections and run refchooser concurrently
     profile_paths = get_collections(ctype='profiles')
     with ThreadPoolExecutor(max_workers=28) as executor:
-        futures = [executor.submit(process_species_folder, profile_path) for profile_path in profile_paths]
+        futures = [executor.submit(process_species_folder, profile_path, kwargs['distance_threshold']) for profile_path in profile_paths]
         for future in as_completed(futures):
             try:
                 future.result()
@@ -227,7 +228,7 @@ def main():
     profile_paths = get_collections(ctype='profiles')
     aggregated_clusters = pd.DataFrame()
     with ProcessPoolExecutor(max_workers=28) as executor:
-        futures = [executor.submit(get_species_clusters, profile_path) for profile_path in profile_paths]
+        futures = [executor.submit(get_species_clusters, profile_path, kwargs['distance_threshold']) for profile_path in profile_paths]
         for future in as_completed(futures):
             try:
                 result = future.result()
@@ -237,12 +238,45 @@ def main():
                 print(f"An error occurred: {e}")
 
     #Find current aggregation file
+    current_date_string = datetime.now().strftime('%Y-%m-%d')
+    aggregated_clusters['date_cur'] = current_date_string
     current_cluster_file = glob.glob(os.path.join(OUTPUT_PATH, 'bact_clusters*.csv'))
     if current_cluster_file:
-        current_cluster_file = glob.glob(os.path.join(OUTPUT_PATH, 'bact_clusters*.csv'))[0]
+        current_cluster_file = current_cluster_file[0]
         cur_file_name = os.path.basename(current_cluster_file)
+        old_clusters = pd.read_csv(current_cluster_file)
         #Move to backup
         shutil.move(current_cluster_file, os.path.join(BACKUP_PATH, cur_file_name))
+
+        #Check if new clusters differ from old clusters
+        check = old_clusters.merge(aggregated_clusters, on='sample_id', how='right')
+        # Get the current date as a string.
+        
+        check = check[check[f'cluster_{kwargs["distance_threshold"]}_thr_x'] != check[f'cluster_{kwargs["distance_threshold"]}_thr_y']]
+        if len(check) > 0:
+            old_clusters.set_index('sample_id', inplace=True)
+            check.set_index('sample_id', inplace=True)
+            #in case cluster ids were updated during last iteration
+            for index,row in check.iterrows():
+                # Assuming 'cluster_{kwargs["distance_threshold"]}_thr' is the current cluster ID column
+                new_cluster_id = row[f'cluster_{kwargs["distance_threshold"]}_thr_y']
+                new_date = row['date_cur_y']  # Assuming this is correctly named and contains the current date string
+
+                # Check if cluster_hist is NaN and update accordingly
+                if pd.isna(old_clusters.at[index, 'cluster_hist']):
+                    old_clusters.at[index, 'cluster_hist'] = new_cluster_id
+                else:
+                    old_clusters.at[index, 'cluster_hist'] += "_" + str(new_cluster_id).split('_')[-1]
+
+                # Check if date_hist is NaN and update accordingly
+                if pd.isna(old_clusters.at[index, 'date_hist']):
+                    old_clusters.at[index, 'date_hist'] = new_date
+                else:
+                    old_clusters.at[index, 'date_hist'] += "_" + new_date
+        #Save updated history in case it was not a "cold start"
+        old_clusters.to_csv(os.path.join(OUTPUT_PATH, f'bact_clusters_{REPORT_TIME}.csv'), header=True, index=False)
+        return
+    #Save up-to-date clusters table
     aggregated_clusters.to_csv(os.path.join(OUTPUT_PATH, f'bact_clusters_{REPORT_TIME}.csv'), header=True, index=False)
 
 
