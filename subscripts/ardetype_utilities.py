@@ -134,10 +134,11 @@ class Ardetype_housekeeper(hk):
             lambda row: os.path.join(
                 collection_path,
                 row['taxonomy'].replace(" ", "_"),
-                f"{re.sub(r"_S[0-9]*_","",row['sample_id'])}_{row['batch_id']}_{extension}"  # Adjusted filename format
+                f"{re.sub(r'_S[0-9]*','',row['sample_id'])}_{row['batch_id']}_{extension}"  # Adjusted filename format
             ),
             axis=1
         )
+        merged_df.to_csv('~/check_regex_application.csv',header=True, index=False)
         
         # Prepare a list of tuples (src, dst) for copying
         file_operations = list(merged_df[['file_path', 'new_path']].itertuples(index=False, name=None))
