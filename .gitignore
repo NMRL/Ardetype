@@ -1,7 +1,7 @@
 # Specific files
 *.fastq.gz
 log_summary.html
-
+clst_bct_cl.o*
 
 # Various system folders
 /.snakemake

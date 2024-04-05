@@ -77,9 +77,12 @@ def run_csp2(species_name, clusters):
             nf_log_path = os.path.join(species_contig_path, f'{label}_nf.log')
             config_path = os.path.join(species_contig_path, f'{label}_nf.config')
             nf_work_dir = os.path.join(species_contig_path, f'{label}_nf_wd')
-            if os.path.isdir(nf_work_dir):
-                shutil.rmtree(nf_work_dir)
-            os.makedirs(nf_work_dir)
+            nfx_home = os.path.join(species_contig_path, f'{label}_nf_home')
+
+            for f in [nf_work_dir, nfx_home]:
+                if os.path.isdir(f):
+                    shutil.rmtree(f)
+                os.makedirs(f, mode=0o775)
             ref_fasta = list(refch_rank['Path'])[0]
             output_path = os.path.join(species_contig_path, f'{label}_CSP2')
             # Remove old results if present
@@ -92,8 +95,7 @@ def run_csp2(species_name, clusters):
             if os.path.isfile(nf_log_path):
                 os.remove(nf_log_path)
             
-            cmd = f"source activate nf && cd {CSP2_PATH} && nextflow -C {config_path} -log {nf_log_path} run -w {nf_work_dir} CSP2.nf --runmode snp --fasta {target_dir} --outroot {species_contig_path} --out {label}_CSP2 --ref_fasta {ref_fasta}"
-            print(cmd)
+            cmd = f"source activate nf && cd {CSP2_PATH} && export NXF_HOME={nfx_home} && nextflow -C {config_path} -log {nf_log_path} run -w {nf_work_dir} CSP2.nf --runmode snp --fasta {target_dir} --outroot {species_contig_path} --out {label}_CSP2 --ref_fasta {ref_fasta}"
             try:
                 print(f"Running CSP2 for {target_dir}")
                 result = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -124,7 +126,7 @@ def process_species_folder(species_folder, th=20):
     move_files_to_clusters(species_name, clusters)
     create_cluster_distance_matrices(species_name, clusters, distance_df)
     run_refchooser(species_name, clusters)
-    #run_csp2(species_name, clusters)
+    run_csp2(species_name, clusters)
 
 
 def get_species_clusters(species_folder, th=20):
