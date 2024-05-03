@@ -34,7 +34,10 @@
         "chewbbaca_qc_report.csv",
         "aquamis_qc_report.csv",
         "spatyper_report.csv",
-        "shigatyper_report.csv"
+        "shigatyper_report.csv",
+        "seroba_report.csv",
+        "emmtyper_report.csv",
+        "hicap_report.csv"
     ],
     "core": {
         "targets": [

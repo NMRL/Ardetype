@@ -96,6 +96,22 @@ rule all:
         spatyper_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_spatyper.txt", extractor = hk.spatyper_results)
         spatyper_results.to_csv(f"{config['output_directory']}spatyper_report.csv", header=True, index=False)
 
+        #Aggregate seroba results
+        seroba_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_seroba.tsv", extractor = hk.seroba_results)
+        seroba_results.to_csv(f"{config['output_directory']}seroba_report.csv", header=True, index=False)
+
+        #Aggregate emmtyper results
+        emmtyper_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_emmtyper.tsv", extractor = hk.emmtyper_results)
+        emmtyper_results.to_csv(f"{config['output_directory']}emmtyper_report.csv", header=True, index=False)
+
+        #Aggregate hicap results
+        hicap_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_hicap.tsv", extractor = hk.hicap_results)
+        hicap_results.to_csv(f"{config['output_directory']}hicap_report.csv", header=True, index=False)
+
+
+
+
+
         #Run cluster analysis
         hk.cgmlst_cluster_analysis(
             path = config['output_directory'],
