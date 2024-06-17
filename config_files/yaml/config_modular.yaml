@@ -172,23 +172,23 @@ shell_tool_configs:
   amr_plusplus:
     threads: 24
   amrfinderplus_species:
-    - Acinetobacter_baumanniiae
-    - Burkholderia_cepaciaae
-    - Burkholderia_pseudomalleiae
-    - Campylobacterae
-    - Clostridioides_difficileae
-    - Enterococcus_faecalisae
-    - Enterococcus_faeciumae
-    - Escherichiaae
-    - Klebsiellaae
-    - Neisseriaae
-    - Pseudomonas_aeruginosaae
-    - Salmonellaae
-    - Staphylococcus_aureusae
-    - Staphylococcus_pseudintermediusae
-    - Streptococcus_agalactiaeae
-    - Streptococcus_pneumoniaeae
-    - Streptococcus_pyogenesae
+    - Acinetobacter_baumannii
+    - Burkholderia_cepacia
+    - Burkholderia_pseudomallei
+    - Campylobacter
+    - Clostridioides_difficile
+    - Enterococcus_faecalis
+    - Enterococcus_faecium
+    - Escherichia
+    - Klebsiella
+    - Neisseria
+    - Pseudomonas_aeruginosa
+    - Salmonella
+    - Staphylococcus_aureus
+    - Staphylococcus_pseudintermedius
+    - Streptococcus_agalactiae
+    - Streptococcus_pneumoniae
+    - Streptococcus_pyogenes
     - Vibrio_cholerae
   resfinder:
     length: 0.6
