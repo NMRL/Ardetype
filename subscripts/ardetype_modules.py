@@ -98,6 +98,8 @@ class Wrapper():
                 _get_datestamp(f'{_config_dict["databases"]}db-resfinder/','db_resfinder'),
             "plasmidfinder":
                 _get_datestamp(f'{_config_dict["databases"]}','plasmidfinder_db'),
+            "virulencefinder":
+                _get_datestamp(f'{_config_dict["databases"]}','virulencefinder_db_new'),
     }   
 
 
