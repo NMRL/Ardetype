@@ -612,6 +612,8 @@ rule extract_SeroBA:
         try:
             key = "_seroba.tsv"
             report = pd.read_csv(input[0], sep="\t", header=None).astype(str)
+            if len(report.columns) != 3:
+                report[2] = ['nan']
             report.columns = ["id","type","info"]
             report = report[["type", "info"]]
             if isinstance(report['info'][0], str): report["type"] = report[["type", "info"]].agg('; '.join, axis=1) #textjoin in pandas accross columns

@@ -509,17 +509,20 @@ class Ardetype_housekeeper(hk):
         '''To combine seroba reports and map them to sample_id-batch pair.'''
         try:
             report = pd.read_csv(sba_result_path, sep="\t", header=None).astype(str)
-            if report[2][0] != 'nan':
-                report[1] = report[1]+';'+report[2]
+            if len(report.columns) == 3:
+                if report[2][0] != 'nan':
+                    report[1] = report[1]+';'+report[2]
+            else: 
+                report[2] = ['nan']
             report.columns = ["sample_id","serotype", "analysis_batch_id"]
-            report.analysis_batch_id = [os.path.basename(batch)]#[os.path.basename(os.path.dirname(batch))]
+            report.analysis_batch_id = [os.path.basename(os.path.dirname(batch))]
             report["sample_id"] = report.sample_id.apply(lambda x:os.path.basename(x).split('_')[0])
             report = report[["sample_id","analysis_batch_id","serotype"]]
             return report
         except pd.errors.EmptyDataError:
             report = pd.DataFrame.from_dict({
                 'sample_id':[os.path.basename(sba_result_path).replace('_seroba.tsv', '').split('_')[0]], 
-                "analysis_batch_id":[os.path.basename(batch)],#[os.path.basename(os.path.dirname(batch))],
+                "analysis_batch_id":[os.path.basename(os.path.dirname(batch))],
                 "serotype":[None],
                 })
             return report
@@ -530,14 +533,14 @@ class Ardetype_housekeeper(hk):
         try:
             report = pd.read_csv(emm_result_path, sep="\t", header=None)
             report.columns = ["sample_id","num_clusters", "emm_type", "emm_like_alleles", "emm_cluster"]
-            report['analysis_batch_id'] = [os.path.basename(batch)]#[os.path.basename(os.path.dirname(batch))]
+            report['analysis_batch_id'] = [os.path.basename(os.path.dirname(batch))]
             report["sample_id"] = report.sample_id.apply(lambda x:x.replace('_contigs.tmp', '').split('_')[0])
             report = report[["sample_id", "analysis_batch_id", "num_clusters", "emm_type", "emm_like_alleles", "emm_cluster"]]
             return report
         except pd.errors.EmptyDataError:
             report = pd.DataFrame.from_dict({
                 'sample_id':[os.path.basename(emm_result_path).replace('_strp_emmtyper.tsv', '').split('_')[0]], 
-                "analysis_batch_id":[os.path.basename(batch)],#[os.path.basename(os.path.dirname(batch))],
+                "analysis_batch_id":[os.path.basename(os.path.dirname(batch))],
                 "num_clusters":[None],
                 "emm_type":[None],
                 "emm_like_alleles":[None],
@@ -553,7 +556,7 @@ class Ardetype_housekeeper(hk):
             report.columns = ['sample_id', 'predicted_serotype', 'attributes', 'genes_identified',
                     'locus_location', 'region_I_genes', 'region_II_genes',
                     'region_III_genes', 'IS1016_hits']
-            report['analysis_batch_id'] = [os.path.basename(batch)]#[os.path.basename(os.path.dirname(batch))]
+            report['analysis_batch_id'] = [os.path.basename(os.path.dirname(batch))]
             report["sample_id"] = report.sample_id.apply(lambda x:x.replace('_contigs', '').split('_')[0])
             report = report[
                 ['sample_id', 'analysis_batch_id', 'predicted_serotype', 
@@ -564,7 +567,7 @@ class Ardetype_housekeeper(hk):
         except pd.errors.EmptyDataError:
             report = pd.DataFrame.from_dict({
                 'sample_id':[os.path.basename(hi_result_path).replace('_hi_hicap.tsv', '').split('_')[0]], 
-                'analysis_batch_id':[os.path.basename(batch)],#[os.path.basename(os.path.dirname(batch))],
+                'analysis_batch_id':[os.path.basename(os.path.dirname(batch))],
                 'predicted_serotype':['NTHi'],
                 'attributes':[None],
                 'genes_identified':[None],

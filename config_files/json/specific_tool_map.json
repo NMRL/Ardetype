@@ -4,31 +4,36 @@
             "rule": "virulencefinder",
             "method": "Detecting virulence genetic elements in bacterial NGS data",
             "tool": "virulencefinder",
-            "reference": "https://bitbucket.org/genomicepidemiology/virulencefinder/src/master/"
+            "link": "https://bitbucket.org/genomicepidemiology/virulencefinder/src/master/",
+            "reference": "Joensen KG, Scheutz F, Lund O, Hasman H, Kaas RS, Nielsen EM, Aarestrup FM. (2014) Real-time whole-genome sequencing for routine typing, surveillance, and outbreak detection of verotoxigenic Escherichia coli. J. Clin. Micobiol. 52(5) 1501-1510."
         },
         "plasmidfinder": {
             "rule": "plasmidfinder",
             "method": "Detecting mobile genetic elements in bacterial NGS data",
             "tool": "plasmidfinder",
-            "reference": "https://bitbucket.org/genomicepidemiology/plasmidfinder/src/master/"
+            "link": "https://bitbucket.org/genomicepidemiology/plasmidfinder/src/master/",
+            "reference": "Carattoli A, Zankari E, García-Fernández A, Voldby Larsen M, Lund O, Villa L, Møller Aarestrup F, Hasman H. In silico detection and typing of plasmids using PlasmidFinder and plasmid multilocus sequence typing. Antimicrob Agents Chemother. 2014 Jul;58(7):3895-903. doi: 10.1128/AAC.02412-14. Epub 2014 Apr 28. PMID: 24777092; PMCID: PMC4068535."
         },
         "resfinder": {
             "rule": "resfinder",
             "method": "Detecting AMR markers in bacterial NGS data.",
             "tool": "resfinder",
-            "reference": "https://bitbucket.org/genomicepidemiology/resfinder/src/master/"
+            "link": "https://bitbucket.org/genomicepidemiology/resfinder/src/master/",
+            "reference": "Valeria Bortolaia and others, ResFinder 4.0 for predictions of phenotypes from genotypes, Journal of Antimicrobial Chemotherapy, Volume 75, Issue 12, December 2020, Pages 3491–3500, https://doi.org/10.1093/jac/dkaa345"
         },
         "quast": {
             "rule": "quast",
             "method": "Quality control of genomes assembled from short-read NGS data.",
             "tool": "quast",
-            "reference": "https://github.com/ablab/quast"
+            "link": "https://github.com/ablab/quast",
+            "reference": "Alla Mikheenko, Andrey Prjibelski, Vladislav Saveliev, Dmitry Antipov, Alexey Gurevich. Versatile genome assembly evaluation with QUAST-LG. Bioinformatics (2018) 34 (13): i142-i150. doi: 10.1093/bioinformatics/bty266"
         },
         "rgi": {
             "rule": "res_gen_id",
             "method": "Detecting AMR markers in bacterial NGS data.",
             "tool": "rgi",
-            "reference": "https://github.com/arpcard/rgi"
+            "link": "https://github.com/arpcard/rgi",
+            "reference": "Alcock et al. 2023. CARD 2023: expanded curation, support for machine learning, and resistome prediction at the Comprehensive Antibiotic Resistance Database. Nucleic Acids Research, 51, D690-D699 PMID 36263822"
         },
         "kraken2": {
             "rule": [
@@ -38,19 +43,22 @@
             ],
             "method": "Taxonomic classification of isolates based on NGS data.",
             "tool": "kraken2",
-            "reference": "https://github.com/DerrickWood/kraken2"
+            "link": "https://github.com/DerrickWood/kraken2",
+            "reference": "Wood, D.E., Lu, J. & Langmead, B. Improved metagenomic analysis with Kraken 2. Genome Biol 20, 257 (2019). https://doi.org/10.1186/s13059-019-1891-0"
         },
         "amrfinder+": {
             "rule": "amrfinderplus",
             "method": "Detecting AMR markers in bacterial NGS data.",
             "tool": "amrfinder+",
-            "reference": "https://github.com/ncbi/amr"
+            "link": "https://github.com/ncbi/amr",
+            "reference": "Feldgarden, M., Brover, V., Gonzalez-Escalona, N., Frye, J.G., Haendiges, J., Haft, D.H., Hoffmann, M., Pettengill, J.B., Prasad, A.B., Tillman, G.E., Tyson, G.H., Klimke, W. (2021). AMRFinderPlus and the Reference Gene Catalog facilitate examination of the genomic links among antimicrobial resistance, stress response, and virulence. Scientific Reports, 11(1), 12728. DOI: 10.1038/s41598-021-91456-0"
         },
         "fastp": {
             "rule": "quality_control",
             "method": "Quality control of short-read NGS data.",
             "tool": "fastp",
-            "reference": "https://github.com/OpenGene/fastp"
+            "link": "https://github.com/OpenGene/fastp",
+            "reference": "Chen S, Zhou Y, Chen Y, Gu J. fastp: an ultra-fast all-in-one FASTQ preprocessor. Bioinformatics. 2018 Sep 1;34(17):i884-i890. doi: 10.1093/bioinformatics/bty560. PMID: 30423086; PMCID: PMC6129281."
         },
         "mob-suite": {
             "rule": [
@@ -59,145 +67,169 @@
             ],
             "method": "Detection and reconstruction of mobile genetic elements from bacterial NGS data",
             "tool": "mob-suite",
-            "reference": "https://github.com/phac-nml/mob-suite"
+            "link": "https://github.com/phac-nml/mob-suite",
+            "reference": "Robertson, James, and John H E Nash. “MOB-suite: software tools for clustering, reconstruction and typing of plasmids from draft assemblies.” Microbial genomics vol. 4,8 (2018): e000206. doi:10.1099/mgen.0.000206"
         },
         "mlst": {
             "rule": "mlst",
             "method": "7-gene-based multi-locus sequence typing from bacterial NGS data.",
             "tool": "mlst",
-            "reference": "https://github.com/tseemann/mlst"
+            "link": "https://github.com/tseemann/mlst",
+            "reference": "Seemann T, mlst Github https://github.com/tseemann/mlst"
         },
         "shovill": {
             "rule": "contig_assembly",
             "method": "Denovo assembly of bacterial genomes from short-read NGS data.",
             "tool": "shovill",
-            "reference": "https://github.com/tseemann/shovill"
+            "link": "https://github.com/tseemann/shovill",
+            "reference": "Seemann T, Shovill Github https://github.com/tseemann/shovill"
         }
     },
     "_meningotype.tsv": {
         "rule": "meningotype_nmeningitidis",
         "method": "serotyping for N.meningitidis",
         "tool": "meningotype",
-        "reference": "https://github.com/MDU-PHL/meningotype"
+        "link": "https://github.com/MDU-PHL/meningotype",
+        "reference": "Kwong JC, Gonçalves da Silva A, Stinear TP, Howden BP, Seemann T. 2018."
     },
     "_legsta.csv": {
         "rule": "legsta_lpneumophila",
         "method": "sequence-based typing (SBT) for L. Pneumophila",
         "tool": "legsta",
-        "reference": "https://github.com/tseemann/legsta"
+        "link": "https://github.com/tseemann/legsta",
+        "reference": "Seemann T, Legsta Github https://github.com/tseemann/legsta"
     },
     "-predictResults.txt": {
         "rule": "lpgenomics_lpneumophila",
         "method": "serogrouping for L. Pneumophila",
         "tool": "legionella_pneumophila_genomics",
-        "reference": "https://github.com/CDCgov/legionella_pneumophila_genomics"
+        "link": "https://github.com/CDCgov/legionella_pneumophila_genomics",
+        "reference": "NA"
     },
     "_hicap.tsv": {
         "rule": "hicap_hinfluenzae",
         "method": "serotyping for H. Influenzae",
         "tool": "hicap",
-        "reference": "https://github.com/scwatts/hicap"
+        "link": "https://github.com/scwatts/hicap",
+        "reference": "Watts, S. C., & Holt, K. E. (2019). hicap: in silico serotyping of the Haemophilus influenzae capsule locus. Journal of Clinical Microbiology, JCM.00190-19. https://doi.org/10.1128/JCM.00190-19"
     },
     "_kleborate.tsv": {
         "rule": "kleborate_kpneumoniae",
         "method": "serotyping for K.pneumoniae",
         "tool": "kleborate",
-        "reference": "https://github.com/katholt/Kleborate"
+        "link": "https://github.com/katholt/Kleborate",
+        "reference": "Lam, M.M.C., Wick, R.R., Watts, S.C. et al. A genomic surveillance framework and genotyping tool for Klebsiella pneumoniae and its related species complex. Nat Commun 12, 4188 (2021). https://doi.org/10.1038/s41467-021-24448-3"
     },
     "_agrvate_summary.tab": {
         "rule": "agrvate_saureus",
         "method": "agr typing for S.aureus",
         "tool": "agrvate",
-        "reference": "https://github.com/VishnuRaghuram94/AgrVATE"
+        "link": "https://github.com/VishnuRaghuram94/AgrVATE",
+        "reference": "Raghuram V, Alexander AM, Loo HQ, Petit RA 3rd, Goldberg JB, Read TD. Species-Wide Phylogenomics of the Staphylococcus aureus Agr Operon Revealed Convergent Evolution of Frameshift Mutations. Microbiol Spectr. 2022 Jan 19;10(1):e0133421. doi: 10.1128/spectrum.01334-21. Epub ahead of print. PMID: 35044202; PMCID: PMC8768832."
     },
     "_spatyper.txt": {
         "rule": "spatyper_saureus",
         "method": "spa typing for S.aureus",
         "tool": "spatyper",
-        "reference": "https://github.com/HCGB-IGTP/spaTyper"
+        "link": "https://github.com/HCGB-IGTP/spaTyper",
+        "reference": "Jose Francisco Sanchez-Herrero, & mjsull. (2020). spaTyper: Staphylococcal protein A (spa) characterization pipeline (v0.3.1). Zenodo. https://doi.org/10.5281/zenodo.4063625"
     },
     "_sccmec.tsv": {
         "rule": "sccmec_saureus",
         "method": "SCCmec typing for S.aureus",
         "tool": "staphopia-sccmec",
-        "reference": "https://github.com/staphopia/staphopia-sccmec"
+        "link": "https://github.com/staphopia/staphopia-sccmec",
+        "reference": "Petit III RA, Read TD, Staphylococcus aureus viewed from the perspective of 40,000+ genomes. PeerJ 6, e5261 (2018)."
     },
     "_emmtyper.tsv": {
         "rule": "emmtyper_spyogenes",
         "method": "emm-type and emm-cluster prediction for S.pyogenes",
         "tool": "emmtyper",
-        "reference": "https://github.com/MDU-PHL/emmtyper"
+        "link": "https://github.com/MDU-PHL/emmtyper",
+        "reference": "Tan A, Seemann T, Lacey J, Davies M, Mcintyre L, Frost H, Williamson D, Gonçalves da Silva A. emmtyper - Emm Automatic Isolate Labeller. https://github.com/MDU-PHL/emmtyper"
     },
     "_ngmast.json": {
         "rule": "",
         "method": "NG-MAST typing for N.gonorrhoeae",
         "tool": "PubMLST",
-        "reference": "https://rest.pubmlst.org/db/pubmlst_neisseria_seqdef/schemes/71"
+        "link": "https://rest.pubmlst.org/db/pubmlst_neisseria_seqdef/schemes/71",
+        "reference": ""
     },
     "_lissero.tsv": {
         "rule": "lissero_lmonocytogenes",
         "method": "serotyping for L.monocytogenes",
         "tool": "lissero",
-        "reference": "https://github.com/MDU-PHL/LisSero"
+        "link": "https://github.com/MDU-PHL/LisSero",
+        "reference": "Kwong JC, Zhang J, Seemann T. LisSero: in silico serogroup typing prediction for Listeria monocytogenes. https://github.com/MDU-PHL/LisSero"
     },
     "_sistr.csv": {
         "rule": "sistr_senterica",
         "method": "serotyping for S.enterica",
         "tool": "sistr",
-        "reference": "https://github.com/phac-nml/sistr_cmd"
+        "link": "https://github.com/phac-nml/sistr_cmd",
+        "reference": "The Salmonella In Silico Typing Resource (SISTR): an open web-accessible tool for rapidly typing and subtyping draft Salmonella genome assemblies. Catherine Yoshida, Peter Kruczkiewicz, Chad R. Laing, Erika J. Lingohr, Victor P.J. Gannon, John H.E. Nash, Eduardo N. Taboada. PLoS ONE 11(1): e0147101. doi: 10.1371/journal.pone.0147101"
     },
     "_SeqSero.tsv": {
         "rule": "seqsero_senterica",
         "method": "serotyping for S.enterica",
         "tool": "seqsero2",
-        "reference": "https://github.com/denglab/SeqSero2"
+        "link": "https://github.com/denglab/SeqSero2",
+        "reference": "Zhang S, Den-Bakker HC, Li S, Dinsmore BA, Lane C, Lauer AC, Fields PI, Deng X. SeqSero2: rapid and improved Salmonella serotype determination using whole genome sequencing data. Appl Environ Microbiology. 2019 Sep; 85(23):e01746-19. PMID: 31540993"
     },
     "_ab_pumblst.json": {
         "rule": "",
         "method": "7-gene MLST for A.baumannii",
         "tool": "PubMLST",
-        "reference": "https://rest.pubmlst.org/db/pubmlst_abaumannii_seqdef/schemes/2"
+        "link": "https://rest.pubmlst.org/db/pubmlst_abaumannii_seqdef/schemes/2",
+        "reference": ""
     },
     "_ectyper.tsv": {
         "rule": "ectyper_ecoli",
         "method": "serotyping for E.coli",
         "tool": "ectyper",
-        "reference": "https://github.com/phac-nml/ecoli_serotyping"
+        "link": "https://github.com/phac-nml/ecoli_serotyping",
+        "reference": "Bessonov K, Laing C, Robertson J, Yong I, Ziebell K, Gannon VPJ, Nichani A, Arya G, Nash JHE, Christianson S. ECTyper: in silico Escherichia coli serotype and species prediction from raw and assembled whole-genome sequence data. Microb Genom. 2021 Dec;7(12):000728. doi: 10.1099/mgen.0.000728. PMID: 34860150; PMCID: PMC8767331."
     },
     "_stecfinder.tsv": {
         "rule": "stecfinder_ecoli",
         "method": "Shigatoxin typing for E.coli",
         "tool": "stecfinder",
-        "reference": "https://github.com/LanLab/STECFinder"
+        "link": "https://github.com/LanLab/STECFinder",
+        "reference": "Zhang X, Payne M, Kaur S, Lan R. Improved Genomic Identification, Clustering, and Serotyping of Shiga Toxin-Producing Escherichia coli Using Cluster/Serotype-Specific Gene Markers. Front Cell Infect Microbiol. 2022 Jan 10;11:772574. doi: 10.3389/fcimb.2021.772574. PMID: 35083165; PMCID: PMC8785982."
     },
     "_seroba.tsv": {
         "rule": "seroba_spneumoniae",
         "method": "serotyping for S.pneumoniae",
         "tool": "seroba",
-        "reference": "https://github.com/sanger-pathogens/seroba"
+        "link": "https://github.com/sanger-pathogens/seroba",
+        "reference": "SeroBA: rapid high-throughput serotyping of Streptococcus pneumoniae from whole genome sequence data Epping L, van Tonder, AJ, Gladstone RA, GPS Consortium, Bentley SD, Page AJ, Keane JA, Microbial Genomics 2018, doi: 10.1099/mgen.0.000186"
     },
     "_contigs.res": {
         "rule": "cgmlstfinder",
         "method": "cgmlst typing using cgmlstfinder",
         "tool": "cgmlstfinder",
-        "reference": "https://bitbucket.org/genomicepidemiology/cgmlstfinder"
+        "link": "https://bitbucket.org/genomicepidemiology/cgmlstfinder",
+        "reference": "Clausen PTLC, Aarestrup FM, Lund O. (2018). Rapid and precise alignment of raw reads against redundant databases with KMA. BMC Bioinformatics 19(1):307. "
     },
     "results_alleles.tsv": {
         "rule": "chewbbaca_cgmlst",
         "method": "cgmlst typing using chewbbaca & redom schema",
         "tool": "chewbbaca",
-        "reference": "https://github.com/B-UMMI/chewBBACA"
+        "link": "https://github.com/B-UMMI/chewBBACA",
+        "reference": "Silva M, Machado MP, Silva DN, Rossi M, Moran-Gilad J, Santos S, Ramirez M, Carriço JA. 2018. chewBBACA: A complete suite for gene-by-gene schema creation and strain identification. Microb Genom 4:000166. doi:10.1099/mgen.0.000166"
     },
     "shigatyper.tsv": {
         "rule": "shigatyper",
         "method": "serotyping for Shigella",
         "tool": "shigatyper",
-        "reference": "https://github.com/CFSAN-Biostatistics/shigatyper"
+        "link": "https://github.com/CFSAN-Biostatistics/shigatyper",
+        "reference": "Wu Y, Lau HK, Lee T, Lau DK, Payne J In Silico Serotyping Based on Whole-Genome Sequencing Improves the Accuracy of Shigella Identification. Applied and Environmental Microbiology, 85(7). (2019)"
     },
     "lrefinder.tsv": {
         "rule": "lrefinder_efaecium_efaecalis",
         "method": "predicting linezolid resistance in Enterococci faecalis and E. faecium",
         "tool": "lrefinder",
-        "reference": "https://bitbucket.org/genomicepidemiology/lre-finder"
+        "link": "https://bitbucket.org/genomicepidemiology/lre-finder",
+        "reference": "LRE-Finder, a Web Tool for detection of the 23S rRNA mutations, and the optrA, cfr, cfr(B) and poxtA genes, encoding linezolid resistance in Enterococci from whole genome sequences Henrik HASMAN, Philip T.L.C. CLAUSEN, Hulya KAYA, Frank HANSEN, Jenny Dahl KNUDSEN, Mikala WANG, Barbara Juliane HOLZKNECHT, Jurgita SAMULIONIENE, Bent ROEDER, Niels FRIMODT-MOELLER, Ole LUND, and Anette M. HAMMERUM"
     }
 }

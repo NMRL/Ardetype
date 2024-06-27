@@ -63,6 +63,12 @@ class Wrapper():
                      _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Salmonella_enterica'),
                 "Escherichia coli"        :
                     _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Escherichia_coli'),
+                "Enterobacter"            :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Escherichia_coli'),
+                "Shigella"                :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Escherichia_coli'),
+                "Streptococcus pyogenes"  :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','spyogenes_wgMLST'),
                 "Acinetobacter baumannii" :
                     _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Acinetobacter_baumannii'),
                 "Campylobacter"           :
@@ -77,11 +83,16 @@ class Wrapper():
                     _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Staphylococcus_aureus'),
                 "Enterococcus faecalis"   :
                     _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Enterococcus_faecalis_cgMLST'),
-                "Enterococcus faeciumT"   :
+                "Enterococcus faecium"    :
                     _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Enterococcus_faecium_cgMLST'),
-                "Pseudomonas aeruginosa"   :
+                "Pseudomonas aeruginosa"  :
                     _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Pseudomonas_aeruginosa_cgMLST'),
-                
+                "Yersinia"                :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Yersinia.cgMLSTv1_chewbbaca'),
+                "Clostridioides"                :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Clostridioides_difficile_db'),
+                "Clostridium"                :
+                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','clostridium_wgmlst_chewie_db'),
             },
             "resfinder"    :
                 _get_datestamp(f'{_config_dict["databases"]}db-resfinder/','db_resfinder'),
@@ -97,13 +108,15 @@ class Wrapper():
             sp.run(
             f'module load singularity && singularity run {_config_dict["resfinder_sif"]} run_resfinder.py --version 2> /dev/null',
             stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
+        "virulencefinder":
+            datetime.datetime.fromtimestamp(os.path.getmtime(_config_dict["shell_tool_configs"]["virulencefinder"]["virulencefinder_sif"])).strftime('%Y-%m-%d'),
         "quast":
             sp.run(
             f'module load singularity && singularity run {_config_dict["mlst_quast_sif"]} quast.py --version 2> /dev/null',
             stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1],
         "rgi":
             sp.run(
-            f'eval "$(conda shell.bash hook)" && source activate {_config_dict["rgi_env_path"]} && rgi main --version',
+            f'module load singularity && singularity run {_config_dict["rgi_sif"]} rgi main --version 2> /dev/null',
             stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
         "kraken2":
             sp.run(
@@ -183,27 +196,63 @@ class Wrapper():
     @staticmethod
     def report_tool_versions(output_path:str, sample_ids:list) -> None:
         '''Aggregates tool versions, references and database versions in single pandas dataframe and generates a csv file named software_log.csv in output_path'''
-        specific_ref = {Wrapper._tool_ref_map[k]['tool']:Wrapper._tool_ref_map[k]['reference'] for k in Wrapper._tool_ref_map if k != 'agnostic'}
-        agnostic_ref = {Wrapper._tool_ref_map['agnostic'][k]['tool'] : Wrapper._tool_ref_map['agnostic'][k]['reference'] for k in Wrapper._tool_ref_map['agnostic']}
+        specific_ref = {Wrapper._tool_ref_map[k]['tool']:Wrapper._tool_ref_map[k]['link'] for k in Wrapper._tool_ref_map if k != 'agnostic'}
+        agnostic_ref = {Wrapper._tool_ref_map['agnostic'][k]['tool'] : Wrapper._tool_ref_map['agnostic'][k]['link'] for k in Wrapper._tool_ref_map['agnostic']}
+        reference_mapa = {Wrapper._tool_ref_map['agnostic'][k]['tool'] : Wrapper._tool_ref_map['agnostic'][k]['reference'] for k in Wrapper._tool_ref_map['agnostic']}
+        reference_maps = {Wrapper._tool_ref_map[k]['tool']:Wrapper._tool_ref_map[k]['reference'] for k in Wrapper._tool_ref_map if k != 'agnostic'}
         total_ref = {**specific_ref, **agnostic_ref}
+        total_cit = {**reference_mapa, **reference_maps}
 
-        df = pd.DataFrame.from_dict({'tool':[t for t in Wrapper._tool_vers_map], 'version':[v for v in Wrapper._tool_vers_map.values()]})
-        df['reference'] = df['tool'].map(total_ref)
+        df = pd.DataFrame.from_dict({'tool':[t for t in Wrapper._tool_vers_map], 'tool_version':[v for v in Wrapper._tool_vers_map.values()]})
+        df['link'] = df['tool'].map(total_ref)
+        df['reference'] = df['tool'].map(total_cit)
+        df['run_parameters'] = ['default' for _ in df.index]
 
         db_map = {}
+        cgmlst_map = set() #for cgmlst databases
         for t in Wrapper._db_vers_map:
-            if isinstance(Wrapper._db_vers_map[t], dict):
-                db_map[t] = " | ".join([f"{r} : {v}" for r,v in Wrapper._db_vers_map[t].items()])
-            else:
-                db_map[t] = Wrapper._db_vers_map[t]
+            if t != 'chewbbaca':
+                if isinstance(Wrapper._db_vers_map[t], dict):
+                    db_map[t] = " | ".join([f"{r} : {v}" for r,v in Wrapper._db_vers_map[t].items()])             
+                else:
+                    db_map[t] = Wrapper._db_vers_map[t]
         df['db_versions'] = df['tool'].map(db_map)
+        df['db_versions'] = df['db_versions'].fillna('not_applicable')
         df.insert(0, 'analysis_batch_id', [os.path.basename(os.path.dirname(output_path)) for _ in df.index])
         df['ardetype_version'] = Wrapper._config_dict['ardetype_version']
+
+        #Add cgmlst databases as tools
+        for org in Wrapper._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']:
+            try:
+                timestamp = [Wrapper._db_vers_map['chewbbaca'][o] for o in Wrapper._db_vers_map['chewbbaca'] if org.lower().replace(' ', '_') in o.lower().replace(' ', '_')][0]
+            except IndexError:
+                timestamp = 'NA'
+            df.loc[len(df)] = {
+                "analysis_batch_id":os.path.basename(os.path.dirname(output_path)),
+                "tool":f"cgmlst_{org.lower()}",
+                "tool_version":"not_applicable",
+                "run_parameters":"default",
+                "db_versions":timestamp,
+                "reference":Wrapper._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs'][org]['reference'],
+                "link":Wrapper._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs'][org]['origin'],
+                "ardetype_version":Wrapper._config_dict['ardetype_version'],
+                }
+
+        df = df[["analysis_batch_id","tool","tool_version","run_parameters","db_versions","ardetype_version","reference","link"]]
         log_path = os.path.join(output_path, 'software_log.csv')
-        if not os.path.isfile(log_path):
-            df.to_csv(log_path, header=True, index=False)
+        # if not os.path.isfile(log_path):
+        df.to_csv(log_path, header=True, index=False)
         for sid in sample_ids:
             df.to_csv(os.path.join(output_path, f'{sid}_tool_log.csv'), header=True, index=False)
+
+
+'''Change log
+- version > tool_version
+- reference > link
+- additional columns: run_parameters (default), reference (static publication link)
+- db_version (not applicable where database is not used)
+- cgmlst_databases as tools
+'''
 
 
 ###############################################################
