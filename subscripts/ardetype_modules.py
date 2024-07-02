@@ -95,11 +95,11 @@ class Wrapper():
                     _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','clostridium_wgmlst_chewie_db'),
             },
             "resfinder"    :
-                _get_datestamp(f'{_config_dict["databases"]}db-resfinder/','db_resfinder'),
+                _get_datestamp(f'{_config_dict["databases"]}db-resfinder_new/','resfinder_db'),
             "plasmidfinder":
-                _get_datestamp(f'{_config_dict["databases"]}','plasmidfinder_db'),
+                _get_datestamp(f'{_config_dict["databases"]}','plasmidfinder_db_new'),
             "virulencefinder":
-                _get_datestamp(f'{_config_dict["databases"]}','virulencefinder_db_new'),
+                _get_datestamp(f'{_config_dict["databases"]}','virulencefinder_db_new'),                
     }   
 
 

@@ -325,6 +325,12 @@ tip_tool_configs:
         origin: https://chewbbaca.online/species/1
         allele_count: 3044
         reference: "Friães A, Mamede R, Ferreira M, Melo-Cristino J, Ramirez M. 2022. Annotated Whole-Genome Multilocus Sequence Typing Schema for Scalable High-Resolution Typing of Streptococcus pyogenes. J Clin Microbiol 60:e0031522. PMID: 35531659"
+      streptococcus pneumoniae:
+        db: Streptococcus.cgMLSTv1_alleles
+        version: '2020-10-09'
+        origin: https://enterobase.warwick.ac.uk/schemes/Streptococcus.cgMLSTv1/
+        allele_count: 372
+        reference: "Frentrup M, Zhou Z, Steglich M, Meier-Kolthoff JP, Göker M, Riedel T, Bunk B, Sprö8er C, Overmann J, Blaschitz M, Indra A, von Müller L, Kohl TA, Niemann S, Seyboldt C, Klawonn F, Kumar N, Lawley TD, García-Fernández S, Cantón R, Del Campo R, Zimmermann O, Groß U, Achtman M, Nübel U. A publicly accessible database for Clostridioides difficile genome sequences supports tracing of transmission chains and epidemics. Microb Genom. 2020 Aug;6(8):mgen000410. doi: 10.1099/mgen.0.000410. Epub 2020 Jul 29. PMID: 32726198; PMCID: PMC7641423."
       campylobacter:
         db: Campylobacter_jejuni_coli
         version: '2023-05-03'

@@ -143,7 +143,6 @@
             ],
             "Streptococcus pyogenes": [
                 "_strp_emmtyper.tsv",
-                "_cgmlstfinder/data.json",
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Neisseria gonorrhoeae": [
@@ -156,38 +155,33 @@
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Campylobacter jejuni": [
-                "_cgmlstfinder/data.json",
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Campylobacter coli": [
-                "_cgmlstfinder/data.json",
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Salmonella enterica": [
                 "_sistr.csv",
                 "_SeqSero.tsv",
                 "_se_pasteur_cgmlst.json",
-                "_cgmlstfinder/data.json",
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Acinetobacter baumannii": [
                 "_kleborate.tsv",
                 "_ab_pumblst.json",
                 "_ab_pasteur_cgmlst.json",
-                "_cgmlstfinder/data.json",
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Escherichia coli": [
                 "_ectyper.tsv",
                 "_ec_pasteur_cgmlst.json",
                 "_stecfinder.tsv",
-                "_cgmlstfinder/data.json",
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Streptococcus pneumoniae": [
                 "_seroba.tsv",
                 "_strp_pasteur_cgmlst.json",
-                "_cgmlstfinder/data.json"
+                "_chewbbaca/results_alleles.tsv"
             ],
             "Yersinia enterocolitica": [
                 "_chewbbaca/results_alleles.tsv"
