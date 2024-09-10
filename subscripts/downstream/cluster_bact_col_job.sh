@@ -2,7 +2,7 @@
 #PBS -N clst_bct_cl
 #PBS -l walltime=03:30:00
 #PBS -l procs=32
-#PBS -l mem=4g
+#PBS -l mem=64g
 #PBS -q batch
 #PBS -j oe
 #PBS -A rakus

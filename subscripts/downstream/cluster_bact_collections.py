@@ -203,7 +203,7 @@ def main():
         for path in profile_paths
     ]
     
-    # Execute cgmost clustering concurrently
+    #Execute cgmlst clustering concurrently
     with ThreadPoolExecutor(max_workers=len(tasks)) as executor:
         future_to_task = {executor.submit(run_clustering_script, **task): task for task in tasks}
         
@@ -226,7 +226,7 @@ def main():
             except Exception as e:
                 print(f"An error occurred: {e}")
 
-    # Aggregate clusters for all species
+    #Aggregate clusters for all species
     profile_paths = get_collections(ctype='profiles')
     aggregated_clusters = pd.DataFrame()
     with ProcessPoolExecutor(max_workers=28) as executor:
@@ -243,6 +243,13 @@ def main():
     current_date_string = datetime.now().strftime('%Y-%m-%d')
     aggregated_clusters['date_cur'] = current_date_string
     current_cluster_file = glob.glob(os.path.join(OUTPUT_PATH, 'bact_clusters*.csv'))
+    current_clustsize_file = glob.glob(os.path.join(OUTPUT_PATH, 'bclust_sizes*.csv'))
+    #Moving old clustsize file to backup
+    if current_clustsize_file:
+        current_clustsize_file = current_clustsize_file[0]
+        cur_sfile_name = os.path.basename(current_clustsize_file)
+        shutil.move(current_clustsize_file, os.path.join(BACKUP_PATH, cur_sfile_name))
+    #Combining old and new cluster registry files
     if current_cluster_file:
         current_cluster_file = current_cluster_file[0]
         cur_file_name = os.path.basename(current_cluster_file)
@@ -251,36 +258,89 @@ def main():
         shutil.move(current_cluster_file, os.path.join(BACKUP_PATH, cur_file_name))
 
         #Check if new clusters differ from old clusters
-        check = old_clusters.merge(aggregated_clusters, on='sample_id', how='right')
+        check = old_clusters.merge(aggregated_clusters, on='sample_id', how='inner')
         # Get the current date as a string.
         
         check = check[check[f'cluster_{kwargs["distance_threshold"]}_thr_x'] != check[f'cluster_{kwargs["distance_threshold"]}_thr_y']]
+        # check.to_csv('test.csv',header=True, index=False)
         if len(check) > 0:
+
             old_clusters.set_index('sample_id', inplace=True)
             check.set_index('sample_id', inplace=True)
+
             #in case cluster ids were updated during last iteration
             for index,row in check.iterrows():
                 # Assuming 'cluster_{kwargs["distance_threshold"]}_thr' is the current cluster ID column
                 new_cluster_id = row[f'cluster_{kwargs["distance_threshold"]}_thr_y']
                 new_date = row['date_cur_y']  # Assuming this is correctly named and contains the current date string
-
+                
                 # Check if cluster_hist is NaN and update accordingly
                 if pd.isna(old_clusters.at[index, 'cluster_hist']):
                     old_clusters.at[index, 'cluster_hist'] = new_cluster_id
                 else:
-                    old_clusters.at[index, 'cluster_hist'] += "_" + str(new_cluster_id).split('_')[-1]
+                    old_id = old_clusters.at[index, 'cluster_hist'].split('_')[-1]
+                    new_id = str(new_cluster_id).split('_')[-1]
+                    print(index, old_id, new_id, new_cluster_id)
+                    if old_id != new_id:
+                        old_clusters.at[index, 'cluster_hist'] += "_" + new_id
+                        old_clusters.at[index, f'cluster_{kwargs["distance_threshold"]}_thr'] = new_cluster_id
 
                 # Check if date_hist is NaN and update accordingly
                 if pd.isna(old_clusters.at[index, 'date_hist']):
                     old_clusters.at[index, 'date_hist'] = new_date
                 else:
-                    old_clusters.at[index, 'date_hist'] += "_" + new_date
+                    old_date = old_clusters.at[index, 'date_hist'].split('_')[-1]
+                    if old_date != new_date:
+                        old_clusters.at[index, 'date_hist'] += "_" + new_date
+                        old_clusters.at[index, 'date_cur'] = new_date
+        #Generate unique cluster identifier based on first assigned cluster# and species
+        cluster_ids = []
+        first_dates = []
+        for row in old_clusters.iterrows():
+            clust_hist = row[1]['cluster_hist'].split('_')
+            first_dates.append(row[1]['date_hist'].split('_')[0])
+            prefix = ''
+            if clust_hist[0] == 'outgroup':
+                prefix += 'outgroup'
+            else:
+                prefix += 'cluster'
+                prefix += '_'+clust_hist[1]
+            cluster_id = prefix + "_" + row[1]['species'].replace(" ", "-")
+            cluster_ids.append(cluster_id)
+        old_clusters['cluster_id'] = cluster_ids
+        old_clusters['first_date'] = first_dates
+
+        #Calculating cluster sizes
+        clust_sizes = old_clusters.groupby([f'cluster_{kwargs["distance_threshold"]}_thr', 'species']).count()
+        #Transforming to get sql-accepted shape
+        clust_sizes = clust_sizes.reset_index()
+        # clust_sizes.to_csv('test1.csv')
+        #Keeping relevant columns
+        clust_sizes = clust_sizes[[f'cluster_{kwargs["distance_threshold"]}_thr', 'species', 'date_cur']]
+        #Applying informative column names
+        clust_sizes = clust_sizes.rename(columns={'date_cur':'sample_count'})
+
         #Save updated history in case it was not a "cold start"
+        # old_clusters.reset_index(inplace=True)
         old_clusters.to_csv(os.path.join(OUTPUT_PATH, f'bact_clusters_{REPORT_TIME}.csv'), header=True, index=False)
+        #Save up-to-date cluster size table
+        clust_sizes.to_csv(os.path.join(OUTPUT_PATH, f'bclust_sizes_{REPORT_TIME}.csv'), header=True, index=False)
         return
+
+
+    #Calculating cluster sizes
+    clust_sizes = aggregated_clusters.groupby([f'cluster_{kwargs["distance_threshold"]}_thr', 'species']).count()
+    #Transforming to get sql-accepted shape
+    clust_sizes = clust_sizes.reset_index()
+    #Keeping relevant columns
+    clust_sizes = clust_sizes[[f'cluster_{kwargs["distance_threshold"]}_thr', 'species', 'sample_id']]
+    #Applying informative column names
+    clust_sizes = clust_sizes.rename(columns={'sample_id':'sample_count'})
+
     #Save up-to-date clusters table
     aggregated_clusters.to_csv(os.path.join(OUTPUT_PATH, f'bact_clusters_{REPORT_TIME}.csv'), header=True, index=False)
-
+    #Save up-to-date cluster size table
+    clust_sizes.to_csv(os.path.join(OUTPUT_PATH, f'bclust_sizes_{REPORT_TIME}.csv'), header=True, index=False)
 
 # Runtime
 if __name__ == "__main__":
