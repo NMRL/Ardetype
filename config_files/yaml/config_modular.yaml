@@ -238,9 +238,11 @@ shell_tool_configs:
   plasmidfinder:
     plasmidfinder_sif: /mnt/beegfs2/home/groups/nmrl/image_files/plasmidfinder_latest.sif
     plasmidfinder_db: /mnt/beegfs2/home/groups/nmrl/db/plasmidfinder_db_new/
+    db_update: "2024-06-18"
   virulencefinder:
     virulencefinder_sif: /mnt/beegfs2/home/groups/nmrl/image_files/virulencefinder.sif
     virulencefinder_db: /mnt/beegfs2/home/groups/nmrl/db/virulencefinder_db_new/
+    db_update: "2024-06-18"
   rmlst_pubmlst:
     schema: http://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1/sequence
     api_seq_limit: 75 # changed from 5000 by reivan on 02.01.2023
@@ -277,6 +279,7 @@ tip_tool_configs:
   cgmlstfinder:
     cgmlstfinder_sif: /mnt/beegfs2/home/groups/nmrl/image_files/cgmlstfinder.sif
     cgmlstfinder_db: /mnt/beegfs2/home/groups/nmrl/db/cgmlstfinder_db/
+    db_update: "2024-10-14"
     cgmlstfinder_orgs:
       salmonella: salmonella
       escherichia coli: ecoli
@@ -294,108 +297,126 @@ tip_tool_configs:
         version: 2.0
         origin: https://www.cgmlst.org/ncs/schema/4792159/
         allele_count: 3001
+        db_update: "2023-05-15"
         reference: "Alikhan NF, Zhou Z, Sergeant MJ, and Achtman M. A genomic overview of the population structure of Salmonella. PLoS Genet. 2018, 14: e1007261 [PubMed 29621240]"
       escherichia:
         db: Escherichia_coli
         version: 1.0
         origin: https://www.cgmlst.org/ncs/schema/5064703/
         allele_count: 2513
+        db_update: "2023-05-17"
         reference: "Zhou Z, Alikhan NF, Mohamed K, Fan Y, and . The EnteroBase user's guide, with case studies on Salmonella transmissions, Yersinia pestis phylogeny, and Escherichia core genomic diversity. Genome Res. 2020, 30: 138-152 [PubMed 31809257]"
       enterobacter:
         db: Escherichia_coli
         version: 1.0
         origin: https://www.cgmlst.org/ncs/schema/5064703/
         allele_count: 2513
+        db_update: "2023-05-17"
         reference: "Zhou Z, Alikhan NF, Mohamed K, Fan Y, and . The EnteroBase user's guide, with case studies on Salmonella transmissions, Yersinia pestis phylogeny, and Escherichia core genomic diversity. Genome Res. 2020, 30: 138-152 [PubMed 31809257]"
       shigella:
         db: Escherichia_coli
         version: 1.0
         origin: https://www.cgmlst.org/ncs/schema/5064703/
         allele_count: 2513
+        db_update: "2023-05-17"
         reference: "Zhou Z, Alikhan NF, Mohamed K, Fan Y, and . The EnteroBase user's guide, with case studies on Salmonella transmissions, Yersinia pestis phylogeny, and Escherichia core genomic diversity. Genome Res. 2020, 30: 138-152 [PubMed 31809257]"
       baumannii:
         db: Acinetobacter_baumannii
         version: 1.0
         origin: https://www.cgmlst.org/ncs/schema/3956907/
         allele_count: 2390
+        db_update: "2023-05-17"
         reference: "Higgins PG, Prior K, Harmsen D, and Seifert H. Development and evaluation of a core genome multilocus typing scheme for whole-genome sequence-based typing of Acinetobacter baumannii. PLoS ONE. 2017, 12: e0179228: e0179228 [PubMed 28594944]"
       streptococcus pyogenes:
         db: spyogenes_wgMLST
-        version: '2021-07-27'
+        version: "2021-07-27"
         origin: https://chewbbaca.online/species/1
         allele_count: 3044
+        db_update: "2023-10-02"
         reference: "Friães A, Mamede R, Ferreira M, Melo-Cristino J, Ramirez M. 2022. Annotated Whole-Genome Multilocus Sequence Typing Schema for Scalable High-Resolution Typing of Streptococcus pyogenes. J Clin Microbiol 60:e0031522. PMID: 35531659"
       streptococcus pneumoniae:
         db: Streptococcus.cgMLSTv1_alleles
-        version: '2020-10-09'
+        version: "2020-10-09"
         origin: https://enterobase.warwick.ac.uk/schemes/Streptococcus.cgMLSTv1/
         allele_count: 372
+        db_update: "2023-10-09"
         reference: "Frentrup M, Zhou Z, Steglich M, Meier-Kolthoff JP, Göker M, Riedel T, Bunk B, Sprö8er C, Overmann J, Blaschitz M, Indra A, von Müller L, Kohl TA, Niemann S, Seyboldt C, Klawonn F, Kumar N, Lawley TD, García-Fernández S, Cantón R, Del Campo R, Zimmermann O, Groß U, Achtman M, Nübel U. A publicly accessible database for Clostridioides difficile genome sequences supports tracing of transmission chains and epidemics. Microb Genom. 2020 Aug;6(8):mgen000410. doi: 10.1099/mgen.0.000410. Epub 2020 Jul 29. PMID: 32726198; PMCID: PMC7641423."
       campylobacter:
         db: Campylobacter_jejuni_coli
-        version: '2023-05-03'
+        version: "2023-05-03"
         origin: https://www.cgmlst.org/ncs/schema/145039/
         allele_count: 637
+        db_update: "2023-05-03"
         reference: "Nennig M, Llarena AK, Herold M, Mossong J, Penny C, Losch S, Tresse O, and Ragimbeau C. Investigating Major Recurring Campylobacter jejuni Lineages in Luxembourg Using Four Core or Whole Genome Sequencing Typing Schemes. Front Cell Infect Microbiol. 2020, 10: 608020 [PubMed 33489938]"
       klebsiella:
         db: Klebsiella_pneumoniae_variicola_quasipneumoniae
         version: 1.0
         origin: https://www.cgmlst.org/ncs/schema/2187931/
         allele_count: 2358
+        db_update: "2023-05-05"
         reference: "Weber RE, Pietsch M, Frühauf A, Pfeifer Y, Martin M, Luft D, Gatermann S, Pfennigwerth N, Kaase M, Werner G, and Fuchs S. IS26-Mediated Transfer of blaNDM-1 as the Main Route of Resistance Transmission During a Polyclonal, Multispecies Outbreak in a German Hospital. Front Microbiol. 2019, 10: 2817 [PubMed 31921015]"
       legionella:
         db: Legionella_pneumophila
         version: 1.1
         origin: https://www.cgmlst.org/ncs/schema/1025099/
         allele_count: 1521
+        db_update: "2023-05-29"
         reference: "Moran-Gilad J, Prior K, Yakunin E, Harrison TG, Underwood A, Lazarovitch T, Valinsky L, Luck C, Krux F, Agmon V, Grotto I, and Harmsen D. Design and application of a core genome multilocus sequence typing scheme for investigation of Legionnaires' disease incidents. Euro Surveill. 2015, 20: [PubMed 26212142]"
       listeria:
         db: Listeria_monocytogenes
         version: 2.1
         origin: https://www.cgmlst.org/ncs/schema/690488/
         allele_count: 1701
+        db_update: "2023-05-24"
         reference: "Ruppitsch W, Pietzka A, Prior K, Bletz S, Fernandez HL, Allerberger F, Harmsen D, and Mellmann A. Defining and Evaluating a Core Genome Multilocus Sequence Typing Scheme for Whole-Genome Sequence-Based Typing of Listeria monocytogenes. J. Clin. Microbiol. 2015, 53: 2869-76: 2869-76 [PubMed 26135865]"
       staphylococcus aureus:
         db: Staphylococcus_aureus
         version: 1.3
         origin: https://www.cgmlst.org/ncs/schema/141106/
         allele_count: 1861
+        db_update: "2023-05-10"
         reference: "Leopold SR, Goering RV, Witten A, Harmsen D, and Mellmann A. Bacterial whole-genome sequencing revisited: portable, scalable, and standardized analysis for typing and detection of virulence and antibiotic resistance genes. J. Clin. Microbiol. 2014, 52: 2365-70: 2365-70 [PubMed 24759713]"
       pseudomona:
         db: Pseudomonas_aeruginosa_cgMLST
         version: 1.0
         origin: https://www.cgmlst.org/ncs/schema/16115339/
         allele_count: 3867
+        db_update: "2023-08-31"
         reference: "Tönnies H, Prior K, Harmsen D, and Mellmann A. Establishment and evaluation of a core genome multilocus sequence typing scheme for whole-genome sequence-based typing of Pseudomonas aeruginosa. J Clin Microbiol. 2020 [PubMed 33328175]"
       enterococcus faecalis:
         db: Enterococcus_faecalis_cgMLST
         version: 1.0
         origin: https://www.cgmlst.org/ncs/schema/3887469/
         allele_count: 1972
+        db_update: "2023-05-21"
         reference: "Neumann B, Prior K, Bender JK, Harmsen D, Klare I, Fuchs S, Bethe A, Zühlke D, Göhler A, Schwarz S, Schaffer K, Riedel K, Wieler LH, and Werner G. A Core Genome Multilocus Sequence Typing Scheme for Enterococcus faecalis. J. Clin. Microbiol. 2019, 57 [PubMed 30651394]"
       enterococcus faecium:
         db: Enterococcus_faecium_cgMLST
         version: 1.1
         origin: https://www.cgmlst.org/ncs/schema/991893/
         allele_count: 1423
+        db_update: "2023-05-21"
         reference: "de Been M, Pinholt M, Top J, Bletz S, Mellmann A, van Schaik W, Brouwer E, Rogers M, Kraat Y, Bonten M, Corander J, Westh H, Harmsen D, and Willems RJ. Core Genome Multilocus Sequence Typing Scheme for High- Resolution Typing of Enterococcus faecium. J. Clin. Microbiol. 2015, 53: 3788-97: 3788-97 [PubMed 26400782]"
       yersinia:
         db: Yersinia.cgMLSTv1_chewbbaca
-        version: '2023-08-16'
+        version: "2023-08-16"
         origin: https://enterobase.warwick.ac.uk/schemes/Yersinia.cgMLSTv1/
         allele_count: 1553
+        db_update: "2023-08-16"
         reference: "Frentrup M, Zhou Z, Steglich M, Meier-Kolthoff JP, Göker M, Riedel T, Bunk B, Sprö8er C, Overmann J, Blaschitz M, Indra A, von Müller L, Kohl TA, Niemann S, Seyboldt C, Klawonn F, Kumar N, Lawley TD, García-Fernández S, Cantón R, Del Campo R, Zimmermann O, Groß U, Achtman M, Nübel U. A publicly accessible database for Clostridioides difficile genome sequences supports tracing of transmission chains and epidemics. Microb Genom. 2020 Aug;6(8):mgen000410. doi: 10.1099/mgen.0.000410. Epub 2020 Jul 29. PMID: 32726198; PMCID: PMC7641423."
       clostridioides:
         db: Clostridioides_difficile_db
         version: 2.0
         origin: https://www.cgmlst.org/ncs/schema/12556067/
         allele_count: 2147
+        db_update: "2023-09-29"
         reference: "Bletz S, Janezic S, Harmsen D, Rupnik M, and Mellmann A. Defining and Evaluating a Core Genome Multilocus Sequence Typing Scheme for Genome-Wide Typing of Clostridium difficile. J. Clin. Microbiol. 2018, 56 [PubMed 29618503]"
       clostridium:
         db: clostridium_wgmlst_chewie_db
-        version: '2023-01-12'
+        version: "2023-01-12"
         origin: https://enterobase.warwick.ac.uk/schemes/clostridium.wgMLST/
         allele_count: 13745
+        db_update: "2023-01-12"
         reference: "Frentrup M, Zhou Z, Steglich M, Meier-Kolthoff JP, Göker M, Riedel T, Bunk B, Sprö8er C, Overmann J, Blaschitz M, Indra A, von Müller L, Kohl TA, Niemann S, Seyboldt C, Klawonn F, Kumar N, Lawley TD, García-Fernández S, Cantón R, Del Campo R, Zimmermann O, Groß U, Achtman M, Nübel U. A publicly accessible database for Clostridioides difficile genome sequences supports tracing of transmission chains and epidemics. Microb Genom. 2020 Aug;6(8):mgen000410. doi: 10.1099/mgen.0.000410. Epub 2020 Jul 29. PMID: 32726198; PMCID: PMC7641423."
   lrefinder_efaecium_efaecalis:
     id: 80
