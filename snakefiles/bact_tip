@@ -174,7 +174,7 @@ rule meningotype_nmeningitidis:
         mkdir -p ~/meningotype/
         cp {input.contigs} ~/meningotype/
         
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} meningotype ~/meningotype/$(basename {input.contigs}) > ~/meningotype/$(basename {output})
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} meningotype --all ~/meningotype/$(basename {input.contigs}) > ~/meningotype/$(basename {output})
         
         mv ~/meningotype/$(basename {output}) {output}
         rm -r ~/meningotype/{wildcards.sample_id_pattern}*
