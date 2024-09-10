@@ -85,6 +85,14 @@ res_gen_id:
   queue: "batch"
   jobout: "oe"
 
+res_marker_concordance:
+  jobname: "ardetype.rmc"
+  procs: 30
+  pmem: "1000mb"
+  walltime: "02:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
 
 rmlst:
   jobname: "ardetype.rmlst"

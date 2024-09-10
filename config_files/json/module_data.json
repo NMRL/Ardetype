@@ -37,7 +37,14 @@
         "shigatyper_report.csv",
         "seroba_report.csv",
         "emmtyper_report.csv",
-        "hicap_report.csv"
+        "hicap_report.csv",
+        "rmc_dashing2_report.csv",
+        "rmc_blast_report.csv",
+        "rmc_mash_report.csv",
+        "rmc_bindash_report.csv",
+        "rmc_runtime_report.csv",
+        "_rmc_benchmark_details.csv",
+        "rmc_benchmark_report.csv"
     ],
     "core": {
         "targets": [
@@ -86,7 +93,14 @@
             "_virulencefinder/results_tab.tsv",
             "_virulencefinder/results.txt",
             "_virulencefinder/data.json",
-            "_rmlst.json"
+            "_rmlst.json",
+            "_res_markers.fasta",
+            "_rmc_dashing2.csv",
+            "_rmc_mash.csv",
+            "_rmc_dashing2.csv",
+            "_rmc_blast.csv",
+            "_rmc_bindash.csv",
+            "_rmc_runtime.csv"
         ],
         "patterns": {
             "inputs": [

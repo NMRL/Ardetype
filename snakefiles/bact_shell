@@ -5,6 +5,12 @@ from Bio import SeqIO
 from pathlib import Path
 sys.path.insert(0, os.path.abspath('./'))
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
+from subscripts.downstream.combine_res_profile_seq import main as res_seq_harm, batch_runtime as rmc_runtime_report, batch_tool, aggregate_distances, batch_test, sample_identifier, common_columns
+from subscripts.downstream.combine_res_profile_seq import mash_columns, mash_suffix, mash_id, mash_threshold, mash_sim
+from subscripts.downstream.combine_res_profile_seq import bindash_columns, bindash_suffix, bindash_id, bindash_threshold, bindash_sim
+from subscripts.downstream.combine_res_profile_seq import dashing2_columns, dashing2_suffix, dashing2_id, dashing2_threshold
+from subscripts.downstream.combine_res_profile_seq import blast_columns, blast_suffix, blast_id, blast_threshold
+
 
 #define sample_id_pattern wildcard and accessing sample_sheet
 sip_wild                = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
@@ -49,7 +55,15 @@ rule all:
         mobtyper_contigs     = expand(config['output_directory']+'{sample_id}_mob_recon/contig_report.txt', sample_id=sample_sheet['sample_id']),
 
         #Virulencefinder reports to aggregate
-        virulencefinder        = expand(config['output_directory']+'{sample_id}_virulencefinder/results_tab.tsv', sample_id=sample_sheet['sample_id']),
+        virulencefinder      = expand(config['output_directory']+'{sample_id}_virulencefinder/results_tab.tsv', sample_id=sample_sheet['sample_id']),
+
+        #Res. marker concordance reports to aggregate
+        rmc_runtime          = expand(config['output_directory']+'{sample_id}_rmc_runtime.csv', sample_id=sample_sheet['sample_id']),
+        blast                = expand(config['output_directory']+'{sample_id}_rmc_blast.csv', sample_id=sample_sheet['sample_id']),
+        mash                 = expand(config['output_directory']+'{sample_id}_rmc_mash.csv', sample_id=sample_sheet['sample_id']),
+        bindash              = expand(config['output_directory']+'{sample_id}_rmc_bindash.csv', sample_id=sample_sheet['sample_id']),
+        dashing2             = expand(config['output_directory']+'{sample_id}_rmc_dashing2.csv', sample_id=sample_sheet['sample_id']),
+
     run:
         #Use only non-empty files (hamronization fails otherwise or easier to implement custom aggregation)
         input.hamr_resfinder = [ path for path in input.hamr_resfinder if not os.path.getsize(path) == 0]
@@ -115,6 +129,129 @@ echo bact_shell finished
             hamr_pls.to_csv(f"{config['output_directory']}resfinder_mobtyper_mapping.csv", header=True, index=False)
         else:
             Path(f"{config['output_directory']}mobtyper_contig_summary.csv").touch()
+
+        #Aggregate res. marker concordance check results
+        dashing2 = batch_tool(
+            input.dashing2, 
+            dashing2_columns+common_columns, 
+            dashing2_suffix, 
+            dashing2_id,
+            dashing2_threshold,
+            sample_identifier
+            )
+
+        dashing2_path = f"{config['output_directory']}rmc_dashing2_report.csv"
+        dashing2.to_csv(dashing2_path, header=True, index=False)
+        dashing2_aggr = pd.DataFrame()
+        for sample_id, input_path in zip(sample_sheet['sample_id'], input.dashing2):
+            output_path = f"{config['output_directory']}{sample_id}_dashing2_consensus.csv"
+            df = aggregate_distances(input_path, sample_id)
+            df.to_csv(output_path, index=False)
+            dashing2_aggr = pd.concat([dashing2_aggr, df])
+        output_path = f"{config['output_directory']}dashing2_consensus.csv"
+        dashing2_aggr.to_csv(output_path, index=False)
+
+        blast = batch_tool(
+            input.blast,
+            blast_columns+common_columns, 
+            blast_suffix, 
+            blast_id,
+            blast_threshold,
+            sample_identifier
+            )
+        blast.to_csv(f"{config['output_directory']}rmc_blast_report.csv", header=True, index=False)
+
+        mash = batch_tool(
+            input.mash, 
+            mash_columns+common_columns, 
+            mash_suffix, 
+            mash_id, 
+            mash_threshold,
+            sample_identifier,
+            is_similarity=mash_sim)
+        mash_path = f"{config['output_directory']}rmc_mash_report.csv"
+        mash.to_csv(mash_path, header=True, index=False)
+
+        bindash = batch_tool(
+            input.bindash, 
+            bindash_columns+common_columns,
+            bindash_suffix, 
+            bindash_id, 
+            bindash_threshold,
+            sample_identifier,
+            is_similarity=bindash_sim)
+        bindash_path = f"{config['output_directory']}rmc_bindash_report.csv"
+        bindash.to_csv(bindash_path, header=True, index=False)
+
+        runtime = rmc_runtime_report(path_list = input.rmc_runtime)
+        runtime.to_csv(f"{config['output_directory']}rmc_runtime_report.csv", header=True, index=False)
+
+        tool_test, merges = batch_test(
+            path_list = [mash_path, bindash_path, dashing2_path],
+            gt = blast,
+            gt_control_col = '% identity', #in blast
+            gt_control_metric = 0, #similarity - in blast
+            right_keys = [[sample_identifier, "Reference-ID", "Query-ID"]]*2 +[[sample_identifier, "Query", "Source"]],
+            left_keys = [[sample_identifier, "query acc.ver","subject acc.ver"]]*3, #in blast
+            control_columns=[mash_id, bindash_id, dashing2_id],
+            dist_sim_def=[1,1,0]) #distance, distance, similarity
+        for r, name in zip(merges, ['mash', 'bindash', 'dashing2']):
+            r.to_csv(f"{config['output_directory']}{name}_rmc_benchmark_details.csv", header=True, index=False)
+        tool_test.to_csv(f"{config['output_directory']}rmc_benchmark_report.csv", header=True, index=False)
+
+
+
+rule res_marker_concordance:
+    input:
+        rgi_sequences = config['output_directory'] + '{sample_id_pattern}.rgi.txt',
+        resfinder_sequences = config['output_directory'] + '{sample_id_pattern}_resfinder/ResFinder_Hit_in_genome_seq.fsa',
+        amrfinder_sequences = config['output_directory'] + '{sample_id_pattern}_amrfinderplus_found_seq.fasta'
+    output:
+        config['output_directory']+'{sample_id_pattern}_res_markers.fasta',
+        config['output_directory']+'{sample_id_pattern}_rmc_mash.csv',
+        config['output_directory']+'{sample_id_pattern}_rmc_dashing2.csv',
+        config['output_directory']+'{sample_id_pattern}_rmc_blast.csv',
+        config['output_directory']+'{sample_id_pattern}_rmc_bindash.csv',
+        config['output_directory']+'{sample_id_pattern}_rmc_runtime.csv',
+    run:
+        path_list = [input[0], input[1], input[2]]
+        out_path = output[0]#'test.fasta'
+        split_folder_path = f"{config['output_directory']}{wildcards.sample_id_pattern}_res_marker_split"
+        if os.path.isdir(split_folder_path):
+            os.system(f'rm -r {split_folder_path}')
+        
+        mash_df_path = output[1] #'distances_mash.csv'
+        mash_sketch_log = f"{config['output_directory']}{wildcards.sample_id_pattern}_mash_sketch.log"
+        mash_distance_log = f"{config['output_directory']}{wildcards.sample_id_pattern}_mash_dist_log.csv"
+        
+        dash2_df_path = output[2] #'distances_dashing2.csv'
+        dash2_log_path = f"{config['output_directory']}{wildcards.sample_id_pattern}_dashing2_log.csv"
+        
+        blast_df_path = output[3]
+        blast_log_path = f"{config['output_directory']}{wildcards.sample_id_pattern}_blast_log.csv"
+        
+        bindash_df_path = output[4] #'distances_binhash.csv'
+        bindash_sketch_log = f"{config['output_directory']}{wildcards.sample_id_pattern}_bindash_sketch.log"
+        bindash_distance_log = f"{config['output_directory']}{wildcards.sample_id_pattern}_bindash_dist_log.csv"
+        
+        runtime_est_path = output[5] #'runtime_estimates.csv'
+        res_seq_harm(
+            path_list,
+            out_path,
+            split_folder_path,
+            mash_df_path,
+            mash_sketch_log,
+            mash_distance_log,
+            dash2_df_path,
+            dash2_log_path,
+            blast_df_path,
+            blast_log_path,
+            bindash_df_path,
+            bindash_sketch_log,
+            bindash_distance_log,
+            runtime_est_path
+        )
+        os.system(f'rm -r {split_folder_path}')
 
 
 rule mob_recon:
