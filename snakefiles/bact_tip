@@ -113,12 +113,12 @@ rule all:
 
 
         #Run cluster analysis
-        hk.cgmlst_cluster_analysis(
-            path = config['output_directory'],
-            wildcard='*_chewbbaca/results_alleles.tsv',
-            thresholds=[i+1 for i in range(25)],
-            log_scale=True,
-            rem_outlier=100)
+        # hk.cgmlst_cluster_analysis(
+        #     path = config['output_directory'],
+        #     wildcard='*_chewbbaca/results_alleles.tsv',
+        #     thresholds=[i+1 for i in range(25)],
+        #     log_scale=True,
+        #     rem_outlier=100)
 
 
 
