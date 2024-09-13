@@ -351,7 +351,7 @@ def calculate_distances(
         
         save_comparison_logs(logs, log_path)
 
-        if os.path.isfile(dist_file_path):
+        if os.path.isfile(dist_file_path) and os.stat(dist_file_path).st_size != 0:
             df = pd.read_csv(dist_file_path, sep=dist_file_sep, header=None)
             if len(df) > 0:
                 df.columns = tool_columns
