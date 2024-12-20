@@ -15,7 +15,33 @@ if __name__ == "__main__":
     num_jobs = args.num_jobs
     if args.install_snakemake:
         hk.install_snakemake()
-    if args.mode == "all":
+
+    if args.mode == "bucket":
+        __config = hk.read_yaml("./config_files/yaml/config_modular.yaml")
+        home_path = __config['home_dir']
+        out_bucket_path = __config['output_bucket_path']
+        del __config
+        if args.input.endswith('/'):
+            input_name = os.path.basename(os.path.dirname(args.input))
+        else:
+            input_name = os.path.basename(args.input)
+        target_path = os.path.join(home_path, input_name)
+        hk.move_folder(args.input, target_path)
+        print(f'Moving from input bucket to {target_path}')
+        args.input, args.output_dir = target_path, target_path
+
+        output = run_all(args, num_jobs)
+
+        if output.endswith('/'):
+            target_name = os.path.basename(os.path.dirname(output))
+        else:
+            target_name = os.path.basename(output)
+
+        target_path = os.path.join(home_path, target_name)
+        target_bucket_path = os.path.join(out_bucket_path, target_name)
+        print(f'Moving from {target_name} to {hk.move_folder(target_path, target_bucket_path)}')
+
+    elif args.mode == "all":
         run_all(args, num_jobs)
     elif args.mode == 'core':
         run_core(args,num_jobs)

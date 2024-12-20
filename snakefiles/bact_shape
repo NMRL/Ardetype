@@ -35,7 +35,7 @@ rule all:
         #formula used for coverage : ( ( ( LR1 + LR2 )/2 ) * NRP * 2 ) / AL = ( LR1 + LR2 ) * NRP / AL
         #LR - Read length after quality filtering
         #NRP - number of non-host read pairs (unclassified by kraken2 using human hg19-based database)
-        #AL - asembly length (sum of length of all contigs for a given sample)
+        #AL - assembly length (sum of length of all contigs for a given sample)
         #result is rounded to two digits after the comma
 
 
@@ -73,7 +73,10 @@ rule all:
         report = report[order_list]
 
         #generate per-sample and per-batch tool reports
-        wp.report_tool_versions(config['output_directory'], sample_ids = report.sample_id)
+        wrapper = wp()
+        wrapper.set_db_vers_map()
+        wrapper.set_tool_vers_map()
+        wrapper.report_tool_versions(output_path = config['output_directory'], sample_ids = report.sample_id)
 
         #add output folder name as analysis batch id
         report.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in report.index])

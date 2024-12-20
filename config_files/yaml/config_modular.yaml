@@ -17,6 +17,8 @@ contig_collection_path:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/tax_contig_collections
 cgmlst_prof_col_path:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/tax_profile_collections
+output_bucket_path:
+  /mnt/beegfs2/home/groups/nmrl/bact_analysis/output_bucket_test/illumina/
 
 ##############
 # bact_core

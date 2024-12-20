@@ -27,7 +27,17 @@ cluster_counter = 0
 
 class Ardetype_housekeeper(hk):
     '''Class extends the standard housekeeper class to implement functions required by specific pipeline'''
-        
+
+    @staticmethod
+    def move_folder(src_path:str, tgt_path:str) -> str:
+        '''Moves folder from src to tgt and returns tgt path.'''
+        src_exists = os.path.isdir(src_path)
+
+        if not src_exists:
+            sys.exit('Source does not exist or is not a folder - teminating.')
+
+        return shutil.move(src_path, tgt_path)
+
     @staticmethod
     def merge_paths(src_list, target_folder=None, ignore_collisions=True, exclude_files=[]):
         '''
