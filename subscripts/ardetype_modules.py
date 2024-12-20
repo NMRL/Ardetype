@@ -22,10 +22,13 @@ class Wrapper():
     '''Toolkit class to store wrapper methods & attributes for different tools'''
 
     #pipeline configuration saved at module import
-    _config_dict   = hk.read_yaml(f"{ardetype_path}/config_files/yaml/config_modular.yaml")
-    _tool_ref_map  = hk.read_json_dict(f"{ardetype_path}/config_files/json/specific_tool_map.json")
+    def __init__(self):
+        self._config_dict   = hk.read_yaml(f"{ardetype_path}/config_files/yaml/config_modular.yaml")
+        self._tool_ref_map  = hk.read_json_dict(f"{ardetype_path}/config_files/json/specific_tool_map.json")
+        self._db_vers_map = None
+        self._tool_vers_map = None
 
-    def _get_datestamp(common_dir:str, name:str)->str:
+    def _get_datestamp(self, common_dir:str, name:str)->str:
         '''
         Returns date of latest file/folder manipulation
         given path to common parent folder and specific file name.
@@ -33,200 +36,178 @@ class Wrapper():
         datestamp = datetime.datetime.fromtimestamp(os.path.getmtime(os.path.join(common_dir, name))).strftime('%Y-%m-%d')
         return datestamp
 
-    _db_vers_map   = {
-            "kraken2"      :{
-                "filter_host"             :
-                    _get_datestamp(f'{_config_dict["databases"]}db-kraken2/','human_reference'),
-                "classify_reads"          :
-                    _get_datestamp(f'{_config_dict["databases"]}db-kraken2/','full_ref_bafp'),
-                "classify_contigs"        :
-                    _get_datestamp(f'{_config_dict["databases"]}db-kraken2/','full_ref_bafp'),
+
+    def set_db_vers_map(self):
+        '''Setter for db_vers_map'''
+        # Create base path for databases from the configuration
+        db_path = self._config_dict["databases"]
+
+        # Refactor the original dictionary with variables and dictionary comprehensions
+
+        self._db_vers_map = {
+            "kraken2": {
+                "filter_host": self._get_datestamp(f'{db_path}db-kraken2/', 'human_reference'),
+                "classify_reads": self._get_datestamp(f'{db_path}db-kraken2/', 'full_ref_bafp'),
+                "classify_contigs": self._get_datestamp(f'{db_path}db-kraken2/', 'full_ref_bafp'),
             },
-            "cgmlstfinder" :{
-                "Salmonella enterica"     :
-                    _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','salmonella'),
-                "Escherichia coli"        :
-                    _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','ecoli'),
-                "Acinetobacter baumannii" :
-                    _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','abaumannii'),
-                "Streptococcus pneumoniae":
-                    _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','spneumoniae'),
-                "Streptococcus pyogenes"  :
-                    _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','streptococcus'),
-                "Clostridium"             :
-                    _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','clostridium'),
-                "Campylobacter"           :
-                    _get_datestamp(f'{_config_dict["databases"]}cgmlstfinder_db/','campylobacter'),
+            "cgmlstfinder": {
+                db: self._get_datestamp(f'{db_path}cgmlstfinder_db/', db)
+                for db in [
+                    "salmonella", "ecoli", "abaumannii", "spneumoniae",
+                    "streptococcus", "clostridium", "campylobacter"
+                ]
             },
-            "chewbbaca"    :{
-                "Salmonella enterica"     :
-                     _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Salmonella_enterica'),
-                "Escherichia coli"        :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Escherichia_coli'),
-                "Enterobacter"            :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Escherichia_coli'),
-                "Shigella"                :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Escherichia_coli'),
-                "Streptococcus pyogenes"  :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','spyogenes_wgMLST'),
-                "Acinetobacter baumannii" :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Acinetobacter_baumannii'),
-                "Campylobacter"           :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Campylobacter_jejuni_coli'),
-                "Klebsiella"              :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Klebsiella_pneumoniae_variicola_quasipneumoniae'),
-                "Legionella pneumophila"  :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Legionella_pneumophila'),
-                "Listeria monocytogenes"  :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Listeria_monocytogenes'),
-                "Staphylococcus aureus"   :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Staphylococcus_aureus'),
-                "Enterococcus faecalis"   :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Enterococcus_faecalis_cgMLST'),
-                "Enterococcus faecium"    :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Enterococcus_faecium_cgMLST'),
-                "Pseudomonas aeruginosa"  :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Pseudomonas_aeruginosa_cgMLST'),
-                "Yersinia"                :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Yersinia.cgMLSTv1_chewbbaca'),
-                "Clostridioides"                :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','Clostridioides_difficile_db'),
-                "Clostridium"                :
-                    _get_datestamp(f'{_config_dict["databases"]}chewbacca_db/databases/','clostridium_wgmlst_chewie_db'),
+            "chewbbaca": {
+                k: self._get_datestamp(f'{db_path}chewbacca_db/databases/', v)
+                for k, v in {
+                    "Salmonella enterica" : "Salmonella_enterica", 
+                    "Escherichia coli" : "Escherichia_coli", 
+                    "Enterobacter"  : "Escherichia_coli", 
+                    "Shigella"  : "Escherichia_coli", 
+                    "Streptococcus pyogenes" : "spyogenes_wgMLST", 
+                    "Acinetobacter baumannii" : "Acinetobacter_baumannii", 
+                    "Campylobacter"  : "Campylobacter_jejuni_coli",
+                    "Klebsiella"  : "Klebsiella_pneumoniae_variicola_quasipneumoniae", 
+                    "Legionella pneumophila" : "Legionella_pneumophila",
+                    "Listeria monocytogenes" : "Listeria_monocytogenes", 
+                    "Staphylococcus aureus" : "Staphylococcus_aureus", 
+                    "Enterococcus faecalis" : "Enterococcus_faecalis_cgMLST",
+                    "Enterococcus faecium" : "Enterococcus_faecium_cgMLST", 
+                    "Pseudomonas aeruginosa" : "Pseudomonas_aeruginosa_cgMLST", 
+                    "Yersinia"  : "Yersinia.cgMLSTv1_chewbbaca",
+                    "Clostridioides"  : "Clostridioides_difficile_db", 
+                    "Clostridium"  : "clostridium_wgmlst_chewie_db"
+                }.items()
             },
-            "resfinder"    :
-                _get_datestamp(f'{_config_dict["databases"]}db-resfinder_new/','resfinder_db'),
-            "plasmidfinder":
-                _get_datestamp(f'{_config_dict["databases"]}','plasmidfinder_db_new'),
+            "resfinder": self._get_datestamp(f'{db_path}db-resfinder_new/', 'resfinder_db'),
+            "plasmidfinder": self._get_datestamp(f'{db_path}', 'plasmidfinder_db_new'),
+            "virulencefinder": self._get_datestamp(f'{db_path}', 'virulencefinder_db_new')
+        }
+
+    def set_tool_vers_map(self):
+        '''Setter for tool_vers_map'''
+        self._tool_vers_map = {
+            "plasmidfinder": 
+                datetime.datetime.fromtimestamp(os.path.getmtime(self._config_dict["shell_tool_configs"]["plasmidfinder"]["plasmidfinder_sif"])).strftime('%Y-%m-%d'),
+            "resfinder":
+                sp.run(
+                f'module load singularity && singularity run {self._config_dict["resfinder_sif"]} run_resfinder.py --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
             "virulencefinder":
-                _get_datestamp(f'{_config_dict["databases"]}','virulencefinder_db_new'),                
-    }   
+                datetime.datetime.fromtimestamp(os.path.getmtime(self._config_dict["shell_tool_configs"]["virulencefinder"]["virulencefinder_sif"])).strftime('%Y-%m-%d'),
+            "quast":
+                sp.run(
+                f'module load singularity && singularity run {self._config_dict["mlst_quast_sif"]} quast.py --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1],
+            "rgi":
+                sp.run(
+                f'module load singularity && singularity run {self._config_dict["rgi_sif"]} rgi main --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
+            "kraken2":
+                sp.run(
+                f'eval "$(conda shell.bash hook)" && source activate {self._config_dict["kraken2_env_path"]} && kraken2 --version',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[0],
+            "amrfinder+":
+                sp.run(f'module load singularity && singularity run {self._config_dict["amrfinderplus_sif"]} amrfinder --version',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
+            "fastp": 
+                sp.run(f'module load singularity && singularity run {self._config_dict["fastp_sif"]} fastp --version',
+                stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip(),
+            "mob-suite":
+                sp.run(f'module load singularity && singularity run {self._config_dict["mob_suite_sif"]} mob_typer --version',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').split(" ")[-1].strip(),
+            "mlst":
+                sp.run(f'module load singularity && singularity run {self._config_dict["mlst_quast_sif"]} mlst --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "shovill":
+                sp.run(f'module load singularity && singularity run {self._config_dict["shovill_sif"]} shovill --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "meningotype":
+                sp.run(f'module load singularity && singularity run {self._config_dict["meningotype_nmeningitidis_sif"]} meningotype --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "legsta":
+                sp.run(f'module load singularity && singularity run {self._config_dict["legsta_lpneumophila_sif"]} legsta --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "legionella_pneumophila_genomics":
+                datetime.datetime.fromtimestamp(os.path.getmtime(self._config_dict["lpgenomics_repo"])).strftime('%Y-%m-%d'),
+            "hicap":
+                sp.run(f'module load singularity && singularity run {self._config_dict["hicap_hinfluenzae_sif"]} hicap --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "kleborate":
+                sp.run(f'module load singularity && singularity run {self._config_dict["kleborate_kpneumoniae_sif"]} kleborate --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "agrvate":
+                sp.run(f'module load singularity && singularity run {self._config_dict["agrvate_saureus_sif"]} agrvate --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "spatyper":
+                sp.run(f'module load singularity && singularity run {self._config_dict["spatyper_saureus_sif"]} spaTyper --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "staphopia-sccmec":
+                sp.run(f'module load singularity && singularity run {self._config_dict["sccmec_saureus_sif"]} staphopia-sccmec --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "emmtyper":
+                sp.run(f'module load singularity && singularity run {self._config_dict["emmtyper_spyogenes_sif"]} emmtyper --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "lissero":
+                sp.run(f'module load singularity && singularity run {self._config_dict["lissero_lmonocytogenes_sif"]} lissero --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "sistr":
+                sp.run(f'module load singularity && singularity run {self._config_dict["sistr_senterica_sif"]} sistr --version ',
+                stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip().split(' ')[-1],
+            "seqsero2":
+                sp.run(f'module load singularity && singularity run {self._config_dict["seqsero2_senterica_sif"]} SeqSero2_package.py --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "ectyper":
+                sp.run(f'module load singularity && singularity run {self._config_dict["ectyper_ecoli_sif"]} ectyper --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
+            "stecfinder":
+                sp.run(f'module load singularity && singularity run {self._config_dict["stecfinder_ecoli_sif"]} stecfinder --version 2> /dev/null',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "seroba":
+                sp.run(f'module load singularity && singularity run {self._config_dict["seroba_spneumoniae_sif"]} seroba version',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
+            "cgmlstfinder":
+                sp.run(f'module load singularity && singularity run {self._config_dict["tip_tool_configs"]["cgmlstfinder"]["cgmlstfinder_sif"]} python /cgmlstfinder/cgMLST.py --version',
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
+            "chewbbaca":
+                sp.run(f'module load singularity && singularity run {self._config_dict["tip_tool_configs"]["chewbbaca"]["chewbbaca_sif"]} chewBBACA.py --version', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            'lrefinder':
+                sp.run(f'module load singularity && singularity run  {self._config_dict["lrefinder_efaecium_efaecalis_sif"]} LRE-Finder.py -v', stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip().split(' ')[-1],
+            "shigatyper":
+                sp.run(f'module load singularity && singularity run {self._config_dict["shigatyper_shigella_sif"]} shigatyper --version', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1]
+        }
 
 
-    _tool_vers_map = {
-        "plasmidfinder": 
-            datetime.datetime.fromtimestamp(os.path.getmtime(_config_dict["shell_tool_configs"]["plasmidfinder"]["plasmidfinder_sif"])).strftime('%Y-%m-%d'),
-        "resfinder":
-            sp.run(
-            f'module load singularity && singularity run {_config_dict["resfinder_sif"]} run_resfinder.py --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
-        "virulencefinder":
-            datetime.datetime.fromtimestamp(os.path.getmtime(_config_dict["shell_tool_configs"]["virulencefinder"]["virulencefinder_sif"])).strftime('%Y-%m-%d'),
-        "quast":
-            sp.run(
-            f'module load singularity && singularity run {_config_dict["mlst_quast_sif"]} quast.py --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1],
-        "rgi":
-            sp.run(
-            f'module load singularity && singularity run {_config_dict["rgi_sif"]} rgi main --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
-        "kraken2":
-            sp.run(
-            f'eval "$(conda shell.bash hook)" && source activate {_config_dict["kraken2_env_path"]} && kraken2 --version',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[0],
-        "amrfinder+":
-            sp.run(f'module load singularity && singularity run {_config_dict["amrfinderplus_sif"]} amrfinder --version',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
-        "fastp": 
-            sp.run(f'module load singularity && singularity run {_config_dict["fastp_sif"]} fastp --version',
-            stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip(),
-        "mob-suite":
-            sp.run(f'module load singularity && singularity run {_config_dict["mob_suite_sif"]} mob_typer --version',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').split(" ")[-1].strip(),
-        "mlst":
-            sp.run(f'module load singularity && singularity run {_config_dict["mlst_quast_sif"]} mlst --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-        "shovill":
-            sp.run(f'module load singularity && singularity run {_config_dict["shovill_sif"]} shovill --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-        "meningotype":
-            sp.run(f'module load singularity && singularity run {_config_dict["meningotype_nmeningitidis_sif"]} meningotype --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-        "legsta":
-            sp.run(f'module load singularity && singularity run {_config_dict["legsta_lpneumophila_sif"]} legsta --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-        "legionella_pneumophila_genomics":
-            datetime.datetime.fromtimestamp(os.path.getmtime(_config_dict["lpgenomics_repo"])).strftime('%Y-%m-%d'),
-        "hicap":
-            sp.run(f'module load singularity && singularity run {_config_dict["hicap_hinfluenzae_sif"]} hicap --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-        "kleborate":
-            sp.run(f'module load singularity && singularity run {_config_dict["kleborate_kpneumoniae_sif"]} kleborate --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-        "agrvate":
-            sp.run(f'module load singularity && singularity run {_config_dict["agrvate_saureus_sif"]} agrvate --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-        "spatyper":
-            sp.run(f'module load singularity && singularity run {_config_dict["spatyper_saureus_sif"]} spaTyper --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-        "staphopia-sccmec":
-            sp.run(f'module load singularity && singularity run {_config_dict["sccmec_saureus_sif"]} staphopia-sccmec --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-        "emmtyper":
-            sp.run(f'module load singularity && singularity run {_config_dict["emmtyper_spyogenes_sif"]} emmtyper --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-        "lissero":
-            sp.run(f'module load singularity && singularity run {_config_dict["lissero_lmonocytogenes_sif"]} lissero --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-        "sistr":
-            sp.run(f'module load singularity && singularity run {_config_dict["sistr_senterica_sif"]} sistr --version ',
-            stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip().split(' ')[-1],
-        "seqsero2":
-            sp.run(f'module load singularity && singularity run {_config_dict["seqsero2_senterica_sif"]} SeqSero2_package.py --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-        "ectyper":
-            sp.run(f'module load singularity && singularity run {_config_dict["ectyper_ecoli_sif"]} ectyper --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
-        "stecfinder":
-            sp.run(f'module load singularity && singularity run {_config_dict["stecfinder_ecoli_sif"]} stecfinder --version 2> /dev/null',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-        "seroba":
-            sp.run(f'module load singularity && singularity run {_config_dict["seroba_spneumoniae_sif"]} seroba version',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
-        "cgmlstfinder":
-            sp.run(f'module load singularity && singularity run {_config_dict["tip_tool_configs"]["cgmlstfinder"]["cgmlstfinder_sif"]} python /cgmlstfinder/cgMLST.py --version',
-            stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
-        "chewbbaca":
-            sp.run(f'module load singularity && singularity run {_config_dict["tip_tool_configs"]["chewbbaca"]["chewbbaca_sif"]} chewBBACA.py --version', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-        'lrefinder':
-            sp.run(f'module load singularity && singularity run  {_config_dict["lrefinder_efaecium_efaecalis_sif"]} LRE-Finder.py -v', stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip().split(' ')[-1],
-        "shigatyper":
-            sp.run(f'module load singularity && singularity run {_config_dict["shigatyper_shigella_sif"]} shigatyper --version', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1]
-    }
-
-
-    @staticmethod
-    def report_tool_versions(output_path:str, sample_ids:list) -> None:
+    def report_tool_versions(self, output_path:str, sample_ids:list) -> None:
         '''Aggregates tool versions, references and database versions in single pandas dataframe and generates a csv file named software_log.csv in output_path'''
-        specific_ref = {Wrapper._tool_ref_map[k]['tool']:Wrapper._tool_ref_map[k]['link'] for k in Wrapper._tool_ref_map if k != 'agnostic'}
-        agnostic_ref = {Wrapper._tool_ref_map['agnostic'][k]['tool'] : Wrapper._tool_ref_map['agnostic'][k]['link'] for k in Wrapper._tool_ref_map['agnostic']}
-        reference_mapa = {Wrapper._tool_ref_map['agnostic'][k]['tool'] : Wrapper._tool_ref_map['agnostic'][k]['reference'] for k in Wrapper._tool_ref_map['agnostic']}
-        reference_maps = {Wrapper._tool_ref_map[k]['tool']:Wrapper._tool_ref_map[k]['reference'] for k in Wrapper._tool_ref_map if k != 'agnostic'}
+        specific_ref = {self._tool_ref_map[k]['tool']:self._tool_ref_map[k]['link'] for k in self._tool_ref_map if k != 'agnostic'}
+        agnostic_ref = {self._tool_ref_map['agnostic'][k]['tool'] : self._tool_ref_map['agnostic'][k]['link'] for k in self._tool_ref_map['agnostic']}
+        reference_mapa = {self._tool_ref_map['agnostic'][k]['tool'] : self._tool_ref_map['agnostic'][k]['reference'] for k in self._tool_ref_map['agnostic']}
+        reference_maps = {self._tool_ref_map[k]['tool']:self._tool_ref_map[k]['reference'] for k in self._tool_ref_map if k != 'agnostic'}
         total_ref = {**specific_ref, **agnostic_ref}
         total_cit = {**reference_mapa, **reference_maps}
 
-        df = pd.DataFrame.from_dict({'tool':[t for t in Wrapper._tool_vers_map], 'tool_version':[v for v in Wrapper._tool_vers_map.values()]})
+        df = pd.DataFrame.from_dict({'tool':[t for t in self._tool_vers_map], 'tool_version':[v for v in self._tool_vers_map.values()]})
         df['link'] = df['tool'].map(total_ref)
         df['reference'] = df['tool'].map(total_cit)
         df['run_parameters'] = ['default' for _ in df.index]
 
         db_map = {}
-        cgmlst_map = set() #for cgmlst databases
-        for t in Wrapper._db_vers_map:
+        for t in self._db_vers_map:
             if t != 'chewbbaca':
-                if isinstance(Wrapper._db_vers_map[t], dict):
-                    db_map[t] = " | ".join([f"{r} : {v}" for r,v in Wrapper._db_vers_map[t].items()])             
+                if isinstance(self._db_vers_map[t], dict):
+                    db_map[t] = " | ".join([f"{r} : {v}" for r,v in self._db_vers_map[t].items()])             
                 else:
-                    db_map[t] = Wrapper._db_vers_map[t]
+                    db_map[t] = self._db_vers_map[t]
         df['db_versions'] = df['tool'].map(db_map)
         df['db_versions'] = df['db_versions'].fillna('not_applicable')
         df.insert(0, 'analysis_batch_id', [os.path.basename(os.path.dirname(output_path)) for _ in df.index])
-        df['ardetype_version'] = Wrapper._config_dict['ardetype_version']
+        df['ardetype_version'] = self._config_dict['ardetype_version']
 
         #Add cgmlst databases as tools
-        for org in Wrapper._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']:
+        for org in self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']:
             try:
-                timestamp = [Wrapper._db_vers_map['chewbbaca'][o] for o in Wrapper._db_vers_map['chewbbaca'] if org.lower().replace(' ', '_') in o.lower().replace(' ', '_')][0]
+                timestamp = [self._db_vers_map['chewbbaca'][o] for o in self._db_vers_map['chewbbaca'] if org.lower().replace(' ', '_') in o.lower().replace(' ', '_')][0]
             except IndexError:
                 timestamp = 'NA'
             df.loc[len(df)] = {
@@ -235,9 +216,9 @@ class Wrapper():
                 "tool_version":"not_applicable",
                 "run_parameters":"default",
                 "db_versions":timestamp,
-                "reference":Wrapper._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs'][org]['reference'],
-                "link":Wrapper._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs'][org]['origin'],
-                "ardetype_version":Wrapper._config_dict['ardetype_version'],
+                "reference":self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs'][org]['reference'],
+                "link":self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs'][org]['origin'],
+                "ardetype_version":self._config_dict['ardetype_version'],
                 }
 
         df = df[["analysis_batch_id","tool","tool_version","run_parameters","db_versions","ardetype_version","reference","link"]]
@@ -246,15 +227,6 @@ class Wrapper():
         df.to_csv(log_path, header=True, index=False)
         for sid in sample_ids:
             df.to_csv(os.path.join(output_path, f'{sid}_tool_log.csv'), header=True, index=False)
-
-
-'''Change log
-- version > tool_version
-- reference > link
-- additional columns: run_parameters (default), reference (static publication link)
-- db_version (not applicable where database is not used)
-- cgmlst_databases as tools
-'''
 
 
 ###############################################################
@@ -302,9 +274,10 @@ class Ardetype_module(Module):
                 self.aggr_taxonomy_path  = self.aggr_taxonomy_path.replace(os.path.abspath(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
             if new_path not in self.config_file_path:
                 self.config_file_path    = self.config_file_path.replace(os.path.dirname(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/config.yaml' #where to look for operational copy of the configuration file; used by submit_module_job & run_module_cluster
+            self.output_path    = new_path
             if os.path.normpath(self.output_path) != os.path.normpath(self.input_path):
                 self.input_path = new_path
-            self.output_path    = new_path
+            
 
 
     def config_cluster(self) -> None:
@@ -389,10 +362,10 @@ def run_all(args, num_jobs):
         cluster_config_path = module_data['cluster_config']
     )
     shape = Ardetype_module(
-        module_name         = 'shape', 
+        module_name         = 'shape',
         input_path          = core.output_path,
-        module_config       = tip.config_file, 
-        output_path         = core.output_path, 
+        module_config       = tip.config_file,
+        output_path         = core.output_path,
         run_mode            = args.submit_modules,
         dry_run             = args.dry_run,
         force_all           = args.force_all,
@@ -578,10 +551,11 @@ def run_all(args, num_jobs):
     shape.set_permissions()
 
     #Housekeeping the log files
-    hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
+    # hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
     hk.name_job_logs('ardetype', shape.job_log_path)
-    if args.clean_job_logs:
-        hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
+    # if args.clean_job_logs:
+    #     hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
+    return shape.output_path
 
 
 
@@ -643,10 +617,10 @@ def run_core(args, num_jobs):
     core.set_permissions()
 
     #Housekeeping the log files
-    hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
+    # hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
     hk.name_job_logs('ardetype', core.job_log_path)
-    if args.clean_job_logs:
-        hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
+    # if args.clean_job_logs:
+    #     hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
 
 
 def run_shell(args, num_jobs):
@@ -702,10 +676,10 @@ def run_shell(args, num_jobs):
     shell.set_permissions()
 
     #Housekeeping the log files
-    hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
+    # hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
     hk.name_job_logs('ardetype', shell.job_log_path)
-    if args.clean_job_logs:
-        hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
+    # if args.clean_job_logs:
+    #     hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
 
 
 def run_merge(args, num_jobs):
