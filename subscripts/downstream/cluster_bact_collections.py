@@ -10,12 +10,14 @@ sys.path.insert(0,'/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/')
 from subscripts.downstream import update_utilities as uu
 
 # Constants
-PROFILE_COLLECTIONS = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/tax_profile_collections/'
-CONTIG_COLLECTIONS = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/tax_contig_collections/'
-CLUSTERING_SCRIPT_PATH = '/mnt/beegfs2/home/groups/nmrl/utils/phylogenetics_tools/process_chewbacca_profiles_edits.py'
-CSP2_PATH = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/phylogenetics/CSP2'
+NMRL='/mnt/beegfs2/home/groups/nmrl/'
+WD = os.path.join(NMRL,'bact_analysis/analysis_history/01_Illumina/01_current/')
+PROFILE_COLLECTIONS = os.path.join(WD, 'cgmlst_clusters/profiles_by_species')
+CONTIG_COLLECTIONS = os.path.join(WD, 'cgmlst_clusters/contigs_by_species')
+CLUSTERING_SCRIPT_PATH = os.path.join(NMRL,'utils/phylogenetics_tools/process_chewbacca_profiles_edits.py')
+CSP2_PATH = os.path.join(WD,'phylogenetics/CSP2')
 REPORT_TIME = uu.get_current_timestamp()
-OUTPUT_PATH = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/tax_profile_collections/bact_clusters/'
+OUTPUT_PATH = os.path.join(WD,'cgmlst_clusters/')
 BACKUP_PATH = os.path.join(OUTPUT_PATH, 'backup')
 
 
@@ -125,8 +127,8 @@ def process_species_folder(species_folder, th=20):
     prepare_contig_collections(species_name, clusters.groups.keys())
     move_files_to_clusters(species_name, clusters)
     create_cluster_distance_matrices(species_name, clusters, distance_df)
-    run_refchooser(species_name, clusters)
-    run_csp2(species_name, clusters)
+    # run_refchooser(species_name, clusters)
+    # run_csp2(species_name, clusters)
 
 
 def get_species_clusters(species_folder, th=20):
@@ -166,7 +168,7 @@ def prepare_contig_collections(species_name, cluster_labels):
         os.makedirs(os.path.join(species_contig_path, label), exist_ok=True)
 
 def move_files_to_clusters(species_name, clusters):
-    """Moves files into their respective cluster directories."""
+    """Moves contig files into their respective cluster directories."""
     species_contig_path = os.path.join(CONTIG_COLLECTIONS, species_name)
 
     for label, group in clusters:

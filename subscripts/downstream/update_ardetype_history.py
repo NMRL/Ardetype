@@ -1,5 +1,5 @@
 import sys, pandas as pd
-sys.path.insert(0,'/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/')
+sys.path.insert(0,'/home/group/pipelines/Ardetype/')
 from subscripts.downstream import update_utilities as uu
 
 #################

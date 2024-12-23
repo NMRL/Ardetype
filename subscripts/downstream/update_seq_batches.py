@@ -1,7 +1,7 @@
 import sys, pandas as pd, os, pathlib
 import concurrent.futures
 from datetime import datetime
-sys.path.insert(0, f'/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
+sys.path.insert(0, f'/home/group/pipelines/Ardetype/subscripts/')
 from src.utilities import Housekeeper as hk
 pd.set_option('mode.chained_assignment', None)
 
@@ -64,13 +64,12 @@ def update_seq_batch(date:str, null_plh='None') -> pd.DataFrame:
     #folder name is mapped to the name of the report file
     rep_map = {
         'ardetype':'ardetype',
-        'aquamis':'aquamis',
         'resistance':'pointfinder', #to include ids tagged with _reads
         'mtbseq':'classification', #to include mtbseq-only batches
         'plasmids':'mobtyper' #to include mtbseq-only batches
     }
     #convert to full paths
-    rep_fold_paths = [os.path.join(full_path, folder_name) for folder_name in rep_map]   
+    rep_fold_paths = [os.path.join(full_path, folder_name) for folder_name in rep_map]
 
     #get paths to current summaries
     cur_summary_paths = [next(pathlib.Path(rep_fold_path).rglob(f'*{rep_map[folder_name]}_summary*.csv')) for rep_fold_path, folder_name in zip(rep_fold_paths, rep_map.keys())]
@@ -242,7 +241,7 @@ def apply_tags(tag_file_path:str, sbm_path:str, date:str) -> pd.DataFrame:
 # Runtime logic
 ###############
 
-if __name__ == '__main__':
+def main():
     args = hk.parse_arguments(arg_dict)
     if args.mode == 'update':
         new_map = update_seq_batch(date=date)
@@ -257,3 +256,7 @@ if __name__ == '__main__':
         tagged_sbm = apply_tags(tag_file_path=args.tag_file, sbm_path=sbm_path, date=date)
         #save tagged seq_batch_map to the original path
         tagged_sbm.to_csv(sbm_path, header=True, index=False)
+
+
+if __name__ == '__main__':
+    main()

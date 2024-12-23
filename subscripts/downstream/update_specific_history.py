@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0,'/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/')
+sys.path.insert(0,'/home/group/pipelines/Ardetype/')
 from subscripts.downstream import update_utilities as uu
 
 #################
@@ -22,6 +22,9 @@ arg_dict = {
     "lrefinder"    : ["--lrf", "lrefinder_report.csv"],
     "spatyper"     : ["--spa", "spatyper_report.csv"],
     "shigatyper"   : ["--sht", "shigatyper_report.csv"],
+    "seroba"       : ["--sba", "seroba_report.csv"],
+    "emmtyper"     : ["--emm", "emmtyper_report.csv"],
+    "hicap"        : ["--hic", "hicap_report.csv"],
 }
 proc_dict = uu.proc_dict
 
@@ -33,6 +36,19 @@ for report in ['lrf', 'spa']:
 #setting custom id_column for kleborate report
 proc_dict['kbt'] = proc_dict['default'].copy()
 proc_dict['kbt']['col_rename_dict'] = {'strain':'sample_id'}
+
+#custom id_regex for chewbacca qc 
+proc_dict['cbc'] = proc_dict['default'].copy()
+proc_dict['cbc']['id_regex'].append('_contigs')
+
+#custom id_regex for stecfinder 
+proc_dict['stf'] = proc_dict['default'].copy()
+proc_dict['stf']['id_regex'].append('_bact_reads_classified')
+
+#custom id_regex for lrefinder
+proc_dict['lrf'] = proc_dict['default'].copy()
+proc_dict['lrf']['id_regex'].append('.pos')
+
 
 ##############
 #Runtime logic

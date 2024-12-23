@@ -13,7 +13,7 @@ from bisect import bisect_left
 sys.path.insert(0, os.path.dirname(os.path.dirname(Path(__file__).absolute())))
 sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/utils/phylogenetics_tools/')
 from subscripts.src.utilities import Housekeeper as hk
-from process_chewbacca_profiles_edits import initialize_logging, gather_chewbacca_data, cluster_analysis, cluster_counter
+# from process_chewbacca_profiles_edits import initialize_logging, gather_chewbacca_data, cluster_analysis, cluster_counter
 
 
 ###############
