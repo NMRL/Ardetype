@@ -18,7 +18,7 @@ contig_collection_path:
 cgmlst_prof_col_path:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/tax_profile_collections
 output_bucket_path:
-  /mnt/beegfs2/home/groups/nmrl/bact_analysis/output_bucket_test/illumina/
+  /mnt/beegfs2/home/groups/nmrl/bact_analysis/output_bucket/illumina/
 
 ##############
 # bact_core
@@ -92,7 +92,7 @@ lissero_lmonocytogenes_sif:
 lpgenomics_repo:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/
 meningotype_nmeningitidis_sif:
-  /mnt/beegfs2/home/groups/nmrl/image_files/meningotype_nmeningitidis.sif  
+  /mnt/beegfs2/home/groups/nmrl/image_files/meningotype_nmeningitidis_new.sif  
 sccmec_saureus_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/sccmec_saureus.sif
 seqsero2_senterica_sif:
