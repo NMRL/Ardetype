@@ -22,7 +22,7 @@
         "kraken2reads_report.csv",
         "quast_report.csv",
         "ectyper_report.csv",
-        "stectfinder_report.csv",
+        "stecfinder_report.csv",
         "agrvate_report.csv",
         "seqsero2_report.csv",
         "sistr_report.csv",
