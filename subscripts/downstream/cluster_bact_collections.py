@@ -6,19 +6,30 @@ import glob
 import subprocess
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
-sys.path.insert(0,'/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/')
+sys.path.insert(0,'/home/group/pipelines/Ardetype/')
 from subscripts.downstream import update_utilities as uu
 
 # Constants
-NMRL='/mnt/beegfs2/home/groups/nmrl/'
-WD = os.path.join(NMRL,'bact_analysis/analysis_history/01_Illumina/01_current/')
+BASE='/home/group/'
+WD = os.path.join(BASE,'data_lake/analysis_history/01_Illumina/02_bact/01_current/')
 PROFILE_COLLECTIONS = os.path.join(WD, 'cgmlst_clusters/profiles_by_species')
 CONTIG_COLLECTIONS = os.path.join(WD, 'cgmlst_clusters/contigs_by_species')
-CLUSTERING_SCRIPT_PATH = os.path.join(NMRL,'utils/phylogenetics_tools/process_chewbacca_profiles_edits.py')
-CSP2_PATH = os.path.join(WD,'phylogenetics/CSP2')
+CLUSTERING_SCRIPT_PATH = os.path.join(BASE,'pipelines/Ardetype/subscripts/downstream/process_chewbacca_profiles_edits.py')
+CSP2_PATH = os.path.join(WD,'phylogenetics/CSP2') #redundant
 REPORT_TIME = uu.get_current_timestamp()
 OUTPUT_PATH = os.path.join(WD,'cgmlst_clusters/')
 BACKUP_PATH = os.path.join(OUTPUT_PATH, 'backup')
+
+
+# print(BASE)
+# print(WD)
+# print(PROFILE_COLLECTIONS)
+# print(CONTIG_COLLECTIONS)
+# print(CLUSTERING_SCRIPT_PATH)
+# print(CSP2_PATH)
+# print(REPORT_TIME)
+# print(OUTPUT_PATH)
+# print(BACKUP_PATH)
 
 
 # Functions
@@ -28,6 +39,7 @@ def get_collections(ctype:str):
         collection_paths = [os.path.join(PROFILE_COLLECTIONS, dirname) for dirname in os.listdir(PROFILE_COLLECTIONS)]
     elif ctype=='contigs':
         collection_paths = [os.path.join(CONTIG_COLLECTIONS, dirname) for dirname in os.listdir(CONTIG_COLLECTIONS)]
+    
     return collection_paths
 
 

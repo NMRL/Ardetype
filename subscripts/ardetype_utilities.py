@@ -172,7 +172,7 @@ class Ardetype_housekeeper(hk):
                     future.result()  # This will raise exceptions from the copy operation, if any
                 except Exception as e:
                     print(f"Error copying file: {e}")
-        os.system(f'chmod -R 775 {collection_path}')
+        os.system(f'chmod -R 775 {collection_path} 2> /dev/null')
 
                     
 #######################

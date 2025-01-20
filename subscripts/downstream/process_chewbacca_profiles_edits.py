@@ -310,7 +310,7 @@ def cluster_analysis(
         thresholds:list=[5, 15], 
         linkage_method:str='average', 
         singularity:bool=False, 
-        singularity_path:str='/mnt/beegfs2/home/groups/nmrl/image_files/cgmlst-dists.sif',
+        singularity_path:str='/home/group/pipelines/Ardetype/subscripts/downstream/cgmlst-dists.sif',
         current_datetime:datetime=current_datetime,
         outlier_filter:int=None,
         log_scale=False,
@@ -343,7 +343,7 @@ def cluster_analysis(
 
        
         if singularity:
-            cmd       = f"module load singularity; singularity --silent exec --bind {tsv_path},{dist_file}:{tsv_path},{dist_file} {singularity_path} cgmlst-dists {tsv_path} > {dist_file}"
+            cmd       = f"singularity --silent exec --bind {tsv_path},{dist_file}:{tsv_path},{dist_file} {singularity_path} cgmlst-dists {tsv_path} > {dist_file}"
         else:
             cmd       = f"cgmlst-dists {tsv_path} > {dist_file}"
 
