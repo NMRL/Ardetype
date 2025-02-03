@@ -246,7 +246,7 @@ shell_tool_configs:
     virulencefinder_db: /mnt/beegfs2/home/groups/nmrl/db/virulencefinder_db_new/
     db_update: "2024-06-18"
   rmlst_pubmlst:
-    schema: http://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1/sequence
+    schema: https://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1
     api_seq_limit: 75 # changed from 5000 by reivan on 02.01.2023
 
 
@@ -292,7 +292,7 @@ tip_tool_configs:
       clostridium: clostridium
   chewbbaca:
     chewbbaca_sif: /mnt/beegfs2/home/groups/nmrl/image_files/chewbacca_cgmlst.sif
-    chewbbaca_cores: 12
+    chewbbaca_cores: 24
     chewbbaca_orgs:
       salmonella:
         db: Salmonella_enterica

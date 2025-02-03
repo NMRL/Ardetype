@@ -100,7 +100,7 @@ rmlst:
   pmem: "1000mb"
   walltime: "00:15:00"
   account: "rakus"
-  queue: "batch"
+  queue: "fast"
   jobout: "oe"
 
 
@@ -220,9 +220,9 @@ cgmlstfinder:
 
 chewbbaca_cgmlst:
   jobname: "ardetype.chewbbaca_cgmlst"
-  procs: 12
+  procs: 24
   pmem: "2000mb"
-  walltime: "00:30:00"
+  walltime: "03:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -390,7 +390,7 @@ stecfinder_ecoli:
   jobname: "ardetype.stecfinder"
   procs: 12
   pmem: "2000mb"
-  walltime: "00:08:00"
+  walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -431,7 +431,7 @@ extract_fastp:
   jobname: "ardetype.extract_fastp"
   procs: 3
   pmem: "1000mb"
-  walltime: "00:05:00"
+  walltime: "01:05:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -440,7 +440,7 @@ extract_kraken2:
   jobname: "ardetype.extract_kraken2"
   procs: 3
   pmem: "1000mb"
-  walltime: "00:05:00"
+  walltime: "01:05:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -449,7 +449,7 @@ extract_mlst:
   jobname: "ardetype.extract_mlst"
   procs: 3
   pmem: "1000mb"
-  walltime: "00:05:00"
+  walltime: "01:05:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -458,7 +458,7 @@ extract_rmlst:
   jobname: "ardetype.extract_rmlst"
   procs: 6
   pmem: "1000mb"
-  walltime: "00:60:00"
+  walltime: "01:05:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -467,7 +467,7 @@ extract_quast:
   jobname: "ardetype.extract_quast"
   procs: 3
   pmem: "1000mb"
-  walltime: "00:05:00"
+  walltime: "01:05:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"

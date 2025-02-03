@@ -488,6 +488,7 @@ rule plasmidfinder:
 
 
 rule rmlst:
+    resources: API_calls=1  # Each job consumes 1 API_calls unit
     input:
         contigs    = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:

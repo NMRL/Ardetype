@@ -185,7 +185,7 @@ rule extract_rmlst:
             data = json.load(file)
         
         if data:
-            if data['exact_matches']:
+            if data.get('taxon_prediction', []):
                 extract = {
                     "rMLST_Species": " | ".join([s['taxon'] for s in data['taxon_prediction']]), 
                     "rMLST_Support_%": " | ".join([str(s['support']) for s in data['taxon_prediction']]), 

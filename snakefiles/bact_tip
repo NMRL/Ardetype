@@ -54,7 +54,7 @@ rule all:
 
         #Aggregate Stecfinder results
         stecfinder_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_stecfinder.tsv", extractor = hk.stecfinder_results)
-        stecfinder_summary.to_csv(f"{config['output_directory']}stectfinder_report.csv", header=True, index=False)
+        stecfinder_summary.to_csv(f"{config['output_directory']}stecfinder_report.csv", header=True, index=False)
 
         #Aggregate Agrvate results
         agrvate_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_agrvate_summary.tab", extractor = hk.agrvate_results)
