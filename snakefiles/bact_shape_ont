@@ -31,32 +31,14 @@ rule all:
 
 
         report = pd.concat(aggr_dict.values()) #combile all dataframes as rows into single report (one row for each sample_id)
-        report['average_coverage'] = round((report["r1_mean_len_af"].astype(int)+report["r2_mean_len_af"].astype(int))*report["non_host_read_pair_count"].astype(int)/report['assembly_length'].astype(int),2)
-        #formula used for coverage : ( ( ( LR1 + LR2 )/2 ) * NRP * 2 ) / AL = ( LR1 + LR2 ) * NRP / AL
-        #LR - Read length after quality filtering
-        #NRP - number of non-host read pairs (unclassified by kraken2 using human hg19-based database)
-        #AL - assembly length (sum of length of all contigs for a given sample)
-        #result is rounded to two digits after the comma
 
 
         #Generating combined report
         general_columns = [ 
             "sample_id",
-            "total_reads_bf",
-            "total_reads_af",
-            "q30_rbf",
-            "q30_raf",
-            "r1_mean_len_bf",
-            "r2_mean_len_bf",
-            "r1_mean_len_af",
-            "r2_mean_len_af",
-            "non_host_read_pair_count",
-            "gc_bf",
-            "gc_af",
             "contig_count",
             "N50",
             "assembly_length",
-            "average_coverage",
             "gc_contigs",
             "MLST7_ST",
             "rMLST",
@@ -82,62 +64,33 @@ rule all:
         report.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in report.index])
         #generate aquamis-based qc reports
         aquamis_qc_report = pd.DataFrame()
-        for sid, bid, spc in zip(report['sample_id'],report['analysis_batch_id'], report['species']):
-            qc_report = Housekeeper.check_quality_thr(
-                thresholds_db = aquamis_qc_db, 
-                sample_id = sid, 
-                batch_id = bid, 
-                species = spc, 
-                ardetype_report = report, 
-                quast_report_path = config['output_directory']+f'{sid}_quast/transposed_report.tsv', 
-                thresholds_db_timestamp = aquamis_update_timestamp
-                )
-            aquamis_qc_report = pd.concat([aquamis_qc_report, qc_report])
+        # for sid, bid, spc in zip(report['sample_id'],report['analysis_batch_id'], report['species']):
+        #     qc_report = Housekeeper.check_quality_thr(
+        #         thresholds_db = aquamis_qc_db, 
+        #         sample_id = sid, 
+        #         batch_id = bid, 
+        #         species = spc, 
+        #         ardetype_report = report, 
+        #         quast_report_path = config['output_directory']+f'{sid}_quast/transposed_report.tsv', 
+        #         thresholds_db_timestamp = aquamis_update_timestamp
+        #         )
+        #     aquamis_qc_report = pd.concat([aquamis_qc_report, qc_report])
         
-        #Prettify ids
+        # #Prettify ids
         report.sample_id = report.sample_id.astype(str).str.replace(r'_S[0-9]*', '', regex=True)
-        aquamis_qc_report.sample_id = aquamis_qc_report.sample_id.astype(str).str.replace(r'_S[0-9]*', '', regex=True)
+        # aquamis_qc_report.sample_id = aquamis_qc_report.sample_id.astype(str).str.replace(r'_S[0-9]*', '', regex=True)
 
-        #save as csv
+        # #save as csv
         report.to_csv(config['output_directory']+f'{date}_ardetype_report.csv', header=True, index=False)
-        aquamis_qc_report.to_csv(config['output_directory']+f'{date}_aquamis_qc_report.csv', header=True, index=False)
+        # aquamis_qc_report.to_csv(config['output_directory']+f'{date}_aquamis_qc_report.csv', header=True, index=False)
 
-
-        
-
-
-rule extract_fastp:
-    input:
-        config['output_directory']+'{sample_id_pattern}.fastp.json'
-    output:
-        config['output_directory']+'{sample_id_pattern}_fastp_std.csv'
-    run:
-        report = Housekeeper.read_json_dict(input[0])
-        data_dict = {
-            'total_reads_bf':['summary','before_filtering','total_reads'],
-            'total_reads_af':['summary','after_filtering','total_reads'],
-            'q30_rbf':['summary','before_filtering','q30_rate'],
-            'q30_raf':['summary','after_filtering','q30_rate'],
-            'r1_mean_len_bf':['summary','before_filtering','read1_mean_length'],
-            'r2_mean_len_bf':['summary','before_filtering','read2_mean_length'],
-            'r1_mean_len_af':['summary','after_filtering','read1_mean_length'],
-            'r2_mean_len_af':['summary','after_filtering','read2_mean_length'],
-            'gc_bf':['summary','before_filtering','gc_content'],
-            'gc_af':['summary','after_filtering','gc_content']
-        }
-        for key in data_dict: data_dict[key] = [Housekeeper.find_in_nested_dict(report, data_dict[key])]
-        data_dict['sample_id'] = wildcards.sample_id_pattern
-        df = pd.DataFrame.from_dict(data_dict)
-        df.to_csv(output[0], header=True, index=False)
 
 
 rule extract_kraken2:
     input:
-        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt',
-        config['output_directory']+'{sample_id_pattern}_kraken2_host_filtering_report.txt'
+        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt'
     output:
-        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report_std.csv',
-        config['output_directory']+'{sample_id_pattern}_kraken2_host_filtering_report_std.csv'
+        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report_std.csv'
     run:
         df = pd.read_table(input[0], header=None)[[0,3,5]]
         df.columns = ['species_contig_%','taxid','species']
@@ -150,13 +103,6 @@ rule extract_kraken2:
             df = pd.DataFrame.from_dict({'species_contig_%':["None"],'taxid':["None"],'species':["None"]})
             df['sample_id'] = [wildcards.sample_id_pattern]
         df.to_csv(output[0],header=True, index=False)
-
-        #Host filtering stats
-        df = pd.read_table(input[1], header=None)[[1,5]]
-        df.columns = ['non_host_read_pair_count','host']
-        df = df[df['host'] == 'unclassified']
-        df['sample_id'] = [wildcards.sample_id_pattern]
-        df.to_csv(output[1], header=True, index=False)
 
 
 rule extract_mlst:
@@ -185,7 +131,7 @@ rule extract_rmlst:
             data = json.load(file)
         
         if data:
-            if data.get('taxon_prediction', []):
+            if data['exact_matches']:
                 extract = {
                     "rMLST_Species": " | ".join([s['taxon'] for s in data['taxon_prediction']]), 
                     "rMLST_Support_%": " | ".join([str(s['support']) for s in data['taxon_prediction']]), 
@@ -221,7 +167,7 @@ rule extract_quast:
         df.to_csv(output[0], header=True, index=False)
 
 
-rule extract_meningotype:
+rule extract_Meningotype:
     input: 
         config['output_directory']+'{sample_id_pattern}_meningotype.tsv'
     output:
@@ -615,8 +561,6 @@ rule extract_SeroBA:
         try:
             key = "_seroba.tsv"
             report = pd.read_csv(input[0], sep="\t", header=None).astype(str)
-            if len(report.columns) != 3:
-                report[2] = ['nan']
             report.columns = ["id","type","info"]
             report = report[["type", "info"]]
             if isinstance(report['info'][0], str): report["type"] = report[["type", "info"]].agg('; '.join, axis=1) #textjoin in pandas accross columns

@@ -4,7 +4,7 @@
         [
             "-m",
             "--mode",
-            "Selecting mode that allows to run specific modules of the pipeline:\nall - run all modules (starting from fastq files)\ncore - run only bact_core module (starting from fastq files)\nshell - run only bact_shell module (starting from fasta & fastq file).\nlog_analysis - summarise logs of all jobs and update log_summary.html (no input required).\nmerge - move files from --merge_from one or many paths into --output_path, and run all modules to produce unified reports\nbucket - mode `all` run `-i` folder located outside `Ardetype`;\nthe folder will be moved to `Ardetype`, processed and moved to the folder defined in `config_modular.yaml/output_bucket_path`;\n\tdesigned to automate pipeline launches with Airflow"
+            "Selecting mode that allows to run specific modules of the pipeline:\nall - run all modules (starting from fastq files)\nlog_analysis - summarise logs of all jobs and update log_summary.html (no input required).\nmerge - move files from --merge_from one or many paths into --output_path, and run all modules to produce unified reports\nbucket - mode `all` run `-i` folder located outside `Ardetype`;\n\tthe folder will be moved to `Ardetype`, processed and moved to the folder defined in `config_modular.yaml/output_bucket_path`;\n\tdesigned to automate pipeline launches with Airflow"
         ]
     ],
     "optional": {
@@ -77,9 +77,9 @@
                 "Flag to move packed output (see --pack_output flag) to specified output folder.\nSuggested use: if rerun is required after running with --pack_output flag, use this flag to move output files from subfolders (making them detectable by snakemake)."
             ],
             [
-                "-l",
-                "--clean_job_logs",
-                "Flag to remove all job log files that are older than 30 days."
+                "-ont",
+                "--nanopore_only",
+                "Flag to run the pipeline with only nanopore data."
             ]
         ],
         "nargs": [
