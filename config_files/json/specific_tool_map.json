@@ -125,6 +125,13 @@
             "tool": "polca",
             "link": "https://github.com/alekseyzimin/masurca",
             "reference": "Zimin, A. V., & Salzberg, S. L. (2020). The genome polishing tool POLCA makes fast and accurate corrections in genome assemblies. PLOS Computational Biology, 16(6), e1007981. https://doi.org/10.1371/journal.pcbi.1007981"
+        },
+        "medaka": {
+            "rule": "nanopore_polishing",
+            "method": "Post-assembly processing for ONT data.",
+            "tool": "medaka",
+            "link": "https://github.com/nanoporetech/medaka",
+            "reference": "https://github.com/nanoporetech/medaka"
         }
     },
     "_meningotype.tsv": {

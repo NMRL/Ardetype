@@ -194,7 +194,8 @@ class Wrapper():
             "polypolish":
                 sp.run(f'module load singularity && singularity run {self._config_dict["polypolish_sif"]} polypolish --version', 
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-            "polca":"4.1.0"
+            "polca":"4.1.0",
+            "medaka": sp.run(f'module load singularity && singularity run {self._config_dict["medaka_sif"]} medaka --version 2> /dev/null', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split()[1]
         }
 
 
