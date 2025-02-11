@@ -109,32 +109,6 @@ rule all:
         hicap_results.to_csv(f"{config['output_directory']}hicap_report.csv", header=True, index=False)
 
 
-
-
-
-        #Run cluster analysis
-        # hk.cgmlst_cluster_analysis(
-        #     path = config['output_directory'],
-        #     wildcard='*_chewbbaca/results_alleles.tsv',
-        #     thresholds=[i+1 for i in range(25)],
-        #     log_scale=True,
-        #     rem_outlier=100)
-
-
-
-        cgmlst_profile_list = list(glob(os.path.join(config['output_directory'],'*_chewbbaca/results_alleles.tsv')))
-        #Creating copy of cgmlst_profiles in the species-specific folder
-        with open(config['output_directory']+'core_aggregated_taxonomy.json', "r+") as json_handle:             #write top hit for each sample to json file
-            taxonomy_map = json.load(json_handle)
-
-        hk.copy_files_by_species(
-            taxonomy_map = taxonomy_map,
-            file_list = cgmlst_profile_list,
-            collection_path = config['cgmlst_prof_col_path'],
-            extension='results_alleles.tsv',
-            batch_depth=2,
-        )
-
 rule hicap_hinfluenzae:
     input:
         contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),

@@ -221,7 +221,7 @@ rule extract_quast:
         df.to_csv(output[0], header=True, index=False)
 
 
-rule extract_Meningotype:
+rule extract_meningotype:
     input: 
         config['output_directory']+'{sample_id_pattern}_meningotype.tsv'
     output:

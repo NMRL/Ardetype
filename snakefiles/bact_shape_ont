@@ -1,0 +1,581 @@
+localrules: all
+
+import sys, pandas as pd, os, json, time
+from datetime import date
+sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
+from ardetype_utilities import Ardetype_housekeeper as Housekeeper
+from ardetype_modules import Wrapper as wp
+
+
+sip_wild = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
+sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv").astype(str)
+date = date.today().strftime("%Y-%m-%d")
+specific_tool_map = Housekeeper.read_json_dict("/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/json/specific_tool_map.json")
+aquamis_qc_db = Housekeeper.read_json_dict(config["aquamis_qc_reference"])
+aquamis_update_timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(config["aquamis_qc_reference"])))
+
+
+rule all:
+    input:
+        config['shape_target_files']      
+    run:
+        aggr_dict = {}
+        
+        #Combining agnostic typing results
+        for path in config['shape_target_files']: 
+            df = pd.read_csv(path)#read each file
+            if df['sample_id'][0] in aggr_dict: #if sample included before
+                aggr_dict[df['sample_id'][0]] = aggr_dict[df['sample_id'][0]].join(df.loc[ : ,df.columns != "sample_id"]) #add all columns except for sample_id
+            else:
+                aggr_dict[df['sample_id'][0]] = df #add all columns
+
+
+        report = pd.concat(aggr_dict.values()) #combile all dataframes as rows into single report (one row for each sample_id)
+
+
+        #Generating combined report
+        general_columns = [ 
+            "sample_id",
+            "contig_count",
+            "N50",
+            "assembly_length",
+            "gc_contigs",
+            "MLST7_ST",
+            "rMLST",
+            "rMLST_Species",
+            "rMLST_Support_%",
+            "species",
+            "species_contig_%",
+            "taxid"
+        ]
+
+        #reorder columns
+        optional_columns = sorted(list(set(report.columns) - set(general_columns)))
+        order_list = general_columns + optional_columns
+        report = report[order_list]
+
+        #generate per-sample and per-batch tool reports
+        wrapper = wp()
+        wrapper.set_db_vers_map()
+        wrapper.set_tool_vers_map()
+        wrapper.report_tool_versions(output_path = config['output_directory'], sample_ids = report.sample_id)
+
+        #add output folder name as analysis batch id
+        report.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in report.index])
+        #generate aquamis-based qc reports
+        aquamis_qc_report = pd.DataFrame()
+        # for sid, bid, spc in zip(report['sample_id'],report['analysis_batch_id'], report['species']):
+        #     qc_report = Housekeeper.check_quality_thr(
+        #         thresholds_db = aquamis_qc_db, 
+        #         sample_id = sid, 
+        #         batch_id = bid, 
+        #         species = spc, 
+        #         ardetype_report = report, 
+        #         quast_report_path = config['output_directory']+f'{sid}_quast/transposed_report.tsv', 
+        #         thresholds_db_timestamp = aquamis_update_timestamp
+        #         )
+        #     aquamis_qc_report = pd.concat([aquamis_qc_report, qc_report])
+        
+        # #Prettify ids
+        report.sample_id = report.sample_id.astype(str).str.replace(r'_S[0-9]*', '', regex=True)
+        # aquamis_qc_report.sample_id = aquamis_qc_report.sample_id.astype(str).str.replace(r'_S[0-9]*', '', regex=True)
+
+        # #save as csv
+        report.to_csv(config['output_directory']+f'{date}_ardetype_report.csv', header=True, index=False)
+        # aquamis_qc_report.to_csv(config['output_directory']+f'{date}_aquamis_qc_report.csv', header=True, index=False)
+
+
+
+rule extract_kraken2:
+    input:
+        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt'
+    output:
+        config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report_std.csv'
+    run:
+        df = pd.read_table(input[0], header=None)[[0,3,5]]
+        df.columns = ['species_contig_%','taxid','species']
+        try:
+            df = df[df['taxid'] == "S"].reset_index(drop=True).sort_values(by=['species_contig_%'], ascending=False).head(1)
+            df['species'] = [df['species'].reset_index(drop=True)[0].strip()]
+            df['sample_id'] = [wildcards.sample_id_pattern]
+        except:
+            #When no typing is available at species level
+            df = pd.DataFrame.from_dict({'species_contig_%':["None"],'taxid':["None"],'species':["None"]})
+            df['sample_id'] = [wildcards.sample_id_pattern]
+        df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_mlst:
+    input:
+        config['output_directory']+'{sample_id_pattern}_mlst_output.csv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_mlst_output_std.csv'
+    run:
+        try:
+            df = pd.read_csv(input[0], header=None)[[0,2]]
+            df.columns = ['sample_id','MLST7_ST']
+            df['sample_id'] = df['sample_id'].apply(lambda x: os.path.basename(x).replace("_contigs.fasta", ""))
+            df.to_csv(output[0],header=True, index=False)
+        except pd.errors.EmptyDataError as e:
+            df = pd.DataFrame.from_dict({'sample_id':wildcards.sample_id_pattern, 'MLST7_ST':None})
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_rmlst:
+    input:
+        config['output_directory']+'{sample_id_pattern}_rmlst.json'
+    output:
+        config['output_directory']+'{sample_id_pattern}_rmlst_std.csv'
+    run:
+        with open(input[0], 'r+') as file:
+            data = json.load(file)
+        
+        if data:
+            if data['exact_matches']:
+                extract = {
+                    "rMLST_Species": " | ".join([s['taxon'] for s in data['taxon_prediction']]), 
+                    "rMLST_Support_%": " | ".join([str(s['support']) for s in data['taxon_prediction']]), 
+                    "rMLST": [data['fields']['rST'] if "fields" in data else None],
+                }
+                df = pd.DataFrame.from_dict(extract)
+                df['sample_id'] = wildcards.sample_id_pattern
+                df.to_csv(output[0], header=True, index=False)
+            else:
+                df = pd.DataFrame.from_dict({'rMLST_Species':[None], 'rMLST_Support_%':[None], 'rMLST':[None], 'sample_id':[wildcards.sample_id_pattern]})
+                df.to_csv(output[0], header=True, index=False)
+        else:
+            df = pd.DataFrame.from_dict({'rMLST_Species':[None], 'rMLST_Support_%':[None], 'rMLST':[None], 'sample_id':[wildcards.sample_id_pattern]})
+            df.to_csv(output[0], header=True, index=False)
+            
+
+
+rule extract_quast:
+    input:
+        config['output_directory']+'{sample_id_pattern}_quast/transposed_report.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_quast_std.csv'
+    run:
+        report = pd.read_csv(input[0], sep="\t")
+        data_dict = {
+            "contig_count":[report["# contigs"][0]],
+            "N50":[report["N50"][0]],
+            "assembly_length":[report["Total length"][0]],
+            "gc_contigs":[report["GC (%)"][0]],
+            "sample_id":wildcards.sample_id_pattern
+        }
+        df = pd.DataFrame.from_dict(data_dict)
+        df.to_csv(output[0], header=True, index=False)
+
+
+rule extract_Meningotype:
+    input: 
+        config['output_directory']+'{sample_id_pattern}_meningotype.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_meningotype_std.csv'
+    run:
+        try:
+            key = "_meningotype.tsv"
+            report = pd.read_csv(input[0], sep="\t")
+            report = report[["SEROGROUP"]]
+            report.columns = ["type"]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "_meningotype.tsv"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":[None],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
+                f'type|{specific_tool_map[key]["tool"]}':[None]
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_legsta:
+    input: 
+        config['output_directory']+'{sample_id_pattern}_legsta.csv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_legsta_std.csv'
+    run:
+        try:
+            key = "_legsta.csv"
+            report = pd.read_csv(input[0])
+            report = report[["SBT"]]
+            report.columns = ["type"]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "_legsta.csv"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":[None],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
+                f'type|{specific_tool_map[key]["tool"]}':[None]
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_legionella_pneumophila_genomics:
+    input: 
+        config['output_directory']+"{sample_id_pattern}-predictResults.txt"
+    output:
+        config['output_directory']+"{sample_id_pattern}-predictResults_std.csv"
+    run:
+        try:
+            key = "-predictResults.txt"
+            report = pd.read_csv(input[0])
+            report = report[["x"]]
+            report.columns = ["type"]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "-predictResults.txt"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":[None],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
+                f'type|{specific_tool_map[key]["tool"]}':[None]
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_hicap:
+    input: 
+        config['output_directory']+'{sample_id_pattern}_hi_hicap.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_hicap_std.csv'
+    run:
+        try:
+            key = "_hicap.tsv"
+            report = pd.read_csv(input[0], sep="\t")
+            report = report[["predicted_serotype"]]
+            report.columns = ["type"]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "_hicap.tsv"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":["hicap"],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[specific_tool_map[key]['reference']],
+                f'type|{specific_tool_map[key]["tool"]}':["NTHi"]
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_kleborate:
+    input: 
+        config['output_directory']+'{sample_id_pattern}_kleborate.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_kleborate_std.csv'
+    run:
+        try:
+            key = "_kleborate.tsv"
+            report = pd.read_csv(input[0], sep="\t")
+            report = report[["K_locus", "O_locus"]]
+            report["type"] = report[['K_locus', 'O_locus']].agg('; '.join, axis=1) #textjoin in pandas accross columns
+            report = report[["type"]]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "_kleborate.tsv"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":[None],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
+                f'type|{specific_tool_map[key]["tool"]}':[None]
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_AgrVATE:
+    input: 
+        config['output_directory']+'{sample_id_pattern}_agrvate_summary.tab'
+    output:
+        config['output_directory']+'{sample_id_pattern}_agrvate_summary_std.csv'
+    run:
+        try:
+            key = "_agrvate_summary.tab"
+            report = pd.read_csv(input[0], sep="\t")
+            report = report[["agr_group"]]
+            report.columns = ["type"]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "_agrvate_summary.tab"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":[None],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
+                f'type|{specific_tool_map[key]["tool"]}':[None]
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_spaTyper:
+    input: 
+        config['output_directory']+'{sample_id_pattern}_spatyper.txt'
+    output:
+        config['output_directory']+'{sample_id_pattern}_spatyper_std.csv'
+    run:
+        try:
+            key = "_spatyper.txt"
+            report = pd.read_csv(input[0], sep="\t")
+            if report.empty: raise pd.errors.EmptyDataError
+
+            report = report[["Type"]]
+            report.columns = ["type"]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+            
+        except pd.errors.EmptyDataError:
+            key = "_spatyper.txt"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":['NA'],
+                f"tool_reference|{specific_tool_map[key]['tool']}":['NA'],
+                f'type|{specific_tool_map[key]["tool"]}':['NA']
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_sccmec: 
+    input: 
+        config['output_directory']+'{sample_id_pattern}_sccmec.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_sccmec_std.csv'
+    run:
+        try:
+            key = "_sccmec.tsv"
+            df = pd.read_csv(input[0], sep="\t", header=None)
+            df = df.T
+            df.columns = ["type", "detected"]
+            df = df[df["detected"] == "True"]
+            report = pd.DataFrame.from_dict({"type":[df["type"].str.cat(sep="; ")]})
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "_sccmec.tsv"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":[None],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
+                f'type|{specific_tool_map[key]["tool"]}':[None]
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_emmtyper:
+    input: 
+        config['output_directory']+'{sample_id_pattern}_strp_emmtyper.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_emmtyper_std.csv'
+    run:
+        try:
+            key = "_emmtyper.tsv"
+            report = pd.read_csv(input[0], sep="\t", header=None)
+            report = report[[2]]
+            report.columns = ["type"]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "_emmtyper.tsv"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":[None],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
+                f'type|{specific_tool_map[key]["tool"]}':[None]
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_LisSero: 
+    input: 
+        config['output_directory']+'{sample_id_pattern}_lissero.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_lissero_std.csv'
+    run:
+        try:
+            key = "_lissero.tsv"
+            report = pd.read_csv(input[0], sep="\t")
+            report = report[["SEROTYPE"]]
+            report.columns = ["type"]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "_lissero.tsv"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":[None],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
+                f'type|{specific_tool_map[key]["tool"]}':[None]
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_SISTR: 
+    input: 
+        config['output_directory']+'{sample_id_pattern}_sistr.csv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_sistr_std.csv'
+    run:
+        try:
+            key = "_sistr.csv"
+            report = pd.read_csv(input[0])
+            report = report[["serovar", "serogroup"]]
+            report["type"] = report[["serovar", "serogroup"]].agg('; '.join, axis=1) #textjoin in pandas accross columns
+            report = report[["type"]]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "_sistr.csv"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":[None],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
+                f'type|{specific_tool_map[key]["tool"]}':[None]
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_SeqSero2: 
+    input: 
+        config['output_directory']+'{sample_id_pattern}_SeqSero.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_SeqSero_std.csv'
+    run:
+        try:
+            key = "_SeqSero.tsv"
+            report = pd.read_csv(input[0], sep="\t")
+            report = report[["Predicted serotype"]]
+            report.columns = ["type"]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "_SeqSero.tsv"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":[None],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
+                f'type|{specific_tool_map[key]["tool"]}':[None]
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_ECTyper: 
+    input: 
+        config['output_directory']+'{sample_id_pattern}_ectyper.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_ectyper_std.csv'
+    run:
+        try:
+            key = "_ectyper.tsv"
+            report = pd.read_csv(input[0], sep="\t")
+            report = report[["Serotype"]]
+            report.columns = ["type"]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "_ectyper.tsv"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":[None],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
+                f'type|{specific_tool_map[key]["tool"]}':[None]
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_STECFinder: 
+    input: 
+        config['output_directory']+'{sample_id_pattern}_stecfinder.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_stecfinder_std.csv'
+    run:
+        try:
+            key = "_stecfinder.tsv"
+            report = pd.read_csv(input[0], sep="\t")
+            report = report[["stx type"]]
+            report.columns = ["type"]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "_stecfinder.tsv"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":[None],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
+                f'type|{specific_tool_map[key]["tool"]}':[None]
+                })
+            df.to_csv(output[0],header=True, index=False)
+
+
+rule extract_SeroBA:
+    input: 
+        config['output_directory']+'{sample_id_pattern}_seroba.tsv'
+    output:
+        config['output_directory']+'{sample_id_pattern}_seroba_std.csv'
+    run:
+        try:
+            key = "_seroba.tsv"
+            report = pd.read_csv(input[0], sep="\t", header=None).astype(str)
+            report.columns = ["id","type","info"]
+            report = report[["type", "info"]]
+            if isinstance(report['info'][0], str): report["type"] = report[["type", "info"]].agg('; '.join, axis=1) #textjoin in pandas accross columns
+            report = report[["type"]]
+            report["sample_id"] = wildcards.sample_id_pattern
+            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+            report.to_csv(output[0], header=True, index=False)
+        except pd.errors.EmptyDataError:
+            key = "_seroba.tsv"
+            df = pd.DataFrame.from_dict({
+                'sample_id':[wildcards.sample_id_pattern], 
+                f"method|{specific_tool_map[key]['tool']}":[None],
+                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
+                f'type|{specific_tool_map[key]["tool"]}':[None]
+                })
+            df.to_csv(output[0],header=True, index=False)

@@ -813,24 +813,6 @@ class Ardetype_housekeeper(hk):
         return hamr_pls_merge
 
 
-    @staticmethod
-    def cgmlst_cluster_analysis(path:str, wildcard:str="folded*/*_chewbbaca/results_alleles.tsv", thresholds:list=[], linkage:str='single', log_scale:bool=True, rem_outlier:int=None):
-        current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        output_path = os.path.join(path, 'cgmlst_clusters')
-        os.makedirs(output_path, mode=0o775, exist_ok=True)
-        initialize_logging(path = output_path, current_datetime = current_datetime)
-        chew_dict = gather_chewbacca_data(path = path, wildcard = wildcard)
-        cluster_analysis(
-            path = path,
-            output_path = output_path,
-            thresholds = thresholds,
-            df_dict=chew_dict,
-            singularity=True, 
-            linkage_method=linkage, 
-            log_scale=log_scale, 
-            outlier_filter=rem_outlier)
-
-
 ###########################
 # Multiprocessing aggregator
 ###########################

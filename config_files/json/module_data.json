@@ -2,9 +2,13 @@
     "cluster_config": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/yaml/cluster.yaml",
     "snakefiles": {
         "core": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_core",
+        "core_ont": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_core_ont",
         "shell": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shell",
+        "shell_ont": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shell_ont",
         "tip": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_tip",
-        "shape": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shape"
+        "tip_ont": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_tip_ont",
+        "shape": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shape",
+        "shape_ont": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shape_ont"
     },
     "reports": [
         "_ardetype_report.csv",
@@ -40,22 +44,45 @@
         "hicap_report.csv"
     ],
     "core": {
-        "targets": [
-            "_contigs.fasta",
-            "_bact_reads_classified_1.fastq.gz",
-            "_bact_reads_classified_2.fastq.gz",
-            "_bact_reads_unclassified_1.fastq.gz",
-            "_bact_reads_unclassified_2.fastq.gz",
-            "_kraken2_contigs_report.txt",
-            "_kraken2_host_filtering_report.txt",
-            ".fastp.json",
-            ".fastp.html"
-        ],
-        "patterns": {
-            "inputs": [
-                "001.fastq.gz"
+        "targets": {
+            "ILL": [
+                "_contigs/contigs.fa",
+                "_bact_reads_classified_1.fastq.gz",
+                "_bact_reads_classified_2.fastq.gz",
+                "_bact_reads_unclassified_1.fastq.gz",
+                "_bact_reads_unclassified_2.fastq.gz",
+                "_kraken2_contigs_report.txt",
+                "_kraken2_host_filtering_report.txt",
+                ".fastp.json",
+                ".fastp.html",
+                "_contigs.fasta"
             ],
-            "sample_sheet": "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz)"
+            "FUL": [
+                "_poly_polished.fasta.PolcaCorrected.fa",
+                "_snikt.html",
+                "_bact_reads_classified_1.fastq.gz",
+                "_bact_reads_classified_2.fastq.gz",
+                "_bact_reads_unclassified_1.fastq.gz",
+                "_bact_reads_unclassified_2.fastq.gz",
+                "_kraken2_contigs_report.txt",
+                "_kraken2_host_filtering_report.txt",
+                ".fastp.json",
+                ".fastp.html",
+                "_contigs.fasta"
+            ],
+            "ONT": [
+                ".circularized.fasta",
+                "_snikt.html",
+                "_kraken2_contigs_report.txt",
+                "_contigs.fasta"
+            ]
+        },
+        "patterns": {
+            "inputs": {
+                "ILL": "001.fastq.gz",
+                "ONT": "ONT.fastq.gz"
+            },
+            "sample_sheet": "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_ONT.fastq.gz)"
         },
         "job_name": "bact_core",
         "requests": {
@@ -89,10 +116,10 @@
             "_rmlst.json"
         ],
         "patterns": {
-            "inputs": [
-                "001.fastq.gz",
-                "_contigs.fasta"
-            ],
+            "inputs": {
+                "ILL/FUL": ["001.fastq.gz", "_contigs.fasta"],
+                "ONT": ["_contigs.fasta"]
+            },
             "sample_sheet": "(_R[1,2]_001.fastq.gz|_contigs.fasta)"
         },
         "job_name": "bact_shell",
@@ -199,11 +226,10 @@
             ]
         },
         "patterns": {
-            "inputs": [
-                "_bact_reads_classified_1.fastq.gz",
-                "_bact_reads_classified_2.fastq.gz",
-                "_contigs.fasta"
-            ],
+            "inputs": {
+                "ILL/FUL": ["_bact_reads_classified_1.fastq.gz","_bact_reads_classified_2.fastq.gz", "_contigs.fasta"],
+                "ONT": ["_contigs.fasta"]
+            },
             "sample_sheet": "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_contigs.fasta)"
         },
         "job_name": "bact_tip",
@@ -316,7 +342,6 @@
                 "required": [
                     "_contigs.fasta",
                     "_kraken2_contigs_report.txt",
-                    ".fastp.json",
                     "_mlst_output.csv"
                 ],
                 "optional": [

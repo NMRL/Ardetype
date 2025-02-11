@@ -18,8 +18,9 @@ __default__:
 ##############
 # bact_core
 ##############
-quality_control:
-  jobname: "ardetype.quality_control"
+
+illumina_qc:
+  jobname: "ardetype.illumina_qc"
   procs: 12
   pmem: "1500mb"
   walltime: "00:20:00"
@@ -27,6 +28,69 @@ quality_control:
   queue: "batch"
   jobout: "oe"
 
+ont_qc:
+  jobname: "ardetype.ont_qc"
+  procs: 12
+  pmem: "1500mb"
+  walltime: "00:20:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+ont_filtering:
+  jobname: "ardetype.ont_filtering"
+  procs: 12
+  pmem: "1500mb"
+  walltime: "00:20:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+ont_assembly:
+  jobname: "ardetype.ont_assembly"
+  procs: 24
+  pmem: "1500mb"
+  walltime: "01:20:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+medaka:
+  jobname: "ardetype.medaka"
+  procs: 12
+  pmem: "1000mb"
+  walltime: "01:00:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+  
+circlator:
+  jobname: "ardetype.circlator"
+  procs: 6
+  pmem: "1000mb"
+  walltime: "01:00:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+ont_polishing:
+  jobname: "ardetype.ont_polyshing"
+  procs: 32
+  pmem: "1500mb"
+  walltime: "10:00:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+hybrid_polishing:
+  jobname: "ardetype.hybrid_polishing"
+  procs: 12
+  pmem: "1500mb"
+  walltime: "00:20:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
 
 filter_host:
   jobname: "ardetype.filter_host"
@@ -61,8 +125,8 @@ classify_contigs:
   jobout: "oe"
 
 
-contig_assembly:
-  jobname: "ardetype.contig_assembly"
+illumina_assembly:
+  jobname: "ardetype.illumina_assembly"
   procs: 38
   pmem: "6000mb"
   walltime: "10:40:00"
@@ -138,7 +202,7 @@ virulencefinder:
   jobname: "ardetype.virulencefinder"
   procs: 12
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"

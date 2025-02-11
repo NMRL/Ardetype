@@ -87,39 +87,94 @@ class Module:
         return rule_names
 
 
-    def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified'], mixed:bool=False, empty:bool=False):
+    def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified'], mixed:bool=False, empty:bool=False, pattern_path:str=""):
         '''Fills self.input_dict using self.input_path and self.module_name by
         mapping each file format to the list of files of that format, found in the self.input_path, 
         excluding files that contain substrings in their names (supply None to avoid excluding files).
         If some files of required format are missing, raises an exception, indicating missing file format.'''
-        if not mixed:
-            for format in self.patterns['inputs']: 
-                self.input_dict[format] = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
-                if not self.input_dict[format]: raise Exception(f'Missing {format} files in input directory')
-        elif mixed or empty:
-            for format in self.patterns['inputs']['required']: 
-                self.input_dict[format] = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
-                if not self.input_dict[format]: raise Exception(f'Missing {format} files in input directory')
-            if not empty:
-                for format in self.patterns['inputs']['optional']:
-                    parsed_files = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=format)
-                    if parsed_files:
-                        self.input_dict[format] = parsed_files
+        if pattern_path:
+            for fmt in self.patterns['inputs']:
+                if fmt in pattern_path:
+                    if isinstance(self.patterns['inputs'][fmt], list):
+                        for pattern in self.patterns['inputs'][fmt]:
+                            parsed_files = hk.parse_folder(
+                                self.input_path,substr_lst=substring_list,
+                                file_fmt_str=pattern)
+                            if not parsed_files:
+                                raise FileNotFoundError(f'Missing {fmt} files in input directory')
+                            self.input_dict[pattern] = parsed_files
+                    elif isinstance(self.patterns['inputs'][fmt], str):
+                        parsed_files = hk.parse_folder(
+                                self.input_path,substr_lst=substring_list,
+                                file_fmt_str=self.patterns['inputs'][fmt])
+                        if not parsed_files:
+                            raise FileNotFoundError(f'Missing {fmt} files in input directory')
+                        self.input_dict[self.patterns['inputs'][fmt]] = parsed_files
 
-    def fill_sample_sheet(self):
+        elif mixed or empty:
+            for fmt in self.patterns['inputs']['required']: 
+                self.input_dict[fmt] = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=fmt)
+                if not self.input_dict[fmt]:
+                    raise FileNotFoundError(f'Missing {fmt} files in input directory')
+            
+            if not empty:
+                for fmt in self.patterns['inputs']['optional']:
+                    parsed_files = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=fmt)
+                    if parsed_files:
+                        self.input_dict[fmt] = parsed_files
+
+    def fill_sample_sheet(self, pattern:str="001.fastq.gz"):
         '''
         Initializes self.sample_sheet to pandas dataframe, using self.input_dict and self.module_name (restricted to fastq & fasta inputs).
         '''
         ###Development - create sample sheet from paired or unpaired files; update sample sheet with paired or unpaired files
         if len(self.input_dict) < 2: #only one file extension is used - assumed fastq.gz
-            self.sample_sheet = hk.create_sample_sheet(self.input_dict["001.fastq.gz"],self.patterns['sample_sheet'],mode=0)
+            self.sample_sheet = hk.create_sample_sheet(self.input_dict[pattern],self.patterns['sample_sheet'],mode=0)
         else: #fastq & fasta assumed
-            self.sample_sheet = hk.create_sample_sheet(self.input_dict["001.fastq.gz"],self.patterns['sample_sheet'],mode=0)
+            self.sample_sheet = hk.create_sample_sheet(self.input_dict[pattern],self.patterns['sample_sheet'],mode=0)
             fasta_dict = {re.sub("_contigs.fasta","",os.path.basename(contig)):contig for contig in self.input_dict["_contigs.fasta"]}
             self.sample_sheet = hk.map_new_column(self.sample_sheet,fasta_dict,'sample_id','fa')
 
 
-    def fill_target_list(self, taxonomy_based:bool=False, mixed:bool=False, empty:bool=False):
+    def get_sample_groups(self, regexp:str=f'(_R[1,2]_001.fastq.gz|_ONT.fastq.gz)'):
+        '''Extracts grouping information for samples based on the available input files'''
+        file_list = glob.glob(os.path.join(self.input_path, '*'))
+        file_map = {}
+        for f in file_list:
+            sample_id = os.path.basename(re.sub(regexp, '', f))
+            finding = re.search(regexp, f)
+            if finding is not None:
+                finding = finding.group(0)
+                file_map[sample_id] = file_map.get(sample_id, list())
+                file_map[sample_id].append(finding)
+        #Equalize column length
+        for k, v in file_map.items():
+            ln = len(v)
+            if ln < 3:
+                for _ in range(3 - ln):
+                    file_map[k].append(str(None))
+            file_map[k].sort()
+        
+
+        #Define groups of samples
+        df = pd.DataFrame.from_dict(file_map, orient='index').reset_index()
+        df.columns = ['sample_id', 'ONT', 'ILL1', 'ILL2']
+        ont_case = df.ONT.str.contains('None') & df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
+        ill_case = df.ONT.str.contains('None') & ~df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
+        ful_case = ~df.ONT.str.contains('None') & ~df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
+
+
+        ont_pg = df[ont_case]
+        ill_gp = df[ill_case]
+        ful_gp = df[ful_case]
+
+        #Add groups to the sample sheet
+        self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ont_pg['sample_id']), 'sample_group'] = 'ONT'
+        self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ill_gp['sample_id']), 'sample_group'] = 'ILL'
+        self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ful_gp['sample_id']), 'sample_group'] = 'FUL'
+
+
+    def fill_target_list(self, taxonomy_based:bool=False, mixed:bool=False, empty:bool=False, grouped:bool=False):
         '''Fills self.target_list using data stored in self.sample_sheet instance variable.'''
         if taxonomy_based:#specific targets for each species
             self.target_list = [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
@@ -128,7 +183,10 @@ class Module:
             if not empty:
                 self.target_list += [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
         else:#only non-specific targets
-            self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
+            if grouped:
+                self.target_list = [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['sample_group'][idx]]]
+            else:
+                self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
             
 
     def make_output_dir(self):
