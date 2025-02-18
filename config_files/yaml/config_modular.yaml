@@ -33,6 +33,22 @@ shovill_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/shovill.sif
 fastp_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/fastp.sif
+polca_sif:
+  /mnt/beegfs2/home/groups/nmrl/image_files/masurca_4.1.0.sif
+polypolish_sif:
+  /mnt/beegfs2/home/groups/nmrl/image_files/polypolish_0.6.0.sif
+bwa_sif:
+  /mnt/beegfs2/home/groups/nmrl/image_files/fastq_processing.sif
+circlator_sif:
+  /mnt/beegfs2/home/groups/nmrl/image_files/circlator_1.5.5.sif
+flye_sif:
+  /mnt/beegfs2/home/groups/nmrl/image_files/flye_2.9.3-b1797.sif
+filtlong_sif:
+  /mnt/beegfs2/home/groups/nmrl/image_files/filtlong_v0.2.1.sif
+snikt_sif:
+  /mnt/beegfs2/home/groups/nmrl/image_files/snikt_0.5.0.sif
+medaka_sif:
+  /mnt/beegfs2/home/groups/nmrl/image_files/medaka_0.11.2.sif
 
 
 ##############
@@ -40,8 +56,6 @@ fastp_sif:
 ##############
 amrfinderplus_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/ncbi-amrfinderplus_latest.sif
-amrpp_repo:
-  /mnt/beegfs2/home/groups/nmrl/bact_analysis/amrplusplus_v2/
 hamronization_sif:
   /mnt/home/jevgen01/nmrl_bgfs/image_files/hamronization_latest.sif
 mlst_quast_sif:
@@ -62,16 +76,14 @@ rgi_env:
 hamronization_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/hamronization_latest.sif
 resfinder_version: resfinder_v4.5
-#resfinder_v4.1.11
 resfinder_db_version: resfinder_2024-06-18
-#resfinder_2023-03-29
-rgi_version: 6.0.3 #rgi_v5.2.1 
-rgi_db_version: 6.0.3 #card_v3.1.4
+rgi_version: 6.0.3 
+rgi_db_version: 6.0.3 
 #https://quay.io/repository/biocontainers/rgi?tab=tags&tag=latest
 amrplusplus_version: amrplusplus_v2.0
 amrplusplus_db_version: MEGARES
-amrfinderplus_version: 3.12.8 #3.10.42
-amrfinderplus_db_version: 2024-05-02.2 #2022-10-11.2
+amrfinderplus_version: 3.12.8
+amrfinderplus_db_version: 2024-05-02.2
 
 
 ##############
@@ -149,16 +161,11 @@ core_tool_configs:
     threads: 12
     human_db: /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/human_reference/
     ram_host_mb: 262144
-    bact_db: /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/minikraken_bact/
-    # /mnt/beegfs2/home/groups/nmrl/bact_analysis/AQUAMIS/reference_db/kraken
-    # /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/full_ref_bafp/
-    # /mnt/beegfs2/home/groups/nmrl/bact_analysis/AQUAMIS/reference_db/kraken
-    # 
+    bact_db: /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/minikraken_bact/ 
     ram_bact_mb: 262144
-    #24576
   shovill:
     minlen: 1
-    mincov: 0 #2
+    mincov: 0
     cpus: 35
     ram: 100
     depth: 100
@@ -166,6 +173,20 @@ core_tool_configs:
   fastp:
     max_len1: 0 #trim bases after given length in read1
     max_len2: 0 #trim bases after given length in read2
+  polypolish:
+    min_th: 15
+    max_th: 55.0
+  polca:
+    threads: 32
+    ram_gbp_thread: 2G
+  filtlong:
+    keep_percent: 90
+  flye:
+    threads: 12
+  snikt:
+    sample_size: 10000
+  medaka:
+    threads: 12
 
 #########################
 # bact_shell configuration
@@ -205,24 +226,6 @@ shell_tool_configs:
     - Vibrio_cholerae
     - Vibrio_parahaemolyticus
     - Vibrio_vulnificus
-    # - Acinetobacter_baumannii
-    # - Burkholderia_cepacia
-    # - Burkholderia_pseudomallei
-    # - Campylobacter
-    # - Clostridioides_difficile
-    # - Enterococcus_faecalis
-    # - Enterococcus_faecium
-    # - Escherichia
-    # - Klebsiella
-    # - Neisseria
-    # - Pseudomonas_aeruginosa
-    # - Salmonella
-    # - Staphylococcus_aureus
-    # - Staphylococcus_pseudintermedius
-    # - Streptococcus_agalactiae
-    # - Streptococcus_pneumoniae
-    # - Streptococcus_pyogenes
-    # - Vibrio_cholerae
   resfinder:
     length: 0.6
     coverage: 0.9
@@ -246,8 +249,8 @@ shell_tool_configs:
     virulencefinder_db: /mnt/beegfs2/home/groups/nmrl/db/virulencefinder_db_new/
     db_update: "2024-06-18"
   rmlst_pubmlst:
-    schema: http://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1/sequence
-    api_seq_limit: 75 # changed from 5000 by reivan on 02.01.2023
+    schema: https://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1
+    api_seq_limit: 75
 
 
 
@@ -292,7 +295,7 @@ tip_tool_configs:
       clostridium: clostridium
   chewbbaca:
     chewbbaca_sif: /mnt/beegfs2/home/groups/nmrl/image_files/chewbacca_cgmlst.sif
-    chewbbaca_cores: 12
+    chewbbaca_cores: 24
     chewbbaca_orgs:
       salmonella:
         db: Salmonella_enterica
@@ -423,7 +426,6 @@ tip_tool_configs:
   lrefinder_efaecium_efaecalis:
     id: 80
   shigatyper_shigella:
-
   
 
 #########################

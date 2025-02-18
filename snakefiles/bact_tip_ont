@@ -1,0 +1,661 @@
+localrules: all
+
+#imports
+import sys, pandas as pd, os, json
+from glob import glob
+sys.path.insert(0, os.path.abspath('./'))
+from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
+
+#define sample_id_pattern wildcard and accessing sample_sheet
+sip_wild     = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv").astype(str)
+
+
+#keeping only samples where organisms are covered by the existing cgmlst databases
+cgmlstfinder_orgs = config["tip_tool_configs"]["cgmlstfinder"]["cgmlstfinder_orgs"]
+chewbbaca_orgs    = config["tip_tool_configs"]["chewbbaca"]["chewbbaca_orgs"]
+
+#mapping full species name to cgmlstfinder-accepted and chewbbaca-accepted database format
+species_id_map           = dict(zip(sample_sheet['sample_id'], sample_sheet['taxonomy'].str.lower()))
+cgmlstfinder_species_map = {}
+chewbbaca_species_map    = {}
+
+
+for org in cgmlstfinder_orgs:
+    for sid, species in species_id_map.items():
+        if org in species:
+            cgmlstfinder_species_map[sid] = cgmlstfinder_orgs[org]
+
+
+for org in chewbbaca_orgs:
+    for sid, species in species_id_map.items():
+        if org in species:
+            chewbbaca_species_map[sid] = {
+                'db'           : chewbbaca_orgs[org]['db'],
+                'version'      : chewbbaca_orgs[org]['version'],
+                'origin'       : chewbbaca_orgs[org]['origin'],
+                'allele_count' : chewbbaca_orgs[org]['allele_count'],
+            }
+
+
+rule all:
+    input: 
+        config['tip_target_files'],
+
+        
+    run:
+        #Aggregate Kleborate results
+        kleborate_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_kleborate.tsv", extractor = hk.kleborate_results)
+        kleborate_summary.to_csv(f"{config['output_directory']}kleborate_report.csv", header=True, index=False)
+
+        #Aggregate Ectyper results
+        ectyper_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_ectyper.tsv", extractor = hk.ectyper_results)
+        ectyper_summary.to_csv(f"{config['output_directory']}ectyper_report.csv", header=True, index=False)
+
+        #Aggregate Stecfinder results
+        # stecfinder_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_stecfinder.tsv", extractor = hk.stecfinder_results)
+        # stecfinder_summary.to_csv(f"{config['output_directory']}stectfinder_report.csv", header=True, index=False)
+
+        #Aggregate Agrvate results
+        agrvate_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_agrvate_summary.tab", extractor = hk.agrvate_results)
+        agrvate_summary.to_csv(f"{config['output_directory']}agrvate_report.csv", header=True, index=False)
+
+        #Aggregate SeqSero2 results
+        # seqsero2_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_SeqSero.tsv", extractor = hk.seqsero2_results)
+        # seqsero2_summary.to_csv(f"{config['output_directory']}seqsero2_report.csv", header=True, index=False)
+
+        #Aggregate Sistr results
+        sistr_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*sistr.csv", extractor = hk.sistr_results)
+        sistr_summary.to_csv(f"{config['output_directory']}sistr_report.csv", header=True, index=False)
+
+        #Aggregate Lissero results
+        lissero_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_lissero.tsv", extractor = hk.lissero_results)
+        lissero_summary.to_csv(f"{config['output_directory']}lissero_report.csv", header=True, index=False)
+
+        #Aggregate Meningotype results
+        meningotype_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*meningotype.tsv", extractor = hk.meningotype_results)
+        meningotype_summary.to_csv(f"{config['output_directory']}meningotype_report.csv", header=True, index=False)
+
+        #Aggregate legsta results
+        legsta_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*legsta.csv", extractor = hk.legsta_results)
+        legsta_summary.to_csv(f"{config['output_directory']}legsta_report.csv", header=True, index=False)
+
+        #Aggregate LRE-Finder results
+        # lrefinder_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_lrefinder/*.pos", extractor = hk.lrefinder_results)
+        # lrefinder_summary.to_csv(f"{config['output_directory']}lrefinder_report.csv", header=True, index=False)
+
+        #Aggregate Shigatyper results
+        # shigatyper_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_shigatyper/shigatyper.tsv", extractor = hk.shigatyper_results)
+        # shigatyper_summary.to_csv(f"{config['output_directory']}shigatyper_report.csv", header=True, index=False)
+
+        #Aggregate chewbbaca allela calling statistics
+        chewbacca_qc = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_chewbbaca/results_statistics.tsv", extractor = hk.cgmlst_quality_results)
+        chewbacca_qc.to_csv(f"{config['output_directory']}chewbbaca_qc_report.csv", header=True, index=False)
+
+        #Aggregate spatyper results
+        spatyper_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_spatyper.txt", extractor = hk.spatyper_results)
+        spatyper_results.to_csv(f"{config['output_directory']}spatyper_report.csv", header=True, index=False)
+
+        #Aggregate seroba results
+        # seroba_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_seroba.tsv", extractor = hk.seroba_results)
+        # seroba_results.to_csv(f"{config['output_directory']}seroba_report.csv", header=True, index=False)
+
+        #Aggregate emmtyper results
+        emmtyper_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_emmtyper.tsv", extractor = hk.emmtyper_results)
+        emmtyper_results.to_csv(f"{config['output_directory']}emmtyper_report.csv", header=True, index=False)
+
+        #Aggregate hicap results
+        hicap_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_hicap.tsv", extractor = hk.hicap_results)
+        hicap_results.to_csv(f"{config['output_directory']}hicap_report.csv", header=True, index=False)
+
+rule hicap_hinfluenzae:
+    input:
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['hicap_hinfluenzae_sif'])
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_hi_hicap.tsv'
+    shell: 
+        """
+        mkdir -p ~/hicap/
+        cp {input.contigs} ~/hicap/
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} hicap -q ~/hicap/$(basename {input.contigs}) -o ~/hicap/
+        
+        if [ -f ~/hicap/{wildcards.sample_id_pattern}.tsv ]; then
+            mv ~/hicap/{wildcards.sample_id_pattern}.tsv {output}
+        else
+            #creating empty file just in case to make snakemake not stop if typing has failed for tool-specific reasons
+            touch {config[output_directory]}{wildcards.sample_id_pattern}_hi_hicap.tsv
+        fi
+
+        rm -r ~/hicap/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/hicap/
+        """
+
+
+rule meningotype_nmeningitidis:
+    input:
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['meningotype_nmeningitidis_sif'])
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_meningotype.tsv'
+    shell:
+        """
+        mkdir -p ~/meningotype/
+        cp {input.contigs} ~/meningotype/
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} meningotype ~/meningotype/$(basename {input.contigs}) > ~/meningotype/$(basename {output})
+        
+        mv ~/meningotype/$(basename {output}) {output}
+        rm -r ~/meningotype/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/meningotype/
+        """
+
+
+rule legsta_lpneumophila:
+    input:
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['legsta_lpneumophila_sif'])
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_legsta.csv'
+    shell:
+        """
+        mkdir -p ~/legsta/
+        cp {input.contigs} ~/legsta/
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} legsta --csv ~/legsta/$(basename {input.contigs}) >> ~/legsta/$(basename {output})
+        
+        mv ~/legsta/$(basename {output}) {output}
+        rm -r ~/legsta/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/legsta/
+        """
+
+
+rule kleborate_kpneumoniae:
+    input:
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['kleborate_kpneumoniae_sif'])
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_kleborate.tsv'
+    shell: #generates blank output to avoid snakemake failing if typing goes wrong
+        """
+        mkdir -p ~/kleborate/
+        cp {input.contigs} ~/kleborate/
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} kleborate -o ~/kleborate/$(basename {output}) --kaptive -r -a ~/kleborate/$(basename {input.contigs})
+        
+        if [ -f ~/kleborate/$(basename {output}) ]; then
+            mv ~/kleborate/$(basename {output}) {output}
+        else
+            touch {output}
+        fi
+
+        rm -r ~/kleborate/{wildcards.sample_id_pattern}* 2> /dev/null
+        rmdir --ignore-fail-on-non-empty ~/kleborate/ 2> /dev/null
+        """
+
+
+rule agrvate_saureus:
+    input:
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['agrvate_saureus_sif'])
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_agrvate_summary.tab'
+    shell:
+        """
+        mkdir -p ~/agrvate/
+        cp {input.contigs} ~/agrvate/
+        cd ~/agrvate/
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} agrvate -t -f -i ~/agrvate/$(basename {input.contigs})
+        
+        if [ -f ~/agrvate/{wildcards.sample_id_pattern}_contigs-results/{wildcards.sample_id_pattern}_contigs-summary.tab ]; then
+            mv ~/agrvate/{wildcards.sample_id_pattern}_contigs-results/{wildcards.sample_id_pattern}_contigs-summary.tab {output}
+        else
+            touch {output}
+        fi
+        
+        rm -r ~/agrvate/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/agrvate/
+        """
+
+
+rule spatyper_saureus:
+    input:
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['spatyper_saureus_sif'])
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_spatyper.txt'
+    shell:
+        """
+        mkdir -p ~/spatyper/
+        cp {input.contigs} ~/spatyper/
+
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} spaTyper -f ~/spatyper/$(basename {input.contigs}) --output ~/spatyper/$(basename {output})
+        
+        if [ -f ~/spatyper/$(basename {output}) ]; then
+            mv ~/spatyper/$(basename {output})  {output}
+        else
+            touch {output}
+        fi
+
+        rm -r ~/spatyper/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/spatyper/
+        """
+
+
+rule sccmec_saureus:
+    input:
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['sccmec_saureus_sif'])
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_sccmec.tsv'
+    shell:
+        """
+        mkdir -p ~/sccmec/
+        cp {input.contigs} ~/sccmec/
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} staphopia-sccmec --assembly ~/sccmec/$(basename {input.contigs}) > ~/sccmec/$(basename {output})
+        
+        mv ~/sccmec/$(basename {output})  {output}
+        rm -r ~/sccmec/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/sccmec/
+        """
+
+
+rule emmtyper_spyogenes:
+    input:
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['emmtyper_spyogenes_sif'])
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_strp_emmtyper.tsv'
+    shell:
+        """
+        mkdir -p ~/emmtyper/
+        cp {input.contigs} ~/emmtyper/
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} emmtyper ~/emmtyper/$(basename {input.contigs}) -o ~/emmtyper/$(basename {output})
+        
+        if [ -f ~/emmtyper/$(basename {output}) ]; then
+            mv ~/emmtyper/$(basename {output}) {output}
+        else
+            touch {output}
+        fi
+
+        rm -r ~/emmtyper/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/emmtyper/
+        """
+
+
+rule sistr_senterica:
+    input:
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['sistr_senterica_sif'])
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_sistr.csv'
+    shell:
+        """
+        mkdir -p ~/sistr/
+        cp {input.contigs} ~/sistr/
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} sistr --qc -f csv -o ~/sistr/$(basename {output}) ~/sistr/$(basename {input.contigs})
+        
+        if [ -f ~/sistr/$(basename {output}) ]; then
+            mv ~/sistr/$(basename {output}) {output}
+        else
+            touch {output}
+        fi
+
+        rm -r ~/sistr/{wildcards.sample_id_pattern}*
+        rmdir --ignore-fail-on-non-empty ~/sistr/
+        """
+
+
+rule lissero_lmonocytogenes:
+    input:
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['lissero_lmonocytogenes_sif'])
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_lissero.tsv'
+    shell:
+        """
+        mkdir -p ~/lissero/
+        cp {input.contigs} ~/lissero/
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} lissero ~/lissero/$(basename {input.contigs}) > ~/lissero/$(basename {output})
+        
+        mv ~/lissero/$(basename {output}) {output}
+        rm -r ~/lissero/$(basename {input.contigs})
+        rmdir --ignore-fail-on-non-empty ~/lissero/
+        """
+
+
+#typing via network can be done from nodes other than login node as it does not require job submission, only internet connection
+rule pasteur_pcr_serogroup_lmonocytogenes:
+    input:
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+'{sample_id_pattern}_pasteur_pcr_serogroup.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Listeria monocytogenes')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
+
+
+rule pasteur_cgmlst_lmonocytogenes:
+    input:
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+'{sample_id_pattern}_lm_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Listeria monocytogenes', scheme_num=1)
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')     
+
+
+rule pasteur_cgmlst_nmeningitidis:
+    input:
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+'{sample_id_pattern}_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Neisseria meningitidis')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
+
+
+rule pasteur_cgmlst_ngonorrhoeae:
+    input:
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+'{sample_id_pattern}_ng_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Neisseria gonorrhoeae', scheme_num=1)
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
+
+
+rule pasteur_cgmlst_kpneumoniae:
+    input:
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+'{sample_id_pattern}_kp_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Klebsiella pneumoniae')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
+
+
+rule pasteur_cgmlst_saureus:
+    input:
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+'{sample_id_pattern}_sa_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Staphylococcus aureus')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
+
+
+rule pasteur_cgmlst_senterica:
+    input:
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+'{sample_id_pattern}_se_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Salmonella enterica')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
+
+
+rule pasteur_cgmlst_ecoli:
+    input:
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+'{sample_id_pattern}_ec_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Escherichia coli')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
+
+
+rule pasteur_cgmlst_spneumoniae:
+    input:
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+'{sample_id_pattern}_strp_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Streptococcus pneumoniae')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
+
+
+rule pasteur_cgmlst_abaumanii:
+    input:
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+'{sample_id_pattern}_ab_pasteur_cgmlst.json'
+    run:
+        filtered_contigs = input.contigs.replace("_contigs.fasta", "_filtered_contigs.fasta")
+        hk.filter_contigs_length(input.contigs, filtered_contigs)
+        try:
+            api_output = hk.type_contigs_api(filtered_contigs, 'Acinetobacter baumanii', scheme_num=1)
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+                os.remove(filtered_contigs)
+            else:
+                os.system(f"touch {output[0]}")
+                os.remove(filtered_contigs)
+        except:
+            os.system(f'touch {output[0]}')
+
+
+rule publmst_ngonorrhoe:
+    input:
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+'{sample_id_pattern}_ngmast.json'
+    run:
+        try:
+            api_output = hk.type_contigs_api(input.contigs, 'Neisseria gonorrhoeae')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+            else:
+                os.system(f"touch {output[0]}")
+        except:
+            os.system(f'touch {output[0]}')
+        
+
+rule pubmlst_abaumanii:
+    input:
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+'{sample_id_pattern}_ab_pumblst.json'
+    run:
+        try:
+            api_output = hk.type_contigs_api(input.contigs, 'Acinetobacter baumanii')
+            if isinstance(api_output, dict):
+                hk.write_json(api_output, output[0])
+            else:
+                os.system(f"touch {output[0]}")
+        except:
+            os.system(f'touch {output[0]}')
+            
+
+rule ectyper_ecoli:
+    input:
+        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = config['ectyper_ecoli_sif']
+    output:
+        config['output_directory']+'{sample_id_pattern}_ectyper.tsv'
+    envmodules:
+        'singularity'
+    shell:
+        """
+        mkdir -p ~/ectyper/
+        cp {input.contigs} ~/ectyper/
+        
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} ectyper -i ~/ectyper/$(basename {input.contigs}) -o ~/ectyper/
+        
+        mv ~/ectyper/output.tsv {output}
+        rm -r ~/ectyper/$(basename {input.contigs})
+        rmdir --ignore-fail-on-non-empty ~/ectyper/
+        """
+
+
+rule cgmlstfinder:
+    input:
+        image_file    = ancient(config['tip_tool_configs']['cgmlstfinder']['cgmlstfinder_sif']),
+        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        cgmlst_result = config['output_directory']+'{sample_id_pattern}_cgmlstfinder/data.json'
+    run:
+        os.system(f'''
+        module load singularity
+        CONTIG_FILENAME=$(basename {input.contigs})
+
+        cd {config['databases']}
+        cp {input.contigs} ~/
+        mkdir -p ~/{wildcards.sample_id_pattern}_cgmlstfinder/
+
+        singularity --silent exec --bind {config["output_directory"]},{config["work_dir"]},{config['databases']}:{config["output_directory"]},{config["work_dir"]},{config['databases']} {input.image_file} python /cgmlstfinder/cgMLST.py -db ./cgmlstfinder_db/ -i ~/$CONTIG_FILENAME -o ~/{wildcards.sample_id_pattern}_cgmlstfinder/ -s {cgmlstfinder_species_map[wildcards.sample_id_pattern]}
+        if [ -f {output.cgmlst_result} ]; then
+            mv -n ~/{wildcards.sample_id_pattern}_cgmlstfinder/* {config['output_directory']}{wildcards.sample_id_pattern}_cgmlstfinder/
+        else
+            #creating empty file just in case to make snakemake not stop if typing has failed for tool-specific reasons
+            mkdir -m 775 -p {config['output_directory']}{wildcards.sample_id_pattern}_cgmlstfinder/
+            mv -n ~/{wildcards.sample_id_pattern}_cgmlstfinder/*
+            touch {output.cgmlst_result}
+        fi
+        
+        rm -r ~/{wildcards.sample_id_pattern}_cgmlstfinder/ ~/$CONTIG_FILENAME
+        ''')
+
+
+rule chewbbaca_cgmlst:
+    input:
+        image_file    = ancient(config['tip_tool_configs']['chewbbaca']['chewbbaca_sif']),
+        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        chewbbaca     = config['output_directory']+'{sample_id_pattern}_chewbbaca/results_alleles.tsv'
+    run:
+        os.system(f'''
+        module load singularity
+
+        cd {config["databases"]}chewbacca_db/databases/
+        mkdir -p ~/{wildcards.sample_id_pattern}_chewbbaca_input/
+        mkdir -p {config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/
+        cp {input.contigs} ~/{wildcards.sample_id_pattern}_chewbbaca_input/
+
+        singularity --silent exec --bind {config["output_directory"]},{config["work_dir"]},{config["databases"]}chewbacca_db/databases/:{config["output_directory"]},{config["work_dir"]},{config["databases"]}chewbacca_db/databases/ {input.image_file} chewBBACA.py AlleleCall --no-inferred --cpu {config["tip_tool_configs"]["chewbbaca"]["chewbbaca_cores"]} -i ~/{wildcards.sample_id_pattern}_chewbbaca_input/ -g {chewbbaca_species_map[wildcards.sample_id_pattern]['db']} -o ~/{wildcards.sample_id_pattern}_chewbbaca/
+        mv -n ~/{wildcards.sample_id_pattern}_chewbbaca/* {config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/
+
+        rm -r ~/{wildcards.sample_id_pattern}_chewbbaca_input/
+        rm -r ~/{wildcards.sample_id_pattern}_chewbbaca
+        ''')
+        qc_data_path = f'{config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/results_statistics.tsv'
+        df = pd.read_csv(qc_data_path, sep='\t')
+        df['scheme_version'] = [chewbbaca_species_map[wildcards.sample_id_pattern]['version'] for _ in df.index]
+        df['scheme_origin']  = [chewbbaca_species_map[wildcards.sample_id_pattern]['origin'] for _ in df.index]
+        df['allele_count']   = [chewbbaca_species_map[wildcards.sample_id_pattern]['allele_count'] for _ in df.index]
+        df.to_csv(qc_data_path, sep='\t', header=True, index=False)

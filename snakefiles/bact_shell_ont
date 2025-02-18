@@ -1,0 +1,375 @@
+localrules: all
+
+import pandas as pd, os, sys, json
+from Bio import SeqIO
+from pathlib import Path
+sys.path.insert(0, os.path.abspath('./'))
+from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
+
+#define sample_id_pattern wildcard and accessing sample_sheet
+sip_wild                = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+sample_sheet            = pd.read_csv(f"{config['output_directory']}sample_sheet.csv").astype(str)
+pointfinder_species_map = dict(zip(sample_sheet['sample_id'].astype(str), sample_sheet['taxonomy'].str.lower()))
+sample_sheet.taxonomy   = sample_sheet.taxonomy.str.replace(' ', "_")
+
+#Marking samples for processing by amrfinder+ if database for a given organism is currated
+amrfinder_orgs = config["shell_tool_configs"]["amrfinderplus_species"]
+
+#keeping only samples where organisms are currated by ncbi
+currated_orgs = sample_sheet[sample_sheet.taxonomy.str.contains('|'.join(amrfinder_orgs))] 
+
+#replacing the taxonomy to the correct format
+for org in currated_orgs.taxonomy.unique(): 
+    for o in amrfinder_orgs:
+        if o in org:
+            currated_orgs = currated_orgs.replace(org, o)
+            break
+
+#to use in amrfinder+ rule to use species-specific databases
+org_dict = dict(zip(currated_orgs['sample_id'], currated_orgs['taxonomy'])) 
+
+
+rule all:
+    input: 
+        config['shell_target_files'], 
+        hamr_sif             = ancient(config['hamronization_sif']), #path to singularity image file
+        
+        #Lists of resistance reports to be harmonized, may be it can be refactored to single expand
+        hamr_resfinder       = expand(config['output_directory']+'{sample_id}_resfinder/{sample_id}_resfinder.hamr.tab', sample_id=sample_sheet['sample_id']),
+        hamr_rgi             = expand(config['output_directory']+'{sample_id}.rgi.hamr.tab', sample_id=sample_sheet['sample_id']),
+        hamr_amrfp           = expand(config['output_directory']+'{sample_id}_amrfinderplus.hamr.tab', sample_id=sample_sheet['sample_id']),
+        hamr_resfinder_pheno = expand(config['output_directory']+'{sample_id}_resfinder_pheno.txt', sample_id=sample_sheet['sample_id']),
+
+        #Lists of specific resistance cases not covered by hamronization
+        amrfp_mut            = expand(config['output_directory']+'{sample_id}_amrfinderplus_point.tab', sample_id=sample_sheet['sample_id']),
+
+        #Lists of plasmid reports to aggregate
+        plasmidfinder        = expand(config['output_directory']+'{sample_id}_plasmidfinder/results_tab.tsv', sample_id=sample_sheet['sample_id']),
+        mobtyper             = expand(config['output_directory']+'{sample_id}_mob_recon/mobtyper_results.txt', sample_id=sample_sheet['sample_id']),
+        mobtyper_contigs     = expand(config['output_directory']+'{sample_id}_mob_recon/contig_report.txt', sample_id=sample_sheet['sample_id']),
+
+        #Virulencefinder reports to aggregate
+        virulencefinder        = expand(config['output_directory']+'{sample_id}_virulencefinder/results_tab.tsv', sample_id=sample_sheet['sample_id']),
+    run:
+        #Use only non-empty files (hamronization fails otherwise or easier to implement custom aggregation)
+        input.hamr_resfinder = [ path for path in input.hamr_resfinder if not os.path.getsize(path) == 0]
+        input.hamr_rgi       = [ path for path in input.hamr_rgi if not os.path.getsize(path) == 0]
+        input.hamr_amrfp     = [ path for path in input.hamr_amrfp if not os.path.getsize(path) == 0]
+        input.amrfp_mut      = [ path for path in input.amrfp_mut if not os.path.getsize(path) == 0]
+        input.mobtyper       = [ path for path in input.mobtyper if not os.path.getsize(path) == 0]
+
+        #Create single tsv report from all resistance inference tools.
+        command = f'''
+module load singularity
+singularity --silent run --bind {config["output_directory"]},{config["work_dir"]}:{config["output_directory"]},{config["work_dir"]} {input.hamr_sif} summarize -o "{config['output_directory']}harmonized_resistance_profile.tsv" -t tsv {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_rgi)} {" ".join(input.hamr_amrfp)}
+echo bact_shell finished
+        '''
+        with open(f'{config["output_directory"]}/harmonization_command.sh', 'w+') as f:
+            f.write(command)
+        os.system(f'bash {config["output_directory"]}/harmonization_command.sh')
+        
+        #add output folder name as analysis batch id
+        res_sum = pd.read_csv(f"{config['output_directory']}harmonized_resistance_profile.tsv", sep='\t').astype(str)
+        res_sum.input_file_name = res_sum.input_file_name.str.replace(r'_S[0-9]*', '', regex=True)
+        if 'analysis_batch_id' not in res_sum.columns:
+            res_sum.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in res_sum.index])
+        res_sum.to_csv(f"{config['output_directory']}harmonized_resistance_profile.tsv", sep='\t', header=True, index=False)
+
+        #Aggregating resfinder phenotype info
+        df = hk.aggregator(outfolder_path = config['output_directory'],  proc_num = 6, extractor = hk.respheno_results, pathlist = input.hamr_resfinder_pheno)
+        df.to_csv(f"{config['output_directory']}resfinder_pheno_table_gathered.csv", header=True, index=False)
+
+        #Aggregate Pointfinder results
+        pointfinder_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*/PointFinder_results.txt", extractor = hk.pointfinder_results)
+        pointfinder_summary.to_csv(f"{config['output_directory']}pointfinder_report.csv", header=True, index=False)
+        
+        #Aggregate plasmidfinder
+        plf = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.plasmidfinder_results, pathlist = input.plasmidfinder)
+        plf.to_csv(f"{config['output_directory']}plasmidfinder_summary.csv", header=True, index=False)
+
+        #Aggregate virulencefinder
+        vf = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.virulencefinder_results, pathlist = input.virulencefinder)
+        vf.to_csv(f"{config['output_directory']}virulencefinder_summary.csv", header=True, index=False)
+
+        #Aggregate mob_typer
+        mbt = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.mobtyper_results, pathlist = input.mobtyper)
+        mbt.to_csv(f"{config['output_directory']}mobtyper_summary.csv", header=True, index=False)
+
+        #Aggregate mob_typer_contig_info
+        mbtc = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.mobtyper_contig_results, pathlist = input.mobtyper_contigs)
+        mbtc.to_csv(f"{config['output_directory']}mobtyper_contig_summary.csv", header=True, index=False)
+
+        #Aggregate quast results
+        qst = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.quast_results, wildcard = "*quast/report.tsv")
+        qst.to_csv(f"{config['output_directory']}quast_report.csv", header=True, index=False)
+
+        #Aggregate amrfinder+ mutation results
+        amfp = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.amrfpm_results, pathlist = input.amrfp_mut)
+        amfp.to_csv(f"{config['output_directory']}amrfp_mutation_report.csv", header=True, index=False)
+
+        #Search for AMR-plasmid associations in resfinder & mobtyper output
+        if not os.path.getsize(f"{config['output_directory']}mobtyper_contig_summary.csv") == 0:
+            hamr_pls = hk.hamr_plasmid_map(
+                hamr_report_path=f"{config['output_directory']}harmonized_resistance_profile.tsv",
+                mbt_contig_report_path=f"{config['output_directory']}mobtyper_contig_summary.csv")
+            hamr_pls.to_csv(f"{config['output_directory']}resfinder_mobtyper_mapping.csv", header=True, index=False)
+        else:
+            Path(f"{config['output_directory']}mobtyper_contig_summary.csv").touch()
+
+
+rule mob_recon:
+    input:
+        mob_suite_sif = ancient(config['mob_suite_sif']),
+        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+'{sample_id_pattern}_mob_recon/chromosome.fasta', #expected in any case, unless only plasmid was sequenced
+        config['output_directory']+'{sample_id_pattern}_mob_recon/contig_report.txt', #contig scanning results
+        config['output_directory']+'{sample_id_pattern}_mob_recon/mobtyper_results.txt'
+    envmodules:
+        'singularity'
+    shell:
+        """
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.mob_suite_sif} mob_recon --infile {input.contigs} --force --outdir {config[output_directory]}{wildcards.sample_id_pattern}_mob_recon/
+        if ! [ -f {output[2]} ]; then
+            touch {output[2]}
+        fi
+        """
+
+
+rule resfinder:
+    input:
+        hamr_sif      = config['hamronization_sif'],
+        resfinder_sif = config['resfinder_sif'],
+        contigs       = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+    output:
+        config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt",
+        config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_Hit_in_genome_seq.fsa",
+        config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_Resistance_gene_seq.fsa",
+        config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_results_tab.txt",
+        config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_results.txt",
+        config['output_directory']+'{sample_id_pattern}_resfinder/{sample_id_pattern}_resfinder.hamr.tab'
+    run:
+        #if pointfinder database is available
+        if pointfinder_species_map[wildcards.sample_id_pattern] in config['shell_tool_configs']['resfinder']['pointfinder_species']:
+            os.system(f"""
+            module load singularity
+            CONTIG_FILENAME=$(basename {input.contigs})
+
+            cp -r {config['shell_tool_configs']['resfinder']['resfinder_db']} ~/db-resfinder_{wildcards.sample_id_pattern}/
+            cp {input.contigs} ~/ 
+
+            singularity --silent run --bind {config["output_directory"]},{config["work_dir"]}:{config["output_directory"]},{config["work_dir"]} {input.resfinder_sif} --point -ifa ~/$CONTIG_FILENAME -acq -l {config['shell_tool_configs']['resfinder']['length']} -t {config['shell_tool_configs']['resfinder']['coverage']} -db_res ~/db-resfinder_{wildcards.sample_id_pattern}/resfinder_db -db_point ~/db-resfinder_{wildcards.sample_id_pattern}/pointfinder_db --species "{pointfinder_species_map[wildcards.sample_id_pattern]}" -d -db_disinf ~/db-resfinder_{wildcards.sample_id_pattern}/disinfinder_db -o ~/resfinder_output_{wildcards.sample_id_pattern}
+            singularity --silent run --bind {config["output_directory"]},{config["work_dir"]}:{config["output_directory"]},{config["work_dir"]} {input.hamr_sif} resfinder ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['resfinder_version']} --reference_database_version {config['resfinder_db_version']} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab
+            
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/pheno_table.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Hit_in_genome_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Resistance_gene_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/PointFinder* {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            
+            # rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$CONTIG_FILENAME
+            """)
+
+        else:
+            #if no pointfinder database for given species
+            os.system(f"""
+            module load singularity
+            CONTIG_FILENAME=$(basename {input.contigs})
+
+            cp -r {config['shell_tool_configs']['resfinder']['resfinder_db']} ~/db-resfinder_{wildcards.sample_id_pattern}/
+            cp {input.contigs} ~/ 
+            
+            singularity --silent run --bind {config["output_directory"]},{config["work_dir"]}:{config["output_directory"]},{config["work_dir"]} {input.resfinder_sif} --point -ifa ~/$CONTIG_FILENAME -acq -l {config['shell_tool_configs']['resfinder']['length']} -t {config['shell_tool_configs']['resfinder']['coverage']} -db_res ~/db-resfinder_{wildcards.sample_id_pattern}/resfinder_db -db_point ~/db-resfinder_{wildcards.sample_id_pattern}/pointfinder_db --species "{pointfinder_species_map[wildcards.sample_id_pattern]}" -d -db_disinf ~/db-resfinder_{wildcards.sample_id_pattern}/disinfinder_db -o ~/resfinder_output_{wildcards.sample_id_pattern}
+            singularity --silent run --bind {config["output_directory"]},{config["work_dir"]}:{config["output_directory"]},{config["work_dir"]} {input.hamr_sif} resfinder ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['resfinder_version']} --reference_database_version {config['resfinder_db_version']} > ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab
+            
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/pheno_table.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Hit_in_genome_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_Resistance_gene_seq.fsa {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results_tab.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/ResFinder_results.txt {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            mv -n ~/resfinder_output_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}_resfinder.hamr.tab {config['output_directory']}{wildcards.sample_id_pattern}_resfinder/
+            
+            # rm -r ~/db-resfinder_{wildcards.sample_id_pattern}/ ~/resfinder_output_{wildcards.sample_id_pattern} ~/$CONTIG_FILENAME
+            """)
+
+
+rule resfinder_pheno:
+    input:
+        ancient(config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt")
+    output:
+        config['output_directory']+'{sample_id_pattern}_resfinder_pheno.txt'
+    shell:
+        '''
+        cp {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/pheno_table.txt {config[output_directory]}{wildcards.sample_id_pattern}_resfinder_pheno.txt 
+        '''
+
+
+rule amrfinderplus:
+    input:
+        hamr_sif      = ancient(config['hamronization_sif']),
+        amrfinder_sif = ancient(config['amrfinderplus_sif']),
+        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+"{sample_id_pattern}_amrfinderplus.tab",
+        config['output_directory']+'{sample_id_pattern}_amrfinderplus.hamr.tab',
+        config['output_directory']+"{sample_id_pattern}_amrfinderplus_point.tab"
+    run:
+        #if organism has a currated mutation database - perform variant calling & annotation
+        if wildcards.sample_id_pattern in org_dict:
+            os.system(f"""
+            module load singularity
+            singularity --silent exec --bind {config["output_directory"]},{config["work_dir"]}:{config["output_directory"]},{config["work_dir"]} {input.amrfinder_sif} amrfinder --mutation_all {output[2]} --organism {org_dict[wildcards.sample_id_pattern]} -n {input.contigs} > {output[0]}
+            singularity --silent run --bind {config["output_directory"]},{config["work_dir"]}:{config["output_directory"]},{config["work_dir"]} {input.hamr_sif} amrfinderplus {output[0]} --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['amrfinderplus_version']} --reference_database_version {config['amrfinderplus_db_version']} > {output[1]}
+            """)
+        else:
+            os.system(f"""
+            module load singularity
+            singularity --silent exec --bind {config["output_directory"]},{config["work_dir"]}:{config["output_directory"]},{config["work_dir"]} {input.amrfinder_sif} amrfinder -n {input.contigs} > {output[0]}
+            singularity --silent run --bind {config["output_directory"]},{config["work_dir"]}:{config["output_directory"]},{config["work_dir"]} {input.hamr_sif} amrfinderplus {output[0]} --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config['amrfinderplus_version']} --reference_database_version {config['amrfinderplus_db_version']} > {output[1]}
+            touch {output[2]}
+            """)
+
+
+rule virulencefinder:
+    input:
+        image_file = ancient(config['shell_tool_configs']['virulencefinder']['virulencefinder_sif']),
+        contigs    = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+"{sample_id_pattern}_virulencefinder/Hit_in_genome_seq.fsa",
+        config['output_directory']+"{sample_id_pattern}_virulencefinder/Virulence_genes.fsa",
+        config['output_directory']+"{sample_id_pattern}_virulencefinder/results_tab.tsv",
+        config['output_directory']+"{sample_id_pattern}_virulencefinder/results.txt",
+        config['output_directory']+"{sample_id_pattern}_virulencefinder/data.json"
+    envmodules:
+        'singularity'
+    shell:
+        '''
+        module load singularity
+        mkdir -p ~/virulencefinder_output_{wildcards.sample_id_pattern}
+        mkdir -p {config[output_directory]}{wildcards.sample_id_pattern}_virulencefinder/
+        CONTIG_FILENAME=$(basename {input.contigs})
+
+        cp -r {config[shell_tool_configs][virulencefinder][virulencefinder_db]} ~/db-virulencefinder_{wildcards.sample_id_pattern}/
+        cp {input.contigs} ~/$CONTIG_FILENAME
+
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.image_file} virulencefinder.py -x -i ~/$CONTIG_FILENAME \
+        -o ~/virulencefinder_output_{wildcards.sample_id_pattern} \
+        -tmp ~/virulencefinder_output_{wildcards.sample_id_pattern} \
+        -p ~/db-virulencefinder_{wildcards.sample_id_pattern}/
+
+        mv -n ~/virulencefinder_output_{wildcards.sample_id_pattern}/* {config[output_directory]}{wildcards.sample_id_pattern}_virulencefinder/
+        rm -r ~/db-virulencefinder_{wildcards.sample_id_pattern}/ ~/virulencefinder_output_{wildcards.sample_id_pattern}/ ~/$CONTIG_FILENAME
+        '''
+
+
+rule plasmidfinder:
+    input:
+        image_file = ancient(config['shell_tool_configs']['plasmidfinder']['plasmidfinder_sif']),
+        contigs    = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+"{sample_id_pattern}_plasmidfinder/Hit_in_genome_seq.fsa",
+        config['output_directory']+"{sample_id_pattern}_plasmidfinder/Plasmid_seqs.fsa",
+        config['output_directory']+"{sample_id_pattern}_plasmidfinder/results_tab.tsv",
+        config['output_directory']+"{sample_id_pattern}_plasmidfinder/results.txt",
+        config['output_directory']+"{sample_id_pattern}_plasmidfinder/data.json"
+    envmodules:
+        'singularity'
+    shell:
+        '''
+        module load singularity
+        mkdir -p ~/plasmidfinder_output_{wildcards.sample_id_pattern}
+        mkdir -p {config[output_directory]}{wildcards.sample_id_pattern}_plasmidfinder/
+        CONTIG_FILENAME=$(basename {input.contigs})
+
+        cp -r {config[shell_tool_configs][plasmidfinder][plasmidfinder_db]} ~/db-plasmidfinder_{wildcards.sample_id_pattern}/
+        cp {input.contigs} ~/$CONTIG_FILENAME
+
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.image_file} plasmidfinder.py -x -i ~/$CONTIG_FILENAME \
+        -o ~/plasmidfinder_output_{wildcards.sample_id_pattern} \
+        -tmp ~/plasmidfinder_output_{wildcards.sample_id_pattern} \
+        -p ~/db-plasmidfinder_{wildcards.sample_id_pattern}/
+
+        mv -n ~/plasmidfinder_output_{wildcards.sample_id_pattern}/* {config[output_directory]}{wildcards.sample_id_pattern}_plasmidfinder/
+        rm -r ~/db-plasmidfinder_{wildcards.sample_id_pattern}/ ~/plasmidfinder_output_{wildcards.sample_id_pattern}/ ~/$CONTIG_FILENAME
+        '''
+
+
+rule rmlst:
+    resources: API_calls=1  # Each job consumes 1 API_calls unit
+    input:
+        contigs    = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        rmlst_json = config['output_directory']+'{sample_id_pattern}_rmlst.json'
+    run:
+        fasta = [record for record in SeqIO.parse(input.contigs, "fasta")]
+        if len(fasta) > config['shell_tool_configs']['rmlst_pubmlst']['api_seq_limit']:
+            counter = 1
+            while len(fasta) > config['shell_tool_configs']['rmlst_pubmlst']['api_seq_limit']:
+                fasta    = [r for r in fasta if len(r.seq) > counter * 50]
+                counter += 1
+            print(input.contigs.replace('_contigs.fasta', f'_ds_{counter*50}bp_contigs.fasta'))
+            print(os.path.isfile(input.contigs))
+            with open(input.contigs.replace('_contigs.fasta', f'_ds_{counter*50}bp_contigs.fasta'), "w+") as handle:
+                SeqIO.write(fasta, handle, "fasta")
+            results = hk.type_fasta_scheme(
+                contig_path = input.contigs.replace('_contigs.fasta', f'_ds_{counter*50}bp_contigs.fasta'), 
+                url         = config['shell_tool_configs']['rmlst_pubmlst']['schema']
+                )
+            with open(output.rmlst_json, 'w+') as outfile:
+                json.dump(results, outfile, indent=4)
+        else:
+            results = hk.type_fasta_scheme(
+                contig_path = input.contigs, 
+                url = config['shell_tool_configs']['rmlst_pubmlst']['schema']
+                )
+            with open(output.rmlst_json, 'w+') as outfile:
+                json.dump(results, outfile, indent=4)
+
+
+rule mlst: 
+    input: 
+        mlst_quast_path = ancient(config['mlst_quast_sif']),
+        contigs         = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        mlst_output     = config['output_directory']+'{sample_id_pattern}_mlst_output.csv',
+    threads: 4
+    envmodules:
+        'singularity'
+    shell:
+        """
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.mlst_quast_path} mlst --csv {input.contigs} >> {output.mlst_output}
+        """
+
+
+rule res_gen_id: 
+    input: 
+        hamr_sif = ancient(config['hamronization_sif']),
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        config['output_directory']+'{sample_id_pattern}.rgi.txt',
+        config['output_directory']+'{sample_id_pattern}.rgi.json',
+        config['output_directory']+'{sample_id_pattern}.rgi.hamr.tab'
+    threads: 4
+    envmodules:
+        "singularity"
+    conda:
+        config["rgi_env"]
+    shell: #rgi run from conda environment; hamronization run from singularity image
+        """
+        rgi main --input_sequence {input.contigs} --output_file {config[output_directory]}{wildcards.sample_id_pattern}.rgi --input_type contig --clean
+        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.hamr_sif} rgi {config[output_directory]}{wildcards.sample_id_pattern}.rgi.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config[rgi_version]} --reference_database_version {config[rgi_db_version]} > {config[output_directory]}{wildcards.sample_id_pattern}.rgi.hamr.tab
+        """
+
+
+rule quast:
+    input:
+        sif_file = ancient(config['mlst_quast_sif']),
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    envmodules:
+        'singularity'
+    output:
+        config['output_directory']+'{sample_id_pattern}_quast/icarus.html'
+    shell:
+        'singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} quast -o {config[output_directory]}{wildcards.sample_id_pattern}_quast {input.contigs}'

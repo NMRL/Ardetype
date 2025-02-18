@@ -38,6 +38,7 @@ class Housekeeper:
             name_series = name_series.append(new_files).reset_index(drop=True) #aggregating filtered paths
         return name_series.tolist()
 
+
     @staticmethod
     def create_sample_sheet(file_lst:list, generic_str:str, regex_str:str=None, mode:int=0):
         """
@@ -71,12 +72,16 @@ class Housekeeper:
         for id in id_series:
             read_files = file_series[file_series.str.contains(id)].reset_index(drop=True).sort_values().reset_index(drop=True) #extract read paths
             read_1_dict[id] = read_files[0]
-            read_2_dict[id] = read_files[1]
+            try:
+                read_2_dict[id] = read_files[1]
+            except KeyError:
+                read_2_dict[id] = read_files[0]
             
         ss_df['sample_id'] = id_series #adding to sample sheet dataframe
         ss_df['fq1'] = ss_df['sample_id'].map(read_1_dict)
         ss_df['fq2'] = ss_df['sample_id'].map(read_2_dict)
         return ss_df
+
 
     @staticmethod
     def map_new_column(ss_df:pd.DataFrame, info_dict:dict, id_column:str, new_col_name:str):
@@ -87,11 +92,12 @@ class Housekeeper:
         if not isinstance(ss_df, pd.DataFrame): raise TypeError('Expected pandas.DataFrame as ss_df')
         elif not isinstance(info_dict, dict): raise TypeError('Expected dictionary as info_dict')
         elif id_column not in ss_df.columns: raise KeyError('id_column should be present in ss_df')
-        elif not set(info_dict.keys()).intersection(set(ss_df[id_column])): 
-            ss_df.to_csv('test_df.csv', header=True, index=False)
-            with open('id_check_dict.json', 'w+') as f:
-                json.dump(info_dict, f, indent=4)
-            raise KeyError('No overlap between ids in ss_df.id_column and info_dict')
+        elif not set(info_dict.keys()).intersection(set(ss_df[id_column])):
+            if info_dict:
+                ss_df.to_csv('test_df.csv', header=True, index=False)
+                with open('id_check_dict.json', 'w+') as f:
+                    json.dump(info_dict, f, indent=4)
+                raise KeyError('No overlap between ids in ss_df.id_column and info_dict')
 
         ss_df[new_col_name] = ss_df[id_column].map(info_dict)
         return ss_df

@@ -83,6 +83,55 @@
             "tool": "shovill",
             "link": "https://github.com/tseemann/shovill",
             "reference": "Seemann T, Shovill Github https://github.com/tseemann/shovill"
+        },
+        "flye": {
+            "rule": "contig_assembly",
+            "method": "Denovo assembly of bacterial genomes from long-read NGS data.",
+            "tool": "flye",
+            "link": "https://github.com/fenderglass/Flye",
+            "reference": "Kolmogorov, M., Yuan, J., Lin, Y., & Pevzner, P. A. (2019). Assembly of long, error-prone reads using repeat graphs. Nature Biotechnology, 37(5), 540–546. https://doi.org/10.1038/s41587-019-0072-8"
+        },
+        "snikt": {
+            "rule": "ont_qc",
+            "method": "Quality control of long-read NGS data.",
+            "tool": "snikt",
+            "link": "https://github.com/piyuranjan/SNIKT",
+            "reference": "Ranjan P, Brown CA, Erb-Downward JR, Dickson RP. SNIKT: sequence-independent adapter identification and removal in long-read shotgun sequencing data. Bioinformatics. 2022 Aug 2;38(15):3830-3832. doi: 10.1093/bioinformatics/btac389. PMID: 35695743; PMCID: PMC9991892."
+        },
+        "filtlong": {
+            "rule": "ont_filtering",
+            "method": "Quality control of long-read NGS data.",
+            "tool": "filtlong",
+            "link": "https://github.com/rrwick/Filtlong",
+            "reference": "Wick, R. (2018). Filtlong: quality filtering tool for long reads. GitHub repository. https://github.com/rrwick/Filtlong"
+        },
+        "circlator": {
+            "rule": "circlator",
+            "method": "Post-assembly processing for ONT data.",
+            "tool": "circlator",
+            "link": "https://github.com/sanger-pathogens/circlator",
+            "reference": "Hunt, M., Silva, N. D., Otto, T. D., Parkhill, J., Keane, J. A., & Harris, S. R. (2015). Circlator: automated circularization of genome assemblies using long sequencing reads. Genome Biology, 16(1), 294. https://doi.org/10.1186/s13059-015-0849-0"
+        },
+        "polypolish": {
+            "rule": "ont_polishing",
+            "method": "Post-assembly processing for ONT data.",
+            "tool": "polypolish",
+            "link": "https://github.com/rrwick/Polypolish",
+            "reference": "Wick, R. R. (2022). Polypolish: short-read polishing of long-read bacterial genome assemblies. PLOS Computational Biology, 18(1), e1009802. https://doi.org/10.1371/journal.pcbi.1009802"
+        },
+        "polca": {
+            "rule": "hybrid_polishing",
+            "method": "Post-assembly processing for ONT data.",
+            "tool": "polca",
+            "link": "https://github.com/alekseyzimin/masurca",
+            "reference": "Zimin, A. V., & Salzberg, S. L. (2020). The genome polishing tool POLCA makes fast and accurate corrections in genome assemblies. PLOS Computational Biology, 16(6), e1007981. https://doi.org/10.1371/journal.pcbi.1007981"
+        },
+        "medaka": {
+            "rule": "nanopore_polishing",
+            "method": "Post-assembly processing for ONT data.",
+            "tool": "medaka",
+            "link": "https://github.com/nanoporetech/medaka",
+            "reference": "https://github.com/nanoporetech/medaka"
         }
     },
     "_meningotype.tsv": {

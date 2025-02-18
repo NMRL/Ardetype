@@ -185,7 +185,7 @@ rule extract_rmlst:
             data = json.load(file)
         
         if data:
-            if data['exact_matches']:
+            if data.get('taxon_prediction', []):
                 extract = {
                     "rMLST_Species": " | ".join([s['taxon'] for s in data['taxon_prediction']]), 
                     "rMLST_Support_%": " | ".join([str(s['support']) for s in data['taxon_prediction']]), 
@@ -221,7 +221,7 @@ rule extract_quast:
         df.to_csv(output[0], header=True, index=False)
 
 
-rule extract_Meningotype:
+rule extract_meningotype:
     input: 
         config['output_directory']+'{sample_id_pattern}_meningotype.tsv'
     output:

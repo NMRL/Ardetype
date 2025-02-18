@@ -1,17 +1,20 @@
 import sys
 import os
-import requests
-import base64
+import time
+import os
 import re
+import json
 import pathlib
 import shutil
 import pandas as pd
+
 from pathlib import Path
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor as ppe, as_completed, ThreadPoolExecutor
 from bisect import bisect_left
 sys.path.insert(0, os.path.dirname(os.path.dirname(Path(__file__).absolute())))
 sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/utils/phylogenetics_tools/')
+
 from subscripts.src.utilities import Housekeeper as hk
 # from process_chewbacca_profiles_edits import initialize_logging, gather_chewbacca_data, cluster_analysis, cluster_counter
 
@@ -94,26 +97,82 @@ class Ardetype_housekeeper(hk):
 
 
     @staticmethod
-    def type_fasta_scheme(contig_path: str, url: str) -> dict:
+    def type_fasta_scheme(contig_path: str, url:str) -> dict:
         '''
         Type contigs for single sample using pubmlst api. Returns a dictionary converted from json output of the HTTP request.
         If the HTTP request fails, raises and exception, indicating response code and response message (if any).
         The returned dictionary may not contain typing information, indicating that the typing has failed due to assembly quality/database issue/etc. 
         '''
-        with open(contig_path, 'r') as x:  # read contigs from file
-            fasta = x.read()
-        payload = '{"base64":true,"details":true,"sequence":"' + base64.b64encode(
-            fasta.encode()).decode() + '"}'  # construct payload of HTTP request
-        # send the request and await the response
-        response = requests.post(url, data=payload)
-        if response.status_code == requests.codes.ok:  # response is valid if return code is valid
-            data = response.json()  # get response payload into dictionary
-            return data  # return path to fasta file and resulting dictionary
-        else:  # if response is not valid
-            raise Exception(f'''
-            Typing has failed with the following status code: {response.status_code}.
-            The following warning message was recieved: {response.text}
-            ''')
+        from rauth import OAuth1Session
+        from dotenv import load_dotenv
+        from subscripts.pubmlst_rest_auth import retrieve_token, get_session_token
+        load_dotenv('/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/.env')
+        CONSUMER_KEY = os.getenv('CONSUMER_KEY')
+        CONSUMER_SECRET = os.getenv('CONSUMER_SECRET')
+        SESSION_TOKEN = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/.session_token'
+        route='/sequence'
+
+        (token, secret) = None, None
+        if os.path.isfile(SESSION_TOKEN):
+
+            def older12(file_path):
+                if not os.path.exists(file_path):
+                    raise FileNotFoundError(f"File not found: {file_path}")
+                last_modified_time = os.path.getmtime(file_path)  # Get last modification time (in seconds since epoch)
+                time_diff = time.time() - last_modified_time  # Compute difference from current time
+                return time_diff > 12 * 3600  # Check if older than 12 hours
+            
+            if older12(SESSION_TOKEN):
+                print('Session token is more than 12 hours old - requesting fresh one.')
+                (token, secret) = get_session_token(None, None)
+            else:
+                print('Obtaining session token from file.')
+                (token, secret) = retrieve_token(SESSION_TOKEN)
+        else:
+            print('Session token file is not found - requesting fresh one.')
+            (token, secret) = get_session_token(None, None)
+
+        if route and not re.match(r"^/", route): route = "/" + route
+        url = url + route
+
+        print(f"Accessing authenticated resource ({url})...\n")
+        session = OAuth1Session(CONSUMER_KEY, CONSUMER_SECRET, access_token=token, access_token_secret=secret)
+        extra_params = {}
+        
+        if not os.path.exists(contig_path):
+            print("Sequence file " + contig_path + " does not exist.")
+            return
+
+        with open(contig_path, "r") as seq_file:
+            data = seq_file.read()
+            extra_params["sequence"] = data
+            extra_params["details"] = "true"
+    
+        response = session.post(
+            url,
+            params={},
+            data=json.dumps(extra_params),
+            headers={"Content-Type": "application/json"},
+            header_auth=True,
+        )
+        
+        if response.status_code == 200 or response.status_code == 201:
+            if re.search("json", response.headers["content-type"], flags=0):
+                return response.json()
+        elif response.status_code == 400:
+            print("Bad request")
+            print(response.json()["message"])
+        elif response.status_code == 401:
+            if re.search("unauthorized", response.json()["message"]):
+                print("Access denied - client is unauthorized")
+                return
+            else:
+                if re.search("verification", response.json()["message"]):
+                    print(response.json())
+                    return
+        else:
+            print("Error:")
+            print(response.text)
 
 
     @staticmethod
@@ -148,7 +207,6 @@ class Ardetype_housekeeper(hk):
             ),
             axis=1
         )
-        merged_df.to_csv('~/check_regex_application.csv',header=True, index=False)
         
         # Prepare a list of tuples (src, dst) for copying
         file_operations = list(merged_df[['file_path', 'new_path']].itertuples(index=False, name=None))
@@ -753,24 +811,6 @@ class Ardetype_housekeeper(hk):
             ]]
         hamr_pls_merge.rename(columns={'analysis_batch_id_x': 'analysis_batch_id'}, inplace=True)
         return hamr_pls_merge
-
-
-    @staticmethod
-    def cgmlst_cluster_analysis(path:str, wildcard:str="folded*/*_chewbbaca/results_alleles.tsv", thresholds:list=[], linkage:str='single', log_scale:bool=True, rem_outlier:int=None):
-        current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        output_path = os.path.join(path, 'cgmlst_clusters')
-        os.makedirs(output_path, mode=0o775, exist_ok=True)
-        initialize_logging(path = output_path, current_datetime = current_datetime)
-        chew_dict = gather_chewbacca_data(path = path, wildcard = wildcard)
-        cluster_analysis(
-            path = path,
-            output_path = output_path,
-            thresholds = thresholds,
-            df_dict=chew_dict,
-            singularity=True, 
-            linkage_method=linkage, 
-            log_scale=log_scale, 
-            outlier_filter=rem_outlier)
 
 
 ###########################

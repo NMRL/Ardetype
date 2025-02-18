@@ -171,11 +171,31 @@ class Wrapper():
                 sp.run(f'module load singularity && singularity run {self._config_dict["tip_tool_configs"]["cgmlstfinder"]["cgmlstfinder_sif"]} python /cgmlstfinder/cgMLST.py --version',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
             "chewbbaca":
-                sp.run(f'module load singularity && singularity run {self._config_dict["tip_tool_configs"]["chewbbaca"]["chewbbaca_sif"]} chewBBACA.py --version', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+                sp.run(f'module load singularity && singularity run {self._config_dict["tip_tool_configs"]["chewbbaca"]["chewbbaca_sif"]} chewBBACA.py --version', 
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             'lrefinder':
-                sp.run(f'module load singularity && singularity run  {self._config_dict["lrefinder_efaecium_efaecalis_sif"]} LRE-Finder.py -v', stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip().split(' ')[-1],
+                sp.run(f'module load singularity && singularity run  {self._config_dict["lrefinder_efaecium_efaecalis_sif"]} LRE-Finder.py -v', 
+                stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip().split(' ')[-1],
             "shigatyper":
-                sp.run(f'module load singularity && singularity run {self._config_dict["shigatyper_shigella_sif"]} shigatyper --version', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1]
+                sp.run(f'module load singularity && singularity run {self._config_dict["shigatyper_shigella_sif"]} shigatyper --version', 
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "flye":
+                sp.run(f'module load singularity && singularity run {self._config_dict["flye_sif"]} flye --version', 
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "snikt":
+                sp.run(f'module load singularity && singularity run {self._config_dict["snikt_sif"]} snikt.R --version', 
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "filtlong":
+                sp.run(f'module load singularity && singularity run {self._config_dict["filtlong_sif"]} filtlong --version', 
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "circlator":
+                sp.run(f'module load singularity && singularity run {self._config_dict["circlator_sif"]} circlator version', 
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "polypolish":
+                sp.run(f'module load singularity && singularity run {self._config_dict["polypolish_sif"]} polypolish --version', 
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
+            "polca":"4.1.0",
+            "medaka": sp.run(f'module load singularity && singularity run {self._config_dict["medaka_sif"]} medaka --version 2> /dev/null', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split()[1]
         }
 
 
@@ -385,11 +405,17 @@ def run_all(args, num_jobs):
 
     #Running core
     if core.unfold_output: core.unfold_output()
-    core.fill_input_dict()
-    core.fill_sample_sheet()
+    if args.nanopore_only:
+        core.snakefile_path = module_data['snakefiles']['core_ont']
+        core.fill_input_dict(pattern_path='ONT')
+        core.fill_sample_sheet(pattern=core.patterns['inputs']['ONT'])
+    else:
+        core.fill_input_dict(pattern_path='ILL')
+        core.fill_sample_sheet(pattern=core.patterns['inputs']['ILL'])
     core.make_output_dir()
+    core.get_sample_groups()
     core.write_sample_sheet()
-    core.fill_target_list()
+    core.fill_target_list(grouped=True)
     core.add_module_targets()
     core.add_output_dir()
     core.config_cluster()
@@ -431,7 +457,12 @@ def run_all(args, num_jobs):
             raise Exception('Missing files requested by bact_shell.')
 
     #Running shell
-    shell.fill_input_dict()
+    if args.nanopore_only:
+        shell.snakefile_path = module_data['snakefiles']['shell_ont']
+        shell.fill_input_dict(pattern_path='ONT')
+    else:
+        shell.fill_input_dict(pattern_path='ILL/FUL')
+
     shell.add_fasta_samples()
     shell.write_sample_sheet()
     shell.fill_target_list()
@@ -458,7 +489,7 @@ def run_all(args, num_jobs):
 
     # Connecting shell & core to tip/shape
     tip.receive_sample_sheet(shell.supply_sample_sheet())
-    samples_cleared = tip.remove_invalid_samples(connect_from_module_name='core')
+    samples_cleared = tip.remove_invalid_samples(connect_from_module_name='core', taxonomy_only=True)
     tip.save_removed()
     if samples_cleared == 1:                                                            
         shape.receive_sample_sheet(shell.supply_sample_sheet())
@@ -467,6 +498,9 @@ def run_all(args, num_jobs):
         # Running shape
         shape.fill_input_dict(substring_list=None, mixed=True, empty=True)               #empty sample sheet due to filtering of invalid samples
         shape.fill_target_list(mixed=True, empty=True)
+        if args.nanopore_only:
+            shape.target_list = [t for t in shape.target_list if "fastp" not in t and "host_filtering" not in t]
+            shape.snakefile_path = module_data['snakefiles']['shape_ont']
         shape.add_module_targets()
         shape.config_cluster()
         shape.write_module_config()
@@ -485,17 +519,29 @@ def run_all(args, num_jobs):
                 raise e
         shape.check_module_output(mixed=True)
         shape.write_sample_sheet()
-        if shape.pack_output: 
+        if shape.pack_output:
+            print('Packing_output')
             shape.output_path = tip.output_path
-            tip.fold_output()
+            shape.fold_output()
         shape.set_permissions()
         sys.exit("bact_shape finished")
     else:
         # Running tip
-        tip.fill_input_dict(substring_list=None)
+        tip.fill_input_dict(substring_list=None, pattern_path='ONT')
         tip.add_fasta_samples()
         tip.write_sample_sheet()
         tip.fill_target_list(taxonomy_based=True)
+        if args.nanopore_only:
+            tgt_exc_list = [
+                "-predictResults.txt", #lpgenomics
+                "_SeqSero.tsv",
+                "_stecfinder.tsv",
+                "_seroba.tsv",
+                "_lrefinder/lrefinder.tsv",
+                "_shigatyper/shigatyper.tsv"
+            ]
+            tip.target_list = [t for t in tip.target_list if not any([tag in t for tag in tgt_exc_list])]
+            tip.snakefile_path = module_data['snakefiles']['tip_ont']
         tip.add_module_targets()
         tip.config_cluster()
         tip.write_module_config()
@@ -528,6 +574,17 @@ def run_all(args, num_jobs):
     # Running shape
     shape.fill_input_dict(substring_list=None, mixed=True)
     shape.fill_target_list(mixed=True)
+    if args.nanopore_only:
+        tgt_exc_list = [
+            "fastp",
+            "host_filtering",
+            "_SeqSero_std.csv",
+            "_stecfinder_std.csv",
+            "_seroba_std.csv",
+            "-predictResults_std.csv"
+        ]
+        shape.target_list = [t for t in shape.target_list if not any([tag in t for tag in tgt_exc_list])]
+        shape.snakefile_path = module_data['snakefiles']['shape_ont']
     shape.add_module_targets()
     shape.config_cluster()
     shape.write_module_config()
@@ -551,136 +608,9 @@ def run_all(args, num_jobs):
         tip.fold_output()
     shape.set_permissions()
 
-    #Housekeeping the log files
-    # hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
+    # Add sample_id and job name to log
     hk.name_job_logs('ardetype', shape.job_log_path)
-    # if args.clean_job_logs:
-    #     hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
     return shape.output_path
-
-
-
-def run_core(args, num_jobs):
-    '''Wrapper function to run only core module.'''
-    core = Ardetype_module(
-        module_name         = 'core',
-        input_path          = args.input,
-        module_config       = args.config,
-        output_path         = args.output_dir,
-        run_mode            = args.submit_modules,
-        dry_run             = args.dry_run,
-        force_all           = args.force_all,
-        rule_graph          = args.rule_graph,
-        pack_output         = args.pack_output,
-        unpack_output       = args.unpack_output,
-        retry_times         = args.retry_times,
-        rules_to_rerun      = args.force_rules,
-        job_name            = module_data['core']['job_name'],
-        patterns            = module_data['core']['patterns'],
-        targets             = module_data['core']['targets'],
-        requests            = module_data['core']['requests'],
-        snakefile_path      = module_data['snakefiles']['core'],
-        cluster_config_path = module_data['cluster_config']
-    )
-    if core.unfold_output: core.unfold_output()
-    core.fill_input_dict()
-    core.fill_sample_sheet()
-    core.make_output_dir()
-    core.write_sample_sheet()
-    core.fill_target_list()
-    core.add_module_targets()
-    core.add_output_dir()
-    core.config_cluster()
-    core.write_module_config()
-    core.files_to_wd()
-    try:
-        core.run_module(job_count=num_jobs)
-    except Exception as e:
-        if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
-            print(f'WARNING: The {core.module_name} module have failed to process one or more samples.\n')
-            core.clear_working_directory() #to avoid manually moving files back to input
-            core.check_module_output()     #to track failed samples
-            core.pack_failed()          #separate all files for failed samples
-            sys.exit(f'Files related to failed samples can be found in {os.path.abspath(core.output_path)}_failed_{core.module_name}_{core.failed_stamp}')
-                        
-        else:
-            core.clear_working_directory() #to avoid manually moving files back to input
-            raise e
-    core.check_module_output()
-    try:
-        core.add_taxonomy_column()
-    except FileNotFoundError as error:
-        if core.dry_run == "" and core.rule_graph == "":
-            raise error
-    core.write_sample_sheet()
-    core.clear_working_directory()
-    if core.pack_output: core.fold_output()
-    core.set_permissions()
-
-    #Housekeeping the log files
-    # hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
-    hk.name_job_logs('ardetype', core.job_log_path)
-    # if args.clean_job_logs:
-    #     hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
-
-
-def run_shell(args, num_jobs):
-    '''Wrapper function to run only shell module.'''
-    shell = Ardetype_module(
-        module_name         = 'shell', 
-        input_path          = args.input,
-        module_config       = args.config, 
-        output_path         = args.output_dir, 
-        run_mode            = args.submit_modules,
-        dry_run             = args.dry_run,
-        force_all           = args.force_all,
-        rule_graph          = args.rule_graph,
-        pack_output         = args.pack_output,
-        unpack_output       = args.unpack_output,
-        retry_times         = args.retry_times,
-        rules_to_rerun      = args.force_rules,
-        job_name            = module_data['shell']['job_name'],
-        patterns            = module_data['shell']['patterns'],
-        targets             = module_data['shell']['targets'],
-        requests            = module_data['shell']['requests'],
-        snakefile_path      = module_data['snakefiles']['shell'],
-        cluster_config_path = module_data['cluster_config']
-    )
-    if shell.unpack_output: shell.unfold_output()
-    shell.fill_input_dict()
-    shell.fill_sample_sheet()
-    shell.make_output_dir()
-    shell.write_sample_sheet()
-    shell.fill_target_list()
-    shell.add_module_targets()
-    shell.add_output_dir()
-    shell.config_cluster()
-    shell.write_module_config()
-    shell.files_to_wd()
-    try:
-        shell.run_module(job_count=num_jobs)
-    except Exception as e:
-        if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
-            print(f'WARNING: The {shell.module_name} module have failed to process one or more samples.\n')
-            shell.clear_working_directory() #to avoid manually moving files back to input
-            shell.check_module_output()     #to track failed samples
-            shell.pack_failed()             #separate all files for failed samples
-            sys.exit(f'Files related to failed samples can be found in {os.path.abspath(shell.output_path)}_failed_{shell.module_name}_{shell.failed_stamp}')
-                        
-        else:
-            shell.clear_working_directory() #to avoid manually moving files back to input
-            raise e
-    shell.check_module_output()
-    shell.write_sample_sheet()
-    shell.clear_working_directory()
-    if shell.pack_output: shell.fold_output()
-    shell.set_permissions()
-
-    #Housekeeping the log files
-    # hk.asign_perm_rec(f"{ardetype_path}/ardetype_job_logs/")
-    hk.name_job_logs('ardetype', shell.job_log_path)
-    # if args.clean_job_logs:
-    #     hk.remove_old_files(f"{ardetype_path}/ardetype_job_logs/")
 
 
 def run_merge(args, num_jobs):

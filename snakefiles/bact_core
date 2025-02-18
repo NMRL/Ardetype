@@ -8,6 +8,22 @@ from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 sip_wild     = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
+def choose_assembly_branch(wildcards):
+    import os
+    ont_present = os.path.exists(config['output_directory']+f'{wildcards.sample_id_pattern}_ONT.fastq.gz')
+    ill_present = os.path.exists(config['output_directory']+f'{wildcards.sample_id_pattern}_R1_001.fastq.gz') or os.path.exists(config['work_dir']+f'{wildcards.sample_id_pattern}_R1_001.fastq.gz')
+    condition_hybr = ont_present and ill_present
+    condition_ill = ill_present and not ont_present
+    condition_ont = ont_present and not ill_present
+
+    if condition_hybr:
+        return config['output_directory']+f'{wildcards.sample_id_pattern}_poly_polished.fasta.PolcaCorrected.fa'
+    elif condition_ill:
+        return f'{config["output_directory"]}'+f'{wildcards.sample_id_pattern}_contigs/contigs.fa'
+    elif condition_ont:
+        return config['output_directory']+f'{wildcards.sample_id_pattern}.circularized.fasta'
+
+
 
 rule all:
     input: 
@@ -46,17 +62,9 @@ rule all:
         kraken2contigs_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.kraken2contigs_results, pathlist = input.k2c_list)
         kraken2contigs_summary.to_csv(f"{config['output_directory']}kraken2contigs_report.csv", header=True, index=False)
         
-        #Creating copy of contigs in the species-specific folder
-        hk.copy_files_by_species(
-            taxonomy_map = total_dict,
-            file_list = input.contig_list,
-            collection_path = config['contig_collection_path'],
-            extension='contigs.fasta',
-            batch_depth=1,
-        )
         print('bact_core finished')
 
-rule quality_control:
+rule illumina_qc:
     input:
         sif_file = ancient(config["fastp_sif"]),                                                                         #path to singularity image file
         read_1   = ancient(config['work_dir']+'{sample_id_pattern}_R1_001.fastq.gz'),
@@ -79,6 +87,179 @@ rule quality_control:
         --thread {threads} \
         --max_len1 {config[core_tool_configs][fastp][max_len1]} \
         --max_len2 {config[core_tool_configs][fastp][max_len2]}
+        """
+
+
+rule ont_qc:
+    input:
+        sif_file = config["snikt_sif"],
+        fastq = ancient(config['output_directory']+'{sample_id_pattern}_ONT.fastq.gz')
+    output:
+        config['output_directory']+'{sample_id_pattern}_snikt.html'
+    params:
+        s=config["core_tool_configs"]["snikt"]["sample_size"]
+    envmodules:
+        'singularity'
+    shell:
+        """
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} \
+        {input.sif_file} snikt.R -s {params.s} --notrim {input.fastq} -o {wildcards.sample_id_pattern}_snikt -w {config[output_directory]}
+        """
+
+
+rule ont_filtering:
+    input:
+        sif_file = config["filtlong_sif"],
+        fastq = config['output_directory']+'{sample_id_pattern}_ONT.fastq.gz'
+    output:
+        config['output_directory']+'{sample_id_pattern}_filtered.fastq.gz'
+    params:
+        keep_percent=config["core_tool_configs"]["filtlong"]["keep_percent"]
+    envmodules:
+        'singularity'
+    shell:
+        """
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} \
+        {input.sif_file} filtlong --verbose --keep_percent {params.keep_percent} {input.fastq} | gzip > {output} \
+        """
+
+
+rule ont_assembly:
+    input:
+        sif_file = config["flye_sif"],
+        fastq = config['output_directory']+'{sample_id_pattern}_filtered.fastq.gz'
+    output:
+        config['output_directory']+'{sample_id_pattern}.flyed.fasta'
+    params:
+        threads=config["core_tool_configs"]["flye"]["threads"]
+    envmodules:
+        'singularity'
+    shell:
+        """
+        folder_path={config[output_directory]}/{wildcards.sample_id_pattern}_flye
+        if [ -d $folder_path ]; then
+            rm -r {config[output_directory]}/{wildcards.sample_id_pattern}_flye
+        fi
+        mkdir -p {config[output_directory]}/{wildcards.sample_id_pattern}_flye
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} flye --nano-raw {input.fastq} --out-dir {config[output_directory]}/{wildcards.sample_id_pattern}_flye --threads {params.threads}
+        cp {config[output_directory]}/{wildcards.sample_id_pattern}_flye/assembly.fasta {output}
+        """
+
+rule circlator:
+    input:
+        sif_file = config["circlator_sif"],
+        assembly = config['output_directory']+'{sample_id_pattern}.flyed.fasta',
+    output:
+        temp(config['output_directory']+'{sample_id_pattern}_circlator.prodigal.for_prodigal.fa'),
+        temp(config['output_directory']+'{sample_id_pattern}_circlator.prodigal.prodigal.gff'),
+        temp(config['output_directory']+'{sample_id_pattern}_circlator.promer.contigs_with_ends.fa'),
+        temp(config['output_directory']+'{sample_id_pattern}_circlator.promer.promer'),
+        temp(config['output_directory']+'{sample_id_pattern}_circlator.detailed.log'),
+        contigs = temp(config['output_directory']+'{sample_id_pattern}_circlator.fasta'),
+        assembly = config['output_directory']+'{sample_id_pattern}.circularized.fasta',
+        logs = config['output_directory']+'{sample_id_pattern}_circlator.log'
+    envmodules:
+        'singularity'
+    shell:
+        """
+        folder_path={config[output_directory]}/{wildcards.sample_id_pattern}_circlator
+        if [ -d $folder_path ]; then
+            rm -r {config[output_directory]}/{wildcards.sample_id_pattern}_circlator
+        fi
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} circlator fixstart {input.assembly} {config[output_directory]}/{wildcards.sample_id_pattern}_circlator
+        cp {output.contigs} {output.assembly}
+        """
+
+
+rule medaka:
+    input:
+        medaka_image = config["medaka_sif"],
+        ont_reads = config['output_directory']+'{sample_id_pattern}_filtered.fastq.gz',
+        fixed_start_assembly = config['output_directory']+'{sample_id_pattern}.circularized.fasta',
+    output:
+        medaka_cor_consensus = config['output_directory']+'{sample_id_pattern}.medaka.fasta'
+    params:
+        threads=config["core_tool_configs"]["medaka"]["threads"]
+    envmodules:
+        'singularity'
+    shell:
+        """
+        MEDAKA_TEMP={config[output_directory]}{wildcards.sample_id_pattern}_medaka_tmp/
+        if [ -d ${{MEDAKA_TEMP}} ]; then
+            rm -r ${{MEDAKA_TEMP}}
+        fi
+        mkdir -m 775 ${{MEDAKA_TEMP}}
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.medaka_image} medaka_consensus -i {input.ont_reads} -d {input.fixed_start_assembly} -o ${{MEDAKA_TEMP}} -t {params.threads}
+        mv ${{MEDAKA_TEMP}}consensus.fasta {output.medaka_cor_consensus}
+        rm -r ${{MEDAKA_TEMP}}
+        """
+
+
+rule ont_polishing:
+    input:
+        sif_file = config["polypolish_sif"],
+        bwa_sif = config["bwa_sif"],
+        assembly = config['output_directory']+'{sample_id_pattern}.medaka.fasta',
+        read_1 = config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz',
+        read_2 = config['output_directory']+'{sample_id_pattern}_fastp_2.fastq.gz'
+    output:
+        alignments_1 = temp(config['output_directory']+'{sample_id_pattern}_alignments_1.sam'),
+        alignments_2 = temp(config['output_directory']+'{sample_id_pattern}_alignments_2.sam'),
+        filt_align_1 = temp(config['output_directory']+'{sample_id_pattern}_filtered_1.sam'),
+        filt_align_2 = temp(config['output_directory']+'{sample_id_pattern}_filtered_2.sam'),
+        poly_polished_fasta = config['output_directory']+'{sample_id_pattern}_poly_polished.fasta',
+    params:
+        low_filt_th=config["core_tool_configs"]["polypolish"]["min_th"],
+        high_filt_th=config["core_tool_configs"]["polypolish"]["max_th"]
+    envmodules:
+        'singularity'
+    shell:
+        """
+        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.bwa_sif} bwa index {input.assembly}
+        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.bwa_sif} bwa mem -t 32 -a {input.assembly} {input.read_1} > {output.alignments_1}
+        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.bwa_sif} bwa mem -t 32 -a {input.assembly} {input.read_2} > {output.alignments_2}
+        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} polypolish filter --in1 {output.alignments_1} --in2 {output.alignments_2} --out1 {output.filt_align_1} --out2 {output.filt_align_2}
+        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} polypolish polish {input.assembly} {output.filt_align_1} {output.filt_align_2} > {output.poly_polished_fasta}
+        """
+
+
+rule hybrid_polishing:
+    input:
+        sif_file = config["polca_sif"],
+        poly_polished_fasta = config['output_directory']+'{sample_id_pattern}_poly_polished.fasta',
+        reads_R1 = config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz',
+        reads_R2 = config['output_directory']+'{sample_id_pattern}_fastp_2.fastq.gz',
+    output:
+        config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.PolcaCorrected.fa',
+        config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.report',
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.alignSorted.bam'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.alignSorted.bam.bai'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.batches'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.bwa.amb'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.bwa.ann'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.bwa.bwt'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.bwa.pac'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.bwa.sa'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.fai'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.fix.success'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.index.success'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.map.success'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.names'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.report.success'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.sort.success'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.unSorted.sam'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.vcf'),
+        temp(config['output_directory']+'{sample_id_pattern}_poly_polished.fasta.vc.success')
+    params:
+        threads=config["core_tool_configs"]["polca"]["threads"],
+        memory=config["core_tool_configs"]["polca"]["ram_gbp_thread"]
+    envmodules:
+        'singularity'
+    shell:
+        """
+        cd {config[output_directory]}
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} \
+        {input.sif_file} polca.sh -a {input.poly_polished_fasta} -r '{input.reads_R1} {input.reads_R2}' -t {params.threads} -m {params.memory}
         """
 
 
@@ -114,7 +295,7 @@ rule filter_host:
         """
 
 
-rule contig_assembly:
+rule illumina_assembly:
     input:
         sif_file = ancient(config["shovill_sif"]),
         read_1   = ancient(config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz'),
@@ -122,7 +303,7 @@ rule contig_assembly:
     threads: 
         config["core_tool_configs"]["shovill"]["cpus"]
     output:
-        temp(config['output_directory']+'{sample_id_pattern}_contigs/contigs.fa')                                   #removed after renaming 
+        temp(config['output_directory']+'{sample_id_pattern}_contigs/contigs.fa')                                 #removed after renaming 
     envmodules:
         'singularity'
     shell:
@@ -146,17 +327,14 @@ rule contig_assembly:
         """
 
 
-rule contig_id:                                                                                                     #keeps only finals shovill output annotated with sample_id
-    input:
-        cnt = ancient(f'{config["output_directory"]}'+'{sample_id_pattern}_contigs/contigs.fa'),
-    envmodules:
-        'singularity'
+rule contig_id:
+    input: 
+        choose_assembly_branch
     output:
         contigs = config['output_directory']+'{sample_id_pattern}_contigs.fasta'
     shell:
         """
-        mv -n {input.cnt} {output.contigs}
-        rm -r {config[output_directory]}{wildcards.sample_id_pattern}_contigs/
+        cp {input} {output}
         """
 
 
