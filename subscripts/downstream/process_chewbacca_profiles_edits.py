@@ -328,8 +328,6 @@ def cluster_analysis(
     
     if output_path is None:
         output_path = path
-    # dataframe for aggregating all clusters
-    aggregated_clusters_df = pd.DataFrame()
     
     # save dataframes as csv files and run cgmlst-dists for each
     for bin_number, df in df_dict.items():
@@ -339,6 +337,8 @@ def cluster_analysis(
         else:
             tsv_path = os.path.join(output_path, f"{bin_number}.tsv")
             dist_file = os.path.join(output_path, f"distances_{bin_number}.tsv")
+        
+        df = df.drop_duplicates(subset=['FILE'])
         df.to_csv(tsv_path, index=False, sep="\t")
 
        
@@ -352,22 +352,24 @@ def cluster_analysis(
             logging.info(f"Successfully ran cgmlst-dists for {tsv_path}. Distances written to {dist_file}")
 
             # Perform clustering on distances file
-            cluster_df   = perform_clustering(dist_file, thresholds=thresholds, linkage_method=linkage_method, log_scale=log_scale, outlier_filter=outlier_filter, make_dendrogram=not skip_dendrogram)
+            cluster_df   = perform_clustering(
+                dist_file, 
+                thresholds=thresholds, 
+                linkage_method=linkage_method, 
+                log_scale=log_scale, 
+                outlier_filter=outlier_filter, 
+                make_dendrogram=not skip_dendrogram
+                )
+
             if use_timestamp:
                 cluster_path = os.path.join(output_path, f"clusters_{bin_number}_{current_datetime}.csv")
             else:
                 cluster_path = os.path.join(output_path, f"clusters_{bin_number}.csv")
             cluster_df.to_csv(cluster_path, index=False)
-            aggregated_clusters_df = pd.concat([aggregated_clusters_df, cluster_df])
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
             logging.error(f"Error occurred while running cgmlst-dists for {tsv_path}")
-
-    # Save aggregated clusters to csv
-    if use_timestamp:
-        aggregated_clusters_path = os.path.join(output_path, f"aggregated_clusters_{current_datetime}.csv")
-    else:
-        aggregated_clusters_path = os.path.join(output_path, f"aggregated_clusters.csv")
-    aggregated_clusters_df.to_csv(aggregated_clusters_path, index=False)
+            logging.error(e)
+            raise e
 
 
 ##############
