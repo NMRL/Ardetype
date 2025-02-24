@@ -1,4 +1,6 @@
 # Specific files
+*.env
+*.session_token
 devsync
 *.fastq.gz
 log_summary.html
