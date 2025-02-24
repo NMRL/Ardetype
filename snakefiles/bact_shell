@@ -253,7 +253,7 @@ echo bact_shell finished
 #         )
 #         os.system(f'rm -r {split_folder_path}')
 
-
+# sqlite3.OperationalError - 4422679
 rule mob_recon:
     input:
         mob_suite_sif = ancient(config['mob_suite_sif']),
@@ -394,7 +394,7 @@ rule resfinder_pheno:
         cp {config[output_directory]}{wildcards.sample_id_pattern}_resfinder/pheno_table.txt {config[output_directory]}{wildcards.sample_id_pattern}_resfinder_pheno.txt 
         '''
 
-
+# ERROR: no database found - 4422682
 rule amrfinderplus:
     input:
         hamr_sif      = ancient(config['hamronization_sif']),
@@ -421,7 +421,7 @@ rule amrfinderplus:
             touch {output[2]}
             """)
 
-
+# interface call error - 4422683 - fix applied
 rule virulencefinder:
     input:
         image_file = config['shell_tool_configs']['virulencefinder']['virulencefinder_sif'],
@@ -445,7 +445,7 @@ rule virulencefinder:
         cp -r {config[shell_tool_configs][virulencefinder][virulencefinder_db]} ~/db-virulencefinder_{wildcards.sample_id_pattern}/
         cp {input.contigs} ~/$CONTIG_FILENAME
 
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.image_file} virulencefinder.py -x -i ~/$CONTIG_FILENAME \
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.image_file} python -m virulencefinder -x -ifa ~/$CONTIG_FILENAME \
         -o ~/virulencefinder_output_{wildcards.sample_id_pattern} \
         -tmp ~/virulencefinder_output_{wildcards.sample_id_pattern} \
         -p ~/db-virulencefinder_{wildcards.sample_id_pattern}/
@@ -454,7 +454,7 @@ rule virulencefinder:
         rm -r ~/db-virulencefinder_{wildcards.sample_id_pattern}/ ~/virulencefinder_output_{wildcards.sample_id_pattern}/ ~/$CONTIG_FILENAME
         '''
 
-
+# missing contigs input - 4422680
 rule plasmidfinder:
     input:
         image_file = ancient(config['shell_tool_configs']['plasmidfinder']['plasmidfinder_sif']),
@@ -518,10 +518,10 @@ rule rmlst:
             with open(output.rmlst_json, 'w+') as outfile:
                 json.dump(results, outfile, indent=4)
 
-
+# Changed runtime - 4422681
 rule mlst: 
     input: 
-        mlst_quast_path = ancient(config['mlst_quast_sif']),
+        mlst_sif = ancient(config['mlst_sif']),
         contigs         = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     output:
         mlst_output     = config['output_directory']+'{sample_id_pattern}_mlst_output.csv',
@@ -530,7 +530,7 @@ rule mlst:
         'singularity'
     shell:
         """
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.mlst_quast_path} mlst --csv {input.contigs} >> {output.mlst_output}
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.mlst_sif} mlst --csv {input.contigs} >> {output.mlst_output}
         """
 
 
@@ -555,7 +555,7 @@ rule res_gen_id:
 
 rule quast:
     input:
-        sif_file = ancient(config['mlst_quast_sif']),
+        sif_file = ancient(config['quast_sif']),
         contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
     envmodules:
         'singularity'

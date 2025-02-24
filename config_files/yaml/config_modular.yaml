@@ -10,7 +10,7 @@ databases:
 status_script_path:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/pbs-status.py
 ardetype_version:
-  v0.1.0-dev
+  v1.0.0
 aquamis_qc_reference: 
   /mnt/beegfs2/home/groups/nmrl/db/AQUAMIS_thresholds.json
 contig_collection_path:
@@ -27,12 +27,14 @@ kraken2_env_path:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/.snakemake/conda/2a1a64fdbb7d92bc497cb7b9567b6099
 kraken2_env:
   /mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/kraken2.yaml
+kraken2_sif:
+  /mnt/beegfs2/home/groups/nmrl/image_files/kraken2_2.1.3.sif
 krona_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/krona.sif
 shovill_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/shovill.sif
 fastp_sif:
-  /mnt/beegfs2/home/groups/nmrl/image_files/fastp.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/fastp_0.24.0.sif #fastp.sif
 polca_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/masurca_4.1.0.sif
 polypolish_sif:
@@ -55,17 +57,21 @@ medaka_sif:
 # bact_shell
 ##############
 amrfinderplus_sif:
-  /mnt/beegfs2/home/groups/nmrl/image_files/ncbi-amrfinderplus_latest.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/ncbi-amrfinderplus_4.0.19-2024-12-18.1.sif #ncbi-amrfinderplus_latest.sif
 hamronization_sif:
   /mnt/home/jevgen01/nmrl_bgfs/image_files/hamronization_latest.sif
-mlst_quast_sif:
-  /mnt/beegfs2/home/groups/nmrl/image_files/mlst_quast.sif
+mlst_sif:
+  /mnt/beegfs2/home/groups/nmrl/image_files/mlst_2.23.0.sif
+quast_sif:
+  /mnt/beegfs2/home/groups/nmrl/image_files/quast_5.3.0.sif
+# mlst_quast_sif:
+#   /mnt/beegfs2/home/groups/nmrl/image_files/mlst_quast.sif
 mob_suite_sif:
-  /mnt/beegfs2/home/groups/nmrl/image_files/mob_suite_3.0.3.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/mob_suite_3.1.9.sif #mob_suite_3.0.3.sif
 nextflow_env:
   /mnt/home/groups/nmrl/bact_analysis/Ardetype/config_files/conda_defs/nextflow.yaml
 resfinder_sif:
-  /mnt/home/groups/nmrl/image_files/resfinder_latest.sif
+  /mnt/home/groups/nmrl/image_files/resfinder_4.6.0.sif #resfinder_latest.sif
   #/mnt/home/groups/nmrl/image_files/resfinder_4.1.11.sif
 rgi_sif:
   /mnt/home/groups/nmrl/image_files/rgi_6.0.3--pyha8f3691_0.sif
@@ -94,9 +100,9 @@ agrvate_saureus_sif:
 emmtyper_spyogenes_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/emmtyper_spyogenes.sif
 hicap_hinfluenzae_sif:
-  /mnt/beegfs2/home/groups/nmrl/image_files/hicap_hinfluenzae.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/hicap_1.0.4.sif #hicap_hinfluenzae.sif
 kleborate_kpneumoniae_sif:
-  /mnt/beegfs2/home/groups/nmrl/image_files/kleborate_kpneumoniae_latest.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/kleborate_3.1.2.sif #kleborate_kpneumoniae_latest.sif
 legsta_lpneumophila_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/legsta_lpneumophila.sif
 lissero_lmonocytogenes_sif:
@@ -108,21 +114,21 @@ meningotype_nmeningitidis_sif:
 sccmec_saureus_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/sccmec_saureus.sif
 seqsero2_senterica_sif:
-  /mnt/beegfs2/home/groups/nmrl/image_files/seqsero2_senterica.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/seqsero2_1.3.1.sif #seqsero2_senterica.sif
 sistr_senterica_sif:
-  /mnt/beegfs2/home/groups/nmrl/image_files/sistr_senterica.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/sistr_cmd_1.1.3.sif #sistr_senterica.sif
 spatyper_saureus_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/spatyper_saureus.sif
 ectyper_ecoli_sif:
-  /mnt/beegfs2/home/groups/nmrl/image_files/ectyper_ecoli.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/ectyper_2.0.0.sif #ectyper_ecoli.sif
 seroba_spneumoniae_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/seroba_spneumoniae.sif
 seroba_spneumoniae_database:
   /mnt/beegfs2/home/groups/nmrl/db/db-seroba
 pigz_sif:
-  /mnt/beegfs2/home/groups/nmrl/bact_analysis/legionella_pneumophila_genomics/image_files/pigz_latest.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/pigz_v2.4_b243f9.sif
 stecfinder_ecoli_sif:
-  /mnt/beegfs2/home/groups/nmrl/image_files/stecfinder_ecoli.sif
+  /mnt/beegfs2/home/groups/nmrl/image_files/stecfinder_1.1.0.sif #stecfinder_ecoli.sif
 lrefinder_efaecium_efaecalis_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/lre_finder.sif
 lrefinder_database:
@@ -245,7 +251,7 @@ shell_tool_configs:
     plasmidfinder_db: /mnt/beegfs2/home/groups/nmrl/db/plasmidfinder_db_new/
     db_update: "2024-06-18"
   virulencefinder:
-    virulencefinder_sif: /mnt/beegfs2/home/groups/nmrl/image_files/virulencefinder.sif
+    virulencefinder_sif: /mnt/beegfs2/home/groups/nmrl/image_files/virulencefinder_3.1.0.sif #virulencefinder.sif
     virulencefinder_db: /mnt/beegfs2/home/groups/nmrl/db/virulencefinder_db_new/
     db_update: "2024-06-18"
   rmlst_pubmlst:
@@ -294,7 +300,7 @@ tip_tool_configs:
       campylobacter: campylobacter
       clostridium: clostridium
   chewbbaca:
-    chewbbaca_sif: /mnt/beegfs2/home/groups/nmrl/image_files/chewbacca_cgmlst.sif
+    chewbbaca_sif: /mnt/beegfs2/home/groups/nmrl/image_files/chewbbaca_3.3.10.sif #chewbacca_cgmlst.sif
     chewbbaca_cores: 24
     chewbbaca_orgs:
       salmonella:

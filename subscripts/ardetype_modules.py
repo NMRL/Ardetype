@@ -92,13 +92,14 @@ class Wrapper():
                 datetime.datetime.fromtimestamp(os.path.getmtime(self._config_dict["shell_tool_configs"]["plasmidfinder"]["plasmidfinder_sif"])).strftime('%Y-%m-%d'),
             "resfinder":
                 sp.run(
-                f'module load singularity && singularity run {self._config_dict["resfinder_sif"]} run_resfinder.py --version 2> /dev/null',
+                f'module load singularity && singularity run {self._config_dict["resfinder_sif"]} python -m resfinder --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
             "virulencefinder":
-                datetime.datetime.fromtimestamp(os.path.getmtime(self._config_dict["shell_tool_configs"]["virulencefinder"]["virulencefinder_sif"])).strftime('%Y-%m-%d'),
+                sp.run(f'module load singularity && singularity run {self._config_dict["shell_tool_configs"]["virulencefinder"]["virulencefinder_sif"]} python -m virulencefinder --version 2> /dev/null', 
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
             "quast":
                 sp.run(
-                f'module load singularity && singularity run {self._config_dict["mlst_quast_sif"]} quast.py --version 2> /dev/null',
+                f'module load singularity && singularity run {self._config_dict["quast_sif"]} quast --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1],
             "rgi":
                 sp.run(
@@ -118,7 +119,7 @@ class Wrapper():
                 sp.run(f'module load singularity && singularity run {self._config_dict["mob_suite_sif"]} mob_typer --version',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').split(" ")[-1].strip(),
             "mlst":
-                sp.run(f'module load singularity && singularity run {self._config_dict["mlst_quast_sif"]} mlst --version 2> /dev/null',
+                sp.run(f'module load singularity && singularity run {self._config_dict["mlst_sif"]} mlst --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "shovill":
                 sp.run(f'module load singularity && singularity run {self._config_dict["shovill_sif"]} shovill --version 2> /dev/null',
@@ -154,7 +155,7 @@ class Wrapper():
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "sistr":
                 sp.run(f'module load singularity && singularity run {self._config_dict["sistr_senterica_sif"]} sistr --version ',
-                stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip().split(' ')[-1],
+                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "seqsero2":
                 sp.run(f'module load singularity && singularity run {self._config_dict["seqsero2_senterica_sif"]} SeqSero2_package.py --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],

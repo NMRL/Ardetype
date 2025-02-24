@@ -172,7 +172,7 @@ mlst:
   jobname: "ardetype.mlst"
   procs: 6
   pmem: "1000mb"
-  walltime: "00:03:00"
+  walltime: "01:00:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -192,7 +192,7 @@ plasmidfinder:
   jobname: "ardetype.plasmidfinder"
   procs: 12
   pmem: "1000mb"
-  walltime: "00:10:00"
+  walltime: "01:00:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
