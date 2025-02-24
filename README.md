@@ -1,6 +1,3 @@
-[back to nmrl](../../nmrl.md)<br>
-[back to bact_analysis](../bact_analysis.md)
-
 # ARDETYPE (v.1.0)
 
 NGS data processing pipeline designed to perform species-agnostic and species-specific analysis of short paired-end (PE) bacterial reads.
@@ -45,6 +42,3 @@ Clone the repository to the cluster and edit files found in config_files folder 
  - Running: 
      
      ``` python ardetype.py -i path_to_folder_with_fastq/ -o path_to_output_folder -m all ```
- 
-[back to nmrl](../../nmrl.md)<br>
-[back to bact_analysis](../bact_analysis.md)
