@@ -189,7 +189,6 @@
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Acinetobacter baumannii": [
-                "_kleborate.tsv",
                 "_ab_pumblst.json",
                 "_chewbbaca/results_alleles.tsv"
             ],
@@ -314,9 +313,7 @@
                 "_sistr_std.csv",
                 "_SeqSero_std.csv"
             ],
-            "Acinetobacter baumannii": [
-                "_kleborate_std.csv"
-            ],
+            "Acinetobacter baumannii": [],
             "Escherichia coli": [
                 "_ectyper_std.csv",
                 "_stecfinder_std.csv"

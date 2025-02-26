@@ -265,7 +265,7 @@ hicap_hinfluenzae:
   jobname: "ardetype.hicap"
   procs: 8
   pmem: "1000mb"
-  walltime: "00:01:30"
+  walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -285,8 +285,8 @@ cgmlstfinder:
 chewbbaca_cgmlst:
   jobname: "ardetype.chewbbaca_cgmlst"
   procs: 24
-  pmem: "2000mb"
-  walltime: "03:30:00"
+  pmem: "512mb"
+  walltime: "10:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -326,7 +326,7 @@ kleborate_kpneumoniae:
   jobname: "ardetype.kleborate"
   procs: 8
   pmem: "1000mb"
-  walltime: "00:04:00"
+  walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -346,7 +346,7 @@ spatyper_saureus:
   jobname: "ardetype.spatyper"
   procs: 8
   pmem: "1000mb"
-  walltime: "00:01:00"
+  walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
