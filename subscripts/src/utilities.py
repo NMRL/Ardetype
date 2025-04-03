@@ -622,7 +622,7 @@ class Housekeeper:
         os.system(
             f'''
             eval "$(conda shell.bash hook)" 
-            source activate {env_path}
+            conda activate {env_path}
             jupyter nbconvert --to html --execute --no-input {notebook_path} --output-dir={output_dir}
             chmod 775 {output_dir} 2>/dev/null
             ''')
