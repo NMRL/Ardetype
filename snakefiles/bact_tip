@@ -766,18 +766,19 @@ rule chewbbaca_cgmlst:
     output:
         chewbbaca     = config['output_directory']+'{sample_id_pattern}_chewbbaca/results_alleles.tsv'
     run:
+        scratch_path = f'/scratch/chewbbaca_{wildcards.sample_id_pattern}'
         os.system(f'''
         module load singularity
 
         cd {config["databases"]}chewbacca_db/databases/
-        mkdir -p ~/{wildcards.sample_id_pattern}_chewbbaca_input/
-        cp {input.contigs} ~/{wildcards.sample_id_pattern}_chewbbaca_input/
+        mkdir {scratch_path}
+        mkdir -p {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca_input/
+        cp {input.contigs} {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca_input/
 
-        singularity --silent exec --bind {config["output_directory"]},{config["work_dir"]},{config["databases"]}chewbacca_db/databases/:{config["output_directory"]},{config["work_dir"]},{config["databases"]}chewbacca_db/databases/ {input.image_file} chewBBACA.py AlleleCall --no-inferred --cpu-cores {config["tip_tool_configs"]["chewbbaca"]["chewbbaca_cores"]} -i ~/{wildcards.sample_id_pattern}_chewbbaca_input/ -g {chewbbaca_species_map[wildcards.sample_id_pattern]['db']} -o ~/{wildcards.sample_id_pattern}_chewbbaca/
-        mv -n ~/{wildcards.sample_id_pattern}_chewbbaca/* {config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/
+        singularity --silent exec --bind {scratch_path},{config["output_directory"]},{config["work_dir"]},{config["databases"]}chewbacca_db/databases/:{scratch_path},{config["output_directory"]},{config["work_dir"]},{config["databases"]}chewbacca_db/databases/ {input.image_file} chewBBACA.py AlleleCall --no-inferred --cpu {config["tip_tool_configs"]["chewbbaca"]["chewbbaca_cores"]} -i {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca_input/ -g {chewbbaca_species_map[wildcards.sample_id_pattern]['db']} -o {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca/
+        mv -n {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca/* {config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/
 
-        rm -r ~/{wildcards.sample_id_pattern}_chewbbaca_input/
-        rm -r ~/{wildcards.sample_id_pattern}_chewbbaca
+        rm -r {scratch_path}
         ''')
         qc_data_path = f'{config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/results_statistics.tsv'
         df = pd.read_csv(qc_data_path, sep='\t')
