@@ -177,6 +177,7 @@ core_tool_configs:
     depth: 100
     modules: --noreadcorr
   fastp:
+    thread: 12
     max_len1: 0 #trim bases after given length in read1
     max_len2: 0 #trim bases after given length in read2
   polypolish:
@@ -193,6 +194,7 @@ core_tool_configs:
     sample_size: 10000
   medaka:
     threads: 12
+    ram_mb: 6144
 
 #########################
 # bact_shell configuration
@@ -303,6 +305,13 @@ tip_tool_configs:
     chewbbaca_sif: /mnt/beegfs2/home/groups/nmrl/image_files/chewbbaca_3.3.10.sif #chewbacca_cgmlst.sif
     chewbbaca_cores: 24
     chewbbaca_orgs:
+      mycobacterium:
+        db: Mycobacterium_species_complex_alleles
+        version: 2.1
+        origin: https://www.cgmlst.org/ncs/schema/Mtuberculosis2101/
+        allele_count: 2891
+        db_update: "2023-04-01"
+        reference: "Kohl TA, Diel R, Harmsen D, Rothgänger J, Walter KM, Merker M, Weniger T, and Niemann S. Whole-genome-based Mycobacterium tuberculosis surveillance: a standardized, portable, and expandable approach. J. Clin. Microbiol. 2014, 52: 2479-86: 2479-86"
       salmonella:
         db: Salmonella_enterica
         version: 2.0

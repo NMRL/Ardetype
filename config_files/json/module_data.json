@@ -222,6 +222,18 @@
             "Shigella sonnei": [
                 "_chewbbaca/results_alleles.tsv",
                 "_shigatyper/shigatyper.tsv"
+            ],
+            "Mycobacterium tuberculosis": [
+                "_chewbbaca/results_alleles.tsv"
+            ],
+            "Mycobacterium bovis":[
+                "_chewbbaca/results_alleles.tsv"
+            ],
+            "Mycobacterium africanum":[
+                "_chewbbaca/results_alleles.tsv"
+            ],
+            "Mycobacterium canettii":[
+                "_chewbbaca/results_alleles.tsv"
             ]
         },
         "patterns": {
@@ -265,7 +277,11 @@
                 "Yersinia frederiksenii",
                 "Clostridioides difficile",
                 "Enterobacter hormaechei",
-                "Shigella sonnei"
+                "Shigella sonnei",
+                "Mycobacterium tuberculosis",
+                "Mycobacterium bovis",
+                "Mycobacterium africanum",
+                "Mycobacterium canettii"
             ]
         }
     },
@@ -332,7 +348,11 @@
             "Yersinia frederiksenii": [],
             "Enterobacter hormaechei": [],
             "Clostridioides difficile": [],
-            "Shigella sonnei": []
+            "Shigella sonnei": [],
+            "Mycobacterium tuberculosis": [],
+            "Mycobacterium bovis": [],
+            "Mycobacterium africanum": [],
+            "Mycobacterium canettii": []
         },
         "patterns": {
             "inputs": {
