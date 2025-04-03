@@ -550,15 +550,17 @@ class Ardetype_housekeeper(hk):
             "iucC", "iucD", "iutA", "iroB", "iroC", "iroD", "iroN", "rmpA", "rmpD", "rmpC",
             "spurious_virulence_hits",
         ]
-
-        df = pd.read_csv(klbt_result_path, sep='\t')
-        df['strain'] = df['strain'].str.replace(
-            r'_S[0-9]*_contigs', '', regex=True)
-        # reorder columns and aggregate results even if resistance scan was not performed
-        df = df.reindex(columns=columns, fill_value=None)
-        df.insert(1, 'analysis_batch_id', [os.path.basename(
-            os.path.dirname(batch)) for _ in df.index])
-        return df
+        try:
+            df = pd.read_csv(klbt_result_path, sep='\t')
+            df['strain'] = df['strain'].str.replace(
+                r'_S[0-9]*_contigs', '', regex=True)
+            # reorder columns and aggregate results even if resistance scan was not performed
+            df = df.reindex(columns=columns, fill_value=None)
+            df.insert(1, 'analysis_batch_id', [os.path.basename(
+                os.path.dirname(batch)) for _ in df.index])
+        except Exception as e:
+            print(e)
+            return pd.DataFrame(columns=columns)
 
     @staticmethod
     def ectyper_results(ect_result_path: str, batch: str) -> pd.DataFrame:
