@@ -23,7 +23,7 @@ illumina_qc:
   jobname: "ardetype.illumina_qc"
   procs: 12
   pmem: "1500mb"
-  walltime: "00:20:00"
+  walltime: "01:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -144,7 +144,7 @@ res_gen_id:
   jobname: "ardetype.rgi_card"
   procs: 4
   pmem: "1000mb"
-  walltime: "01:30:00"
+  walltime: "03:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -233,7 +233,7 @@ mob_recon:
   jobname: "ardetype.mob_recon"
   procs: 12
   pmem: "1000mb"
-  walltime: "03:30:00"
+  walltime: "08:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -252,7 +252,7 @@ quast:
   jobname: "ardetype.quast"
   procs: 5
   pmem: "1000mb"
-  walltime: "00:00:30"
+  walltime: "00:15:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -285,8 +285,8 @@ cgmlstfinder:
 chewbbaca_cgmlst:
   jobname: "ardetype.chewbbaca_cgmlst"
   procs: 24
-  pmem: "512mb"
-  walltime: "10:30:00"
+  pmem: "2048mb"
+  walltime: "05:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -444,7 +444,7 @@ ectyper_ecoli:
   jobname: "ardetype.ectyper"
   procs: 10
   pmem: "1000mb"
-  walltime: "00:05:00"
+  walltime: "01:00:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -454,7 +454,7 @@ stecfinder_ecoli:
   jobname: "ardetype.stecfinder"
   procs: 12
   pmem: "2000mb"
-  walltime: "00:30:00"
+  walltime: "02:00:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
