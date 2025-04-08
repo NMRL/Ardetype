@@ -593,14 +593,13 @@ rule ectyper_ecoli:
         'singularity'
     shell:
         """
-        mkdir -p ~/ectyper/
-        cp {input.contigs} ~/ectyper/
+        mkdir -p ~/ectyper_{wildcards.sample_id_pattern}/
+        cp {input.contigs} ~/ectyper_{wildcards.sample_id_pattern}/
         
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} ectyper -i ~/ectyper/$(basename {input.contigs}) -o ~/ectyper/
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} ectyper -i ~/ectyper_{wildcards.sample_id_pattern}/$(basename {input.contigs}) -o ~/ectyper_{wildcards.sample_id_pattern}/ -c {config[tip_tool_configs][ectyper_ecoli][cores]} --pathotype
         
-        mv ~/ectyper/output.tsv {output}
-        rm -r ~/ectyper/$(basename {input.contigs})
-        rmdir --ignore-fail-on-non-empty ~/ectyper/
+        mv ~/ectyper_{wildcards.sample_id_pattern}/output.tsv {output}
+        rm -r ~/ectyper_{wildcards.sample_id_pattern}
         """
 
 
