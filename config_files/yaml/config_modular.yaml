@@ -169,6 +169,8 @@ core_tool_configs:
     ram_host_mb: 262144
     bact_db: /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/minikraken_bact/ 
     ram_bact_mb: 262144
+    phix_db: /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/phix/
+    ram_phix_mb: 4096
   shovill:
     minlen: 1
     mincov: 0

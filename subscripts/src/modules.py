@@ -173,6 +173,17 @@ class Module:
         self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ill_gp['sample_id']), 'sample_group'] = 'ILL'
         self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ful_gp['sample_id']), 'sample_group'] = 'FUL'
 
+        #Add mark file accordingly
+        if not ont_pg.empty:
+            f = open(os.path.join(self.output_path,'ONT_mark'), 'w')
+            f.close()
+        elif not ful_gp.empty:
+            f = open(os.path.join(self.output_path,'HYB_IO_mark'), 'w')
+            f.close()
+        else:
+            f = open(os.path.join(self.output_path,'ILL_mark'), 'w')
+            f.close()
+
 
     def fill_target_list(self, taxonomy_based:bool=False, mixed:bool=False, empty:bool=False, grouped:bool=False):
         '''Fills self.target_list using data stored in self.sample_sheet instance variable.'''

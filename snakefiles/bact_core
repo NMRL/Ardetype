@@ -263,12 +263,51 @@ rule hybrid_polishing:
         """
 
 
-rule filter_host:
+rule filter_phix:
     input:
         kraken_sif = ancient(config["kraken2_sif"]),     
         pigz_sif = ancient(config["pigz_sif"]),
         read_1 = ancient(config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz'), # quality-trimmed reads
         read_2 = ancient(config['output_directory']+'{sample_id_pattern}_fastp_2.fastq.gz')
+    output:                                                                                                         
+        temp(config['output_directory']+'{sample_id_pattern}_phix_1.fastq'), # phix reads (temp)
+        temp(config['output_directory']+'{sample_id_pattern}_phix_2.fastq'),                                        
+        sample_1       = config['output_directory']+'{sample_id_pattern}_phix_filtered_1.fastq.gz', # sample reads
+        sample_2       = config['output_directory']+'{sample_id_pattern}_phix_filtered_2.fastq.gz',
+        report_name    = config['output_directory']+'{sample_id_pattern}_kraken2_phix_filtering_report.txt',
+        filtering_data = temp(config['output_directory']+'{sample_id_pattern}_kraken2_phix_filtering_data.txt'),
+        stdout         = temp(config['output_directory']+'{sample_id_pattern}_pf_k2_stdout') # kraken2 runtime report
+    threads: 
+        config["core_tool_configs"]["kraken2"]["threads"]
+    resources:    
+        mem_mb = config["core_tool_configs"]["kraken2"]["ram_phix_mb"]
+    envmodules:
+        'singularity'
+    # conda:
+    #     config["kraken2_env"]
+    shell:                                                                                              
+        """
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]},{config[core_tool_configs][kraken2][phix_db]}:{config[output_directory]},{config[work_dir]},{config[core_tool_configs][kraken2][phix_db]} {input.kraken_sif} \
+        kraken2 --threads {threads} \
+        --db {config[core_tool_configs][kraken2][phix_db]} \
+        --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_phix#.fastq \
+        --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_phix_filtered#.fastq \
+        --report {output.report_name} --output {output.filtering_data} --gzip-compressed \
+        --paired {input.read_1} {input.read_2} > {output.stdout}
+
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.pigz_sif} \
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_phix_filtered_1.fastq
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.pigz_sif} \
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_phix_filtered_2.fastq
+        """
+
+
+rule filter_host:
+    input:
+        kraken_sif = ancient(config["kraken2_sif"]),     
+        pigz_sif = ancient(config["pigz_sif"]),
+        read_1 = ancient(config['output_directory']+'{sample_id_pattern}_phix_filtered_1.fastq.gz'), # quality-trimmed reads
+        read_2 = ancient(config['output_directory']+'{sample_id_pattern}_phix_filtered_2.fastq.gz')
     output:                                                                                                         
         temp(config['output_directory']+'{sample_id_pattern}_host_1.fastq'), # host reads (temp)
         temp(config['output_directory']+'{sample_id_pattern}_host_2.fastq'),                                        

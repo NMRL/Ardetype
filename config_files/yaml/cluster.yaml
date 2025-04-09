@@ -103,6 +103,16 @@ filter_host:
   jobout: "oe"
 
 
+filter_phix:
+  jobname: "ardetype.filter_phix"
+  procs: 12
+  pmem: "2048mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
 classify_reads:
   jobname: "ardetype.classify_reads"
   procs: 12
