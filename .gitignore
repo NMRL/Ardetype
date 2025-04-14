@@ -6,6 +6,7 @@ devsync
 log_summary.html
 clst_bct_cl.o*
 *.sif
+workflow/*
 
 # Various system folders
 /.snakemake

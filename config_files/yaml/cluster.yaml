@@ -294,9 +294,9 @@ cgmlstfinder:
 
 chewbbaca_cgmlst:
   jobname: "ardetype.chewbbaca_cgmlst"
-  procs: 24
+  procs: 48
   pmem: "2048mb"
-  walltime: "05:30:00"
+  walltime: "12:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
