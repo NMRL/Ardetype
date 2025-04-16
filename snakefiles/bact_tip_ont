@@ -632,6 +632,29 @@ rule cgmlstfinder:
         ''')
 
 
+rule capybara:
+    input:
+        image_file    = ancient(config['tip_tool_configs']['capybara_abaumannii']['capybara_sif']),
+        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        capybara = config['output_directory']+'{sample_id_pattern}_capybara.tsv',
+    run:
+        scratch_path = f'/scratch/capybara_{wildcards.sample_id_pattern}'
+        os.system(f'''
+        module load singularity
+        if [ -d "{scratch_path}" ]; then rm -Rf {scratch_path}; fi
+
+        mkdir {scratch_path}
+        cp {input.contigs} {scratch_path}/
+
+        singularity --silent run --bind {scratch_path}:{scratch_path} {input.image_file} -p {scratch_path}/Capy -i {scratch_path}/$(basename {input.contigs}) -t {config["tip_tool_configs"]["capybara_abaumannii"]["threads"]}
+        mv -n {scratch_path}/Capy.tsv {output.capybara}
+
+        rm -r {scratch_path}
+        ''')
+
+
+
 rule chewbbaca_cgmlst:
     input:
         image_file    = ancient(config['tip_tool_configs']['chewbbaca']['chewbbaca_sif']),
