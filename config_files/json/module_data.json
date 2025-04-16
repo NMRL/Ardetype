@@ -117,8 +117,13 @@
         ],
         "patterns": {
             "inputs": {
-                "ILL/FUL": ["001.fastq.gz", "_contigs.fasta"],
-                "ONT": ["_contigs.fasta"]
+                "ILL/FUL": [
+                    "001.fastq.gz",
+                    "_contigs.fasta"
+                ],
+                "ONT": [
+                    "_contigs.fasta"
+                ]
             },
             "sample_sheet": "(_R[1,2]_001.fastq.gz|_contigs.fasta)"
         },
@@ -189,6 +194,7 @@
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Acinetobacter baumannii": [
+                "_capybara.tsv",
                 "_ab_pumblst.json",
                 "_chewbbaca/results_alleles.tsv"
             ],
@@ -226,20 +232,26 @@
             "Mycobacterium tuberculosis": [
                 "_chewbbaca/results_alleles.tsv"
             ],
-            "Mycobacterium bovis":[
+            "Mycobacterium bovis": [
                 "_chewbbaca/results_alleles.tsv"
             ],
-            "Mycobacterium africanum":[
+            "Mycobacterium africanum": [
                 "_chewbbaca/results_alleles.tsv"
             ],
-            "Mycobacterium canettii":[
+            "Mycobacterium canettii": [
                 "_chewbbaca/results_alleles.tsv"
             ]
         },
         "patterns": {
             "inputs": {
-                "ILL/FUL": ["_bact_reads_classified_1.fastq.gz","_bact_reads_classified_2.fastq.gz", "_contigs.fasta"],
-                "ONT": ["_contigs.fasta"]
+                "ILL/FUL": [
+                    "_bact_reads_classified_1.fastq.gz",
+                    "_bact_reads_classified_2.fastq.gz",
+                    "_contigs.fasta"
+                ],
+                "ONT": [
+                    "_contigs.fasta"
+                ]
             },
             "sample_sheet": "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_contigs.fasta)"
         },

@@ -283,6 +283,9 @@ tip_tool_configs:
   lpgenomics_lpneumophila:
   meningotype_nmeningitidis:
   pasteurmlst_lmonocytogenes:
+  capybara_abaumannii:
+    threads: 12
+    capybara_sif: /mnt/beegfs2/home/groups/nmrl/image_files/capybara_250416.sif
   publmst_ngonorrhoe:
   sccmec_saureus:
   seqsero_senterica:
@@ -306,7 +309,7 @@ tip_tool_configs:
       clostridium: clostridium
   chewbbaca:
     chewbbaca_sif: /mnt/beegfs2/home/groups/nmrl/image_files/chewbbaca_3.3.10.sif #chewbacca_cgmlst.sif
-    chewbbaca_cores: 24
+    chewbbaca_cores: 48
     chewbbaca_orgs:
       mycobacterium:
         db: Mycobacterium_species_complex_alleles
@@ -323,7 +326,7 @@ tip_tool_configs:
         db_update: "2023-05-15"
         reference: "Alikhan NF, Zhou Z, Sergeant MJ, and Achtman M. A genomic overview of the population structure of Salmonella. PLoS Genet. 2018, 14: e1007261 [PubMed 29621240]"
       escherichia:
-        db: Ecoli_cgmlst
+        db: ecoli_wgmlst_alleles # Ecoli_cgmlst
         version: 1.0
         origin: https://www.cgmlst.org/ncs/schema/5064703/
         allele_count: 2513
