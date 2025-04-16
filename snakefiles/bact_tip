@@ -663,13 +663,13 @@ rule ectyper_ecoli:
         'singularity'
     shell:
         """
-        mkdir -p ~/ectyper_{wildcards.sample_id_pattern}/
-        cp {input.contigs} ~/ectyper_{wildcards.sample_id_pattern}/
+        mkdir -p /scratch/ectyper_{wildcards.sample_id_pattern}/
+        cp {input.contigs} /scratch/ectyper_{wildcards.sample_id_pattern}/
         
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} ectyper -i ~/ectyper_{wildcards.sample_id_pattern}/$(basename {input.contigs}) -o ~/ectyper_{wildcards.sample_id_pattern}/ -c {config[tip_tool_configs][ectyper_ecoli][cores]} --pathotype
+        singularity --silent exec --bind /scratch/ectyper_{wildcards.sample_id_pattern}/,{config[output_directory]},{config[work_dir]}:/scratch/ectyper_{wildcards.sample_id_pattern}/,{config[output_directory]},{config[work_dir]} {input.sif_file} ectyper -i /scratch/ectyper_{wildcards.sample_id_pattern}/$(basename {input.contigs}) -o /scratch/ectyper_{wildcards.sample_id_pattern}/ -c {config[tip_tool_configs][ectyper_ecoli][cores]} --pathotype
         
-        mv ~/ectyper_{wildcards.sample_id_pattern}/output.tsv {output}
-        rm -r ~/ectyper_{wildcards.sample_id_pattern}
+        mv /scratch/ectyper_{wildcards.sample_id_pattern}/output.tsv {output}
+        rm -r /scratch/ectyper_{wildcards.sample_id_pattern}
         """
 
 
@@ -684,15 +684,14 @@ rule stecfinder_ecoli:
         'singularity'
     shell:
         """
-        mkdir -p ~/stecfinder_{wildcards.sample_id_pattern}/
-        cp {input.read_1} ~/stecfinder_{wildcards.sample_id_pattern}/
-        cp {input.read_2} ~/stecfinder_{wildcards.sample_id_pattern}/
+        mkdir -p /scratch/stecfinder_{wildcards.sample_id_pattern}/
+        cp {input.read_1} /scratch/stecfinder_{wildcards.sample_id_pattern}/
+        cp {input.read_2} /scratch/stecfinder_{wildcards.sample_id_pattern}/
         
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} stecfinder -r -i ~/stecfinder_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}* --output ~/stecfinder_{wildcards.sample_id_pattern}/$(basename {output.result})
+        singularity --silent exec --bind /scratch/stecfinder_{wildcards.sample_id_pattern}/,{config[output_directory]},{config[work_dir]}:/scratch/stecfinder_{wildcards.sample_id_pattern}/,{config[output_directory]},{config[work_dir]} {input.sif_file} stecfinder -r -i /scratch/stecfinder_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}* --output /scratch/stecfinder_{wildcards.sample_id_pattern}/$(basename {output.result})
         
-        mv ~/stecfinder_{wildcards.sample_id_pattern}/$(basename {output.result}) {output.result}
-        rm -r ~/stecfinder_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}*
-        rmdir --ignore-fail-on-non-empty ~/stecfinder_{wildcards.sample_id_pattern}/
+        mv /scratch/stecfinder_{wildcards.sample_id_pattern}/$(basename {output.result}) {output.result}
+        rm -r /scratch/stecfinder_{wildcards.sample_id_pattern}/
         """
 
 
@@ -768,6 +767,7 @@ rule chewbbaca_cgmlst:
         scratch_path = f'/scratch/chewbbaca_{wildcards.sample_id_pattern}'
         os.system(f'''
         module load singularity
+        if [ -d "{scratch_path}" ]; then rm -Rf {scratch_path}; fi
 
         cd {config["databases"]}chewbacca_db/databases/
         mkdir {scratch_path}
