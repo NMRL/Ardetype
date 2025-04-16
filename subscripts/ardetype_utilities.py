@@ -558,6 +558,7 @@ class Ardetype_housekeeper(hk):
             df = df.reindex(columns=columns, fill_value=None)
             df.insert(1, 'analysis_batch_id', [os.path.basename(
                 os.path.dirname(batch)) for _ in df.index])
+            return df
         except Exception as e:
             print(e)
             return pd.DataFrame(columns=columns)
