@@ -20,6 +20,9 @@ if __name__ == "__main__":
         __config = hk.read_yaml("./config_files/yaml/config_modular.yaml")
         home_path = __config['home_dir']
         out_bucket_path = __config['output_bucket_path']
+        if args.nanopore_only:
+            out_bucket_path = out_bucket_path.replace('illumina', 'nanopore')
+
         del __config
         if args.input.endswith('/'):
             input_name = os.path.basename(os.path.dirname(args.input))

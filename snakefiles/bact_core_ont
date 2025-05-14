@@ -37,7 +37,11 @@ rule all:
             df         = pd.read_table(file, header=None)[[0,3,5]]                                              #read columns
             df.columns = ['read_%','taxid','name']                                                              #rename 
             df         = df[df['taxid'] == "S"].reset_index(drop=True)                                          #extract only species rows
-            top_hit    = df.loc[df["read_%"] ==df["read_%"].max()]['name'].reset_index(drop=True)[0].strip()    #extract top hit
+            try:
+                top_hit    = df.loc[df["read_%"] ==df["read_%"].max()]['name'].reset_index(drop=True)[0].strip()    #extract top hit
+            except Exception as e:
+                print(file, e)
+                raise e
             total_dict[
                 os.path.basename(file).replace("_kraken2_contigs_report.txt","")                              
                 ]      = top_hit                                                                                #save info for current samples
