@@ -30,9 +30,9 @@ illumina_qc:
 
 ont_qc:
   jobname: "ardetype.ont_qc"
-  procs: 12
+  procs: 16
   pmem: "1500mb"
-  walltime: "00:20:00"
+  walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -244,6 +244,7 @@ mob_recon:
   procs: 12
   pmem: "1000mb"
   walltime: "08:30:00"
+  feature: "largescratch"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -294,8 +295,8 @@ cgmlstfinder:
 
 capybara:
   jobname: "ardetype.capybara"
-  procs: 12
-  pmem: "2048mb"
+  procs: 16
+  pmem: "3096mb"
   walltime: "00:10:00"
   account: "rakus"
   queue: "batch"
@@ -306,6 +307,7 @@ chewbbaca_cgmlst:
   jobname: "ardetype.chewbbaca_cgmlst"
   procs: 48
   pmem: "2048mb"
+  feature: "largescratch"
   walltime: "24:30:00"
   account: "rakus"
   queue: "batch"

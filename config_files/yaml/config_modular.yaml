@@ -261,6 +261,8 @@ shell_tool_configs:
   rmlst_pubmlst:
     schema: https://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1
     api_seq_limit: 75
+  mob_suite:
+    mob_recon_threads: 12
 
 
 
@@ -326,7 +328,7 @@ tip_tool_configs:
         db_update: "2023-05-15"
         reference: "Alikhan NF, Zhou Z, Sergeant MJ, and Achtman M. A genomic overview of the population structure of Salmonella. PLoS Genet. 2018, 14: e1007261 [PubMed 29621240]"
       escherichia:
-        db: ecoli_wgmlst_alleles # Ecoli_cgmlst
+        db: Ecoli_cgmlst # ecoli_wgmlst_alleles
         version: 1.0
         origin: https://www.cgmlst.org/ncs/schema/5064703/
         allele_count: 2513

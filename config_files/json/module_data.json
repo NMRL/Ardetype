@@ -331,9 +331,7 @@
             "Streptococcus pyogenes": [
                 "_emmtyper_std.csv"
             ],
-            "Neisseria gonorrhoeae": [
-                "_ngmast_std.csv"
-            ],
+            "Neisseria gonorrhoeae": [],
             "Listeria monocytogenes": [
                 "_lissero_std.csv"
             ],
