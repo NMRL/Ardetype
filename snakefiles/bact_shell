@@ -37,7 +37,7 @@ org_dict = dict(zip(currated_orgs['sample_id'], currated_orgs['taxonomy']))
 
 rule all:
     input: 
-        config['shell_target_files'], 
+        [t for t in config['shell_target_files'] if "mobtyper_results.txt" not in t], # filtering specific inputs for illumina
         hamr_sif             = ancient(config['hamronization_sif']), #path to singularity image file
         
         #Lists of resistance reports to be harmonized, may be it can be refactored to single expand
@@ -57,6 +57,9 @@ rule all:
         #Virulencefinder reports to aggregate
         virulencefinder      = expand(config['output_directory']+'{sample_id}_virulencefinder/results_tab.tsv', sample_id=sample_sheet['sample_id']),
 
+        # rMLST reports to aggregate 
+        rmlst                = expand(config['output_directory']+'{sample_id}_rmlst.json', sample_id=sample_sheet['sample_id']),
+
         # #Res. marker concordance reports to aggregate
         # rmc_runtime          = expand(config['output_directory']+'{sample_id}_rmc_runtime.csv', sample_id=sample_sheet['sample_id']),
         # blast                = expand(config['output_directory']+'{sample_id}_rmc_blast.csv', sample_id=sample_sheet['sample_id']),
@@ -71,6 +74,7 @@ rule all:
         input.hamr_amrfp     = [ path for path in input.hamr_amrfp if not os.path.getsize(path) == 0]
         input.amrfp_mut      = [ path for path in input.amrfp_mut if not os.path.getsize(path) == 0]
         input.mobtyper       = [ path for path in input.mobtyper if not os.path.getsize(path) == 0]
+        input.rmlst          = [ path for path in input.rmlst if not os.path.getsize(path) == 0]
 
         #Create single tsv report from all resistance inference tools.
         command = f'''
@@ -121,7 +125,7 @@ echo bact_shell finished
         amfp = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.amrfpm_results, pathlist = input.amrfp_mut)
         amfp.to_csv(f"{config['output_directory']}amrfp_mutation_report.csv", header=True, index=False)
 
-        #Search for AMR-plasmid associations in resfinder & mobtyper output
+        # Search for AMR-plasmid associations in resfinder & mobtyper output
         if not os.path.getsize(f"{config['output_directory']}mobtyper_contig_summary.csv") == 0:
             hamr_pls = hk.hamr_plasmid_map(
                 hamr_report_path=f"{config['output_directory']}harmonized_resistance_profile.tsv",
@@ -129,6 +133,22 @@ echo bact_shell finished
             hamr_pls.to_csv(f"{config['output_directory']}resfinder_mobtyper_mapping.csv", header=True, index=False)
         else:
             Path(f"{config['output_directory']}mobtyper_contig_summary.csv").touch()
+
+        #Aggregate rmlst species information
+        rmlst = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.rmlst_results, pathlist = input.rmlst)
+        k2_tx = hk.read_json_dict(config['output_directory']+'core_aggregated_taxonomy.json')
+        rmlst['k2_species'] = rmlst['sample_id'].map(k2_tx)
+
+        # Apply voting rules
+        rmlst['final_species'] = rmlst['species']
+        rmlst.loc[rmlst['species'].str.contains('sp.', na=False), 'final_species'] = rmlst['k2_species']
+        rmlst.loc[rmlst['species'].eq('') | rmlst['species'].isna(),       'final_species'] = rmlst['k2_species']
+        rmlst = rmlst[['sample_id', 'final_species']]
+        updated_taxonomy = dict(zip(rmlst['sample_id'], rmlst['final_species']))
+
+        # Update taxonomy mapping
+        with open(config['output_directory']+'core_aggregated_taxonomy.json', "w+") as json_handle:
+            json.dump(updated_taxonomy, json_handle, indent=4)
 
         # #Aggregate res. marker concordance check results
         # dashing2 = batch_tool(
@@ -253,7 +273,6 @@ echo bact_shell finished
 #         )
 #         os.system(f'rm -r {split_folder_path}')
 
-# sqlite3.OperationalError - 4422679
 rule mob_recon:
     input:
         mob_suite_sif = ancient(config['mob_suite_sif']),
@@ -269,7 +288,7 @@ rule mob_recon:
         mkdir -p /scratch/{wildcards.sample_id_pattern}_mob_recon/
         cp {input.contigs} /scratch/{wildcards.sample_id_pattern}_mob_recon/
         
-        singularity --silent exec --bind /scratch/{wildcards.sample_id_pattern}_mob_recon/:/scratch/{wildcards.sample_id_pattern}_mob_recon/ {input.mob_suite_sif} mob_recon --infile /scratch/{wildcards.sample_id_pattern}_mob_recon/$(basename {input.contigs}) --force --outdir /scratch/{wildcards.sample_id_pattern}_mob_recon/mob_recon/
+        singularity --silent exec --bind /scratch/{wildcards.sample_id_pattern}_mob_recon/:/scratch/{wildcards.sample_id_pattern}_mob_recon/ {input.mob_suite_sif} mob_recon --num_threads {config[shell_tool_configs][mob_suite][mob_recon_threads]} --infile /scratch/{wildcards.sample_id_pattern}_mob_recon/$(basename {input.contigs}) --force --outdir /scratch/{wildcards.sample_id_pattern}_mob_recon/mob_recon/
         mkdir -p {config[output_directory]}{wildcards.sample_id_pattern}_mob_recon/
         mv /scratch/{wildcards.sample_id_pattern}_mob_recon/mob_recon/* {config[output_directory]}{wildcards.sample_id_pattern}_mob_recon/
 

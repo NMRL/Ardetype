@@ -365,7 +365,7 @@ class Ardetype_housekeeper(hk):
         '''Returns dataframe containing sample_id and analysis_batch_id columns
         where the same sample id and batch id are matched to all findings for a given sample.'''
         df = pd.read_csv(pf_results_path, sep='\t')
-        sample_id = re.sub(r'_S[0-9]*_resfinder', '',
+        sample_id = re.sub(r'(_S[0-9]*)?_resfinder', '',
                            os.path.basename(os.path.dirname(pf_results_path)))
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
         df.insert(1, 'analysis_batch_id',
@@ -381,7 +381,7 @@ class Ardetype_housekeeper(hk):
     def respheno_results(rfp_result_path: str, batch: str) -> pd.DataFrame:
         '''Returns a dataframe - containing valid resistance genes.'''
         df = pd.read_csv(rfp_result_path, skiprows=16, sep="\t")
-        sample_id = re.sub(r'_S[0-9]*_resfinder_pheno.txt',
+        sample_id = re.sub(r'(_S[0-9]*)?_resfinder_pheno.txt',
                            '', os.path.basename(rfp_result_path))
 
         # remove all rows that contain "No resistance" in "WGS-predicted phenotype" column
@@ -553,7 +553,7 @@ class Ardetype_housekeeper(hk):
         try:
             df = pd.read_csv(klbt_result_path, sep='\t')
             df['strain'] = df['strain'].str.replace(
-                r'_S[0-9]*_contigs', '', regex=True)
+                r'(_S[0-9]*)?_contigs', '', regex=True)
             # reorder columns and aggregate results even if resistance scan was not performed
             df = df.reindex(columns=columns, fill_value=None)
             df.insert(1, 'analysis_batch_id', [os.path.basename(
@@ -748,6 +748,27 @@ class Ardetype_housekeeper(hk):
         sample_id = re.sub(r'_S[0-9]*_amrfinderplus_point.tab', '', os.path.basename(amrfpm_result_path))
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
         df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
+        return df
+    
+    @staticmethod
+    def rmlst_results(rmlst_result_path: str, batch: str):
+        '''To combine rmlst species reports and map them to sample_id'''
+        # Parse json file
+        with open(rmlst_result_path, 'r') as f:
+            data = json.load(f)
+
+        # Get species (if present) and sample identifier
+        species = data.get('fields', {}).get('species', '')
+        sample_id = os.path.basename(rmlst_result_path).replace('_rmlst.json','')
+
+        # Get top species if mix inferred
+        if species:
+            splt = species.split(",")
+            if len(splt) > 1:
+                species = splt[0]   
+
+        # Convert to pandas df
+        df = pd.DataFrame.from_dict({"sample_id":[sample_id], "species": species})
         return df
 
     @staticmethod
