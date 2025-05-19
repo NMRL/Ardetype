@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/virulencefinder_3.1.0.yaml virulencefinder_3.1.0.yaml
+%post
+    conda env create --name virulencefinder_3.1.0 --file virulencefinder_3.1.0.yaml
+%environment
+    export PATH=/opt/conda/envs/virulencefinder_3.1.0/bin:$PATH
+%runscript
+    exec "$@"

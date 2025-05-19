@@ -1,0 +1,10 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- staphopia-sccmec=1.0.0
+- blast
+- executor
+- python >=3
+name: staphopia-sccmec_1.0.0

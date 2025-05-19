@@ -1,7 +1,0 @@
-name: emmtyper_spyogenes
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-  - emmtyper

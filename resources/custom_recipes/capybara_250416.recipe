@@ -1,0 +1,30 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%labels
+    Version v1.0
+    Description "Singularity image for running CAPYBARA"
+
+%post
+    # Create and activate conda environment
+    conda install -y conda
+    conda init bash
+    . /opt/conda/etc/profile.d/conda.sh
+    conda create -y -n capybara python=3.9
+    conda activate capybara
+
+    # Install dependencies
+    conda install -y -n capybara -c bioconda minimap2 mash
+    conda install -y -n capybara -c bioconda samtools bcftools
+    conda install -y -n capybara anaconda::libopenblas
+
+    # Clone the repository
+    git clone https://github.com/Zhou-lab-SUDA/CAPYBARA.git /capybara
+
+%environment
+    . /opt/conda/etc/profile.d/conda.sh
+    conda activate capybara
+    export PATH=/capybara:$PATH
+
+%runscript
+    exec python /capybara/capy.py "$@"

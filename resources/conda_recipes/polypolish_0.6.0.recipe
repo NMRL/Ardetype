@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/polypolish_0.6.0.yaml polypolish_0.6.0.yaml
+%post
+    conda env create --name polypolish_0.6.0 --file polypolish_0.6.0.yaml
+%environment
+    export PATH=/opt/conda/envs/polypolish_0.6.0/bin:$PATH
+%runscript
+    exec "$@"

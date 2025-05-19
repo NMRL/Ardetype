@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/stecfinder_1.1.0.yaml stecfinder_1.1.0.yaml
+%post
+    conda env create --name stecfinder_1.1.0 --file stecfinder_1.1.0.yaml
+%environment
+    export PATH=/opt/conda/envs/stecfinder_1.1.0/bin:$PATH
+%runscript
+    exec "$@"

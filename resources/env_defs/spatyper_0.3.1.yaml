@@ -1,0 +1,8 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- spatyper=0.3.1
+- python >=3.6
+name: spatyper_0.3.1

@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/ncbi-amrfinderplus_4.0.19.yaml ncbi-amrfinderplus_4.0.19.yaml
+%post
+    conda env create --name ncbi-amrfinderplus_4.0.19 --file ncbi-amrfinderplus_4.0.19.yaml
+%environment
+    export PATH=/opt/conda/envs/ncbi-amrfinderplus_4.0.19/bin:$PATH
+%runscript
+    exec "$@"

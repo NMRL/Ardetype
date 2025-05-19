@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/hamronization_1.1.0.yaml hamronization_1.1.0.yaml
+%post
+    conda env create --name hamronization_1.1.0 --file hamronization_1.1.0.yaml
+%environment
+    export PATH=/opt/conda/envs/hamronization_1.1.0/bin:$PATH
+%runscript
+    exec "$@"

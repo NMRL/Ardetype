@@ -1,0 +1,12 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- meningotype=0.8.5
+- biopython
+- blast
+- mlst
+- ispcr
+- python >=3.6
+name: meningotype_0.8.5

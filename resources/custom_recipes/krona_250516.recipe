@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    resources/env_defs/krona_250516.yaml krona.yml
+%post
+    conda env create --name krona --file krona.yml
+%environment
+    export PATH=/opt/conda/envs/krona/bin:$PATH
+%runscript
+    exec "$@"

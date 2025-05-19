@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/spatyper_0.3.1.yaml spatyper_0.3.1.yaml
+%post
+    conda env create --name spatyper_0.3.1 --file spatyper_0.3.1.yaml
+%environment
+    export PATH=/opt/conda/envs/spatyper_0.3.1/bin:$PATH
+%runscript
+    exec "$@"

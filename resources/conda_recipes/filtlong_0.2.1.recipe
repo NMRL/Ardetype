@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/filtlong_0.2.1.yaml filtlong_0.2.1.yaml
+%post
+    conda env create --name filtlong_0.2.1 --file filtlong_0.2.1.yaml
+%environment
+    export PATH=/opt/conda/envs/filtlong_0.2.1/bin:$PATH
+%runscript
+    exec "$@"

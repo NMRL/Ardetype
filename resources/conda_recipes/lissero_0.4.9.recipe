@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/lissero_0.4.9.yaml lissero_0.4.9.yaml
+%post
+    conda env create --name lissero_0.4.9 --file lissero_0.4.9.yaml
+%environment
+    export PATH=/opt/conda/envs/lissero_0.4.9/bin:$PATH
+%runscript
+    exec "$@"

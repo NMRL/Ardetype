@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/mlst_2.23.0.yaml mlst_2.23.0.yaml
+%post
+    conda env create --name mlst_2.23.0 --file mlst_2.23.0.yaml
+%environment
+    export PATH=/opt/conda/envs/mlst_2.23.0/bin:$PATH
+%runscript
+    exec "$@"

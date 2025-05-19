@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/rgi_6.0.3.yaml rgi_6.0.3.yaml
+%post
+    conda env create --name rgi_6.0.3 --file rgi_6.0.3.yaml
+%environment
+    export PATH=/opt/conda/envs/rgi_6.0.3/bin:$PATH
+%runscript
+    exec "$@"

@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/sistr_cmd_1.1.3.yaml sistr_cmd_1.1.3.yaml
+%post
+    conda env create --name sistr_cmd_1.1.3 --file sistr_cmd_1.1.3.yaml
+%environment
+    export PATH=/opt/conda/envs/sistr_cmd_1.1.3/bin:$PATH
+%runscript
+    exec "$@"

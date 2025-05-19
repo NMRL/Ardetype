@@ -1,0 +1,13 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- lissero=0.4.9
+- biopython
+- click
+- loguru
+- ispcr
+- python >=3.6
+- blast >=2.10
+name: lissero_0.4.9
