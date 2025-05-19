@@ -1,14 +1,14 @@
 {
-    "cluster_config": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/yaml/cluster.yaml",
+    "cluster_config": "config_files/yaml/cluster.yaml",
     "snakefiles": {
-        "core": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_core",
-        "core_ont": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_core_ont",
-        "shell": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shell",
-        "shell_ont": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shell_ont",
-        "tip": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_tip",
-        "tip_ont": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_tip_ont",
-        "shape": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shape",
-        "shape_ont": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shape_ont"
+        "core": "snakefiles/bact_core",
+        "core_ont": "snakefiles/bact_core_ont",
+        "shell": "snakefiles/bact_shell",
+        "shell_ont": "snakefiles/bact_shell_ont",
+        "tip": "snakefiles/bact_tip",
+        "tip_ont": "snakefiles/bact_tip_ont",
+        "shape": "snakefiles/bact_shape",
+        "shape_ont": "snakefiles/bact_shape_ont"
     },
     "reports": [
         "_ardetype_report.csv",
@@ -140,7 +140,6 @@
             ],
             "Legionella pneumophila": [
                 "_legsta.csv",
-                "-predictResults.txt",
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Haemophilus influenzae": [
@@ -311,8 +310,7 @@
                 "_meningotype_std.csv"
             ],
             "Legionella pneumophila": [
-                "_legsta_std.csv",
-                "-predictResults_std.csv"
+                "_legsta_std.csv"
             ],
             "Haemophilus influenzae": [
                 "_hicap_std.csv"

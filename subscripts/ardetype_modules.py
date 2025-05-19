@@ -13,7 +13,7 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 
 #Reading data used to build module objects
 ardetype_path = os.path.dirname(Path(__file__).parents[0].absolute())
-module_data   = hk.read_json_dict(f'{ardetype_path}/config_files/json/module_data.json')
+module_data   = hk.read_json_dict(os.path.join(ardetype_path,'config_files/json/module_data.json'))
 
 ###############################################################
 # Wrapper to extract tool versions
@@ -23,10 +23,17 @@ class Wrapper():
 
     #pipeline configuration saved at module import
     def __init__(self):
-        self._config_dict   = hk.read_yaml(f"{ardetype_path}/config_files/yaml/config_modular.yaml")
-        self._tool_ref_map  = hk.read_json_dict(f"{ardetype_path}/config_files/json/specific_tool_map.json")
+        ardetype_path = str(Path(os.path.abspath('./')))
+        self._config_dict   = hk.read_yaml(os.path.join(ardetype_path,'config_files/yaml/config_modular_default.yaml'))
+        self._tool_ref_map  = hk.read_json_dict(os.path.join(ardetype_path, 'config_files/json/specific_tool_map.json'))
         self._db_vers_map = None
         self._tool_vers_map = None
+
+        #Updating paths in config to match user file system
+        self._config_dict["databases"] = os.path.join(ardetype_path, self._config_dict["databases"])
+        hk.join_sif_paths(self._config_dict, "_database", ardetype_path)
+        hk.join_sif_paths(self._config_dict, "_db", ardetype_path)
+        hk.join_sif_paths(self._config_dict, "_sif", ardetype_path)
 
     def _get_datestamp(self, common_dir:str, name:str)->str:
         '''
@@ -46,41 +53,35 @@ class Wrapper():
 
         self._db_vers_map = {
             "kraken2": {
-                "filter_host": self._get_datestamp(f'{db_path}db-kraken2/', 'human_reference'),
-                "classify_reads": self._get_datestamp(f'{db_path}db-kraken2/', 'full_ref_bafp'),
-                "classify_contigs": self._get_datestamp(f'{db_path}db-kraken2/', 'full_ref_bafp'),
-            },
-            "cgmlstfinder": {
-                db: self._get_datestamp(f'{db_path}cgmlstfinder_db/', db)
-                for db in [
-                    "salmonella", "ecoli", "abaumannii", "spneumoniae",
-                    "streptococcus", "clostridium", "campylobacter"
-                ]
+                "filter_host": self._get_datestamp(f'{db_path}db-kraken2/', os.path.basename(os.path.dirname(self._config_dict['core_tool_configs']['kraken2']['human_db']))),
+                "classify_reads": self._get_datestamp(f'{db_path}db-kraken2/', os.path.basename(os.path.dirname(self._config_dict['core_tool_configs']['kraken2']['bact_db']))),
+                "classify_contigs": self._get_datestamp(f'{db_path}db-kraken2/', os.path.basename(os.path.dirname(self._config_dict['core_tool_configs']['kraken2']['bact_db']))),
             },
             "chewbbaca": {
                 k: self._get_datestamp(f'{db_path}chewbacca_db/databases/', v)
                 for k, v in {
-                    "Salmonella enterica" : "Salmonella_enterica", 
-                    "Escherichia coli" : "Escherichia_coli", 
-                    "Enterobacter"  : "Escherichia_coli", 
-                    "Shigella"  : "Escherichia_coli", 
-                    "Streptococcus pyogenes" : "spyogenes_wgMLST",
-                    "Streptococcus pneumoniae" : "Streptococcus.cgMLSTv1_alleles",
-                    "Acinetobacter baumannii" : "Acinetobacter_baumannii", 
-                    "Campylobacter"  : "Campylobacter_jejuni_coli",
-                    "Klebsiella"  : "Klebsiella_pneumoniae_variicola_quasipneumoniae", 
-                    "Legionella pneumophila" : "Legionella_pneumophila",
-                    "Listeria monocytogenes" : "Listeria_monocytogenes", 
-                    "Staphylococcus aureus" : "Staphylococcus_aureus", 
-                    "Enterococcus faecalis" : "Enterococcus_faecalis_cgMLST",
-                    "Enterococcus faecium" : "Enterococcus_faecium_cgMLST", 
-                    "Pseudomonas aeruginosa" : "Pseudomonas_aeruginosa_cgMLST", 
-                    "Yersinia"  : "Yersinia.cgMLSTv1_chewbbaca",
-                    "Clostridioides"  : "Clostridioides_difficile_db", 
-                    "Clostridium"  : "clostridium_wgmlst_chewie_db"
+                    "Salmonella enterica" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['salmonella']['db'],
+                    "Escherichia coli" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['escherichia']['db'],
+                    "Enterobacter"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['escherichia']['db'],
+                    "Shigella"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['escherichia']['db'],
+                    "Streptococcus pyogenes" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['streptococcus pyogenes']['db'],
+                    "Streptococcus pneumoniae" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['streptococcus pneumoniae']['db'],
+                    "Acinetobacter baumannii" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['baumannii']['db'],
+                    "Campylobacter"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['campylobacter']['db'],
+                    "Klebsiella"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['klebsiella']['db'],
+                    "Legionella pneumophila" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['legionella']['db'],
+                    "Listeria monocytogenes" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['listeria']['db'],
+                    "Staphylococcus aureus" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['staphylococcus aureus']['db'],
+                    "Enterococcus faecalis" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['enterococcus faecalis']['db'],
+                    "Enterococcus faecium" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['enterococcus faecium']['db'],
+                    "Pseudomonas aeruginosa" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['pseudomona']['db'],
+                    "Yersinia"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['yersinia']['db'], 
+                    "Clostridioides"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['clostridioides']['db'],
+                    "Clostridium"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['clostridium']['db'],
+                    "Mycobacterium"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['mycobacterium']['db'],
                 }.items()
             },
-            "resfinder": self._get_datestamp(f'{db_path}db-resfinder_new/', 'resfinder_db'),
+            "resfinder": self._get_datestamp(self._config_dict['shell_tool_configs']['resfinder']['resfinder_db'], 'resfinder_db'),
             "plasmidfinder": self._get_datestamp(f'{db_path}', 'plasmidfinder_db_new'),
             "virulencefinder": self._get_datestamp(f'{db_path}', 'virulencefinder_db_new')
         }
@@ -92,111 +93,106 @@ class Wrapper():
                 datetime.datetime.fromtimestamp(os.path.getmtime(self._config_dict["shell_tool_configs"]["plasmidfinder"]["plasmidfinder_sif"])).strftime('%Y-%m-%d'),
             "resfinder":
                 sp.run(
-                f'module load singularity && singularity run {self._config_dict["resfinder_sif"]} python -m resfinder --version 2> /dev/null',
+                f'singularity --silent run {self._config_dict["resfinder_sif"]} python -m resfinder --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
             "virulencefinder":
-                sp.run(f'module load singularity && singularity run {self._config_dict["shell_tool_configs"]["virulencefinder"]["virulencefinder_sif"]} python -m virulencefinder --version 2> /dev/null', 
+                sp.run(f'singularity --silent run {self._config_dict["shell_tool_configs"]["virulencefinder"]["virulencefinder_sif"]} python -m virulencefinder --version 2> /dev/null', 
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
             "quast":
                 sp.run(
-                f'module load singularity && singularity run {self._config_dict["quast_sif"]} quast --version 2> /dev/null',
+                f'singularity --silent run {self._config_dict["quast_sif"]} quast --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1],
             "rgi":
                 sp.run(
-                f'module load singularity && singularity run {self._config_dict["rgi_sif"]} rgi main --version 2> /dev/null',
+                f'singularity --silent run {self._config_dict["rgi_sif"]} rgi main --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
             "kraken2":
                 sp.run(
-                f'eval "$(conda shell.bash hook)" && source activate {self._config_dict["kraken2_env_path"]} && kraken2 --version',
+                f'singularity --silent run {self._config_dict["kraken2_sif"]} kraken2 --version',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[0],
             "amrfinder+":
-                sp.run(f'module load singularity && singularity run {self._config_dict["amrfinderplus_sif"]} amrfinder --version',
+                sp.run(f'singularity --silent run {self._config_dict["amrfinderplus_sif"]} amrfinder --version',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
             "fastp": 
-                sp.run(f'module load singularity && singularity run {self._config_dict["fastp_sif"]} fastp --version',
+                sp.run(f'singularity --silent run {self._config_dict["fastp_sif"]} fastp --version',
                 stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip(),
             "mob-suite":
-                sp.run(f'module load singularity && singularity run {self._config_dict["mob_suite_sif"]} mob_typer --version',
+                sp.run(f'singularity --silent run {self._config_dict["mob_suite_sif"]} mob_typer --version',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').split(" ")[-1].strip(),
             "mlst":
-                sp.run(f'module load singularity && singularity run {self._config_dict["mlst_sif"]} mlst --version 2> /dev/null',
+                sp.run(f'singularity --silent run {self._config_dict["mlst_sif"]} mlst --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "shovill":
-                sp.run(f'module load singularity && singularity run {self._config_dict["shovill_sif"]} shovill --version 2> /dev/null',
+                sp.run(f'singularity --silent run {self._config_dict["shovill_sif"]} shovill --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "meningotype":
-                sp.run(f'module load singularity && singularity run {self._config_dict["meningotype_nmeningitidis_sif"]} meningotype --version 2> /dev/null',
+                sp.run(f'singularity --silent run {self._config_dict["meningotype_nmeningitidis_sif"]} meningotype --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "legsta":
-                sp.run(f'module load singularity && singularity run {self._config_dict["legsta_lpneumophila_sif"]} legsta --version 2> /dev/null',
+                sp.run(f'singularity --silent run {self._config_dict["legsta_lpneumophila_sif"]} legsta --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-            "legionella_pneumophila_genomics":
-                datetime.datetime.fromtimestamp(os.path.getmtime(self._config_dict["lpgenomics_repo"])).strftime('%Y-%m-%d'),
             "hicap":
-                sp.run(f'module load singularity && singularity run {self._config_dict["hicap_hinfluenzae_sif"]} hicap --version 2> /dev/null',
+                sp.run(f'singularity --silent run {self._config_dict["hicap_hinfluenzae_sif"]} hicap --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "kleborate":
-                sp.run(f'module load singularity && singularity run {self._config_dict["kleborate_kpneumoniae_sif"]} kleborate --version 2> /dev/null',
+                sp.run(f'singularity --silent run {self._config_dict["kleborate_kpneumoniae_sif"]} kleborate --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "agrvate":
-                sp.run(f'module load singularity && singularity run {self._config_dict["agrvate_saureus_sif"]} agrvate --version 2> /dev/null',
+                sp.run(f'singularity --silent run {self._config_dict["agrvate_saureus_sif"]} agrvate --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "spatyper":
-                sp.run(f'module load singularity && singularity run {self._config_dict["spatyper_saureus_sif"]} spaTyper --version 2> /dev/null',
+                sp.run(f'singularity --silent run {self._config_dict["spatyper_saureus_sif"]} spaTyper --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "staphopia-sccmec":
-                sp.run(f'module load singularity && singularity run {self._config_dict["sccmec_saureus_sif"]} staphopia-sccmec --version 2> /dev/null',
+                sp.run(f'singularity --silent run {self._config_dict["sccmec_saureus_sif"]} staphopia-sccmec --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "emmtyper":
-                sp.run(f'module load singularity && singularity run {self._config_dict["emmtyper_spyogenes_sif"]} emmtyper --version 2> /dev/null',
+                sp.run(f'singularity --silent run {self._config_dict["emmtyper_spyogenes_sif"]} emmtyper --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "lissero":
-                sp.run(f'module load singularity && singularity run {self._config_dict["lissero_lmonocytogenes_sif"]} lissero --version 2> /dev/null',
+                sp.run(f'singularity --silent run {self._config_dict["lissero_lmonocytogenes_sif"]} lissero --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "sistr":
-                sp.run(f'module load singularity && singularity run {self._config_dict["sistr_senterica_sif"]} sistr --version ',
+                sp.run(f'singularity --silent run {self._config_dict["sistr_senterica_sif"]} sistr --version ',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "seqsero2":
-                sp.run(f'module load singularity && singularity run {self._config_dict["seqsero2_senterica_sif"]} SeqSero2_package.py --version 2> /dev/null',
+                sp.run(f'singularity --silent run {self._config_dict["seqsero2_senterica_sif"]} SeqSero2_package.py --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "ectyper":
-                sp.run(f'module load singularity && singularity run {self._config_dict["ectyper_ecoli_sif"]} ectyper --version 2> /dev/null',
+                sp.run(f'singularity --silent run {self._config_dict["ectyper_ecoli_sif"]} ectyper --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
             "stecfinder":
-                sp.run(f'module load singularity && singularity run {self._config_dict["stecfinder_ecoli_sif"]} stecfinder --version 2> /dev/null',
+                sp.run(f'singularity --silent run {self._config_dict["stecfinder_ecoli_sif"]} stecfinder --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "seroba":
-                sp.run(f'module load singularity && singularity run {self._config_dict["seroba_spneumoniae_sif"]} seroba version',
-                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
-            "cgmlstfinder":
-                sp.run(f'module load singularity && singularity run {self._config_dict["tip_tool_configs"]["cgmlstfinder"]["cgmlstfinder_sif"]} python /cgmlstfinder/cgMLST.py --version',
+                sp.run(f'singularity --silent run {self._config_dict["seroba_spneumoniae_sif"]} seroba version',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip(),
             "chewbbaca":
-                sp.run(f'module load singularity && singularity run {self._config_dict["tip_tool_configs"]["chewbbaca"]["chewbbaca_sif"]} chewBBACA.py --version', 
+                sp.run(f'singularity --silent run {self._config_dict["tip_tool_configs"]["chewbbaca"]["chewbbaca_sif"]} chewBBACA.py --version', 
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             'lrefinder':
-                sp.run(f'module load singularity && singularity run  {self._config_dict["lrefinder_efaecium_efaecalis_sif"]} LRE-Finder.py -v', 
+                sp.run(f'singularity --silent run  {self._config_dict["lrefinder_efaecium_efaecalis_sif"]} LRE-Finder.py -v', 
                 stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip().split(' ')[-1],
             "shigatyper":
-                sp.run(f'module load singularity && singularity run {self._config_dict["shigatyper_shigella_sif"]} shigatyper --version', 
+                sp.run(f'singularity --silent run {self._config_dict["shigatyper_shigella_sif"]} shigatyper --version', 
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "flye":
-                sp.run(f'module load singularity && singularity run {self._config_dict["flye_sif"]} flye --version', 
+                sp.run(f'singularity --silent run {self._config_dict["flye_sif"]} flye --version', 
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "snikt":
-                sp.run(f'module load singularity && singularity run {self._config_dict["snikt_sif"]} snikt.R --version', 
+                sp.run(f'singularity --silent run {self._config_dict["snikt_sif"]} snikt.R --version', 
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "filtlong":
-                sp.run(f'module load singularity && singularity run {self._config_dict["filtlong_sif"]} filtlong --version', 
+                sp.run(f'singularity --silent run {self._config_dict["filtlong_sif"]} filtlong --version', 
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "circlator":
-                sp.run(f'module load singularity && singularity run {self._config_dict["circlator_sif"]} circlator version', 
+                sp.run(f'singularity --silent run {self._config_dict["circlator_sif"]} circlator version', 
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "polypolish":
-                sp.run(f'module load singularity && singularity run {self._config_dict["polypolish_sif"]} polypolish --version', 
+                sp.run(f'singularity --silent run {self._config_dict["polypolish_sif"]} polypolish --version', 
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "polca":"4.1.0",
-            "medaka": sp.run(f'module load singularity && singularity run {self._config_dict["medaka_sif"]} medaka --version 2> /dev/null', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split()[1]
+            "medaka": sp.run(f'singularity --silent run {self._config_dict["medaka_sif"]} medaka --version 2> /dev/null', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split()[1]
         }
 
 
@@ -266,7 +262,7 @@ class Ardetype_module(Module):
         if kwargs['input_path'] is None:
             sys.exit(f'Input must be included to run the pipeline in any mode except log_analysis and merge.')
         super(Ardetype_module, self).__init__(*args, **kwargs) #running method as it is defined in the base class
-        self.job_log_path = f"{ardetype_path}/ardetype_job_logs/"
+        self.job_log_path = os.path.join(ardetype_path,'ardetype_job_logs/')
         self.status_script = self.config_file['status_script_path']
 
         #if reprocess
@@ -328,6 +324,7 @@ def run_all(args, num_jobs):
             module_config       = args.config,
             output_path         = args.output_dir,
             run_mode            = args.submit_modules,
+            run_local           = args.run_local,
             dry_run             = args.dry_run,
             force_all           = args.force_all,
             rule_graph          = args.rule_graph,
@@ -349,6 +346,7 @@ def run_all(args, num_jobs):
         module_config       = core.config_file, 
         output_path         = core.output_path, 
         run_mode            = args.submit_modules,
+        run_local           = args.run_local,
         dry_run             = args.dry_run,
         force_all           = args.force_all,
         rule_graph          = args.rule_graph,
@@ -369,6 +367,7 @@ def run_all(args, num_jobs):
         module_config       = shell.config_file, 
         output_path         = core.output_path, 
         run_mode            = args.submit_modules,
+        run_local           = args.run_local,
         dry_run             = args.dry_run,
         force_all           = args.force_all,
         rule_graph          = args.rule_graph,
@@ -389,6 +388,7 @@ def run_all(args, num_jobs):
         module_config       = tip.config_file,
         output_path         = core.output_path,
         run_mode            = args.submit_modules,
+        run_local           = args.run_local,
         dry_run             = args.dry_run,
         force_all           = args.force_all,
         rule_graph          = args.rule_graph,

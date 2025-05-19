@@ -11,6 +11,16 @@ class Housekeeper:
     like reading from/writing to certain file types, generating sample sheets etc.'''
 
     @staticmethod
+    def join_sif_paths(d, substring, *prefix):
+        for key, value in d.items():
+            if isinstance(value, dict):
+                # Recurse into sub-dictionaries
+                Housekeeper.join_sif_paths(value, substring, *prefix)
+            elif substring in key:
+                # Update the value using os.path.join
+                d[key] = os.path.join(*prefix, value)
+
+    @staticmethod
     def parse_folder(folder_pth_str:str, file_fmt_str:str, substr_lst:list=None, regstr_lst:list=None) -> list:
         '''
         Given path to the folder (folder_pth_str) and file format (file_fmt_str), returns a list, 
@@ -189,7 +199,7 @@ class Housekeeper:
         return key_set #return is reached only when there are no recursive calls, hence all nested structure was parsed
 
     @staticmethod
-    def validate_yaml(input_dict:dict, template_yaml_path:str='./config_files/yaml/config_modular.yaml'):
+    def validate_yaml(input_dict:dict, template_yaml_path:str='./config_files/yaml/config_modular_default.yaml'):
         """
         Given a dictionary (dict), return 0 if the structure of the dictionary corresponds to the yaml template structure (read from file),
         return 1 if some keys are missing in the dictionary, return 2 if some new keys are found in the dictionary.
@@ -222,30 +232,6 @@ class Housekeeper:
         """
         with open(json_path, "w+") as json_handle:
             json.dump(input_dict,json_handle)
-
-
-    @staticmethod
-    def install_snakemake():
-        '''Function is used as a wrapper for bash script that checks if snakemake is installed and installs if absent.'''
-        os.system(
-        '''
-        eval "$(conda shell.bash hook)"
-        DEFAULT_ENV=/mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake$
-        SEARCH_SNAKEMAKE=$(conda env list | grep -oP "${DEFAULT_ENV}")
-        if [ ${SEARCH_SNAKEMAKE} -ef ${DEFAULT_ENV::-1} ]; then
-            echo Running with --install_snakemake flag: Snakemake is already installed for this user
-        else
-            echo Running with --install_snakemake flag:
-            conda create -n mamba_env
-            source activate mamba_env
-            conda install python=3.9
-            conda install -c conda-forge mamba
-            mamba create -c conda-forge -c bioconda -n snakemake snakemake=7.6.1
-            source activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake
-            pip install PyYAML bs4 lxml
-        fi    
-        '''
-        )
 
     @staticmethod
     def read_json_dict(json_path:str):

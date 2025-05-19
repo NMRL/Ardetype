@@ -4,7 +4,7 @@
         [
             "-m",
             "--mode",
-            "Selecting mode that allows to run specific modules of the pipeline:\nall - run all modules (starting from fastq files)\nlog_analysis - summarise logs of all jobs and update log_summary.html (no input required).\nmerge - move files from --merge_from one or many paths into --output_path, and run all modules to produce unified reports\nbucket - mode `all` run `-i` folder located outside `Ardetype`;\n\tthe folder will be moved to `Ardetype`, processed and moved to the folder defined in `config_modular.yaml/output_bucket_path`;\n\tdesigned to automate pipeline launches with Airflow"
+            "Selecting mode that allows to run specific modules of the pipeline:\nall - run all modules (starting from fastq files)\nmerge - move files from --merge_from one or many paths into --output_path, and run all modules to produce unified reports"
         ]
     ],
     "optional": {
@@ -19,7 +19,7 @@
                 "-c",
                 "--config",
                 "Path to the config file (if not supplied, the copy of the template config_modular.yaml will be used).",
-                "./config_files/yaml/config_modular.yaml"
+                "./config_files/yaml/config_modular_default.yaml"
             ],
             [
                 "-o",
@@ -42,12 +42,12 @@
         ],
         "flags": [
             [
-                "-s",
-                "--install_snakemake",
-                "Flag to install mamba and snakemake for the current HPC user, if it is not already installed."
+                "-rl",
+                "--run_local",
+                "Flag to run the pipeline on the local machine."
             ],
             [
-                "-j",
+                "-sm",
                 "--submit_modules",
                 "Flag to run modules as individual jobs on HPC (without submitting subjobs to computational nodes):\nsnakemake option flags (-t -f -g) do not apply to this run mode. Please modify ardetype_jobscript.sh to ensure desired behavior."
             ],

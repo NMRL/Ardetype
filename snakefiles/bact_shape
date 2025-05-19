@@ -2,15 +2,15 @@ localrules: all
 
 import sys, pandas as pd, os, json, time
 from datetime import date
-sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
-from ardetype_utilities import Ardetype_housekeeper as Housekeeper
-from ardetype_modules import Wrapper as wp
+sys.path.insert(0, os.path.abspath('./'))
+from subscripts.ardetype_utilities import Ardetype_housekeeper as Housekeeper
+from subscripts.ardetype_modules import Wrapper as wp
 
 
 sip_wild = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv").astype(str)
 date = date.today().strftime("%Y-%m-%d")
-specific_tool_map = Housekeeper.read_json_dict("/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/json/specific_tool_map.json")
+specific_tool_map = Housekeeper.read_json_dict(os.path.join(os.path.abspath('./'),"config_files/json/specific_tool_map.json"))
 aquamis_qc_db = Housekeeper.read_json_dict(config["aquamis_qc_reference"])
 aquamis_update_timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(config["aquamis_qc_reference"])))
 
@@ -266,33 +266,6 @@ rule extract_legsta:
             report.to_csv(output[0], header=True, index=False)
         except pd.errors.EmptyDataError:
             key = "_legsta.csv"
-            df = pd.DataFrame.from_dict({
-                'sample_id':[wildcards.sample_id_pattern], 
-                f"method|{specific_tool_map[key]['tool']}":[None],
-                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
-                f'type|{specific_tool_map[key]["tool"]}':[None]
-                })
-            df.to_csv(output[0],header=True, index=False)
-
-
-rule extract_legionella_pneumophila_genomics:
-    input: 
-        config['output_directory']+"{sample_id_pattern}-predictResults.txt"
-    output:
-        config['output_directory']+"{sample_id_pattern}-predictResults_std.csv"
-    run:
-        try:
-            key = "-predictResults.txt"
-            report = pd.read_csv(input[0])
-            report = report[["x"]]
-            report.columns = ["type"]
-            report["sample_id"] = wildcards.sample_id_pattern
-            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
-            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
-            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
-            report.to_csv(output[0], header=True, index=False)
-        except pd.errors.EmptyDataError:
-            key = "-predictResults.txt"
             df = pd.DataFrame.from_dict({
                 'sample_id':[wildcards.sample_id_pattern], 
                 f"method|{specific_tool_map[key]['tool']}":[None],

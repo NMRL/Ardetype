@@ -1,28 +1,35 @@
 localrules: all, contig_id
 
-import sys, pandas as pd
+import sys, os, pandas as pd, json
 sys.path.insert(0, os.path.abspath('./'))
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 
 
-sip_wild     = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
-sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
+sip_wild     = os.path.join(config['work_dir'],'{sample_id_pattern}_R[1,2]_001.fastq.gz')
+ssheet_path  = os.path.join(config['output_directory'], 'sample_sheet.csv')
+
+sample_sheet = pd.read_csv(ssheet_path)
 
 def choose_assembly_branch(wildcards):
     import os
-    ont_present = os.path.exists(config['output_directory']+f'{wildcards.sample_id_pattern}_ONT.fastq.gz')
-    ill_present = os.path.exists(config['output_directory']+f'{wildcards.sample_id_pattern}_R1_001.fastq.gz') or os.path.exists(config['work_dir']+f'{wildcards.sample_id_pattern}_R1_001.fastq.gz')
+    #Possible paths
+    ont_path = os.path.join(config['output_directory'],f'{wildcards.sample_id_pattern}_ONT.fastq.gz')
+    ill_paths = [os.path.join(pf, f'{wildcards.sample_id_pattern}_R1_001.fastq.gz') for pf in [config['output_directory'], config['work_dir']]]
+    
+    #Checking presence
+    ont_present = os.path.exists(ont_path)
+    ill_present = any(os.path.exists(p) for p in ill_paths)
+    
+    #Checking conditions
     condition_hybr = ont_present and ill_present
     condition_ill = ill_present and not ont_present
-    condition_ont = ont_present and not ill_present
 
     if condition_hybr:
-        return config['output_directory']+f'{wildcards.sample_id_pattern}_poly_polished.fasta.PolcaCorrected.fa'
+        hybr_asm_tgt = os.path.join(config['output_directory'],f'{wildcards.sample_id_pattern}_poly_polished.fasta.PolcaCorrected.fa')
+        return hybr_asm_tgt
     elif condition_ill:
-        return f'{config["output_directory"]}'+f'{wildcards.sample_id_pattern}_contigs/contigs.fa'
-    elif condition_ont:
-        return config['output_directory']+f'{wildcards.sample_id_pattern}.circularized.fasta'
-
+        ill_asm_tgt = os.path.join(config['output_directory'],f'{wildcards.sample_id_pattern}_contigs/contigs.fa')
+        return ill_asm_tgt
 
 
 rule all:
@@ -34,13 +41,12 @@ rule all:
         k2r_list = expand(
             config['output_directory']+'{sample_id}_kraken2_reads_report.txt', 
             sample_id=sample_sheet['sample_id']),
-
-        # list of all contig files in output
         contig_list = expand(
             config['output_directory']+'{sample_id}_contigs.fasta', 
             sample_id=sample_sheet['sample_id'])
     
     run:
+        #Note prevalent species based on kraken2 contig results
         total_dict = {}
         for file in input.k2c_list:                                                                             #looping over reports
             df         = pd.read_table(file, header=None)[[0,3,5]]                                              #read columns
@@ -53,16 +59,22 @@ rule all:
         with open(config['output_directory']+'core_aggregated_taxonomy.json', "w+") as json_handle:             #write top hit for each sample to json file
             json.dump(total_dict, json_handle, indent=4)
         
-
         #Aggregate kraken2 read results
-        kraken2reads_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.kraken2reads_results, pathlist = input.k2r_list)
+        kraken2reads_summary = hk.aggregator(
+            outfolder_path = config['output_directory'], 
+            proc_num = 6, extractor = hk.kraken2reads_results, 
+            pathlist = input.k2r_list)
         kraken2reads_summary.to_csv(f"{config['output_directory']}kraken2reads_report.csv", header=True, index=False)
 
         #Aggregate kraken2 contig results
-        kraken2contigs_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.kraken2contigs_results, pathlist = input.k2c_list)
+        kraken2contigs_summary = hk.aggregator(
+            outfolder_path = config['output_directory'], 
+            proc_num = 6, extractor = hk.kraken2contigs_results, 
+            pathlist = input.k2c_list)
         kraken2contigs_summary.to_csv(f"{config['output_directory']}kraken2contigs_report.csv", header=True, index=False)
         
         print('bact_core finished')
+
 
 rule illumina_qc:
     input:
@@ -354,13 +366,14 @@ rule illumina_assembly:
         'singularity'
     shell:
         """
-        FOLDER_NAME=/scratch/{wildcards.sample_id_pattern}_assembly_tmp_$(date +%Y-%m-%d_%H-%M-%S)
+        FOLDER_NAME={config[scratch]}{wildcards.sample_id_pattern}_assembly_tmp_$(date +%Y-%m-%d_%H-%M-%S)
+
         cleanup_scratch() {{
             rm -rf $FOLDER_NAME
         }}
         trap cleanup_scratch EXIT
         ulimit -n 2048
-        mkdir -m 775 $FOLDER_NAME
+        mkdir -m 775 -p $FOLDER_NAME
         singularity --silent exec --bind ${{FOLDER_NAME}},{config[output_directory]},{config[work_dir]}:${{FOLDER_NAME}},{config[output_directory]},{config[work_dir]} {input.sif_file} shovill {config[core_tool_configs][shovill][modules]} \
         --depth {config[core_tool_configs][shovill][depth]} --ram {config[core_tool_configs][shovill][ram]} \
         --cpus {threads} --minlen {config[core_tool_configs][shovill][minlen]} \

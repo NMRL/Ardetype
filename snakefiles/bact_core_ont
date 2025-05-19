@@ -1,23 +1,18 @@
 localrules: all
 
 
-import sys, pandas as pd
+import sys, os, pandas as pd
 sys.path.insert(0, os.path.abspath('./'))
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 
-
-
 sip_wild = config['work_dir']+'{sample_id_pattern}_ONT.fastq.gz'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
-skip_circlator = True
-
 
 def choose_assembly_branch(wildcards):
-    if skip_circlator:
+    if config['core_tool_configs']['circlator']['skip']:
         return config['output_directory']+f'{wildcards.sample_id_pattern}.flyed.fasta'
     else:
         return config['output_directory']+f'{wildcards.sample_id_pattern}.circularized.fasta'
-
 
 rule all:
     input: 

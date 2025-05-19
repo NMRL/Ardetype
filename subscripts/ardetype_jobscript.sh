@@ -8,7 +8,7 @@
 #PBS -A rakus
 
 eval "$(conda shell.bash hook)"
-DEFAULT_ENV=/mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake
+DEFAULT_ENV=$(dirname $(dirname $(which conda)))/envs/ardetype
 conda activate $DEFAULT_ENV
 snakefile=${1}
 config_file=${2}

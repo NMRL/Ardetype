@@ -42,9 +42,12 @@ class Module:
             rule_graph          : bool, 
             pack_output         : bool, 
             rules_to_rerun      : list,
-            unpack_output:bool) -> None:
+            unpack_output       : bool,
+            run_local           : bool
+            ) -> None:
         
         self.run_mode            = run_mode #If true, snakemake will be run as single job, else - will run as job submitter on the login node
+        self.run_local           = run_local #If true, each module will be executed on the machine where the wrapper is run
         self.job_id              = None  #Will be added if self.run_mode is True and job was submitted to HPC; filled by submit_module_job
         self.taxonomy_dict       = None   #Required if module creates different targets for different samples based on taxonomy information; filled by add_taxonomy_column
         self.module_name         = module_name #To be used in configuration file & sample_sheet file + to connect between modules (using remove_invalid_samples)
@@ -221,6 +224,16 @@ class Module:
     def add_output_dir(self):
         '''Updates self.config_file using self.output_path.'''
         output_code = hk.edit_nested_dict(config_dict=self.config_file, param="output_directory", new_value=self.output_path)
+
+        #Updating paths in config
+        ardetype_path = str(Path(os.path.abspath('./')))
+        self.config_file["databases"] = os.path.join(ardetype_path, self.config_file["databases"])
+        self.config_file["work_dir"]  = os.path.join(self.output_path, self.config_file["work_dir"])
+        self.config_file["scratch"]   = os.path.join(self.output_path, self.config_file["scratch"])
+        hk.join_sif_paths(self.config_file, "_database", ardetype_path)
+        hk.join_sif_paths(self.config_file, "_db", ardetype_path)
+        hk.join_sif_paths(self.config_file, "_sif", ardetype_path)
+
         validation_code = hk.validate_yaml(self.config_file)
         if not output_code == 0: raise Exception(f'Config editing failed with error code {output_code}')
         elif not validation_code == 0: raise Exception(f'Config validation failed with error code {validation_code}')
@@ -305,6 +318,19 @@ class Module:
             self.removed_samples.to_csv(f"{self.output_path}removed_samples_{self.module_name}.csv", header=True, index=False)
             return self.removed_samples
     
+
+    def run_modules_local(self):
+        try:
+            cmd = f'''
+            source "$(conda info --base)/etc/profile.d/conda.sh"
+            conda activate $(dirname $(dirname $(which conda)))/envs/ardetype
+            snakemake --cores 6 --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific} {self.dry_run} {self.rule_graph}
+            '''
+            result = subprocess.run(cmd, shell=True, executable="/bin/bash", check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            self.job_id = result.stdout
+        except subprocess.CalledProcessError as e:
+            raise Exception(f"{self.module_name} job submission error:\nSTDOUT:\n{e.stdout}\nSTDERR:\n{e.stderr}")
+
 
     def submit_module_job(self, jobscript_path):
         """
@@ -405,11 +431,14 @@ class Module:
 
     def run_module(self, job_count, jobscript_path='./subscripts/ardetype_jobscript.sh'):
         '''Runs module on hpc as job or as snakemake submitter (on login node), based on self.run_mode value (True - job, False - submitter).'''
-        if self.run_mode:
-            self.submit_module_job(jobscript_path)
-            self.check_job_completion()
+        if self.run_local:
+            self.run_modules_local()
         else:
-            self.run_module_cluster(job_count)
+            if self.run_mode:
+                self.submit_module_job(jobscript_path)
+                self.check_job_completion()
+            else:
+                self.run_module_cluster(job_count)
 
         
     def add_taxonomy_column(self):

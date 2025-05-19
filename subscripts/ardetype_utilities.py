@@ -9,14 +9,11 @@ import shutil
 import pandas as pd
 
 from pathlib import Path
-from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor as ppe, as_completed, ThreadPoolExecutor
 from bisect import bisect_left
 sys.path.insert(0, os.path.dirname(os.path.dirname(Path(__file__).absolute())))
-sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/utils/phylogenetics_tools/')
 
 from subscripts.src.utilities import Housekeeper as hk
-# from process_chewbacca_profiles_edits import initialize_logging, gather_chewbacca_data, cluster_analysis, cluster_counter
 
 
 ###############
@@ -24,6 +21,7 @@ from subscripts.src.utilities import Housekeeper as hk
 ###############
 
 cluster_counter = 0
+ardetype_path = os.path.dirname(Path(__file__).parents[0].absolute())
 
 ###############
 
@@ -106,10 +104,10 @@ class Ardetype_housekeeper(hk):
         from rauth import OAuth1Session
         from dotenv import load_dotenv
         from subscripts.pubmlst_rest_auth import retrieve_token, get_session_token
-        load_dotenv('/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/.env')
+        load_dotenv(os.path.join(ardetype_path,'config_files/.env'))
         CONSUMER_KEY = os.getenv('CONSUMER_KEY')
         CONSUMER_SECRET = os.getenv('CONSUMER_SECRET')
-        SESSION_TOKEN = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/.session_token'
+        SESSION_TOKEN = os.path.join(ardetype_path,'config_files/.session_token')
         route='/sequence'
 
         (token, secret) = None, None
