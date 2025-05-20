@@ -227,12 +227,16 @@ class Module:
 
         #Updating paths in config
         ardetype_path = str(Path(os.path.abspath('./')))
-        self.config_file["databases"] = os.path.join(ardetype_path, self.config_file["databases"])
-        self.config_file["work_dir"]  = os.path.join(self.output_path, self.config_file["work_dir"])
-        self.config_file["scratch"]   = os.path.join(self.output_path, self.config_file["scratch"])
-        hk.join_sif_paths(self.config_file, "_database", ardetype_path)
-        hk.join_sif_paths(self.config_file, "_db", ardetype_path)
-        hk.join_sif_paths(self.config_file, "_sif", ardetype_path)
+        for p in ["databases"]:
+            if not os.path.isabs(self.config_file[p]):
+                self.config_file[p] = os.path.join(ardetype_path, self.config_file[p])
+
+        for p in ["work_dir", "scratch"]:
+            if not os.path.isabs(self.config_file[p]):
+                self.config_file[p] = os.path.join(ardetype_path, self.output_path, self.config_file[p])
+
+        for substr in ["_database", "_db", "_sif"]:
+            hk.join_sif_paths(self.config_file, substr, ardetype_path)
 
         validation_code = hk.validate_yaml(self.config_file)
         if not output_code == 0: raise Exception(f'Config editing failed with error code {output_code}')
@@ -329,7 +333,10 @@ class Module:
             result = subprocess.run(cmd, shell=True, executable="/bin/bash", check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             self.job_id = result.stdout
         except subprocess.CalledProcessError as e:
-            raise Exception(f"{self.module_name} job submission error:\nSTDOUT:\n{e.stdout}\nSTDERR:\n{e.stderr}")
+            raise Exception(f"{self.module_name} job runtime error:\nSTDOUT:\n{e.stdout}\nSTDERR:\n{e.stderr}")
+        finally:
+            self.clear_working_directory()
+            self.clear_scratch()
 
 
     def submit_module_job(self, jobscript_path):
@@ -345,6 +352,9 @@ class Module:
             # os.system(f"rm {self.output_path}ardetype_jobscript.sh") #cleanup
         except subprocess.CalledProcessError as msg:
             raise Exception(f"{self.module_name} job submission error: {msg}")
+        finally:
+            self.clear_working_directory()
+            self.clear_scratch()
         
 
     def check_job_completion(self, sleeping_time=5):
@@ -458,6 +468,23 @@ class Module:
             except:
                 continue
             
+        # Removing anything remaining
+        dir_contents = [os.path.join(self.config_file["work_dir"],p) for p in os.listdir(self.config_file["work_dir"])]
+        for path in dir_contents:
+            if os.path.isdir(path):
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
+        
+    def clear_scratch(self):
+        ''' Removed every file and folder from scratch directory.'''
+        if os.path.isdir(self.config_file["scratch"]):
+            dir_contents = [os.path.join(self.config_file["scratch"],p) for p in os.listdir(self.config_file["scratch"])]
+            for path in dir_contents:
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
 
     def files_to_wd(self, redirect_filter:dict=None):
         '''

@@ -1,4 +1,5 @@
-plasmidfinder,genomicepidemiology/plasmidfinder:latest
+plasmidfinder,staphb/plasmidfinder:latest
 resfinder,genomicepidemiology/resfinder:4.6.0
 ncbi-amrfinderplus,staphb/ncbi-amrfinderplus:4.0.19-2024-12-18.1
 rgi,quay.io/biocontainers/rgi:6.0.3--pyha8f3691_0
+medaka,ontresearch/medaka:latest

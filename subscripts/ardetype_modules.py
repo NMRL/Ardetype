@@ -24,16 +24,18 @@ class Wrapper():
     #pipeline configuration saved at module import
     def __init__(self):
         ardetype_path = str(Path(os.path.abspath('./')))
-        self._config_dict   = hk.read_yaml(os.path.join(ardetype_path,'config_files/yaml/config_modular_default.yaml'))
+        self._config_dict   = hk.read_yaml(os.path.join(ardetype_path,'config_files/yaml/config_modular_local.yaml'))
         self._tool_ref_map  = hk.read_json_dict(os.path.join(ardetype_path, 'config_files/json/specific_tool_map.json'))
         self._db_vers_map = None
         self._tool_vers_map = None
 
         #Updating paths in config to match user file system
-        self._config_dict["databases"] = os.path.join(ardetype_path, self._config_dict["databases"])
-        hk.join_sif_paths(self._config_dict, "_database", ardetype_path)
-        hk.join_sif_paths(self._config_dict, "_db", ardetype_path)
-        hk.join_sif_paths(self._config_dict, "_sif", ardetype_path)
+        for p in ["databases"]:
+            if not os.path.isabs(self._config_dict[p]):
+                self._config_dict[p] = os.path.join(ardetype_path, self._config_dict[p])
+
+        for substr in ["_database", "_db", "_sif"]:
+            hk.join_sif_paths(self._config_dict, substr, ardetype_path)
 
     def _get_datestamp(self, common_dir:str, name:str)->str:
         '''
@@ -58,7 +60,7 @@ class Wrapper():
                 "classify_contigs": self._get_datestamp(f'{db_path}db-kraken2/', os.path.basename(os.path.dirname(self._config_dict['core_tool_configs']['kraken2']['bact_db']))),
             },
             "chewbbaca": {
-                k: self._get_datestamp(f'{db_path}chewbacca_db/databases/', v)
+                k: self._get_datestamp(f'{db_path}{self._config_dict["tip_tool_configs"]["chewbbaca"]["chewbbaca_dtb"]}', v)
                 for k, v in {
                     "Salmonella enterica" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['salmonella']['db'],
                     "Escherichia coli" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['escherichia']['db'],
@@ -172,7 +174,7 @@ class Wrapper():
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             'lrefinder':
                 sp.run(f'singularity --silent run  {self._config_dict["lrefinder_efaecium_efaecalis_sif"]} LRE-Finder.py -v', 
-                stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip().split(' ')[-1],
+                stderr=sp.PIPE, shell=True).stderr.decode('utf-8').strip().split('\n')[-1],
             "shigatyper":
                 sp.run(f'singularity --silent run {self._config_dict["shigatyper_shigella_sif"]} shigatyper --version', 
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
@@ -192,7 +194,7 @@ class Wrapper():
                 sp.run(f'singularity --silent run {self._config_dict["polypolish_sif"]} polypolish --version', 
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "polca":"4.1.0",
-            "medaka": sp.run(f'singularity --silent run {self._config_dict["medaka_sif"]} medaka --version 2> /dev/null', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split()[1]
+            "medaka": sp.run(f'singularity --silent run {self._config_dict["medaka_sif"]} medaka --version 2> /dev/null', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1].split()[1]
         }
 
 
@@ -308,7 +310,8 @@ class Ardetype_module(Module):
         cluster_config        = hk.read_yaml(self.cluster_config_path)
         os.makedirs(f'{self.output_path}logs/', exist_ok=True)
         hk.edit_nested_dict(cluster_config,'outdir', f'{self.output_path}logs/')
-        hk.write_yaml(cluster_config, f'{self.output_path}config_cluster.yaml')
+        if not self.run_local:
+            hk.write_yaml(cluster_config, f'{self.output_path}config_cluster.yaml')
         self.cluster_config_path = f'{self.output_path}config_cluster.yaml'
 
 

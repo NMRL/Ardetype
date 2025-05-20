@@ -430,7 +430,7 @@ class Ardetype_housekeeper(hk):
     @staticmethod
     def mobtyper_results(mbt_result_path: str, batch: str) -> pd.DataFrame:
         '''To combine mob_typer reports and map them to sample_id-batch pair.'''
-        sample_id = re.sub(r'(_S[0-9]*_mob_recon|_mob_recon)',
+        sample_id = re.sub(r'(_S[0-9]*)?_mob_recon',
                         '', os.path.basename(os.path.dirname(mbt_result_path)))
         df = pd.read_csv(mbt_result_path, sep='\t')
         df.rename(columns={'sample_id': 'genetic_element'}, inplace=True)
@@ -456,7 +456,7 @@ class Ardetype_housekeeper(hk):
     def kraken2contigs_results(k2c_report_path: str, batch: str) -> pd.DataFrame:
         '''To combine kraken2 contig reports and map them to sample_id-batch pair.'''
         sample_id = re.sub(
-            r'_S[0-9]*_kraken2_contigs_report.txt', '', os.path.basename(k2c_report_path))
+            r'(_S[0-9]*)?_kraken2_contigs_report.txt', '', os.path.basename(k2c_report_path))
         columns = [
             "cl_cov_frac",
             "cl_cov_abs",
@@ -488,7 +488,7 @@ class Ardetype_housekeeper(hk):
     @staticmethod
     def kraken2reads_results(k2r_report_path: str, batch: str) -> pd.DataFrame:
         '''To combine kraken2 read reports and map them to sample_id-batch pair.'''
-        sample_id = re.sub(r'_S[0-9]*_kraken2_reads_report.txt',
+        sample_id = re.sub(r'(_S[0-9]*)?_kraken2_reads_report.txt',
                            '', os.path.basename(k2r_report_path))
         columns = [
             "cl_cov_frac",
@@ -510,7 +510,7 @@ class Ardetype_housekeeper(hk):
     @staticmethod
     def quast_results(qst_report_path: str, batch: str) -> pd.DataFrame:
         '''To combine quast reports and map them to sample_id-batch pair.'''
-        sample_id = re.sub(r'_S[0-9]*_quast', '', os.path.basename(os.path.dirname(qst_report_path)))
+        sample_id = re.sub(r'(_S[0-9]*)?_quast', '', os.path.basename(os.path.dirname(qst_report_path)))
         df = pd.read_csv(qst_report_path, header=None, sep='\t')
         df = df.T
         df.columns = df.iloc[0]
@@ -567,7 +567,7 @@ class Ardetype_housekeeper(hk):
         df = pd.read_csv(ect_result_path, sep='\t')
         df.rename(columns={'Name': 'sample_id'}, inplace=True)
         df.sample_id = df.sample_id.str.replace(
-            r'_S[0-9]*_contigs', '', regex=True)
+            r'(_S[0-9]*)?_contigs', '', regex=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
@@ -654,7 +654,7 @@ class Ardetype_housekeeper(hk):
         df = pd.read_csv(stf_result_path, sep='\t')
         df.rename(columns={'Sample': 'sample_id'}, inplace=True)
         df.sample_id = df.sample_id.str.replace(
-            r'_S[0-9]*_bact_reads_classified', '', regex=True)
+            r'(_S[0-9]*)?_bact_reads_classified', '', regex=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
@@ -665,7 +665,7 @@ class Ardetype_housekeeper(hk):
         df = pd.read_csv(agv_result_path, sep='\t')
         df.rename(columns={'#filename': 'sample_id'}, inplace=True)
         df.sample_id = df.sample_id.str.replace(
-            r'_S[0-9]*_contigs', '', regex=True)
+            r'(_S[0-9]*)?_contigs', '', regex=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
@@ -678,7 +678,7 @@ class Ardetype_housekeeper(hk):
         df['sample_id'] = df['sample_id'].apply(
             lambda x: os.path.basename(x)).astype(str)
         df.sample_id = df.sample_id.str.replace(
-            r'_S[0-9]*_contigs.fasta', '', regex=True)
+            r'(_S[0-9]*)?_contigs.fasta', '', regex=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
@@ -691,7 +691,7 @@ class Ardetype_housekeeper(hk):
         df['sample_id'] = df['sample_id'].apply(
             lambda x: os.path.basename(x)).astype(str)
         df.sample_id = df.sample_id.str.replace(
-            r'_S[0-9]*_contigs.fasta', '', regex=True)
+            r'(_S[0-9]*)?_contigs.fasta', '', regex=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
@@ -704,7 +704,7 @@ class Ardetype_housekeeper(hk):
         df['sample_id'] = df['sample_id'].apply(
             lambda x: os.path.basename(x)).astype(str)
         df.sample_id = df.sample_id.str.replace(
-            r'_S[0-9]*_contigs.fasta', '', regex=True)
+            r'(_S[0-9]*)?_contigs.fasta', '', regex=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
@@ -718,7 +718,7 @@ class Ardetype_housekeeper(hk):
         df['sample_id'] = df['sample_id'].apply(
             lambda x: os.path.basename(x)).astype(str)
         df.sample_id = df.sample_id.str.replace(
-            r'_S[0-9]*_contigs', '', regex=True)
+            r'(_S[0-9]*)?_contigs', '', regex=True)
         df.insert(7, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
@@ -743,7 +743,7 @@ class Ardetype_housekeeper(hk):
     def amrfpm_results(amrfpm_result_path: str, batch: str):
         '''To combine amrfinder+ mutation reports and map them to sample_id-batch pair.'''
         df = pd.read_csv(amrfpm_result_path, sep='\t')
-        sample_id = re.sub(r'_S[0-9]*_amrfinderplus_point.tab', '', os.path.basename(amrfpm_result_path))
+        sample_id = re.sub(r'(_S[0-9]*)?_amrfinderplus_point.tab', '', os.path.basename(amrfpm_result_path))
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
         df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
         return df
@@ -773,7 +773,7 @@ class Ardetype_housekeeper(hk):
     def lrefinder_results(lrefinder_pos_path:str, batch: str):
         '''To combine lrefinder mutation reports and map them to sample_id-batch pair.'''
         df = pd.read_csv(lrefinder_pos_path, sep='\t')
-        sample_id = re.sub(r'_S[0-9]*.pos', '', os.path.basename(lrefinder_pos_path))
+        sample_id = re.sub(r'(_S[0-9]*)?.pos', '', os.path.basename(lrefinder_pos_path))
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
         df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
         return df
@@ -791,7 +791,7 @@ class Ardetype_housekeeper(hk):
         '''To combine chewbbaca allele calling reports and map them to sample_id-batch pair.'''
         df = pd.read_csv(lrefinder_pos_path, sep='\t')
         df.rename(columns={'FILE': 'sample_id'}, inplace=True)
-        df.sample_id = df.sample_id.str.replace(r'_S[0-9]*_contigs', '', regex=True)
+        df.sample_id = df.sample_id.str.replace(r'(_S[0-9]*)?_contigs', '', regex=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
         return df
 

@@ -456,8 +456,6 @@ rule classify_contigs:
     threads: config["core_tool_configs"]["kraken2"]["threads"]
     envmodules:
         'singularity'
-    # conda:
-    #     config["kraken2_env"]
     shell:
         """
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]},{config[core_tool_configs][kraken2][bact_db]}:{config[output_directory]},{config[work_dir]},{config[core_tool_configs][kraken2][bact_db]} {input.kraken_sif} \

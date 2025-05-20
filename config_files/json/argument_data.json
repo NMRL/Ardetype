@@ -19,7 +19,7 @@
                 "-c",
                 "--config",
                 "Path to the config file (if not supplied, the copy of the template config_modular.yaml will be used).",
-                "./config_files/yaml/config_modular_default.yaml"
+                "./config_files/yaml/config_modular_local.yaml"
             ],
             [
                 "-o",

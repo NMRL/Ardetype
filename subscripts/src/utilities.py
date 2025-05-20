@@ -1,4 +1,4 @@
-import os, sys, yaml, pandas as pd, re, argparse, json, base64, requests, numpy as np, urllib, pandas as pd, concurrent.futures
+import os, sys, yaml, pandas as pd, re, argparse, json, base64, requests, urllib, pandas as pd, concurrent.futures
 from dateutil.relativedelta import relativedelta
 from Bio import SeqIO, Entrez
 from datetime import datetime
@@ -17,8 +17,9 @@ class Housekeeper:
                 # Recurse into sub-dictionaries
                 Housekeeper.join_sif_paths(value, substring, *prefix)
             elif substring in key:
-                # Update the value using os.path.join
-                d[key] = os.path.join(*prefix, value)
+                if not os.path.isabs(d[key]):
+                    # Update the value using os.path.join
+                    d[key] = os.path.join(*prefix, value)
 
     @staticmethod
     def parse_folder(folder_pth_str:str, file_fmt_str:str, substr_lst:list=None, regstr_lst:list=None) -> list:
@@ -199,7 +200,7 @@ class Housekeeper:
         return key_set #return is reached only when there are no recursive calls, hence all nested structure was parsed
 
     @staticmethod
-    def validate_yaml(input_dict:dict, template_yaml_path:str='./config_files/yaml/config_modular_default.yaml'):
+    def validate_yaml(input_dict:dict, template_yaml_path:str='./config_files/yaml/config_modular_local.yaml'):
         """
         Given a dictionary (dict), return 0 if the structure of the dictionary corresponds to the yaml template structure (read from file),
         return 1 if some keys are missing in the dictionary, return 2 if some new keys are found in the dictionary.
@@ -637,10 +638,7 @@ class Housekeeper:
         new_file_name = f'{tstemp}-log_aggregate_{pipeline_name}.csv'
         updated_df.drop_duplicates(subset=['log_path'], keep='first', inplace=True)
         if file_search: os.remove(f'{job_log_dir}/{current_file}')
-        updated_df.to_csv(f'{job_log_dir}/{new_file_name}', header=True, index=False)
-
-
-
+        updated_df.to_csv(f'{job_log_dir}/{new_file_name}', header=True, index=False)    
 
 
 class Query_ncbi:
