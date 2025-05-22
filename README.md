@@ -66,6 +66,24 @@ rm -rf resources
 wget <archive_url>
 tar -xvzf resources.tar.gz
 ```
+## Configuration
+
+To enable **[rMLST](https://pubmlst.org/species-id)** support, you need to configure API access to the PubMLST REST service. This requires creating a `.env` file with authentication credentials.
+
+```env
+CONSUMER_KEY=""
+CONSUMER_SECRET=""
+TEST_REST_URL="https://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1"
+SESSION_REST_URL="https://rest.pubmlst.org/db/pubmlst_test_seqdef"
+TEST_WEB_URL="https://pubmlst.org/bigsdb?db=pubmlst_test_seqdef"
+ACCESS_TOKEN_PATH="<path_for_access_token>"
+```
+
+- You must request an API key pair from PubMLST to populate the `CONSUMER_KEY` and `CONSUMER_SECRET`.
+- See the [official documentation](https://bigsdb.readthedocs.io/en/latest/rest.html#authentication) for details on how to do this.
+- Replace `CONSUMER_KEY` and `CONSUMER_SECRET` with your credentials from PubMLST.
+- `ACCESS_TOKEN_PATH` should point to a local file where the access token will be saved automatically after authentication.
+
 ## Usage
 
 - Input Requirements:
