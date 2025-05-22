@@ -83,6 +83,8 @@ rule illumina_qc:
         read_2   = ancient(config['work_dir']+'{sample_id_pattern}_R2_001.fastq.gz')
     envmodules:
         'singularity'
+    log: 
+        config['output_directory']+'logs/'+'{sample_id_pattern}_illumina_qc.fastp.log'
     output: 
         config['output_directory']+'{sample_id_pattern}.fastp.json',
         config['output_directory']+'{sample_id_pattern}.fastp.html',
@@ -97,7 +99,7 @@ rule illumina_qc:
         --out1 {output.read_1_tr} --out2 {output.read_2_tr} \
         --thread {config[core_tool_configs][fastp][thread]} \
         --max_len1 {config[core_tool_configs][fastp][max_len1]} \
-        --max_len2 {config[core_tool_configs][fastp][max_len2]}
+        --max_len2 {config[core_tool_configs][fastp][max_len2]} 2>> {log}
         """
 
 
@@ -111,10 +113,12 @@ rule ont_qc:
         s=config["core_tool_configs"]["snikt"]["sample_size"]
     envmodules:
         'singularity'
+    log:
+        config['output_directory']+'logs/'+'{sample_id_pattern}_ont_qc.snikt.log'
     shell:
         """
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} \
-        {input.sif_file} snikt.R -s {params.s} --notrim {input.fastq} -o {wildcards.sample_id_pattern}_snikt -w {config[output_directory]}
+        {input.sif_file} snikt.R -s {params.s} --notrim {input.fastq} -o {wildcards.sample_id_pattern}_snikt -w {config[output_directory]} 2>> {log}
         """
 
 
@@ -128,10 +132,12 @@ rule ont_filtering:
         keep_percent=config["core_tool_configs"]["filtlong"]["keep_percent"]
     envmodules:
         'singularity'
+    log:
+        config['output_directory']+'logs/'+'{sample_id_pattern}_ont_filtering.filtlong.log'
     shell:
         """
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} \
-        {input.sif_file} filtlong --verbose --keep_percent {params.keep_percent} {input.fastq} | gzip > {output} \
+        {input.sif_file} filtlong --verbose --keep_percent {params.keep_percent} {input.fastq} | gzip > {output} 2>> {log}
         """
 
 
@@ -145,14 +151,16 @@ rule ont_assembly:
         threads=config["core_tool_configs"]["flye"]["threads"]
     envmodules:
         'singularity'
+    log:
+        config['output_directory']+'logs/'+'{sample_id_pattern}_ont_assembly.flye.log'
     shell:
         """
         folder_path={config[output_directory]}/{wildcards.sample_id_pattern}_flye
         if [ -d $folder_path ]; then
-            rm -r {config[output_directory]}/{wildcards.sample_id_pattern}_flye
+            rm -r {config[output_directory]}/{wildcards.sample_id_pattern}_flye 
         fi
         mkdir -p {config[output_directory]}/{wildcards.sample_id_pattern}_flye
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} flye --meta --nano-raw {input.fastq} --out-dir {config[output_directory]}/{wildcards.sample_id_pattern}_flye --threads {params.threads}
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} flye --meta --nano-raw {input.fastq} --out-dir {config[output_directory]}/{wildcards.sample_id_pattern}_flye --threads {params.threads} 2>> {log}
         cp {config[output_directory]}/{wildcards.sample_id_pattern}_flye/assembly.fasta {output}
         """
 
@@ -171,13 +179,15 @@ rule circlator:
         logs = config['output_directory']+'{sample_id_pattern}_circlator.log'
     envmodules:
         'singularity'
+    log:
+        config['output_directory']+'logs/'+'{sample_id_pattern}_circlator.circlator.log'
     shell:
         """
         folder_path={config[output_directory]}/{wildcards.sample_id_pattern}_circlator
         if [ -d $folder_path ]; then
             rm -r {config[output_directory]}/{wildcards.sample_id_pattern}_circlator
         fi
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} circlator fixstart {input.assembly} {config[output_directory]}/{wildcards.sample_id_pattern}_circlator
+        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} circlator fixstart {input.assembly} {config[output_directory]}/{wildcards.sample_id_pattern}_circlator 2>> {log}
         cp {output.contigs} {output.assembly}
         """
 
@@ -193,6 +203,8 @@ rule medaka:
         threads=config["core_tool_configs"]["medaka"]["threads"]
     envmodules:
         'singularity'
+    log:
+        config['output_directory']+'logs/'+'{sample_id_pattern}_medaka.medaka.log'
     shell:
         """
         MEDAKA_TEMP={config[output_directory]}{wildcards.sample_id_pattern}_medaka_tmp/
@@ -201,7 +213,7 @@ rule medaka:
         fi
         mkdir -m 775 ${{MEDAKA_TEMP}}
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.medaka_image} \
-            medaka_consensus -i {input.ont_reads} -d {input.fixed_start_assembly} -o ${{MEDAKA_TEMP}} -t {params.threads}
+            medaka_consensus -i {input.ont_reads} -d {input.fixed_start_assembly} -o ${{MEDAKA_TEMP}} -t {params.threads} 2>> {log}
         mv ${{MEDAKA_TEMP}}consensus.fasta {output.medaka_cor_consensus}
         rm -r ${{MEDAKA_TEMP}}
         """
@@ -225,13 +237,15 @@ rule ont_polishing:
         high_filt_th=config["core_tool_configs"]["polypolish"]["max_th"]
     envmodules:
         'singularity'
+    log:
+        config['output_directory']+'logs/'+'{sample_id_pattern}_ont_polishing.polypolish.log'
     shell:
         """
-        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.bwa_sif} bwa index {input.assembly}
-        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.bwa_sif} bwa mem -t 32 -a {input.assembly} {input.read_1} > {output.alignments_1}
-        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.bwa_sif} bwa mem -t 32 -a {input.assembly} {input.read_2} > {output.alignments_2}
-        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} polypolish filter --in1 {output.alignments_1} --in2 {output.alignments_2} --out1 {output.filt_align_1} --out2 {output.filt_align_2}
-        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} polypolish polish {input.assembly} {output.filt_align_1} {output.filt_align_2} > {output.poly_polished_fasta}
+        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.bwa_sif} bwa index {input.assembly} 2>> {log}
+        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.bwa_sif} bwa mem -t 32 -a {input.assembly} {input.read_1} > {output.alignments_1} 2>> {log}
+        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.bwa_sif} bwa mem -t 32 -a {input.assembly} {input.read_2} > {output.alignments_2} 2>> {log}
+        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} polypolish filter --in1 {output.alignments_1} --in2 {output.alignments_2} --out1 {output.filt_align_1} --out2 {output.filt_align_2} 2>> {log}
+        singularity --silent run --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} polypolish polish {input.assembly} {output.filt_align_1} {output.filt_align_2} > {output.poly_polished_fasta} 2>> {log}
         """
 
 
@@ -267,11 +281,13 @@ rule hybrid_polishing:
         memory=config["core_tool_configs"]["polca"]["ram_gbp_thread"]
     envmodules:
         'singularity'
+    log:
+        config['output_directory']+'logs/'+'{sample_id_pattern}_hybrid_polishing.polca.log'
     shell:
         """
         cd {config[output_directory]}
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} \
-        {input.sif_file} polca.sh -a {input.poly_polished_fasta} -r '{input.reads_R1} {input.reads_R2}' -t {params.threads} -m {params.memory}
+        {input.sif_file} polca.sh -a {input.poly_polished_fasta} -r '{input.reads_R1} {input.reads_R2}' -t {params.threads} -m {params.memory} 2>> {log}
         """
 
 
@@ -295,8 +311,8 @@ rule filter_phix:
         mem_mb = config["core_tool_configs"]["kraken2"]["ram_phix_mb"]
     envmodules:
         'singularity'
-    # conda:
-    #     config["kraken2_env"]
+    log:
+        config['output_directory']+'logs/'+'{sample_id_pattern}_filter_phix.kraken2.log'
     shell:                                                                                              
         """
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]},{config[core_tool_configs][kraken2][phix_db]}:{config[output_directory]},{config[work_dir]},{config[core_tool_configs][kraken2][phix_db]} {input.kraken_sif} \
@@ -305,12 +321,12 @@ rule filter_phix:
         --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_phix#.fastq \
         --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_phix_filtered#.fastq \
         --report {output.report_name} --output {output.filtering_data} --gzip-compressed \
-        --paired {input.read_1} {input.read_2} > {output.stdout}
+        --paired {input.read_1} {input.read_2} > {output.stdout} 2>> {log}
 
         singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.pigz_sif} \
-        pigz {config[output_directory]}{wildcards.sample_id_pattern}_phix_filtered_1.fastq
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_phix_filtered_1.fastq 2>> {log}
         singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.pigz_sif} \
-        pigz {config[output_directory]}{wildcards.sample_id_pattern}_phix_filtered_2.fastq
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_phix_filtered_2.fastq 2>> {log}
         """
 
 
@@ -334,8 +350,8 @@ rule filter_host:
         mem_mb = config["core_tool_configs"]["kraken2"]["ram_host_mb"]
     envmodules:
         'singularity'
-    # conda:
-    #     config["kraken2_env"]
+    log:
+        config['output_directory']+'logs/'+'{sample_id_pattern}_filter_host.kraken2.log'
     shell:                                                                                              
         """
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]},{config[core_tool_configs][kraken2][human_db]}:{config[output_directory]},{config[work_dir]},{config[core_tool_configs][kraken2][human_db]} {input.kraken_sif} \
@@ -344,12 +360,12 @@ rule filter_host:
         --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_host#.fastq \
         --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered#.fastq \
         --report {output.report_name} --output {output.filtering_data} --gzip-compressed \
-        --paired {input.read_1} {input.read_2} > {output.stdout}
+        --paired {input.read_1} {input.read_2} > {output.stdout} 2>> {log}
 
         singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.pigz_sif} \
-        pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_1.fastq
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_1.fastq 2>> {log}
         singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.pigz_sif} \
-        pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_2.fastq
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_host_filtered_2.fastq 2>> {log}
         """
 
 
@@ -364,25 +380,27 @@ rule illumina_assembly:
         config['output_directory']+'{sample_id_pattern}_contigs/contigs.fa'                                #removed after renaming 
     envmodules:
         'singularity'
+    log:
+        config['output_directory']+'logs/'+'{sample_id_pattern}_illumina_assembly.shovill.log'
     shell:
         """
         FOLDER_NAME={config[scratch]}{wildcards.sample_id_pattern}_assembly_tmp_$(date +%Y-%m-%d_%H-%M-%S)
 
         cleanup_scratch() {{
-            rm -rf $FOLDER_NAME
+            rm -rf $FOLDER_NAME 2>> {log}
         }}
         trap cleanup_scratch EXIT
-        ulimit -n 2048
-        mkdir -m 775 -p $FOLDER_NAME
+        ulimit -n 2048 2>> {log}
+        mkdir -m 775 -p $FOLDER_NAME 2>> {log}
         singularity --silent exec --bind ${{FOLDER_NAME}},{config[output_directory]},{config[work_dir]}:${{FOLDER_NAME}},{config[output_directory]},{config[work_dir]} {input.sif_file} shovill {config[core_tool_configs][shovill][modules]} \
         --depth {config[core_tool_configs][shovill][depth]} --ram {config[core_tool_configs][shovill][ram]} \
         --cpus {threads} --minlen {config[core_tool_configs][shovill][minlen]} \
         --mincov {config[core_tool_configs][shovill][mincov]} \
         --force --outdir {config[output_directory]}{wildcards.sample_id_pattern}_contigs \
         --R1 {input.read_1} --R2 {input.read_2}\
-        --tmpdir $FOLDER_NAME
+        --tmpdir $FOLDER_NAME 2>> {log}
 
-        rm -r $FOLDER_NAME
+        rm -r $FOLDER_NAME 2>> {log}
         """
 
 
@@ -391,9 +409,11 @@ rule contig_id:
         choose_assembly_branch
     output:
         contigs = config['output_directory']+'{sample_id_pattern}_contigs.fasta'
+    log:
+        config['output_directory']+'logs/'+'{sample_id_pattern}_contig_id.contig_id.log'
     shell:
         """
-        cp {input} {output}
+        cp {input} {output} 2>> {log}
         """
 
 
@@ -415,32 +435,32 @@ rule classify_reads:
     threads: config["core_tool_configs"]["kraken2"]["threads"]
     envmodules:
         'singularity'
-    # conda:
-    #     config["kraken2_env"]
+    log:
+        config['output_directory']+'logs/'+'{sample_id_pattern}_classify_reads.kraken2.log'
     shell:                                                                                                          
         """
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]},{config[core_tool_configs][kraken2][bact_db]}:{config[output_directory]},{config[work_dir]},{config[core_tool_configs][kraken2][bact_db]} {input.kraken_sif} \
         kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][bact_db]} \
         --classified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified#.fastq \
         --unclassified-out {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified#.fastq \
-        --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2} > {output.filtering_data}
+        --report {output.report_name} --gzip-compressed --paired {input.read_1} {input.read_2} > {output.filtering_data} 2>> {log}
 
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.krona_sif} \
-        kreport2krona.py -r {output.report_name} -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.krona
+        kreport2krona.py -r {output.report_name} -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.krona 2>> {log}
 
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.krona_sif} \
         ktImportText {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.krona \
-        -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.html
+        -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_reads_report.html 2>> {log}
 
 
         singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.pigz_sif} \
-        pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq 2>> {log}
         singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.pigz_sif} \
-        pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified_2.fastq
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_classified_2.fastq 2>> {log}
         singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.pigz_sif} \
-        pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified_1.fastq
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified_1.fastq 2>> {log}
         singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.pigz_sif} \
-        pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified_2.fastq
+        pigz {config[output_directory]}{wildcards.sample_id_pattern}_bact_reads_unclassified_2.fastq 2>> {log}
         """
 
 
@@ -456,16 +476,18 @@ rule classify_contigs:
     threads: config["core_tool_configs"]["kraken2"]["threads"]
     envmodules:
         'singularity'
+    log:
+        config['output_directory']+'logs/'+'{sample_id_pattern}_classify_contigs.kraken2.log'
     shell:
         """
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]},{config[core_tool_configs][kraken2][bact_db]}:{config[output_directory]},{config[work_dir]},{config[core_tool_configs][kraken2][bact_db]} {input.kraken_sif} \
         kraken2 --threads {threads} --db {config[core_tool_configs][kraken2][bact_db]} \
-        --report {output.report_name} {input.contigs} > {output.filtering_data}
+        --report {output.report_name} {input.contigs} > {output.filtering_data} 2>> {log}
 
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.krona_sif} \
-        kreport2krona.py -r {output.report_name} -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.krona
+        kreport2krona.py -r {output.report_name} -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.krona 2>> {log}
 
         singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.krona_sif} \
         ktImportText {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.krona \
-        -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.html
+        -o {config[output_directory]}{wildcards.sample_id_pattern}_kraken2_contigs_report.html 2>> {log}
         """

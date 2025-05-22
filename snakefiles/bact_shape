@@ -1,6 +1,7 @@
 localrules: all
 
 import sys, pandas as pd, os, json, time
+from glob import glob
 from datetime import date
 sys.path.insert(0, os.path.abspath('./'))
 from subscripts.ardetype_utilities import Ardetype_housekeeper as Housekeeper
@@ -97,6 +98,15 @@ rule all:
         #Prettify ids
         report.sample_id = report.sample_id.astype(str).str.replace(r'_S[0-9]*', '', regex=True)
         aquamis_qc_report.sample_id = aquamis_qc_report.sample_id.astype(str).str.replace(r'_S[0-9]*', '', regex=True)
+
+        #Remove previous reports if present
+        prev_adt_reps = glob(os.path.join(config['output_directory'],f'*_ardetype_report.csv'))
+        prev_aq_reps = glob(os.path.join(config['output_directory'],f'*_aquamis_qc_report.csv'))
+        prev_reps = prev_adt_reps + prev_aq_reps
+        
+        if prev_reps:
+            for p in prev_reps:
+                os.remove(p)
 
         #save as csv
         report.to_csv(config['output_directory']+f'{date}_ardetype_report.csv', header=True, index=False)

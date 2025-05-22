@@ -194,7 +194,7 @@
             ],
             "Acinetobacter baumannii": [
                 "_capybara.tsv",
-                "_ab_pumblst.json",
+                "_ab_pubmlst.json",
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Escherichia coli": [
@@ -383,7 +383,7 @@
                     "_lissero.tsv",
                     "_sistr.csv",
                     "_SeqSero.tsv",
-                    "_ab_pumblst.json",
+                    "_ab_pubmlst.json",
                     "_ectyper.tsv",
                     "_seroba.tsv",
                     "_stecfinder.tsv"
