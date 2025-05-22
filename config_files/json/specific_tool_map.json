@@ -280,5 +280,12 @@
         "tool": "lrefinder",
         "link": "https://bitbucket.org/genomicepidemiology/lre-finder",
         "reference": "LRE-Finder, a Web Tool for detection of the 23S rRNA mutations, and the optrA, cfr, cfr(B) and poxtA genes, encoding linezolid resistance in Enterococci from whole genome sequences Henrik HASMAN, Philip T.L.C. CLAUSEN, Hulya KAYA, Frank HANSEN, Jenny Dahl KNUDSEN, Mikala WANG, Barbara Juliane HOLZKNECHT, Jurgita SAMULIONIENE, Bent ROEDER, Niels FRIMODT-MOELLER, Ole LUND, and Anette M. HAMMERUM"
+    },
+    "capybara.tsv": {
+        "rule": "capybara",
+        "method": "Assignment of query strain into the epidemic super-lineage (ESL) (IC1 and IC2), if it belongs, as well as one of the lineages, clusters, and clades in the ESL",
+        "tool": "capybara",
+        "link": "https://github.com/Zhou-lab-SUDA/CAPYBARA",
+        "reference": "hengkai Li, Heng Li, Guilai Jiang, Shengke Wang, Min Wang, Yilei Wu, Xiao Liu, Ling Zhong, Shichang Xie, Yi Ren, Yongliang Lou, Jimei Du, Zhemin Zhou, 2024, Emergence and Global Spread of a Dominant Multidrug-Resistant Variant in Acinetobacter baumannii, https://doi.org/10.21203/rs.3.rs-4224555/v1"
     }
 }
