@@ -757,13 +757,17 @@ class Ardetype_housekeeper(hk):
 
         # Get species (if present) and sample identifier
         species = data.get('fields', {}).get('species', '')
+        taxons = data.get('taxon_prediction',[])
         sample_id = os.path.basename(rmlst_result_path).replace('_rmlst.json','')
 
         # Get top species if mix inferred
         if species:
             splt = species.split(",")
             if len(splt) > 1:
-                species = splt[0]   
+                species = splt[0]
+        else:
+            if taxons:
+                species = max(taxons, key=lambda x: x['support'])['taxon']
 
         # Convert to pandas df
         df = pd.DataFrame.from_dict({"sample_id":[sample_id], "species": species})
