@@ -187,8 +187,8 @@ dependencies:
       - biopython==1.85
       - chardet==5.2.0
       - charset-normalizer==3.4.2
-      - numpy==2.0.2
-      - pandas==2.2.3
+      - numpy==1.22.4
+      - pandas==1.4.2
       - python-dotenv==1.1.0
       - pyyaml==6.0.2
       - rauth==0.7.3
