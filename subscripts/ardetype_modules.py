@@ -614,7 +614,6 @@ def run_all(args, num_jobs):
     shape.set_permissions()
 
     # Add sample_id and job name to log
-    hk.name_job_logs('ardetype', shape.job_log_path)
     return shape.output_path
 
 
