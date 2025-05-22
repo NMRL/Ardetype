@@ -1,45 +1,83 @@
 # ARDETYPE
+
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/release/NMRL/Ardetype?color=Green)
 
-NGS data processing pipeline designed to perform species-agnostic and species-specific analysis of short paired-end (PE) bacterial reads.
+**ARDETYPE** is a modular pipeline for processing whole genome sequencing (WGS) data from both **Illumina (paired-end)** and **Oxford Nanopore** reads. It supports both species-agnostic and species-specific analyses.
 
-Pipeline is structured in terms of modules. Each module corresponds to a Snakemake script (snakefile) and a python module object. Snakefiles are used to define data processing rules. 
+The pipeline is structured into four Snakemake modules, each representing a distinct phase of the analysis:
 
-Module class objects store information about inputs and expected outputs for these rules, handle file placement operations, module configuration, information transfer between modules, and other processes that are not directly involved in running analysis on files.
+- `bact_core`: Core tasks such as quality control (QC), contamination filtering, and species identification.
+- `bact_shell`: General-purpose tools for resistance gene detection, plasmid analysis, and more.
+- `bact_tip`: Species-specific typing tools.
+- `shape`: Aggregation and result integration.
 
-|Module      |Type     |Description                                                         |Tools                                             |
-|:----------:|--------:|:-------------------------------------------------------------------|:------------------------------------------------:|
-|bact_core   |agnostic |QC, host filtering, denovo assembly, taxonomic classification       |[fastp](https://github.com/OpenGene/fastp), [kraken2](https://github.com/DerrickWood/kraken2), [shovill](https://github.com/tseemann/shovill), [krakentools](https://github.com/jenniferlu717/KrakenTools), [krona](https://github.com/marbl/Krona)       |
-|bact_shell  |agnostic |assembly QC, resistance profiling, plasmid reconstruction & typing  |[quast](https://github.com/ablab/quast), [rgi-card](https://github.com/arpcard/rgi), [amr++v2.0](https://megares.meglab.org/amrplusplus/latest/html/v2/), [resfinder](https://bitbucket.org/genomicepidemiology/resfinder/src/master/), [mob-suite](https://github.com/phac-nml/mob-suite)  |
-|bact_tip    |specific |species-dependent sub-typing                                        |[hicap](https://github.com/scwatts/hicap), [meningotype](https://github.com/MDU-PHL/meningotype), [legsta](https://github.com/tseemann/legsta), [Kleborate](https://github.com/katholt/Kleborate/wiki), [AgrVATE](https://github.com/VishnuRaghuram94/AgrVATE), [spaTyper]( https://github.com/HCGB-IGTP/spaTyper), [Staphopia-sccmec](https://github.com/staphopia/staphopia-sccmec), [emmtyper](https://github.com/MDU-PHL/emmtyper), [seqsero](https://github.com/denglab/SeqSero), [sistr](https://github.com/phac-nml/sistr_cmd), [lissero](https://github.com/MDU-PHL/LisSero), [PubMLST database API](https://pubmlst.org/), [Institute Pasteur MLST database API](https://bigsdb.pasteur.fr/), [Legionella pneumophila in silico Serogroup Prediction](https://github.com/NMRL/legionella_pneumophila_genomics), [ectyper](https://github.com/phac-nml/ecoli_serotyping), [seroba](https://github.com/sanger-pathogens/seroba)|
+## Tools by Module
 
-## Configuration
-Pipeline is designed to be run by NMRL users on RTU HPC, where HPC-level configuration is available out-of-the-box. 
-|Configuration level|Dependencies|
-|-------------------|------------|
-|HPC                |Torque/PBS, Conda, Singularity          |
-|Conda              |Snakemake (should be installed for each user using -s flag to the ardetype.py script)            |
-|Python             |numpy==1.22.3, pandas==1.4.2, PyYAML==6.0, requests==2.27.1, bs4==0.0.1           |
-|Kraken2            |[Pre-built](https://ccb.jhu.edu/software/kraken2/downloads.shtml) or custom databases for human and bacteria|
-|Resfinder4         |[Database](https://bitbucket.org/genomicepidemiology/resfinder_db/src)|
+| Tool                                                                 | Module     |
+|----------------------------------------------------------------------|------------|
+| [agrvate](https://github.com/VishnuRaghuram94/AgrVATE)              | bact_tip   |
+| [amrfinder+](https://github.com/ncbi/amr)                            | bact_shell |
+| [capybara](https://github.com/Zhou-lab-SUDA/CAPYBARA)                | bact_tip   |
+| [chewbbaca](https://github.com/B-UMMI/chewBBACA)                     | bact_tip   |
+| [circlator](https://github.com/sanger-pathogens/circlator)          | bact_core  |
+| [ectyper](https://github.com/phac-nml/ecoli_serotyping)             | bact_tip   |
+| [emmtyper](https://github.com/MDU-PHL/emmtyper)                      | bact_tip   |
+| [fastp](https://github.com/OpenGene/fastp)                           | bact_core  |
+| [filtlong](https://github.com/rrwick/Filtlong)                       | bact_core  |
+| [flye](https://github.com/fenderglass/Flye)                          | bact_core  |
+| [hicap](https://github.com/scwatts/hicap)                            | bact_tip   |
+| [kleborate](https://github.com/katholt/Kleborate)                    | bact_tip   |
+| [kraken2](https://github.com/DerrickWood/kraken2)                    | bact_core  |
+| [legsta](https://github.com/tseemann/legsta)                         | bact_tip   |
+| [lissero](https://github.com/MDU-PHL/LisSero)                        | bact_tip   |
+| [lrefinder](https://bitbucket.org/genomicepidemiology/lre-finder)   | bact_tip   |
+| [medaka](https://github.com/nanoporetech/medaka)                     | bact_core  |
+| [meningotype](https://github.com/MDU-PHL/meningotype)                | bact_tip   |
+| [mlst](https://github.com/tseemann/mlst)                             | bact_shell |
+| [mob-suite](https://github.com/phac-nml/mob-suite)                   | bact_shell |
+| [plasmidfinder](https://bitbucket.org/genomicepidemiology/plasmidfinder/src/master/) | bact_shell |
+| [polca](https://github.com/alekseyzimin/masurca)                     | bact_core  |
+| [polypolish](https://github.com/rrwick/Polypolish)                   | bact_core  |
+| [quast](https://github.com/ablab/quast)                              | bact_shell |
+| [resfinder](https://bitbucket.org/genomicepidemiology/resfinder/src/master/) | bact_shell |
+| [rgi](https://github.com/arpcard/rgi)                                | bact_shell |
+| [seqsero2](https://github.com/denglab/SeqSero2)                      | bact_tip   |
+| [seroba](https://github.com/sanger-pathogens/seroba)                 | bact_tip   |
+| [shigatyper](https://github.com/CFSAN-Biostatistics/shigatyper)     | bact_tip   |
+| [shovill](https://github.com/tseemann/shovill)                       | bact_core  |
+| [sistr](https://github.com/phac-nml/sistr_cmd)                       | bact_tip   |
+| [snikt](https://github.com/piyuranjan/SNIKT)                         | bact_core  |
+| [spatyper](https://github.com/HCGB-IGTP/spaTyper)                    | bact_tip   |
+| [staphopia-sccmec](https://github.com/staphopia/staphopia-sccmec)   | bact_tip   |
+| [stecfinder](https://github.com/LanLab/STECFinder)                   | bact_tip   |
+| [virulencefinder](https://bitbucket.org/genomicepidemiology/virulencefinder/src/master/) | bact_shell |
+
+---
 
 ## Installation
-To install from scratch, you will need a Linux system with **root access** and installed [singularity](https://sylabs.io/guides/3.0/user-guide/installation.html) to build containers. [WSL](https://docs.microsoft.com/en-us/windows/wsl/install) or [Virtual Machine](https://www.arcserve.com/blog/dead-simple-guide-installing-linux-virtual-machine-windows) should also work. 
 
-Clone the repository to your local machine and use [singularity recipe files](https://github.com/NMRL/NMRL_Bact_Assembly_Inhouse/tree/ardetype/config_files/s_recipes) to build containers,<br>then copy to HPC cluster so that they can be accessed by the pipeline scripts.
+```bash
+git clone -b standalone_rework https://github.com/NMRL/Ardetype
+cd Ardetype
+conda env create -f ardetype.yaml
 
-Clone the repository to the cluster and edit files found in config_files folder to match your local setup:
-|File|Scope|
-|----|-----|
-|module_data.json|paths to cluster_config file and snakefiles|
-|config_modular.yaml|paths to singularity image files, [kraken2](https://github.com/DerrickWood/kraken2) databases, [resfinder](https://bitbucket.org/genomicepidemiology/resfinder/src/master/) [database](https://bitbucket.org/genomicepidemiology/resfinder_db/src), path to [Legionella pneumophila in silico Serogroup Prediction](https://github.com/NMRL/legionella_pneumophila_genomics) tool|
+# Downloading pre-packaged resources (databases & singularity image files)
+rm -rf resources
+wget <archive_url>
+tar -xvzf resources.tar.gz
+```
+## Usage
 
-## Using the pipeline
- - Note: pipeline accepts only fastq files that are named according to illumina conventions (sample_id_R{1,2}_001.fastq.gz).
- - Testing (to see what jobs will be executed): 
-     
-     ``` python ardetype.py -t -i path_to_folder_with_fastq/ -o path_to_output_folder -m all ```
- 
- - Running: 
-     
-     ``` python ardetype.py -i path_to_folder_with_fastq/ -o path_to_output_folder -m all ```
+- Input Requirements:
+
+     - Illumina: Paired-end FASTQ files named as <sample_id>_R1_001.fastq.gz and <sample_id>_R2_001.fastq.gz
+     - Nanopore: Single-end FASTQ file named as <sample_id>_ONT.fastq.gz
+
+- Run for Illumina or Illumina + Nanopore:
+
+     ```python ardetype.py -i <batch_folder> -o <batch_folder> -m all -rl -p```
+
+- Run for Nanopore only:
+
+     ```python ardetype.py -i <batch_folder> -o <batch_folder> -m all -rl -p -ont```
+
