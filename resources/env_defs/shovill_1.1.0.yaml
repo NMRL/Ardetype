@@ -15,10 +15,10 @@ dependencies:
 - flash >=1.2
 - pilon >=1.22
 - samclip >=0.4
-- lighter >=1.1
-- skesa >=2.2
 - trimmomatic >=0.36
+- lighter >=1.1
 - velvet >=1.2.10
+- skesa >=2.2
 - megahit >=1.2.7
 - spades >=3.14
 name: shovill_1.1.0

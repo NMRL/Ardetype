@@ -5,6 +5,7 @@ CONDA_LIST="resources/anaconda_list.csv"
 SCRIPT_PATH="subscripts/setup/build_image.sh"
 PARALLEL_JOBS=4
 
+sudo whoami
 export SCRIPT_PATH  # So it's visible in the subshells
 mkdir -p resources/image_files
 

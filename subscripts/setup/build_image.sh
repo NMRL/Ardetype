@@ -12,9 +12,9 @@ TAG="${TOOL_NAME}_${TOOL_VERSION}"
 
 # Configurations
 CONDA_CHANNELS="-c bioconda -c conda-forge"
-ENV_DEF_PATH="../../resources/env_defs/"
-RECIPE_PATH="../../resources/conda_recipes/"
-IMAGE_PATH="../../resources/image_files/${TAG}.sif"
+ENV_DEF_PATH="resources/env_defs/"
+RECIPE_PATH="resources/conda_recipes/"
+IMAGE_PATH="resources/image_files/${TAG}.sif"
 
 # Options
 BUILD_CONDA_ENV=false
@@ -23,7 +23,7 @@ CLEAR_IMAGE=false
 CLEAR_ENV_DEF=true
 CLEAR_RECIPE=true
 FETCH_ENV_DEF=true
-BUILD_SIF=false
+BUILD_SIF=true
 
 # Create folders for conda-based recipes
 mkdir -p ${RECIPE_PATH} ${ENV_DEF_PATH}
@@ -82,7 +82,7 @@ EOF
 # Build the Singularity Image
 if $BUILD_SIF ; then
     cd "$(dirname $IMAGE_PATH)"
-    singularity build --fakeroot "${TAG}.sif" "../conda_recipes/${TAG}.recipe"
+    sudo singularity build "${TAG}.sif" "../conda_recipes/${TAG}.recipe"
 else
     echo "Singularity image for $TAG will not be created."
 fi
