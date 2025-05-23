@@ -4,20 +4,20 @@ channels:
 - defaults
 dependencies:
 - multiqc=1.11
-- numpy
-- requests
 - click
-- setuptools
-- markdown
-- simplejson
 - coloredlogs
-- lzstring
-- python >=3.6
-- spectra >=0.0.10
-- pyyaml >=4
 - future >0.14.0
-- rich >=10
-- matplotlib-base >=2.1.1
 - jinja2 >=2.9
+- lzstring
+- markdown
+- matplotlib-base >=2.1.1
 - networkx >=2.5.1
+- numpy
+- python >=3.6
+- pyyaml >=4
+- requests
+- rich >=10
+- setuptools
+- simplejson
+- spectra >=0.0.10
 name: multiqc_1.11

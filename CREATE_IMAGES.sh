@@ -19,7 +19,7 @@ CUSTOM_LIST="resources/custom_list.csv"
 
 cat "$CUSTOM_LIST" | parallel -j $PARALLEL_JOBS --colsep ',' '
     echo "Building from custom image: {1}";
-    singularity build --fakeroot {2} {1};
+    sudo singularity build {2} {1};
 '
 
 # Create images from dockerhub
