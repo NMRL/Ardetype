@@ -191,8 +191,12 @@ rule extract_rmlst:
     output:
         config['output_directory']+'{sample_id_pattern}_rmlst_std.csv'
     run:
-        with open(input[0], 'r+') as file:
-            data = json.load(file)
+        try:
+            with open(input[0], 'r+') as file:
+                data = json.load(file)
+        except Exception as e:
+            data = {}
+            print(f'WARNING: {input[0]} parsing failed with error - {e}.')
         
         if data:
             if data.get('taxon_prediction', []):

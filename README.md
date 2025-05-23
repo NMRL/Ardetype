@@ -68,7 +68,7 @@ tar -xvzf resources.tar.gz
 ```
 ## Configuration
 
-To enable **[rMLST](https://pubmlst.org/species-id)** support, you need to configure API access to the PubMLST REST service. This requires creating a `.env` file with authentication credentials.
+To enable **[rMLST](https://pubmlst.org/species-id)** support, you need to configure API access to the PubMLST REST service. This requires creating a `config_files/.env` file with authentication credentials.
 
 ```env
 CONSUMER_KEY=""
@@ -83,6 +83,8 @@ ACCESS_TOKEN_PATH="<path_for_access_token>"
 - See the [official documentation](https://bigsdb.readthedocs.io/en/latest/rest.html#authentication) for details on how to do this.
 - Replace `CONSUMER_KEY` and `CONSUMER_SECRET` with your credentials from PubMLST.
 - `ACCESS_TOKEN_PATH` should point to a local file where the access token will be saved automatically after authentication.
+- In case rmlst configuration was not done, species will be inferred based on kraken2/minikraken contig classfication.
+- **Note**: If rMLST-based species identification is not configured, the species will be inferred from contig classification using Kraken2 with the MiniKraken database.
 
 ## Usage
 

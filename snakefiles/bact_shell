@@ -61,7 +61,6 @@ rule all:
         input.hamr_rgi       = [ path for path in input.hamr_rgi if not os.path.getsize(path) == 0]
         input.amrfp_mut      = [ path for path in input.amrfp_mut if not os.path.getsize(path) == 0]
         input.mobtyper       = [ path for path in input.mobtyper if not os.path.getsize(path) == 0]
-        input.rmlst          = [ path for path in input.rmlst if not os.path.getsize(path) == 0]
 
         #Create single tsv report from all resistance inference tools.
         command = f'''
@@ -439,7 +438,8 @@ rule rmlst:
 
         except Exception as e:
             log_file.write(f"[ERROR] {type(e).__name__}: {str(e)}\n")
-            raise
+            with open(output.rmlst_json, 'w+') as outfile:
+                outfile.write('')
         finally:
             log_file.close()
 

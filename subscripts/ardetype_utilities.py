@@ -752,26 +752,32 @@ class Ardetype_housekeeper(hk):
     def rmlst_results(rmlst_result_path: str, batch: str):
         '''To combine rmlst species reports and map them to sample_id'''
         # Parse json file
-        with open(rmlst_result_path, 'r') as f:
-            data = json.load(f)
+        try:
+            with open(rmlst_result_path, 'r') as f:
+                data = json.load(f)
 
-        # Get species (if present) and sample identifier
-        species = data.get('fields', {}).get('species', '')
-        taxons = data.get('taxon_prediction',[])
-        sample_id = os.path.basename(rmlst_result_path).replace('_rmlst.json','')
+            # Get species (if present) and sample identifier
+            species = data.get('fields', {}).get('species', '')
+            taxons = data.get('taxon_prediction',[])
+            sample_id = os.path.basename(rmlst_result_path).replace('_rmlst.json','')
 
-        # Get top species if mix inferred
-        if species:
-            splt = species.split(",")
-            if len(splt) > 1:
-                species = splt[0]
-        else:
-            if taxons:
-                species = max(taxons, key=lambda x: x['support'])['taxon']
+            # Get top species if mix inferred
+            if species:
+                splt = species.split(",")
+                if len(splt) > 1:
+                    species = splt[0]
+            else:
+                if taxons:
+                    species = max(taxons, key=lambda x: x['support'])['taxon']
 
-        # Convert to pandas df
-        df = pd.DataFrame.from_dict({"sample_id":[sample_id], "species": species})
-        return df
+            # Convert to pandas df
+            df = pd.DataFrame.from_dict({"sample_id":[sample_id], "species": species})
+            return df
+        except Exception as e:
+            print(f'WARNING: rMLST failed with exception: {e}')
+            sample_id = os.path.basename(rmlst_result_path).replace('_rmlst.json','')
+            df = pd.DataFrame.from_dict({"sample_id":[sample_id], "species":[""]})
+            return df
 
     @staticmethod
     def lrefinder_results(lrefinder_pos_path:str, batch: str):
