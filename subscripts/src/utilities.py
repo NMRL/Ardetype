@@ -355,6 +355,8 @@ class Housekeeper:
             parser.print_help(sys.stderr)
             sys.exit(1)
         args = parser.parse_args()
+        if args.output_dir is None:
+            args.output_dir = args.input
         return args
 
     @staticmethod

@@ -37,12 +37,9 @@ class Module:
             snakefile_path      : str, 
             cluster_config_path : str,
             retry_times         : int,
-            dry_run             : bool, 
             force_all           : bool, 
-            rule_graph          : bool, 
             pack_output         : bool, 
             rules_to_rerun      : list,
-            unpack_output       : bool,
             run_local           : bool
             ) -> None:
         
@@ -65,14 +62,10 @@ class Module:
         self.targets             = targets #to store file extensions of expected output files; used by fill_target_list, check_module_output
         self.requests            = requests #to store file extensions for files that are neccessary to run the modules; used by remove_invalid_samples
         self.snakefile_path      = snakefile_path #to the rule file to be run as single job on HPC if self.run_mode is True; used by submit_module_job
-        self.dry_run             = "-np" if dry_run else "" #to store dry-run flag if it is supplied, else empty string is stored
         self.retry_times         = retry_times #number of times snakemake will attempt to rerun failed jobs (default=3); used by run_module_cluster
         self.force_all           = "--forceall" if force_all else "" #to store forceall flag if it is supplied, else empty string is stored
-        self.rule_graph          = f"--rulegraph | dot -Tpdf > {self.module_name}.pdf" if rule_graph else "" #to store rule_graph flag if it is supplied, else empty string is stored
-        self.unpack_output       = True if force_all else unpack_output #used to move files outside sample folders and do a rerun; used by unfold_output
         self.removed_samples     = pd.DataFrame() #to store dataframe containing information about samples that were deemed invalid by the module
         self.pack_output         = pack_output #switch to control putting output files into one folder named after sample_id; used by fold_output
-        self.cleanup_dict        = {} #to map origin paths of input files to path in working directory; filled by move_to_wd; used by clear_working_directory
         self.status_script       = f"{os.path.dirname(Path(__file__).parents[0].absolute())}/pbs-status.py"
         self.failed_stamp        = None #added if module has failed to produce requested files for 1 or more steps of the workflow
         self.rules_to_rerun      = [rule for rule in rules_to_rerun if rule in self._get_rule_names_from_snakefile(self.snakefile_path)] if rules_to_rerun is not None else []
@@ -111,7 +104,8 @@ class Module:
                                 self.input_path,substr_lst=substring_list,
                                 file_fmt_str=self.patterns['inputs'][fmt])
                         if not parsed_files:
-                            raise FileNotFoundError(f'Missing {fmt} files in input directory')
+                            print(f'Missing {fmt} files in input directory', file=sys.stderr)
+                            sys.exit(1)
                         self.input_dict[self.patterns['inputs'][fmt]] = parsed_files
 
         elif mixed or empty:
@@ -231,7 +225,7 @@ class Module:
             if not os.path.isabs(self.config_file[p]):
                 self.config_file[p] = os.path.join(ardetype_path, self.config_file[p])
 
-        for p in ["work_dir", "scratch"]:
+        for p in ["scratch"]:
             if not os.path.isabs(self.config_file[p]):
                 self.config_file[p] = os.path.join(ardetype_path, self.output_path, self.config_file[p])
 
@@ -328,14 +322,14 @@ class Module:
             cmd = f'''
             source "$(conda info --base)/etc/profile.d/conda.sh"
             conda activate $(dirname $(dirname $(which conda)))/envs/ardetype
-            snakemake --cores 6 --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific} {self.dry_run} {self.rule_graph}
+            snakemake --cores 6 --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific}
             '''
             result = subprocess.run(cmd, shell=True, executable="/bin/bash", check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             self.job_id = result.stdout
         except subprocess.CalledProcessError as e:
             raise Exception(f"{self.module_name} job runtime error:\nSTDOUT:\n{e.stdout}\nSTDERR:\n{e.stderr}")
         finally:
-            self.clear_working_directory()
+            # self.clear_working_directory()
             self.clear_scratch()
 
 
@@ -349,11 +343,11 @@ class Module:
         try:
             self.job_id = subprocess.check_output(['qsub', '-F', f'{self.snakefile_path} {self.config_file_path}', f'{self.output_path}ardetype_jobscript.sh'])
             os.remove(f'{self.output_path}ardetype_jobscript.sh') #cleanup
-            # os.system(f"rm {self.output_path}ardetype_jobscript.sh") #cleanup
+
         except subprocess.CalledProcessError as msg:
             raise Exception(f"{self.module_name} job submission error: {msg}")
         finally:
-            self.clear_working_directory()
+            # self.clear_working_directory()
             self.clear_scratch()
         
 
@@ -397,7 +391,7 @@ class Module:
         shell_command = f'''
         eval "$(conda shell.bash hook)";
         source activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake;
-        snakemake --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific} {self.dry_run} --cluster {job_submission_command} {self.rule_graph}'''
+        snakemake --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific} --cluster {job_submission_command}'''
         try:
             process_data = subprocess.check_call(shell_command, shell=True, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as smk_error:
@@ -441,40 +435,20 @@ class Module:
 
     def run_module(self, job_count, jobscript_path='./subscripts/ardetype_jobscript.sh'):
         '''Runs module on hpc as job or as snakemake submitter (on login node), based on self.run_mode value (True - job, False - submitter).'''
-        if self.run_local:
-            self.run_modules_local()
-        else:
+        if not self.run_local:
             if self.run_mode:
                 self.submit_module_job(jobscript_path)
                 self.check_job_completion()
             else:
                 self.run_module_cluster(job_count)
-
+        else:
+            self.run_modules_local()
         
     def add_taxonomy_column(self):
         '''Reads taxonomy information from self.aggr_taxonomy_path into self.taxonomy_dict 
         and adds taxonomy information as new column to the self.sample_sheet.'''
         self.taxonomy_dict = hk.read_json_dict(self.aggr_taxonomy_path)
         self.sample_sheet = hk.map_new_column(self.sample_sheet,self.taxonomy_dict,'sample_id','taxonomy')
-
-
-    def clear_working_directory(self):
-        '''Moves all files from working directory to source directory stored in self.cleanup_dict.'''
-        # with open(f'{self.config_file["output_directory"]}/cleanup_dict.json', 'w+') as f:
-        #     json.dump(self.cleanup_dict, f, indent=4)
-        for key in self.cleanup_dict: 
-            try:
-                move(key, self.cleanup_dict[key])
-            except:
-                continue
-            
-        # Removing anything remaining
-        dir_contents = [os.path.join(self.config_file["work_dir"],p) for p in os.listdir(self.config_file["work_dir"])]
-        for path in dir_contents:
-            if os.path.isdir(path):
-                shutil.rmtree(path)
-            else:
-                os.remove(path)
         
     def clear_scratch(self):
         ''' Removed every file and folder from scratch directory.'''
@@ -485,43 +459,6 @@ class Module:
                     shutil.rmtree(path)
                 else:
                     os.remove(path)
-
-    def files_to_wd(self, redirect_filter:dict=None):
-        '''
-        Moves all input files from input and output directories to working directory before running snakemake.
-        If redirect_filter dictionary is passed, checks each files against the keys of it. If a match is found,
-        sets source path in self.cleanup_dict to the value mapped to the corresponding key of redirect_filter (only one filter applied to each file).
-        '''
-        os.makedirs(os.path.abspath(self.config_file['work_dir']), exist_ok=True)
-        for format in self.input_dict:
-            map_dict = {}
-            for source_path in self.input_dict[format]:
-                full_path = f"{self.config_file['work_dir']}/{os.path.basename(source_path)}" #full input path to file
-                if redirect_filter is not None: #if redirection was requested
-                    for filter in redirect_filter: #starting to check filters against file names
-                        if filter in source_path: #if match
-                            map_dict[full_path] = redirect_filter[filter] #redirect
-                            try:
-                                # copy(source_path, os.path.abspath(self.config_file['work_dir']))
-                                move(source_path, os.path.abspath(self.config_file['work_dir']))  #move to wd
-                            except:
-                                break #match found by moving file was not succesful
-                            break #stop matching filters
-                    if full_path not in map_dict: #if all filters are parsed but no match (if match happend, the full path will be in map_dict)
-                        map_dict[full_path] = source_path #no redirection
-                        try:
-                            # copy(source_path, os.path.abspath(self.config_file['work_dir']))
-                            move(source_path, os.path.abspath(self.config_file['work_dir']))
-                        except Exception as e:
-                            print(e)
-                            continue
-                else: #if no filtering required during function call
-                    map_dict[full_path] = source_path
-                    try:
-                        move(source_path, os.path.abspath(self.config_file['work_dir']))
-                    except:
-                        continue
-            self.cleanup_dict.update(map_dict) #add new entries to self.cleanup_dict - these are use to place files back to source/redirect location during cleanup
 
 
     def fold_output(self):

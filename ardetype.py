@@ -14,9 +14,9 @@ if __name__ == "__main__":
     args = hk.parse_arguments(hk.read_json_dict('./config_files/json/argument_data.json'))
     num_jobs = args.num_jobs
 
-    if args.mode == "all":
+    if args.run_mode == "all":
         run_all(args, num_jobs)
-    elif args.mode == 'merge':
+    elif args.run_mode == 'merge':
         run_merge(args, num_jobs)
     else:
         sys.exit(f'Mode {args.mode} not supported, please use `--mode all`.')

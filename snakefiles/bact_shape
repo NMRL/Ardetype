@@ -8,7 +8,7 @@ from subscripts.ardetype_utilities import Ardetype_housekeeper as Housekeeper
 from subscripts.ardetype_modules import Wrapper as wp
 
 
-sip_wild = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
+sip_wild = config['output_directory']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv").astype(str)
 date = date.today().strftime("%Y-%m-%d")
 specific_tool_map = Housekeeper.read_json_dict(os.path.join(os.path.abspath('./'),"config_files/json/specific_tool_map.json"))

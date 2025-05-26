@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath('./'))
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 
 #define sample_id_pattern wildcard and accessing sample_sheet
-sip_wild     = config['work_dir']+'{sample_id_pattern}_contigs.fasta'
+sip_wild     = config['output_directory']+'{sample_id_pattern}_contigs.fasta'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv").astype(str)
 
 #keeping only samples where organisms are covered by the existing cgmlst databases
@@ -104,7 +104,7 @@ rule all:
 
 rule hicap_hinfluenzae:
     input:
-        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['hicap_hinfluenzae_sif'])
     envmodules:
         'singularity'
@@ -116,7 +116,7 @@ rule hicap_hinfluenzae:
         """
         mkdir -p {config[scratch]}hicap/ 2>> {log}
         cp {input.contigs} {config[scratch]}hicap/ 2>> {log}
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} hicap -q {config[scratch]}hicap/$(basename {input.contigs}) -o {config[scratch]}hicap/ 2>> {log}
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} hicap -q {config[scratch]}hicap/$(basename {input.contigs}) -o {config[scratch]}hicap/ 2>> {log}
         
         if [ -f {config[scratch]}hicap/{wildcards.sample_id_pattern}.tsv ]; then
             mv {config[scratch]}hicap/{wildcards.sample_id_pattern}.tsv {output} 2>> {log}
@@ -132,7 +132,7 @@ rule hicap_hinfluenzae:
 
 rule meningotype_nmeningitidis:
     input:
-        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['meningotype_nmeningitidis_sif'])
     envmodules:
         'singularity'
@@ -145,7 +145,7 @@ rule meningotype_nmeningitidis:
         mkdir -p {config[scratch]}meningotype/ 2>> {log}
         cp {input.contigs} {config[scratch]}meningotype/ 2>> {log}
         
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} meningotype --all {config[scratch]}meningotype/$(basename {input.contigs}) > {config[scratch]}meningotype/$(basename {output}) 2>> {log}
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} meningotype --all {config[scratch]}meningotype/$(basename {input.contigs}) > {config[scratch]}meningotype/$(basename {output}) 2>> {log}
         
         mv {config[scratch]}meningotype/$(basename {output}) {output} 2>> {log}
         rm -r {config[scratch]}meningotype/{wildcards.sample_id_pattern}* 2>> {log}
@@ -155,7 +155,7 @@ rule meningotype_nmeningitidis:
 
 rule legsta_lpneumophila:
     input:
-        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['legsta_lpneumophila_sif'])
     envmodules:
         'singularity'
@@ -168,7 +168,7 @@ rule legsta_lpneumophila:
         mkdir -p {config[scratch]}legsta/ 2>> {log}
         cp {input.contigs} {config[scratch]}legsta/ 2>> {log}
         
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} legsta --csv {config[scratch]}legsta/$(basename {input.contigs}) >> {config[scratch]}legsta/$(basename {output}) 2>> {log}
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} legsta --csv {config[scratch]}legsta/$(basename {input.contigs}) >> {config[scratch]}legsta/$(basename {output}) 2>> {log}
         
         mv {config[scratch]}legsta/$(basename {output}) {output} 2>> {log}
         rm -r {config[scratch]}legsta/{wildcards.sample_id_pattern}* 2>> {log}
@@ -178,7 +178,7 @@ rule legsta_lpneumophila:
 
 rule kleborate_kpneumoniae:
     input:
-        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['kleborate_kpneumoniae_sif'])
     envmodules:
         'singularity'
@@ -191,7 +191,7 @@ rule kleborate_kpneumoniae:
         mkdir -p {config[scratch]}kleborate/ 2>> {log}
         cp {input.contigs} {config[scratch]}kleborate/ 2>> {log}
         
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} \
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} \
         kleborate -o {config[scratch]}kleborate/{wildcards.sample_id_pattern} -p kpsc -r -a {config[scratch]}kleborate/$(basename {input.contigs}) --trim_headers 2>> {log}
         
         if [ -f {config[scratch]}kleborate/{wildcards.sample_id_pattern}/klebsiella_pneumo_complex_output.txt ]; then
@@ -207,7 +207,7 @@ rule kleborate_kpneumoniae:
 
 rule agrvate_saureus:
     input:
-        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['agrvate_saureus_sif'])
     envmodules:
         'singularity'
@@ -221,7 +221,7 @@ rule agrvate_saureus:
         cp {input.contigs} {config[scratch]}agrvate/ 2>> {log}
         cd {config[scratch]}agrvate/ 2>> {log}
         
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} agrvate -t -f -i {config[scratch]}agrvate/$(basename {input.contigs}) 2>> {log}
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} agrvate -t -f -i {config[scratch]}agrvate/$(basename {input.contigs}) 2>> {log}
         
         if [ -f {config[scratch]}agrvate/{wildcards.sample_id_pattern}_contigs-results/{wildcards.sample_id_pattern}_contigs-summary.tab ]; then
             mv {config[scratch]}agrvate/{wildcards.sample_id_pattern}_contigs-results/{wildcards.sample_id_pattern}_contigs-summary.tab {output} 2>> {log}
@@ -236,7 +236,7 @@ rule agrvate_saureus:
 
 rule spatyper_saureus:
     input:
-        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['spatyper_saureus_sif'])
     envmodules:
         'singularity'
@@ -249,7 +249,7 @@ rule spatyper_saureus:
         mkdir -p {config[scratch]}spatyper/ 2>> {log}
         cp {input.contigs} {config[scratch]}spatyper/ 2>> {log}
 
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} spaTyper -f {config[scratch]}spatyper/$(basename {input.contigs}) --output {config[scratch]}spatyper/$(basename {output}) 2>> {log}
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} spaTyper -f {config[scratch]}spatyper/$(basename {input.contigs}) --output {config[scratch]}spatyper/$(basename {output}) 2>> {log}
         
         if [ -f {config[scratch]}spatyper/$(basename {output}) ]; then
             mv {config[scratch]}spatyper/$(basename {output})  {output} 2>> {log}
@@ -264,7 +264,7 @@ rule spatyper_saureus:
 
 rule sccmec_saureus:
     input:
-        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['sccmec_saureus_sif'])
     envmodules:
         'singularity'
@@ -277,7 +277,7 @@ rule sccmec_saureus:
         mkdir -p {config[scratch]}sccmec/ 2>> {log}
         cp {input.contigs} {config[scratch]}sccmec/ 2>> {log}
         
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} staphopia-sccmec --assembly {config[scratch]}sccmec/$(basename {input.contigs}) > {config[scratch]}sccmec/$(basename {output}) 2>> {log}
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} staphopia-sccmec --assembly {config[scratch]}sccmec/$(basename {input.contigs}) > {config[scratch]}sccmec/$(basename {output}) 2>> {log}
         
         mv {config[scratch]}sccmec/$(basename {output})  {output} 2>> {log}
         rm -r {config[scratch]}sccmec/{wildcards.sample_id_pattern}* 2>> {log}
@@ -287,7 +287,7 @@ rule sccmec_saureus:
 
 rule emmtyper_spyogenes:
     input:
-        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['emmtyper_spyogenes_sif'])
     envmodules:
         'singularity'
@@ -300,7 +300,7 @@ rule emmtyper_spyogenes:
         mkdir -p {config[scratch]}emmtyper/ 2>>{log}
         cp {input.contigs} {config[scratch]}emmtyper/ 2>> {log}
         
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} emmtyper {config[scratch]}emmtyper/$(basename {input.contigs}) -o {config[scratch]}emmtyper/$(basename {output}) 2>> {log}
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} emmtyper {config[scratch]}emmtyper/$(basename {input.contigs}) -o {config[scratch]}emmtyper/$(basename {output}) 2>> {log}
         
         if [ -f {config[scratch]}emmtyper/$(basename {output}) ]; then
             mv {config[scratch]}emmtyper/$(basename {output}) {output} 2>> {log}
@@ -332,7 +332,7 @@ rule seqsero_senterica:
         cp {input.read_1} {config[scratch]}seqsero/ 2>> {log}
         cp {input.read_2} {config[scratch]}seqsero/ 2>> {log}
         
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} SeqSero2_package.py -d {config[scratch]}seqsero/{wildcards.sample_id_pattern} -n {wildcards.sample_id_pattern} -p {threads} -t 2 -i {config[scratch]}seqsero/{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq.gz {config[scratch]}seqsero/{wildcards.sample_id_pattern}_bact_reads_classified_2.fastq.gz 2>> {log}
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} SeqSero2_package.py -d {config[scratch]}seqsero/{wildcards.sample_id_pattern} -n {wildcards.sample_id_pattern} -p {threads} -t 2 -i {config[scratch]}seqsero/{wildcards.sample_id_pattern}_bact_reads_classified_1.fastq.gz {config[scratch]}seqsero/{wildcards.sample_id_pattern}_bact_reads_classified_2.fastq.gz 2>> {log}
         
         if [ -f {config[scratch]}seqsero/{wildcards.sample_id_pattern}/SeqSero_result.tsv ]; then
             mv {config[scratch]}seqsero/{wildcards.sample_id_pattern}/SeqSero_result.tsv  {output} 2>> {log}
@@ -347,7 +347,7 @@ rule seqsero_senterica:
 
 rule sistr_senterica:
     input:
-        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['sistr_senterica_sif'])
     envmodules:
         'singularity'
@@ -360,7 +360,7 @@ rule sistr_senterica:
         mkdir -p {config[scratch]}sistr/ 2>>{log}
         cp {input.contigs} {config[scratch]}sistr/ 2>> {log}
         
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} sistr --qc -f csv -o {config[scratch]}sistr/$(basename {output}) {config[scratch]}sistr/$(basename {input.contigs}) 2>> {log}
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} sistr --qc -f csv -o {config[scratch]}sistr/$(basename {output}) {config[scratch]}sistr/$(basename {input.contigs}) 2>> {log}
         
         if [ -f {config[scratch]}sistr/$(basename {output}) ]; then
             mv {config[scratch]}sistr/$(basename {output}) {output} 2>> {log}
@@ -375,7 +375,7 @@ rule sistr_senterica:
 
 rule lissero_lmonocytogenes:
     input:
-        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['lissero_lmonocytogenes_sif'])
     envmodules:
         'singularity'
@@ -388,7 +388,7 @@ rule lissero_lmonocytogenes:
         mkdir -p {config[scratch]}lissero/ 2>>{log}
         cp {input.contigs} {config[scratch]}lissero/ 2>> {log}
         
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} lissero {config[scratch]}lissero/$(basename {input.contigs}) > {config[scratch]}lissero/$(basename {output}) 2>> {log}
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} lissero {config[scratch]}lissero/$(basename {input.contigs}) > {config[scratch]}lissero/$(basename {output}) 2>> {log}
         
         mv {config[scratch]}lissero/$(basename {output}) {output} 2>> {log}
         rm -r {config[scratch]}lissero/$(basename {input.contigs}) 2>> {log}
@@ -398,7 +398,7 @@ rule lissero_lmonocytogenes:
 
 rule publmst_ngonorrhoe:
     input:
-        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+        contigs = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory']+'{sample_id_pattern}_ngmast.json'
     log:
@@ -424,7 +424,7 @@ rule publmst_ngonorrhoe:
 
 rule pubmlst_abaumanii:
     input:
-        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+        contigs = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta')
     output:
         config['output_directory'] + '{sample_id_pattern}_ab_pubmlst.json'
     log:
@@ -450,7 +450,7 @@ rule pubmlst_abaumanii:
 
 rule ectyper_ecoli:
     input:
-        contigs = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        contigs = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = config['ectyper_ecoli_sif']
     output:
         config['output_directory']+'{sample_id_pattern}_ectyper.tsv'        
@@ -463,7 +463,7 @@ rule ectyper_ecoli:
         mkdir -p {config[scratch]}ectyper_{wildcards.sample_id_pattern}/ 2>> {log}
         cp {input.contigs} {config[scratch]}ectyper_{wildcards.sample_id_pattern}/ 2>> {log}
         
-        singularity --silent exec --bind {config[scratch]}ectyper_{wildcards.sample_id_pattern}/,{config[output_directory]},{config[work_dir]}:{config[scratch]}ectyper_{wildcards.sample_id_pattern}/,{config[output_directory]},{config[work_dir]} {input.sif_file} ectyper -i {config[scratch]}ectyper_{wildcards.sample_id_pattern}/$(basename {input.contigs}) -o {config[scratch]}ectyper_{wildcards.sample_id_pattern}/ -c {config[tip_tool_configs][ectyper_ecoli][cores]} --pathotype 2>> {log}
+        singularity --silent exec --bind {config[scratch]}ectyper_{wildcards.sample_id_pattern}/,{config[output_directory]}:{config[scratch]}ectyper_{wildcards.sample_id_pattern}/,{config[output_directory]} {input.sif_file} ectyper -i {config[scratch]}ectyper_{wildcards.sample_id_pattern}/$(basename {input.contigs}) -o {config[scratch]}ectyper_{wildcards.sample_id_pattern}/ -c {config[tip_tool_configs][ectyper_ecoli][cores]} --pathotype 2>> {log}
         
         mv {config[scratch]}ectyper_{wildcards.sample_id_pattern}/output.tsv {output} 2>> {log}
         rm -r {config[scratch]}ectyper_{wildcards.sample_id_pattern} 2>> {log}
@@ -487,7 +487,7 @@ rule stecfinder_ecoli:
         cp {input.read_1} {config[scratch]}stecfinder_{wildcards.sample_id_pattern}/ 2>> {log}
         cp {input.read_2} {config[scratch]}stecfinder_{wildcards.sample_id_pattern}/ 2>> {log}
         
-        singularity --silent exec --bind {config[scratch]}stecfinder_{wildcards.sample_id_pattern}/,{config[output_directory]},{config[work_dir]}:{config[scratch]}stecfinder_{wildcards.sample_id_pattern}/,{config[output_directory]},{config[work_dir]} {input.sif_file} stecfinder -r -i {config[scratch]}stecfinder_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}* --output {config[scratch]}stecfinder_{wildcards.sample_id_pattern}/$(basename {output.result}) 2>> {log}
+        singularity --silent exec --bind {config[scratch]}stecfinder_{wildcards.sample_id_pattern}/,{config[output_directory]}:{config[scratch]}stecfinder_{wildcards.sample_id_pattern}/,{config[output_directory]} {input.sif_file} stecfinder -r -i {config[scratch]}stecfinder_{wildcards.sample_id_pattern}/{wildcards.sample_id_pattern}* --output {config[scratch]}stecfinder_{wildcards.sample_id_pattern}/$(basename {output.result}) 2>> {log}
         
         mv {config[scratch]}stecfinder_{wildcards.sample_id_pattern}/$(basename {output.result}) {output.result} 2>> {log}
         rm -r {config[scratch]}stecfinder_{wildcards.sample_id_pattern}/ 2>> {log}
@@ -511,7 +511,7 @@ rule seroba_spneumoniae:
         cp -r {config[seroba_spneumoniae_database]} {config[scratch]}db_seroba_{wildcards.sample_id_pattern} 2>> {log}
         cp {input.read_1} {input.read_2} {config[scratch]}seroba/ 2>> {log}
         
-        singularity --silent exec --bind {config[output_directory]},{config[work_dir]}:{config[output_directory]},{config[work_dir]} {input.sif_file} \
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} \
         seroba runSerotyping --coverage 20 --databases {config[scratch]}db_seroba_{wildcards.sample_id_pattern} \
         {config[scratch]}seroba/$(basename {input.read_1}) {config[scratch]}seroba/$(basename {input.read_2}) {config[scratch]}seroba/{wildcards.sample_id_pattern} 2>> {log}
         
@@ -532,7 +532,7 @@ rule seroba_spneumoniae:
 rule capybara:
     input:
         image_file    = ancient(config['tip_tool_configs']['capybara_abaumannii']['capybara_sif']),
-        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+        contigs       = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta')
     output:
         capybara = config['output_directory']+'{sample_id_pattern}_capybara.tsv',
     log:
@@ -556,7 +556,7 @@ rule capybara:
 rule chewbbaca_cgmlst:
     input:
         image_file    = ancient(config['tip_tool_configs']['chewbbaca']['chewbbaca_sif']),
-        contigs       = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta')
+        contigs       = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta')
     output:
         chewbbaca     = config['output_directory']+'{sample_id_pattern}_chewbbaca/results_alleles.tsv'
     log:
@@ -571,7 +571,7 @@ rule chewbbaca_cgmlst:
         mkdir -p {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca_input/ 2>> {log[0]}
         cp {input.contigs} {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca_input/ 2>> {log[0]}
 
-        singularity --silent exec --bind {scratch_path},{config["output_directory"]},{config["work_dir"]},{config["databases"]}{config["tip_tool_configs"]["chewbbaca"]["chewbbaca_dtb"]}:{scratch_path},{config["output_directory"]},{config["work_dir"]},{config["databases"]}{config["tip_tool_configs"]["chewbbaca"]["chewbbaca_dtb"]} {input.image_file} chewBBACA.py AlleleCall --no-inferred --cpu {config["tip_tool_configs"]["chewbbaca"]["chewbbaca_cores"]} -i {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca_input/ -g {chewbbaca_species_map[wildcards.sample_id_pattern]['db']} -o {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca/ 2>> {log[0]}
+        singularity --silent exec --bind {scratch_path},{config["output_directory"]},{config["output_directory"]},{config["databases"]}{config["tip_tool_configs"]["chewbbaca"]["chewbbaca_dtb"]}:{scratch_path},{config["output_directory"]},{config["output_directory"]},{config["databases"]}{config["tip_tool_configs"]["chewbbaca"]["chewbbaca_dtb"]} {input.image_file} chewBBACA.py AlleleCall --no-inferred --cpu {config["tip_tool_configs"]["chewbbaca"]["chewbbaca_cores"]} -i {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca_input/ -g {chewbbaca_species_map[wildcards.sample_id_pattern]['db']} -o {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca/ 2>> {log[0]}
         mv {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca/* {config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/ 2>> {log[0]}
 
         rm -r {scratch_path} 2>> {log[0]}
@@ -614,7 +614,7 @@ rule lrefinder_efaecium_efaecalis:
         cp {input.read_1} {config["scratch"]}{wildcards.sample_id_pattern}_lrefinder/input/ 2>> {log[0]}
         cp {input.read_2} {config["scratch"]}{wildcards.sample_id_pattern}_lrefinder/input/ 2>> {log[0]}
 
-        singularity --silent exec --bind {config["output_directory"]},{config["work_dir"]},{config["databases"]}db-lrefinder/:{config["output_directory"]},{config["work_dir"]},{config["databases"]}db-lrefinder/ {input.image_file}\
+        singularity --silent exec --bind {config["output_directory"]},{config["output_directory"]},{config["databases"]}db-lrefinder/:{config["output_directory"]},{config["output_directory"]},{config["databases"]}db-lrefinder/ {input.image_file}\
             LRE-Finder.py -ipe {input.read_1} {input.read_2} \
             -o {config["scratch"]}{wildcards.sample_id_pattern}_lrefinder/{wildcards.sample_id_pattern} \
             -t_db {config["databases"]}db-lrefinder/elm -cge -matrix \
@@ -641,7 +641,7 @@ rule shigatyper:
         
 
         singularity --silent exec \
-        --bind {config["output_directory"]},{config["work_dir"]}:{config["output_directory"]},{config["work_dir"]} {input.image_file} shigatyper \
+        --bind {config["output_directory"]}:{config["output_directory"]} {input.image_file} shigatyper \
         --R1 {input.read_1} \
         --R2 {input.read_2} \
         --name {wildcards.sample_id_pattern} \

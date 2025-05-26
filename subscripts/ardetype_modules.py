@@ -328,12 +328,9 @@ def run_all(args, num_jobs):
             module_config       = args.config,
             output_path         = args.output_dir,
             run_mode            = args.submit_modules,
-            run_local           = args.run_local,
-            dry_run             = args.dry_run,
+            run_local           = not args.hpc,
             force_all           = args.force_all,
-            rule_graph          = args.rule_graph,
-            pack_output         = args.pack_output,
-            unpack_output       = args.unpack_output,
+            pack_output         = not args.skip_packing,
             retry_times         = args.retry_times,
             rules_to_rerun      = args.force_rules,
             job_name            = module_data['core']['job_name'],
@@ -350,12 +347,9 @@ def run_all(args, num_jobs):
         module_config       = core.config_file, 
         output_path         = core.output_path, 
         run_mode            = args.submit_modules,
-        run_local           = args.run_local,
-        dry_run             = args.dry_run,
+        run_local           = not args.hpc,
         force_all           = args.force_all,
-        rule_graph          = args.rule_graph,
-        pack_output         = args.pack_output,
-        unpack_output       = args.unpack_output,
+        pack_output         = not args.skip_packing,
         retry_times         = args.retry_times,
         rules_to_rerun      = args.force_rules,
         job_name            = module_data['shell']['job_name'],
@@ -371,12 +365,9 @@ def run_all(args, num_jobs):
         module_config       = shell.config_file, 
         output_path         = core.output_path, 
         run_mode            = args.submit_modules,
-        run_local           = args.run_local,
-        dry_run             = args.dry_run,
+        run_local           = not args.hpc,
         force_all           = args.force_all,
-        rule_graph          = args.rule_graph,
-        pack_output         = args.pack_output,
-        unpack_output       = args.unpack_output,
+        pack_output         = not args.skip_packing,
         retry_times         = args.retry_times,
         rules_to_rerun      = args.force_rules,
         job_name            = module_data['tip']['job_name'],
@@ -392,12 +383,9 @@ def run_all(args, num_jobs):
         module_config       = tip.config_file,
         output_path         = core.output_path,
         run_mode            = args.submit_modules,
-        run_local           = args.run_local,
-        dry_run             = args.dry_run,
+        run_local           = not args.hpc,
         force_all           = args.force_all,
-        rule_graph          = args.rule_graph,
-        pack_output         = args.pack_output,
-        unpack_output       = args.unpack_output,
+        pack_output         = not args.skip_packing,
         retry_times         = args.retry_times,
         rules_to_rerun      = args.force_rules,
         job_name            = module_data['shape']['job_name'],
@@ -425,18 +413,18 @@ def run_all(args, num_jobs):
     core.add_output_dir()
     core.config_cluster()
     core.write_module_config()
-    core.files_to_wd(redirect_filter={"001.fastq.gz":core.output_path})
+    # core.files_to_wd(redirect_filter={"001.fastq.gz":core.output_path})
     try:
         core.run_module(job_count=num_jobs)
     except Exception as e:
         if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
             print(f'WARNING: The {core.module_name} module have failed to process one or more samples.\n')
-            core.clear_working_directory() #to avoid manually moving files back to input
+            # core.clear_working_directory() #to avoid manually moving files back to input
             core.check_module_output()     #to track failed samples
             core.pack_failed()          #separate all files for failed samples
             sys.exit(f'Files related to failed samples can be found in {os.path.abspath(core.output_path)}_failed_{core.module_name}_{core.failed_stamp}')
         else:
-            core.clear_working_directory() #to avoid manually moving files back to input
+            # core.clear_working_directory() #to avoid manually moving files back to input
             raise e
     core.check_module_output()
     #get list of samples that have failed jobs - check self.sample_sheet and search for any False in check_note_{self.module_name} column
@@ -446,20 +434,18 @@ def run_all(args, num_jobs):
     try:
         core.add_taxonomy_column()
     except FileNotFoundError as e: #it should be raised in dry-run mode as rule all of bact_core is not executed
-        if core.dry_run == "" and core.rule_graph == "":
-            raise e
+        raise e
     core.write_sample_sheet()
-    core.clear_working_directory()
+    # core.clear_working_directory()
 
   
     #Connecting core to shell
     shell.receive_sample_sheet(core.supply_sample_sheet())
-    if shell.dry_run == "" and shell.rule_graph == "": 
-        samples_cleared = shell.remove_invalid_samples(connect_from_module_name='core') #in dry run mode none of the rules are executed, hence all samples will be removed, causing error
-        shell.save_removed()
-        if samples_cleared == 1: 
-            if core.pack_output: core.fold_output()
-            raise Exception('Missing files requested by bact_shell.')
+    samples_cleared = shell.remove_invalid_samples(connect_from_module_name='core') #in dry run mode none of the rules are executed, hence all samples will be removed, causing error
+    shell.save_removed()
+    if samples_cleared == 1: 
+        if core.pack_output: core.fold_output()
+        raise Exception('Missing files requested by bact_shell.')
 
     #Running shell
     if args.nanopore_only:
@@ -474,23 +460,23 @@ def run_all(args, num_jobs):
     shell.add_module_targets()
     shell.config_cluster()
     shell.write_module_config()
-    shell.files_to_wd()
+    # shell.files_to_wd()
     try:
         shell.run_module(job_count=num_jobs)
     except Exception as e:
         if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
             print(f'WARNING: The {shell.module_name} module have failed to process one or more samples.\n')
-            shell.clear_working_directory() #to avoid manually moving files back to input
+            # shell.clear_working_directory() #to avoid manually moving files back to input
             shell.check_module_output()     #to track failed samples
             shell.pack_failed()          #separate all files for failed samples
             sys.exit(f'Files related to failed samples can be found in {os.path.abspath(shell.output_path)}_failed_{shell.module_name}_{shell.failed_stamp}')
             
         else:
-            shell.clear_working_directory() #to avoid manually moving files back to input
+            # shell.clear_working_directory() #to avoid manually moving files back to input
             raise e
     shell.check_module_output()
     shell.write_sample_sheet()
-    shell.clear_working_directory()
+    # shell.clear_working_directory()
 
     # Connecting shell & core to tip/shape
     tip.receive_sample_sheet(shell.supply_sample_sheet())
@@ -514,13 +500,13 @@ def run_all(args, num_jobs):
         except Exception as e:
             if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
                 print(f'WARNING: The {shell.module_name} module have failed to process one or more samples.\n')
-                shape.clear_working_directory() #to avoid manually moving files back to input
+                # shape.clear_working_directory() #to avoid manually moving files back to input
                 shape.check_module_output()     #to track failed samples
                 shape.pack_failed()          #separate all files for failed samples
                 sys.exit(f'Files related to failed samples can be found in {os.path.abspath(shape.output_path)}_failed_{shape.module_name}_{shape.failed_stamp}')
                 
             else:
-                shape.clear_working_directory() #to avoid manually moving files back to input
+                # shape.clear_working_directory() #to avoid manually moving files back to input
                 raise e
         shape.check_module_output(mixed=True)
         shape.write_sample_sheet()
@@ -550,23 +536,23 @@ def run_all(args, num_jobs):
         tip.add_module_targets()
         tip.config_cluster()
         tip.write_module_config()
-        tip.files_to_wd()
+        # tip.files_to_wd()
         try:
             tip.run_module(job_count=num_jobs)
         except Exception as e:
             if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
                 print(f'WARNING: The {tip.module_name} module have failed to process one or more samples.\n')
-                tip.clear_working_directory() #to avoid manually moving files back to input
+                # tip.clear_working_directory() #to avoid manually moving files back to input
                 tip.check_module_output()     #to track failed samples
                 tip.pack_failed()          #separate all files for failed samples
                 sys.exit(f'Files related to failed samples can be found in {os.path.abspath(tip.output_path)}_failed_{tip.module_name}_{tip.failed_stamp}')
                         
             else:
-                tip.clear_working_directory() #to avoid manually moving files back to input
+                # tip.clear_working_directory() #to avoid manually moving files back to input
                 raise e
         tip.check_module_output()
         tip.write_sample_sheet()
-        tip.clear_working_directory()
+        # tip.clear_working_directory()
 
     # Connecting tip & core to shape
     shape.receive_sample_sheet(tip.supply_sample_sheet())
@@ -598,13 +584,13 @@ def run_all(args, num_jobs):
     except Exception as e:
         if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
             print(f'WARNING: The {tip.module_name} module have failed to process one or more samples.\n')
-            tip.clear_working_directory() #to avoid manually moving files back to input
+            # tip.clear_working_directory() #to avoid manually moving files back to input
             tip.check_module_output()     #to track failed samples
             tip.pack_failed()          #separate all files for failed samples
             sys.exit(f'Files related to failed samples can be found in {os.path.abspath(tip.output_path)}_failed_{tip.module_name}_{tip.failed_stamp}')
                                 
         else:
-            tip.clear_working_directory() #to avoid manually moving files back to input
+            # tip.clear_working_directory() #to avoid manually moving files back to input
             raise e
     shape.check_module_output(mixed=True)
     shape.write_sample_sheet()
@@ -620,9 +606,11 @@ def run_all(args, num_jobs):
 def run_merge(args, num_jobs):
     '''Wrapper function to combine outputs from multiple folders and run all modules on the result.'''
     if args.merge_from is None:
-        raise ValueError('Must have at least 1 argument passed to --merge_from to run `merge` mode')
+        print('Please specify 1 or more paths to --merge_from to run `merge` mode',file=sys.stderr)
+        sys.exit(1)
     if args.output_dir is None:
-        raise ValueError('Must pass --output_dir to run `merge` mode')
+        print('Please specify a path to --output_dir to run `merge` mode',file=sys.stderr)
+        sys.exit(1)
     merge_inputs = args.merge_from
     merge_target = args.output_dir
     exclude_files = [
@@ -635,6 +623,7 @@ def run_merge(args, num_jobs):
         ]
     hk.merge_paths(src_list=merge_inputs, target_folder = merge_target, exclude_files = exclude_files)
     args.input = os.path.abspath(args.output_dir)
-    args.unpack_output = True
-    args.pack_output = True
+    args.skip_packing = False
     run_all(args, num_jobs)
+    nl='\n'
+    print(f'Succesfully merged\n\n{nl.join(merge_inputs)}\n\nin {merge_target}.')

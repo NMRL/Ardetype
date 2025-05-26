@@ -8,6 +8,7 @@ import pathlib
 import shutil
 import pandas as pd
 
+from glob import glob
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor as ppe, as_completed, ThreadPoolExecutor
 from bisect import bisect_left
@@ -46,52 +47,89 @@ class Ardetype_housekeeper(hk):
         Excludes and deletes files from source paths specified in exclude_files.
         '''
 
-        def move_item(src, dst):
-            """Move item from src to dst."""
-            if os.path.exists(dst):
-                raise ValueError(f"Collision detected at destination path '{dst}'")
-            os.system(f'chmod -R 775 {src}')
-            os.system(f'mv {src} {dst}')
+        confirm = input(f'WARNING: merge WILL ATTEMPT TO MOVE everything FROM each --merge_from folder to --output_dir path and run the pipeline on it.\n Original folders will NOT be deleted.\nPlease verify if you wish to proceed [yY/nN]')
 
-        def delete_item(src):
-            """Delete the specified item."""
-            os.system(f'rm -rf {src}')
 
-        if not target_folder:
-            raise ValueError("target_folder argument is required")
+        if confirm.lower() == "y":
+            def move_item(src, dst):
+                """Move item from src to dst."""
+                if os.path.exists(dst):
+                    if not dst.endswith("_mark"):
+                        print(f"Collision detected at destination path '{dst}'", file=sys.stderr)
+                        sys.exit(1)
+                if not any(p in dst for p in ["data", "config", "reports", "scratch","logs","_mark"]):
+                    shutil.move(src, dst)
 
-        # Check for naming collisions among source directories and with the target directory
-        src_name_to_paths = {}
-        os.system(f'mkdir -m 775 -p {target_folder}')
-        for src in src_list:
-            if os.path.abspath(src) == os.path.abspath(target_folder):
-                raise ValueError("Source and target folders cannot be the same.")
-                
-            for item in os.listdir(src):
-                dest_path = os.path.join(target_folder, item)
-                
-                if not ignore_collisions:
-                    if item in src_name_to_paths:
-                        raise ValueError(f"Naming collision detected for '{item}' in sources '{src_name_to_paths[item]}' and '{src}'")
-                    if os.path.exists(dest_path):
-                        raise ValueError(f"Naming collision detected for '{item}' between source '{src}' and target '{target_folder}'")
+            def delete_item(path):
+                if os.path.isdir(path) and not os.path.islink(path):
+                    shutil.rmtree(path)
+                elif os.path.exists(path):
+                    os.remove(path)
 
-                    src_name_to_paths[item] = src
+            if not target_folder:
+                raise ValueError("target_folder argument is required")
 
-        with ThreadPoolExecutor() as executor:
-            futures = []
+
+            # Check for merge compatibility
+            unmarked = []
+            dtype_dict = {}
             for src in src_list:
-                for item in os.listdir(src):
-                    src_item_path = os.path.join(src, item)
-                    dest_item_path = os.path.join(target_folder, item)
-                    if os.path.basename(item) in exclude_files:
-                        futures.append(executor.submit(delete_item, src_item_path))
-                    else:
-                        futures.append(executor.submit(move_item, src_item_path, dest_item_path))
+                mark = glob(os.path.join(src,'*mark'))
+                if mark:
+                    dtype_dict[src] = os.path.basename(mark[0])
+                else:
+                    unmarked.append(src)
+            
+            if unmarked:
+                nl = "\n"
+                print(f'Was Unable to verify data type for the following batches:\n{nl.join(unmarked)}\nPlease check folder contents.', file=sys.stderr)
+                sys.exit(1)
+            
+            dtype_check = [all(v == dtype for v in dtype_dict.values()) for dtype in ["ONT_mark","ILL_mark","HYB_mark"]]
+            if sum(dtype_check) != 1: # exatcly one is true
+                print(f'Some batches in the --merged_from list are unmergable based on stated rules (ALLOWED MERGES: Illumina + Hybrid, Illumina + Illumina, Nanopore + Nanopore).\nPlease check data types.', file=sys.stderr)
+                sys.exit(1)
 
-            for future in as_completed(futures):
-                # Handle any exceptions or errors that might have occurred
-                future.result()
+            # Check for naming collisions among source directories and with the target directory
+            src_name_to_paths = {}
+            os.makedirs(target_folder, mode=0o775, exist_ok=True)
+
+
+            for src in src_list:
+                if os.path.abspath(src) == os.path.abspath(target_folder):
+                    print("Source and target folders cannot be the same.", file=sys.stderr)
+                    sys.exit(1)
+                    
+                for item in os.listdir(src):
+                    dest_path = os.path.join(target_folder, item)
+                    
+                    if not ignore_collisions:
+                        if item in src_name_to_paths:
+                            print(f"Naming collision detected for '{item}' in sources '{src_name_to_paths[item]}' and '{src}'", file=sys.stderr)
+                            sys.exit(1)
+                        if os.path.exists(dest_path):
+                            print(f"Naming collision detected for '{item}' between source '{src}' and target '{target_folder}'")
+                            sys.exit(1)
+
+                        src_name_to_paths[item] = src
+
+            with ThreadPoolExecutor() as executor:
+                futures = []
+                for src in src_list:
+                    for item in os.listdir(src):
+                        src_item_path = os.path.join(src, item)
+                        dest_item_path = os.path.join(target_folder, item)
+                        if os.path.basename(item) in exclude_files:
+                            futures.append(executor.submit(delete_item, src_item_path))
+                        else:
+                            futures.append(executor.submit(move_item, src_item_path, dest_item_path))
+
+                for future in as_completed(futures):
+                    # Handle any exceptions or errors that might have occurred
+                    future.result()
+        else:
+            print('Batch merge aborted.')
+            sys.exit(0)
 
 
     @staticmethod
@@ -171,64 +209,6 @@ class Ardetype_housekeeper(hk):
         else:
             print("Error:")
             print(response.text)
-
-
-    @staticmethod
-    def copy_files_by_species(taxonomy_map:dict, file_list:list, collection_path:str, batch_depth:int=1, extension:str='contigs.fasta') -> None:
-        '''
-        Creates a copy of each file in file_list in the contig_repo_path 
-        according to inferred taxonomy of the corresponding sample.
-        If the species folder does not exist, it will be created.
-        '''
-        files_df = pd.DataFrame(file_list, columns=['file_path'])
-        files_df['sample_id'] = files_df['file_path'].apply(lambda x: [id for id in taxonomy_map if id in x][0])
-        
-        def get_batch_id_from_path(path, depth):
-            '''Recursive logic to get folder name at a given depth'''
-            if depth == 0:
-                return os.path.basename(path)
-            else:
-                return get_batch_id_from_path(os.path.dirname(path), depth - 1)
-
-
-        # Extract batch ID from each file's directory name
-        files_df['batch_id'] = files_df['file_path'].apply(lambda x: get_batch_id_from_path(x, batch_depth))
-        
-        taxonomy_df = pd.DataFrame(list(taxonomy_map.items()), columns=['sample_id', 'taxonomy'])
-        merged_df = pd.merge(files_df, taxonomy_df, on='sample_id', how='left')
-        # Adjust the new_path to include the batch_id in the filename
-        merged_df['new_path'] = merged_df.apply(
-            lambda row: os.path.join(
-                collection_path,
-                row['taxonomy'].replace(" ", "_"),
-                f"{re.sub(r'_S[0-9]*','',row['sample_id'])}_{row['batch_id']}_{extension}"  # Adjusted filename format
-            ),
-            axis=1
-        )
-        
-        # Prepare a list of tuples (src, dst) for copying
-        file_operations = list(merged_df[['file_path', 'new_path']].itertuples(index=False, name=None))
-
-        def copy_file(src, dst):
-            '''
-            Copies a single file from src to dst.
-            Creates the destination directory if it does not exist.
-            '''
-            os.makedirs(os.path.dirname(dst), exist_ok=True)
-            shutil.copy(src, dst)
-
-        # Use ThreadPoolExecutor to copy files in parallel
-        with ThreadPoolExecutor() as executor:
-            # Submit all the file copy operations to the executor
-            futures = [executor.submit(copy_file, src, dst) for src, dst in file_operations]
-            
-            # Optionally, wait for all futures to complete and handle exceptions
-            for future in futures:
-                try:
-                    future.result()  # This will raise exceptions from the copy operation, if any
-                except Exception as e:
-                    print(f"Error copying file: {e}")
-        os.system(f'chmod -R 775 {collection_path} 2> /dev/null')
 
                     
 #######################
