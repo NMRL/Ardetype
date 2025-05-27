@@ -130,6 +130,7 @@ python ardetype.py -i <batch_path> -m all
 # Nanopore data
 python ardetype.py -i <batch_path> -m all -ont
 ```
+- It is recommended to use the `screen` utility to run the pipeline in the background, especially for long-running jobs or remote sessions.
 
 ARDETYPE integrates open-source tools for:
 
