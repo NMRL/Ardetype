@@ -74,6 +74,7 @@ rule all:
         report = report[order_list]
 
         #generate per-sample and per-batch tool reports
+        print(f'shape: extracting tool/database versions', file=sys.stdout)
         wrapper = wp()
         wrapper.set_db_vers_map()
         wrapper.set_tool_vers_map()

@@ -28,7 +28,9 @@ class Housekeeper:
         containing absolute paths to all files of specified format found in folder and subfolders,
         except for files that contain patterns to exclude (specified in regstr_lst) or substrings to exclude (specified in substr_lst).    
         '''
-        if not os.path.isdir(folder_pth_str): raise ValueError(f'Expected path to folder - {folder_pth_str} does not exist or refers to a file')
+        if not os.path.isdir(folder_pth_str): 
+            print(f'Expected path to folder - {folder_pth_str} does not exist or refers to a file', file=sys.stderr)
+            sys.exit(1)
         name_series = pd.Series(dtype="str") #initialize pandas series to store path values
         for (root,_,files) in os.walk(folder_pth_str, topdown=True): #get list of file paths (from parent dir & subdir)
             new_files = pd.Series(files, dtype="str") #convert file names in new folder to pandas series
@@ -59,15 +61,15 @@ class Housekeeper:
         file_series = pd.Series(file_lst, dtype="str") #to facilitate filtering
         ss_df = pd.DataFrame(dtype="str") #to store sample sheet
         if mode not in [0,1]:
-            raise Exception(f"utilities/create_sample_sheet: Accepted mode values are 0 for fasta and 1 for fastq: {mode} was given.") 
+            raise Exception(f"utilities.create_sample_sheet: Accepted mode values are 0 for fasta and 1 for fastq: {mode} was given.") 
 
         if mode == 1:  #If function is used to produce sample sheet from fasta files
             id_extractor = lambda x: os.path.basename(x).replace(generic_str, "") #extract id from string by replacing generic part
             id_series = file_series.apply(id_extractor) 
             if regex_str is not None: 
                 id_series = id_series[id_series.str.contains(regex_str)] #additional sample id filtering based on regex was requested
-                if len(id_series) == 0:
-                    raise Exception('utilities/create_sample_sheet: After filtering sample ids using regex no sample ids left')
+                if not id_series:
+                    raise Exception('utilities.create_sample_sheet: no sample ids left after filtering sample ids using regex')
             path_series = file_series[file_series.str.contains("|".join(id_series))].reset_index(drop=True) #getting corresponding paths to fastq files
             ss_df['sample_id'], ss_df['fa'] = id_series, path_series #adding to sample sheet dataframe
             return ss_df
@@ -76,8 +78,8 @@ class Housekeeper:
         id_series = file_series.apply(id_extractor).drop_duplicates(keep = "first").sort_values().reset_index(drop=True)
         if regex_str is not None: #additional sample id filtering based on regex was requested
             id_series = id_series[id_series.str.contains(regex_str)]
-            if len(id_series) == 0:
-                raise Exception('utilities/create_sample_sheet: After filtering sample ids using regex no sample ids left')
+            if not id_series:
+                raise Exception('utilities.create_sample_sheet: no sample ids left after filtering sample ids using regex')
         read_1_dict, read_2_dict = {}, {} #to use python mapping to ensure correspondance between id and path
 
         for id in id_series:
@@ -100,15 +102,15 @@ class Housekeeper:
         Given a pandas dataframe (object), a dictionary where each row in id_column is matched with information to be added (dict, values to be added as one column),
         and a new column name (str), returns a pandas dataframe (object), that contains new column where new information is added to the corresponding row of id_column.
         """
-        if not isinstance(ss_df, pd.DataFrame): raise TypeError('Expected pandas.DataFrame as ss_df')
-        elif not isinstance(info_dict, dict): raise TypeError('Expected dictionary as info_dict')
-        elif id_column not in ss_df.columns: raise KeyError('id_column should be present in ss_df')
+        if not isinstance(ss_df, pd.DataFrame): raise TypeError('utilities.map_new_column: Expected pandas.DataFrame as ss_df')
+        elif not isinstance(info_dict, dict): raise TypeError('utilities.map_new_column: Expected dictionary as info_dict')
+        elif id_column not in ss_df.columns: raise KeyError('utilities.map_new_column: id_column should be present in ss_df')
         elif not set(info_dict.keys()).intersection(set(ss_df[id_column])):
             if info_dict:
                 ss_df.to_csv('test_df.csv', header=True, index=False)
                 with open('id_check_dict.json', 'w+') as f:
                     json.dump(info_dict, f, indent=4)
-                raise KeyError('No overlap between ids in ss_df.id_column and info_dict')
+                raise KeyError('utilities.map_new_column: No overlap between ids in ss_df.id_column and info_dict')
 
         ss_df[new_col_name] = ss_df[id_column].map(info_dict)
         return ss_df
@@ -145,39 +147,6 @@ class Housekeeper:
             for value in config_dict.values():
                 if isinstance(value, dict):
                     return Housekeeper.edit_nested_dict(value, param, new_value)
-
-    @staticmethod
-    def find_in_nested_dict(nested_dict:dict, key_sequence:list):
-        '''
-        Given a dictionary and an ordered sequence of keys in a form of list, returns value mapped to last key in sequence, by parsing the dictionary. 
-        Raises exceptions if key is not found or non-dict value reached before last key in sequence is reached.
-        '''
-        if not isinstance(nested_dict,dict):
-            raise TypeError('nested_dict should be a python dictionary')
-        elif not hasattr(key_sequence, 'pop'):
-            raise TypeError('key_sequence should have pop method defined')
-
-        key = key_sequence.pop(0)
-        try:
-            if isinstance(nested_dict[key], dict) and len(key_sequence) != 0:
-                tmp_dict = nested_dict[key]
-            elif len(key_sequence) == 0:
-                return nested_dict[key]
-            elif not isinstance(nested_dict[key], dict):
-                raise Exception('Problem with keys: reached non-dict value before processing all keys in sequence.')
-        except KeyError:
-            raise Exception(f'Problem with keys: {key} not found in nested_dict.')
-
-        for key in key_sequence:
-            try:
-                if isinstance(tmp_dict[key], dict) and key != key_sequence[-1]:
-                    tmp_dict = tmp_dict[key]
-                elif key == key_sequence[-1]:
-                    return tmp_dict[key]
-                elif not isinstance(tmp_dict[key], dict):
-                    raise LookupError('Problem with keys: reached non-dict value before processing all keys in sequence.')
-            except KeyError:
-                raise LookupError(f'Problem with keys: {key} not found in nested_dict.')
 
             
     @staticmethod
@@ -304,7 +273,7 @@ class Housekeeper:
         if seqs:
             SeqIO.write([rec for rec in seqs if len(rec.seq) > minlen], output_multifasta_path, "fasta")
         else:
-            raise ValueError('Input fasta parsing error')
+            raise ValueError(f"Contig filtering by length failed - {input_multifasta_path} is either malformed or empty.")
 
         
     @staticmethod

@@ -97,7 +97,8 @@ class Module:
                                 self.input_path,substr_lst=substring_list,
                                 file_fmt_str=pattern)
                             if not parsed_files:
-                                raise FileNotFoundError(f'Missing {fmt} files in input directory')
+                                print(f'Missing {fmt} files in input directory', file=sys.stderr)
+                                sys.exit(1)
                             self.input_dict[pattern] = parsed_files
                     elif isinstance(self.patterns['inputs'][fmt], str):
                         parsed_files = hk.parse_folder(
@@ -112,7 +113,8 @@ class Module:
             for fmt in self.patterns['inputs']['required']: 
                 self.input_dict[fmt] = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=fmt)
                 if not self.input_dict[fmt]:
-                    raise FileNotFoundError(f'Missing {fmt} files in input directory')
+                    print(f'Missing {fmt} files in input directory', file=sys.stderr)
+                    sys.exit(1)
             
             if not empty:
                 for fmt in self.patterns['inputs']['optional']:
@@ -209,15 +211,30 @@ class Module:
 
     def add_module_targets(self):
         '''Updates self.config_file, using self.module_name.'''
-        output_code = hk.edit_nested_dict(config_dict=self.config_file, param=f"{self.module_name}_target_files", new_value=self.target_list)
         validation_code = hk.validate_yaml(self.config_file)
-        if not output_code == 0: raise Exception(f'Config editing failed with error code {output_code}')
-        elif not validation_code == 0: raise Exception(f'Config validation failed with error code {validation_code}')
+        if validation_code != 0:
+            print(f'Config file structure differs from expected template (see config_files/yaml/config_modular_local.yaml for example).', file=sys.stderr)
+            sys.exit(1)
+
+        output_code = hk.edit_nested_dict(config_dict=self.config_file, param=f"{self.module_name}_target_files", new_value=self.target_list)
+        if output_code != 0:
+            nl = '\n'
+            print(f'Failed to set {self.module_name}_target_files value to\n\n{nl.join(self.target_list)}\n\nPlease ensure that config file contains {self.module_name}_target_files parameter (see config_files/yaml/config_modular_local.yaml for example).', file=sys.stderr)
+            sys.exit(1)
 
 
     def add_output_dir(self):
         '''Updates self.config_file using self.output_path.'''
+
+        validation_code = hk.validate_yaml(self.config_file)
+        if validation_code != 0:
+            print(f'Config file structure differs from expected template (see config_files/yaml/config_modular_local.yaml for example).', file=sys.stderr)
+            sys.exit(1)
+
         output_code = hk.edit_nested_dict(config_dict=self.config_file, param="output_directory", new_value=self.output_path)
+        if output_code != 0:
+            print(f'Failed to set output_directory value to {self.output_path}.\nPlease ensure that config file contains output_directory parameter (see config_files/yaml/config_modular_local.yaml for example).', file=sys.stderr)
+            sys.exit(1)
 
         #Updating paths in config
         ardetype_path = str(Path(os.path.abspath('./')))
@@ -232,10 +249,6 @@ class Module:
         for substr in ["_database", "_db", "_sif"]:
             hk.join_sif_paths(self.config_file, substr, ardetype_path)
 
-        validation_code = hk.validate_yaml(self.config_file)
-        if not output_code == 0: raise Exception(f'Config editing failed with error code {output_code}')
-        elif not validation_code == 0: raise Exception(f'Config validation failed with error code {validation_code}')
-
 
     def write_module_config(self):
         '''Writes self.config_file to the self.output_path'''
@@ -245,7 +258,6 @@ class Module:
     def check_module_output(self, mixed:bool=False):
         '''Checks if output files are generated according to self.module_name and adds check_note_{self.module_name} column 
         to the self.sample_sheet dataframe, where boolean value is stored for each expected file.'''
-        ###Development - Automatically scale dirs_up depending on input structure - currently two dirs up max
         check_dict = hk.check_file_existance(file_list=self.target_list)
         if mixed:
             id_check_dict = {id:"" for id in self.sample_sheet['sample_id'].to_list()+self.removed_samples['sample_id'].to_list()}
@@ -326,8 +338,12 @@ class Module:
             '''
             result = subprocess.run(cmd, shell=True, executable="/bin/bash", check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             self.job_id = result.stdout
-        except subprocess.CalledProcessError as e:
-            raise Exception(f"{self.module_name} job runtime error:\nSTDOUT:\n{e.stdout}\nSTDERR:\n{e.stderr}")
+        except KeyboardInterrupt:
+            print(f"{self.module_name} interrupted by SIGTERM : Run the same command to continue (make sure to include timestamp added to batch folder name).", file=sys.stderr)
+            sys.exit(1)
+        except Exception as e:
+            print(f"{self.module_name} finished with runtime error:\nSTDOUT:\n{e.stdout}\nSTDERR:\n{e.stderr}", file=sys.stderr)
+            sys.exit(1)
         finally:
             # self.clear_working_directory()
             self.clear_scratch()
@@ -345,7 +361,8 @@ class Module:
             os.remove(f'{self.output_path}ardetype_jobscript.sh') #cleanup
 
         except subprocess.CalledProcessError as msg:
-            raise Exception(f"{self.module_name} job submission error: {msg}")
+            print(f"{self.module_name} module job submission failed with error:{msg}", file=sys.stderr)
+            sys.exit(1)
         finally:
             # self.clear_working_directory()
             self.clear_scratch()
@@ -399,38 +416,20 @@ class Module:
             failed_samples_tag = 'Out of jobs ready to be started, but not all files built yet.'
 
             if re.search(failed_samples_tag, smk_log):
-                raise Exception(f"{self.module_name} module process: {failed_samples_tag}")
                 #case 1: snakemake throws an error if it is out of jobs - workflow restart required
+                print(f"{self.module_name} module failed for {failed_samples_tag} samples.", file=sys.stderr)
+                sys.exit(1)
             else:
                 #case 2: snakemake throws an error if there is a bug in the workflow code - fix required
-                raise Exception(f"{self.module_name} module process running error: {smk_error.output}")
+                print(f"{self.module_name} module code contains error: {smk_error.output}", file=sys.stderr)
+                sys.exit(1)
         except KeyboardInterrupt as ki:
-            raise Exception(f"{self.module_name} was interrupted by the user: {ki}")
             #case 3 - keyboard interrupt by the user
+            print(f"{self.module_name} was interrupted by the user: {ki}", file=sys.stderr)
+            sys.exit(1)           
         else:
             #if the workflow finished normally
             print(process_data)
-
-
-    def pack_failed(self):
-        '''
-        Parses check_note_{self.module_name} of {self.sample_sheet} to get list of samples with at least 1 missing file.
-        Creates {self.output_path}_failed_{self.module_name}_{timestamp} folder under parent folder of {self.output_path}.
-        Moves all folders and files related to failed samples 
-        from {self.output_path} to {self.output_path}_failed_{self.module_name}_{timestamp}.
-        Sets {self.failed_stamp} to {timestamp} (default = None).
-        '''
-        failed_samples  = self.sample_sheet[self.sample_sheet[f'check_note_{self.module_name}'].str.contains('False')]['sample_id'].tolist()
-        timestamp       = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
-        failed_dir_path = f'{os.path.abspath(self.output_path)}_failed_{self.module_name}_{timestamp}'
-
-        os.makedirs(failed_dir_path, mode=775, exist_ok=True)
-
-        for id in failed_samples:
-            for f in glob.glob(f'{self.output_path}{id}*'):
-                move(f, f'{failed_dir_path}/')
-
-        self.failed_stamp = timestamp
 
 
     def run_module(self, job_count, jobscript_path='./subscripts/ardetype_jobscript.sh'):

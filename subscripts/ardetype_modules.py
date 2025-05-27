@@ -397,14 +397,17 @@ def run_all(args, num_jobs):
     )
 
     #Running core
-    if core.unfold_output: core.unfold_output()
+    core.unfold_output()
+    print(f'{core.module_name}: Checking input', file=sys.stdout)
     if args.nanopore_only:
+        print(f'{core.module_name}: Nanopore mode requested - configuring', file=sys.stdout)
         core.snakefile_path = module_data['snakefiles']['core_ont']
         core.fill_input_dict(pattern_path='ONT')
         core.fill_sample_sheet(pattern=core.patterns['inputs']['ONT'])
     else:
         core.fill_input_dict(pattern_path='ILL')
         core.fill_sample_sheet(pattern=core.patterns['inputs']['ILL'])
+    print(f'{core.module_name}: Adding targets to config file', file=sys.stdout)
     core.make_output_dir()
     core.get_sample_groups()
     core.write_sample_sheet()
@@ -413,101 +416,78 @@ def run_all(args, num_jobs):
     core.add_output_dir()
     core.config_cluster()
     core.write_module_config()
-    # core.files_to_wd(redirect_filter={"001.fastq.gz":core.output_path})
-    try:
-        core.run_module(job_count=num_jobs)
-    except Exception as e:
-        if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
-            print(f'WARNING: The {core.module_name} module have failed to process one or more samples.\n')
-            # core.clear_working_directory() #to avoid manually moving files back to input
-            core.check_module_output()     #to track failed samples
-            core.pack_failed()          #separate all files for failed samples
-            sys.exit(f'Files related to failed samples can be found in {os.path.abspath(core.output_path)}_failed_{core.module_name}_{core.failed_stamp}')
-        else:
-            # core.clear_working_directory() #to avoid manually moving files back to input
-            raise e
+    print(f'{core.module_name}: Launching snakemake', file=sys.stdout)
+    core.run_module(job_count=num_jobs)
+    print(f'{core.module_name}: Verifying output completion', file=sys.stdout)
     core.check_module_output()
-    #get list of samples that have failed jobs - check self.sample_sheet and search for any False in check_note_{self.module_name} column
-    #create failed folder under output
-    #move all existing files for failed samples to output/failed/
-    #reinit pipeline from input parsing step for all non-failed samples
-    try:
-        core.add_taxonomy_column()
-    except FileNotFoundError as e: #it should be raised in dry-run mode as rule all of bact_core is not executed
-        raise e
+    core.add_taxonomy_column()
     core.write_sample_sheet()
-    # core.clear_working_directory()
+    print(f'{core.module_name}: Finished', file=sys.stdout)
 
   
     #Connecting core to shell
+    print(f'{shell.module_name}: Parsing core output', file=sys.stdout)
     shell.receive_sample_sheet(core.supply_sample_sheet())
+    print(f'{shell.module_name}: Removing samples lacking required files', file=sys.stdout)
     samples_cleared = shell.remove_invalid_samples(connect_from_module_name='core') #in dry run mode none of the rules are executed, hence all samples will be removed, causing error
     shell.save_removed()
     if samples_cleared == 1: 
         if core.pack_output: core.fold_output()
-        raise Exception('Missing files requested by bact_shell.')
+        print(f'{shell.module_name}: Missing files requested by bact_shell', file=sys.stderr)
+        sys.exit(1)
 
     #Running shell
     if args.nanopore_only:
+        print(f'{shell.module_name}: Nanopore mode requested - configuring', file=sys.stdout)
         shell.snakefile_path = module_data['snakefiles']['shell_ont']
         shell.fill_input_dict(pattern_path='ONT')
     else:
         shell.fill_input_dict(pattern_path='ILL/FUL')
 
+    print(f'{shell.module_name}: Adding targets to config file', file=sys.stdout)
     shell.add_fasta_samples()
     shell.write_sample_sheet()
     shell.fill_target_list()
     shell.add_module_targets()
     shell.config_cluster()
     shell.write_module_config()
-    # shell.files_to_wd()
-    try:
-        shell.run_module(job_count=num_jobs)
-    except Exception as e:
-        if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
-            print(f'WARNING: The {shell.module_name} module have failed to process one or more samples.\n')
-            # shell.clear_working_directory() #to avoid manually moving files back to input
-            shell.check_module_output()     #to track failed samples
-            shell.pack_failed()          #separate all files for failed samples
-            sys.exit(f'Files related to failed samples can be found in {os.path.abspath(shell.output_path)}_failed_{shell.module_name}_{shell.failed_stamp}')
-            
-        else:
-            # shell.clear_working_directory() #to avoid manually moving files back to input
-            raise e
+
+    print(f'{shell.module_name}: Launching snakemake', file=sys.stdout)
+    shell.run_module(job_count=num_jobs)
+
+    print(f'{shell.module_name}: Verifying output completion', file=sys.stdout)
     shell.check_module_output()
     shell.write_sample_sheet()
-    # shell.clear_working_directory()
+    print(f'{shell.module_name}: Finished', file=sys.stdout)
 
     # Connecting shell & core to tip/shape
+    print(f'{tip.module_name}: Checking required input', file=sys.stdout)
     tip.receive_sample_sheet(shell.supply_sample_sheet())
+    print(f'{tip.module_name}: Removing samples lacking required files', file=sys.stdout)
     samples_cleared = tip.remove_invalid_samples(connect_from_module_name='core', taxonomy_only=True)
     tip.save_removed()
-    if samples_cleared == 1:                                                            
+    if samples_cleared == 1:
+        print(f'{tip.module_name}: No samples to process - proceeding to shape', file=sys.stdout)
+        print(f'{shape.module_name}: Checking required input', file=sys.stdout)                                                     
         shape.receive_sample_sheet(shell.supply_sample_sheet())
+        print(f'{shape.module_name}: Removing samples lacking required files', file=sys.stdout)
         samples_cleared = shape.remove_invalid_samples(connect_from_module_name='shell')
 
         # Running shape
+        print(f'{shape.module_name}: Adding targets to config file', file=sys.stdout)
         shape.fill_input_dict(substring_list=None, mixed=True, empty=True)               #empty sample sheet due to filtering of invalid samples
         shape.fill_target_list(mixed=True, empty=True)
         if args.nanopore_only:
+            print(f'{shape.module_name}: Nanopore mode requested - configuring', file=sys.stdout)
             shape.target_list = [t for t in shape.target_list if "fastp" not in t and "host_filtering" not in t]
             shape.snakefile_path = module_data['snakefiles']['shape_ont']
         shape.add_module_targets()
         shape.config_cluster()
         shape.write_module_config()
-        try:
-            shape.run_module(job_count=num_jobs)
-        except Exception as e:
-            if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
-                print(f'WARNING: The {shell.module_name} module have failed to process one or more samples.\n')
-                # shape.clear_working_directory() #to avoid manually moving files back to input
-                shape.check_module_output()     #to track failed samples
-                shape.pack_failed()          #separate all files for failed samples
-                sys.exit(f'Files related to failed samples can be found in {os.path.abspath(shape.output_path)}_failed_{shape.module_name}_{shape.failed_stamp}')
-                
-            else:
-                # shape.clear_working_directory() #to avoid manually moving files back to input
-                raise e
+        print(f'{shape.module_name}: Launching snakemake', file=sys.stdout)
+        shape.run_module(job_count=num_jobs)
+
+        print(f'{shape.module_name}: Verifying output completion', file=sys.stdout)
         shape.check_module_output(mixed=True)
         shape.write_sample_sheet()
         if shape.pack_output:
@@ -515,16 +495,18 @@ def run_all(args, num_jobs):
             shape.output_path = tip.output_path
             shape.fold_output()
         shape.set_permissions()
-        sys.exit("bact_shape finished")
+        sys.exit(f'{shape.module_name}: Finished')
     else:
         # Running tip
+        print(f'{tip.module_name}: Adding targets to config file', file=sys.stdout)
         tip.fill_input_dict(substring_list=None, pattern_path='ONT')
         tip.add_fasta_samples()
         tip.write_sample_sheet()
         tip.fill_target_list(taxonomy_based=True)
         if args.nanopore_only:
+            print(f'{tip.module_name}: Nanopore mode requested - configuring', file=sys.stdout)
             tgt_exc_list = [
-                "-predictResults.txt", #lpgenomics
+                "-predictResults.txt",
                 "_SeqSero.tsv",
                 "_stecfinder.tsv",
                 "_seroba.tsv",
@@ -536,36 +518,31 @@ def run_all(args, num_jobs):
         tip.add_module_targets()
         tip.config_cluster()
         tip.write_module_config()
-        # tip.files_to_wd()
-        try:
-            tip.run_module(job_count=num_jobs)
-        except Exception as e:
-            if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
-                print(f'WARNING: The {tip.module_name} module have failed to process one or more samples.\n')
-                # tip.clear_working_directory() #to avoid manually moving files back to input
-                tip.check_module_output()     #to track failed samples
-                tip.pack_failed()          #separate all files for failed samples
-                sys.exit(f'Files related to failed samples can be found in {os.path.abspath(tip.output_path)}_failed_{tip.module_name}_{tip.failed_stamp}')
-                        
-            else:
-                # tip.clear_working_directory() #to avoid manually moving files back to input
-                raise e
+        print(f'{tip.module_name}: Launching snakemake', file=sys.stdout)
+        tip.run_module(job_count=num_jobs)
+
+        print(f'{tip.module_name}: Verifying output completion', file=sys.stdout)
         tip.check_module_output()
         tip.write_sample_sheet()
-        # tip.clear_working_directory()
+        print(f'{tip.module_name}: Finished', file=sys.stdout)
 
     # Connecting tip & core to shape
+    print(f'{shape.module_name}: Checking required input', file=sys.stdout)
     shape.receive_sample_sheet(tip.supply_sample_sheet())
+    print(f'{shape.module_name}: Removing samples lacking required files', file=sys.stdout)
     samples_cleared = shape.remove_invalid_samples(connect_from_module_name='core')
     shape.removed_samples = tip.removed_samples
     if samples_cleared == 1: 
         if tip.pack_output: tip.fold_output()
-        raise Exception('Missing files requested by bact_shape.')
+        print(f'{shape.module_name}: Missing files requested by bact_shell', file=sys.stderr)
+        sys.exit(1)
 
     # Running shape
+    print(f'{shape.module_name}: Adding targets to config file', file=sys.stdout)
     shape.fill_input_dict(substring_list=None, mixed=True)
     shape.fill_target_list(mixed=True)
     if args.nanopore_only:
+        print(f'{shape.module_name}: Nanopore mode requested - configuring', file=sys.stdout)
         tgt_exc_list = [
             "fastp",
             "host_filtering",
@@ -579,25 +556,18 @@ def run_all(args, num_jobs):
     shape.add_module_targets()
     shape.config_cluster()
     shape.write_module_config()
-    try:
-        shape.run_module(job_count=num_jobs)
-    except Exception as e:
-        if 'Out of jobs ready to be started, but not all files built yet.' in str(e):
-            print(f'WARNING: The {tip.module_name} module have failed to process one or more samples.\n')
-            # tip.clear_working_directory() #to avoid manually moving files back to input
-            tip.check_module_output()     #to track failed samples
-            tip.pack_failed()          #separate all files for failed samples
-            sys.exit(f'Files related to failed samples can be found in {os.path.abspath(tip.output_path)}_failed_{tip.module_name}_{tip.failed_stamp}')
-                                
-        else:
-            # tip.clear_working_directory() #to avoid manually moving files back to input
-            raise e
+    print(f'{shape.module_name}: Launching snakemake', file=sys.stdout)
+    shape.run_module(job_count=num_jobs)
+
+    print(f'{shape.module_name}: Verifying output completion', file=sys.stdout)
     shape.check_module_output(mixed=True)
     shape.write_sample_sheet()
     if shape.pack_output:
         shape.output_path = tip.output_path
         tip.fold_output()
     shape.set_permissions()
+
+    print(f'{shape.module_name}: Finished', file=sys.stdout)
 
     # Add sample_id and job name to log
     return shape.output_path
@@ -621,9 +591,11 @@ def run_merge(args, num_jobs):
         'config_cluste.yaml' , 
         'removed_samples_tip.csv'
         ]
+    print(f'Merge: starting merging folder contents', file=sys.stdout)
     hk.merge_paths(src_list=merge_inputs, target_folder = merge_target, exclude_files = exclude_files)
     args.input = os.path.abspath(args.output_dir)
     args.skip_packing = False
+    print(f'Merge: Launching the pipeline', file=sys.stdout)
     run_all(args, num_jobs)
     nl='\n'
-    print(f'Succesfully merged\n\n{nl.join(merge_inputs)}\n\nin {merge_target}.')
+    print(f'Succesfully merged\n\n{nl.join(merge_inputs)}\n\nin {merge_target}.', file=sys.stdout)
