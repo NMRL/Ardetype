@@ -148,6 +148,39 @@ class Housekeeper:
                 if isinstance(value, dict):
                     return Housekeeper.edit_nested_dict(value, param, new_value)
 
+
+    @staticmethod
+    def find_in_nested_dict(nested_dict:dict, key_sequence:list):
+        '''
+        Given a dictionary and an ordered sequence of keys in a form of list, returns value mapped to last key in sequence, by parsing the dictionary. 
+        Raises exceptions if key is not found or non-dict value reached before last key in sequence is reached.
+        '''
+        if not isinstance(nested_dict,dict):
+            raise TypeError('nested_dict should be a python dictionary')
+        elif not hasattr(key_sequence, 'pop'):
+            raise TypeError('key_sequence should have pop method defined')
+
+        key = key_sequence.pop(0)
+        try:
+            if isinstance(nested_dict[key], dict) and len(key_sequence) != 0:
+                tmp_dict = nested_dict[key]
+            elif len(key_sequence) == 0:
+                return nested_dict[key]
+            elif not isinstance(nested_dict[key], dict):
+                raise Exception('Problem with keys: reached non-dict value before processing all keys in sequence.')
+        except KeyError:
+            raise Exception(f'Problem with keys: {key} not found in nested_dict.')
+
+        for key in key_sequence:
+            try:
+                if isinstance(tmp_dict[key], dict) and key != key_sequence[-1]:
+                    tmp_dict = tmp_dict[key]
+                elif key == key_sequence[-1]:
+                    return tmp_dict[key]
+                elif not isinstance(tmp_dict[key], dict):
+                    raise LookupError('Problem with keys: reached non-dict value before processing all keys in sequence.')
+            except KeyError:
+                raise LookupError(f'Problem with keys: {key} not found in nested_dict.')
             
     @staticmethod
     def get_all_keys(input_dict:dict, key_set=set()):
