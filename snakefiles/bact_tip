@@ -345,8 +345,8 @@ rule emmtyper_spyogenes:
 
 rule seqsero_senterica:
     input:
-        read_1   = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz'),
-        read_2   = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz'),
+        read_1   = ancient(config['output_directory']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz'),
+        read_2   = ancient(config['output_directory']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz'),
         sif_file = ancient(config['seqsero2_senterica_sif'])
     threads:
         config['tip_tool_configs']['seqsero_senterica']['threads']
