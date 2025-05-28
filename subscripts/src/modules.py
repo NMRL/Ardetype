@@ -110,7 +110,7 @@ class Module:
                         self.input_dict[self.patterns['inputs'][fmt]] = parsed_files
 
         elif mixed or empty:
-            for fmt in self.patterns['inputs']['required']: 
+            for fmt in self.patterns['inputs']['required']:
                 self.input_dict[fmt] = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=fmt)
                 if not self.input_dict[fmt]:
                     print(f'Missing {fmt} files in input directory', file=sys.stderr)
@@ -135,68 +135,93 @@ class Module:
             self.sample_sheet = hk.map_new_column(self.sample_sheet,fasta_dict,'sample_id','fa')
 
 
-    def get_sample_groups(self, regexp:str=f'(_R[1,2]_001.fastq.gz|_ONT.fastq.gz)'):
+    def get_sample_groups(self, regexp:str=f'(_R[1,2]_001.fastq.gz|_ONT.fastq.gz)', fasta:bool=False):
         '''Extracts grouping information for samples based on the available input files'''
-        file_list = glob.glob(os.path.join(self.input_path, '*'))
-        file_map = {}
-        for f in file_list:
-            sample_id = os.path.basename(re.sub(regexp, '', f))
-            finding = re.search(regexp, f)
-            if finding is not None:
-                finding = finding.group(0)
-                file_map[sample_id] = file_map.get(sample_id, list())
-                file_map[sample_id].append(finding)
-        #Equalize column length
-        for k, v in file_map.items():
-            ln = len(v)
-            if ln < 3:
-                for _ in range(3 - ln):
-                    file_map[k].append(str(None))
-            file_map[k].sort()
-        
+        if fasta:
+            file_list = glob.glob(os.path.join(self.input_path, '*'))
+            file_map = {}
+            for f in file_list:
+                sample_id = os.path.basename(re.sub(r'\_contigs.fasta', '', f))
+                finding = re.search(r'\_contigs.fasta', f)
+                if finding is not None:
+                    finding = finding.group(0)
+                    file_map[sample_id] = file_map.get(sample_id, list())
+                    file_map[sample_id].append(finding)
 
-        #Define groups of samples
-        df = pd.DataFrame.from_dict(file_map, orient='index').reset_index()
-        df.columns = ['sample_id', 'ONT', 'ILL1', 'ILL2']
-        ont_case = df.ONT.str.contains('None') & df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
-        ill_case = df.ONT.str.contains('None') & ~df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
-        ful_case = ~df.ONT.str.contains('None') & ~df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
+            df = pd.DataFrame.from_dict(file_map, orient='index').astype(str).reset_index()
+            df.columns = ['sample_id', 'FA']
+            fa_case = ~df.FA.str.contains('None')
 
+            ont_fa = df[fa_case]
 
-        ont_pg = df[ont_case]
-        ill_gp = df[ill_case]
-        ful_gp = df[ful_case]
+            #Add groups to the sample sheet
+            self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ont_fa['sample_id']), 'sample_group'] = 'FA'
 
-        #Add groups to the sample sheet
-        self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ont_pg['sample_id']), 'sample_group'] = 'ONT'
-        self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ill_gp['sample_id']), 'sample_group'] = 'ILL'
-        self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ful_gp['sample_id']), 'sample_group'] = 'FUL'
-
-        #Add mark file accordingly
-        if not ont_pg.empty:
-            f = open(os.path.join(self.output_path,'ONT_mark'), 'w')
-            f.close()
-        elif not ful_gp.empty:
-            f = open(os.path.join(self.output_path,'HYB_IO_mark'), 'w')
-            f.close()
+            #Add mark file accordingly
+            if not ont_fa.empty:
+                f = open(os.path.join(self.output_path,'FA_mark'), 'w')
+                f.close()
         else:
-            f = open(os.path.join(self.output_path,'ILL_mark'), 'w')
-            f.close()
+            file_list = glob.glob(os.path.join(self.input_path, '*'))
+            file_map = {}
+            for f in file_list:
+                sample_id = os.path.basename(re.sub(regexp, '', f))
+                finding = re.search(regexp, f)
+                if finding is not None:
+                    finding = finding.group(0)
+                    file_map[sample_id] = file_map.get(sample_id, list())
+                    file_map[sample_id].append(finding)
+            #Equalize column length
+            for k, v in file_map.items():
+                ln = len(v)
+                if ln < 3:
+                    for _ in range(3 - ln):
+                        file_map[k].append(str(None))
+                file_map[k].sort()
+            
+            #Define groups of samples
+            df = pd.DataFrame.from_dict(file_map, orient='index').reset_index()
+            df.columns = ['sample_id', 'ONT', 'ILL1', 'ILL2']
+            ont_case = df.ONT.str.contains('None') & df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
+            ill_case = df.ONT.str.contains('None') & ~df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
+            ful_case = ~df.ONT.str.contains('None') & ~df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
+
+
+            ont_pg = df[ont_case]
+            ill_gp = df[ill_case]
+            ful_gp = df[ful_case]
+
+
+            #Add groups to the sample sheet
+            self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ont_pg['sample_id']), 'sample_group'] = 'ONT'
+            self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ill_gp['sample_id']), 'sample_group'] = 'ILL'
+            self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ful_gp['sample_id']), 'sample_group'] = 'FUL'
+
+            #Add mark file accordingly
+            if not ont_pg.empty:
+                f = open(os.path.join(self.output_path,'ONT_mark'), 'w')
+                f.close()
+            elif not ful_gp.empty:
+                f = open(os.path.join(self.output_path,'HYB_IO_mark'), 'w')
+                f.close()
+            else:
+                f = open(os.path.join(self.output_path,'ILL_mark'), 'w')
+                f.close()
 
 
     def fill_target_list(self, taxonomy_based:bool=False, mixed:bool=False, empty:bool=False, grouped:bool=False):
         '''Fills self.target_list using data stored in self.sample_sheet instance variable.'''
         if taxonomy_based:#specific targets for each species
-            self.target_list = [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
+            self.target_list = [os.path.join(self.output_path,f'{id}{tmpl}') for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
         elif mixed or empty:#both species-specific and non-specific targets
-            self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'].to_list()+self.removed_samples['sample_id'].to_list() for tmpl in self.targets['general']]
+            self.target_list = [os.path.join(self.output_path,f'{id}{tmpl}') for id in self.sample_sheet['sample_id'].to_list()+self.removed_samples['sample_id'].to_list() for tmpl in self.targets['general']]
             if not empty:
-                self.target_list += [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
+                self.target_list += [os.path.join(self.output_path,f'{id}{tmpl}') for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
         else:#only non-specific targets
             if grouped:
-                self.target_list = [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['sample_group'][idx]]]
+                self.target_list = [os.path.join(self.output_path,f'{id}{tmpl}') for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['sample_group'][idx]]]
             else:
-                self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
+                self.target_list = [os.path.join(self.output_path,f'{id}{tmpl}') for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
             
 
     def make_output_dir(self):
@@ -206,7 +231,7 @@ class Module:
 
     def write_sample_sheet(self):
         '''Creates sample_sheet.csv file in the self.output_path folder, using self.sample_sheet.'''
-        self.sample_sheet.to_csv(f"{self.output_path}sample_sheet.csv", header=True, index=False)
+        self.sample_sheet.to_csv(os.path.join(self.output_path, "sample_sheet.csv"), header=True, index=False)
 
 
     def add_module_targets(self):
@@ -236,6 +261,12 @@ class Module:
             print(f'Failed to set output_directory value to {self.output_path}.\nPlease ensure that config file contains output_directory parameter (see config_files/yaml/config_modular_local.yaml for example).', file=sys.stderr)
             sys.exit(1)
 
+        inpath = self.output_path if self.output_path == self.input_path else os.path.abspath(self.input_path) + "/"
+        output_code = hk.edit_nested_dict(config_dict=self.config_file, param="input_directory", new_value=inpath)
+        if output_code != 0:
+            print(f'Failed to set input_directory value to {self.input_path}.\nPlease ensure that config file contains input_directory parameter (see config_files/yaml/config_modular_local.yaml for example).', file=sys.stderr)
+            sys.exit(1)
+
         #Updating paths in config
         ardetype_path = str(Path(os.path.abspath('./')))
         for p in ["databases"]:
@@ -252,7 +283,7 @@ class Module:
 
     def write_module_config(self):
         '''Writes self.config_file to the self.output_path'''
-        hk.write_yaml(self.config_file, f'{self.output_path}config.yaml')
+        hk.write_yaml(self.config_file, os.path.join(self.output_path,'config.yaml'))
 
 
     def check_module_output(self, mixed:bool=False):
@@ -488,16 +519,20 @@ class Module:
 
     def unfold_output(self):
         '''Moves target files outside of folders created by fold_output method in order to avoid having to move file out manually to do a rerun.'''
-        for file in glob.glob(f'{self.output_path}folded_*_output/*'):
+        unfolding_path = self.output_path if self.input_path == self.output_path else self.input_path
+        
+        for file in glob.glob(f'{unfolding_path}folded_*_output/*'):
             try:
-                move(file, self.output_path)
-            except:
+                move(file, unfolding_path)
+            except Exception as e:
+                print(e)
                 continue
 
-        for file in glob.glob(f'{self.output_path}reports/*'):
+        for file in glob.glob(f'{unfolding_path}reports/*'):
             try:
-                move(file, self.output_path)
-            except:
+                move(file, unfolding_path)
+            except Exception as e:
+                print(e)
                 continue
 
     def set_permissions(self, permissions:str='775'):

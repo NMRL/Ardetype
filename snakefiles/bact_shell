@@ -170,8 +170,8 @@ rule resfinder:
         hamr_sif      = ancient(config['hamronization_sif']),
         resfinder_sif = config['resfinder_sif'],
         contigs       = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
-        read_1        = ancient(config['output_directory']+'{sample_id_pattern}_R1_001.fastq.gz'),
-        read_2        = ancient(config['output_directory']+'{sample_id_pattern}_R2_001.fastq.gz')
+        read_1        = ancient(config['input_directory']+'{sample_id_pattern}_fastp_1.fastq.gz'),
+        read_2        = ancient(config['input_directory']+'{sample_id_pattern}_fastp_2.fastq.gz')
     output:
         config['output_directory']+"{sample_id_pattern}_resfinder/pheno_table.txt",
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_Hit_in_genome_seq.fsa",

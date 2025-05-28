@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath('./'))
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 
 
-sip_wild     = os.path.join(config['output_directory'],'{sample_id_pattern}_R[1,2]_001.fastq.gz')
+sip_wild     = os.path.join(config['input_directory'],'{sample_id_pattern}_R[1,2]_001.fastq.gz')
 ssheet_path  = os.path.join(config['output_directory'], 'sample_sheet.csv')
 
 sample_sheet = pd.read_csv(ssheet_path)
@@ -13,8 +13,8 @@ sample_sheet = pd.read_csv(ssheet_path)
 def choose_assembly_branch(wildcards):
     import os
     #Possible paths
-    ont_path = os.path.join(config['output_directory'],f'{wildcards.sample_id_pattern}_ONT.fastq.gz')
-    ill_paths = [os.path.join(pf, f'{wildcards.sample_id_pattern}_R1_001.fastq.gz') for pf in [config['output_directory'], config['output_directory']]]
+    ont_path = os.path.join(config['input_directory'],f'{wildcards.sample_id_pattern}_ONT.fastq.gz')
+    ill_paths = [os.path.join(pf, f'{wildcards.sample_id_pattern}_R1_001.fastq.gz') for pf in [config['input_directory'], config['input_directory']]]
     
     #Checking presence
     ont_present = os.path.exists(ont_path)
@@ -79,8 +79,8 @@ rule all:
 rule illumina_qc:
     input:
         sif_file = ancient(config["fastp_sif"]),                                                                         #path to singularity image file
-        read_1   = ancient(config['output_directory']+'{sample_id_pattern}_R1_001.fastq.gz'),
-        read_2   = ancient(config['output_directory']+'{sample_id_pattern}_R2_001.fastq.gz')
+        read_1   = ancient(config['input_directory']+'{sample_id_pattern}_R1_001.fastq.gz'),
+        read_2   = ancient(config['input_directory']+'{sample_id_pattern}_R2_001.fastq.gz')
     envmodules:
         'singularity'
     log: 
@@ -106,7 +106,7 @@ rule illumina_qc:
 rule ont_qc:
     input:
         sif_file = config["snikt_sif"],
-        fastq = config['output_directory']+'{sample_id_pattern}_ONT.fastq.gz'
+        fastq = config['input_directory']+'{sample_id_pattern}_ONT.fastq.gz'
     output:
         config['output_directory']+'{sample_id_pattern}_snikt.html'
     params:
@@ -121,11 +121,10 @@ rule ont_qc:
         {input.sif_file} snikt.R -s {params.s} --notrim {input.fastq} -o {wildcards.sample_id_pattern}_snikt -w {config[output_directory]} 2>> {log}
         """
 
-
 rule ont_filtering:
     input:
         sif_file = config["filtlong_sif"],
-        fastq = config['output_directory']+'{sample_id_pattern}_ONT.fastq.gz'
+        fastq = config['input_directory']+'{sample_id_pattern}_ONT.fastq.gz'
     output:
         config['output_directory']+'{sample_id_pattern}_filtered.fastq.gz'
     params:

@@ -267,41 +267,49 @@ class Ardetype_module(Module):
         super(Ardetype_module, self).__init__(*args, **kwargs) #running method as it is defined in the base class
         self.job_log_path = os.path.join(ardetype_path,'ardetype_job_logs/')
         self.status_script = self.config_file['status_script_path']
+        self.unfold_output()
 
         #if reprocess
         if self.force_all:
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             #change timestamp
             if re.match(r'_[0-9]{8}_[0-9]{6}/', self.output_path[-17:]):
-                new_path = self.output_path[:-17] + "_" + timestamp + "/"
+                new_path = self.output_path[:-17] + f"_{timestamp}/"
             else:
                 #if timestamp is missing - add timestamp
-                new_path = os.path.dirname(self.output_path) + "_" + timestamp + "/"
+                new_path = os.path.dirname(self.output_path)+f"_{timestamp}/"
             try:
                 move(self.output_path, new_path)
             except FileNotFoundError as e:
                 print(f'Was unable to find {self.output_path} directory - please check if the timestamp is correct.', file=sys.stderr)
                 sys.exit(1)
-            if new_path not in self.aggr_taxonomy_path:
-                self.aggr_taxonomy_path  = self.aggr_taxonomy_path.replace(os.path.abspath(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
+            if new_path not in self.aggr_taxonomy_path:                
+                self.aggr_taxonomy_path  = os.path.join(new_path, os.path.basename(self.aggr_taxonomy_path))
             if new_path not in self.config_file_path:
-                self.config_file_path    = self.config_file_path.replace(os.path.dirname(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/config.yaml' #where to look for operational copy of the configuration file; used by submit_module_job & run_module_cluster
-            if os.path.normpath(self.output_path) != os.path.normpath(self.input_path):
-                self.input_path = new_path
+                self.config_file_path    = os.path.join(new_path, os.path.basename(self.config_file_path))
+            
+            if os.path.abspath(self.output_path) == os.path.abspath(self.input_path):
+                self.input_path = os.path.abspath(new_path)
+
             self.output_path = new_path
+            
 
         #if not reprocess but no timestamp
         elif not re.match(r'_[0-9]{8}_[0-9]{6}/', self.output_path[-17:]):
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            new_path  = os.path.dirname(self.output_path) + "_" + timestamp + "/"
-            move(self.output_path, new_path)
+            new_path  = os.path.dirname(self.output_path)+f"_{timestamp}/"
+            if os.path.isdir(self.output_path):
+                move(self.output_path, new_path)
             if new_path not in self.aggr_taxonomy_path:
-                self.aggr_taxonomy_path  = self.aggr_taxonomy_path.replace(os.path.abspath(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
+                self.aggr_taxonomy_path  = os.path.join(new_path, os.path.basename(self.aggr_taxonomy_path))
             if new_path not in self.config_file_path:
-                self.config_file_path    = self.config_file_path.replace(os.path.dirname(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/config.yaml' #where to look for operational copy of the configuration file; used by submit_module_job & run_module_cluster
+                self.config_file_path    = os.path.join(new_path, os.path.basename(self.config_file_path))
+            if os.path.abspath(self.output_path) == os.path.abspath(self.input_path):
+                self.input_path = os.path.abspath(new_path)
             self.output_path    = new_path
-            if os.path.normpath(self.output_path) != os.path.normpath(self.input_path):
-                self.input_path = new_path
+           
+
+            
             
 
 
@@ -311,13 +319,13 @@ class Ardetype_module(Module):
         copy cluster.yaml into self.output_path/logs/
         and change self.config_file_path to self.output_path/logs/
         '''
-        self.job_log_path     = f'{self.output_path}logs/'
+        self.job_log_path     = os.path.join(self.output_path,'logs')
         cluster_config        = hk.read_yaml(self.cluster_config_path)
-        os.makedirs(f'{self.output_path}logs/', exist_ok=True)
-        hk.edit_nested_dict(cluster_config,'outdir', f'{self.output_path}logs/')
+        os.makedirs(self.job_log_path , exist_ok=True)
+        hk.edit_nested_dict(cluster_config,'outdir', self.job_log_path)
         if not self.run_local:
-            hk.write_yaml(cluster_config, f'{self.output_path}config_cluster.yaml')
-        self.cluster_config_path = f'{self.output_path}config_cluster.yaml'
+            hk.write_yaml(cluster_config, os.path.join(self.output_path,'config_cluster.yaml'))
+        self.cluster_config_path = os.path.join(self.output_path,'config_cluster.yaml')
 
 
 ###############################################
@@ -347,7 +355,7 @@ def run_all(args, num_jobs):
 
     shell = Ardetype_module(
         module_name         = 'shell', 
-        input_path          = core.output_path, 
+        input_path          = core.output_path if core.output_path == core.input_path else core.input_path, 
         module_config       = core.config_file, 
         output_path         = core.output_path, 
         run_mode            = args.submit_modules,
@@ -365,7 +373,7 @@ def run_all(args, num_jobs):
         )
     tip = Ardetype_module(
         module_name         = 'tip', 
-        input_path          = core.output_path,
+        input_path          = core.output_path if core.output_path == core.input_path else core.input_path, 
         module_config       = shell.config_file, 
         output_path         = core.output_path, 
         run_mode            = args.submit_modules,
@@ -383,7 +391,7 @@ def run_all(args, num_jobs):
     )
     shape = Ardetype_module(
         module_name         = 'shape',
-        input_path          = core.output_path,
+        input_path          = core.output_path if core.output_path == core.input_path else core.input_path, 
         module_config       = tip.config_file,
         output_path         = core.output_path,
         run_mode            = args.submit_modules,
@@ -401,19 +409,23 @@ def run_all(args, num_jobs):
     )
 
     #Running core
-    core.unfold_output()
     print(f'{core.module_name}: Checking input', file=sys.stdout)
     if args.nanopore_only:
         print(f'{core.module_name}: Nanopore mode requested - configuring', file=sys.stdout)
         core.snakefile_path = module_data['snakefiles']['core_ont']
         core.fill_input_dict(pattern_path='ONT')
         core.fill_sample_sheet(pattern=core.patterns['inputs']['ONT'])
+    elif args.fasta:
+        print(f'{core.module_name}: Fasta mode requested - configuring', file=sys.stdout)
+        core.snakefile_path = module_data['snakefiles']['core_fasta']
+        core.fill_input_dict(pattern_path='FASTA')
+        core.fill_sample_sheet(pattern=core.patterns['inputs']['FASTA'])
     else:
         core.fill_input_dict(pattern_path='ILL')
         core.fill_sample_sheet(pattern=core.patterns['inputs']['ILL'])
     print(f'{core.module_name}: Adding targets to config file', file=sys.stdout)
     core.make_output_dir()
-    core.get_sample_groups()
+    core.get_sample_groups(fasta=args.fasta)
     core.write_sample_sheet()
     core.fill_target_list(grouped=True)
     core.add_module_targets()
@@ -441,8 +453,8 @@ def run_all(args, num_jobs):
         sys.exit(1)
 
     #Running shell
-    if args.nanopore_only:
-        print(f'{shell.module_name}: Nanopore mode requested - configuring', file=sys.stdout)
+    if args.nanopore_only or args.fasta:
+        print(f'{shell.module_name}: {"Nanopore" if args.nanopore_only else "Fasta"} mode requested - configuring', file=sys.stdout)
         shell.snakefile_path = module_data['snakefiles']['shell_ont']
         shell.fill_input_dict(pattern_path='ONT')
     else:
@@ -481,8 +493,8 @@ def run_all(args, num_jobs):
         print(f'{shape.module_name}: Adding targets to config file', file=sys.stdout)
         shape.fill_input_dict(substring_list=None, mixed=True, empty=True)               #empty sample sheet due to filtering of invalid samples
         shape.fill_target_list(mixed=True, empty=True)
-        if args.nanopore_only:
-            print(f'{shape.module_name}: Nanopore mode requested - configuring', file=sys.stdout)
+        if args.nanopore_only or args.fasta:
+            print(f'{shape.module_name}: {"Nanopore" if args.nanopore_only else "Fasta"} mode requested - configuring', file=sys.stdout)
             shape.target_list = [t for t in shape.target_list if "fastp" not in t and "host_filtering" not in t]
             shape.snakefile_path = module_data['snakefiles']['shape_ont']
         shape.add_module_targets()
@@ -507,8 +519,8 @@ def run_all(args, num_jobs):
         tip.add_fasta_samples()
         tip.write_sample_sheet()
         tip.fill_target_list(taxonomy_based=True)
-        if args.nanopore_only:
-            print(f'{tip.module_name}: Nanopore mode requested - configuring', file=sys.stdout)
+        if args.nanopore_only or args.fasta:
+            print(f'{tip.module_name}: {"Nanopore" if args.nanopore_only else "Fasta"} mode requested - configuring', file=sys.stdout)
             tgt_exc_list = [
                 "-predictResults.txt",
                 "_SeqSero.tsv",
@@ -545,8 +557,8 @@ def run_all(args, num_jobs):
     print(f'{shape.module_name}: Adding targets to config file', file=sys.stdout)
     shape.fill_input_dict(substring_list=None, mixed=True)
     shape.fill_target_list(mixed=True)
-    if args.nanopore_only:
-        print(f'{shape.module_name}: Nanopore mode requested - configuring', file=sys.stdout)
+    if args.nanopore_only or args.fasta:
+        print(f'{shape.module_name}: {"Nanopore" if args.nanopore_only else "Fasta"} mode requested - configuring', file=sys.stdout)
         tgt_exc_list = [
             "fastp",
             "host_filtering",
@@ -598,7 +610,10 @@ def run_merge(args, num_jobs):
     print(f'Merge: starting merging folder contents', file=sys.stdout)
     hk.merge_paths(src_list=merge_inputs, target_folder = merge_target, exclude_files = exclude_files)
     args.input = os.path.abspath(args.output_dir)
+    if not args.input.endswith('/'):
+        args.input = args.input+'/'
     args.skip_packing = False
+
     print(f'Merge: Launching the pipeline', file=sys.stdout)
     run_all(args, num_jobs)
     nl='\n'

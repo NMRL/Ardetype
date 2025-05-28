@@ -126,6 +126,7 @@ multiqc_sif:
 core_input_files:
 core_target_files:
 output_directory:
+input_directory:
 
 ###Tool configuration
 core_tool_configs:

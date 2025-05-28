@@ -5,7 +5,7 @@ import sys, os, pandas as pd, json
 sys.path.insert(0, os.path.abspath('./'))
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 
-sip_wild = config['output_directory']+'{sample_id_pattern}_ONT.fastq.gz'
+sip_wild = config['input_directory']+'{sample_id_pattern}_ONT.fastq.gz'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv")
 
 def choose_assembly_branch(wildcards):
@@ -54,7 +54,7 @@ rule all:
 rule ont_qc:
     input:
         sif_file = config["snikt_sif"],
-        fastq = ancient(config['output_directory']+'{sample_id_pattern}_ONT.fastq.gz')
+        fastq = ancient(config['input_directory']+'{sample_id_pattern}_ONT.fastq.gz')
     output:
         config['output_directory']+'{sample_id_pattern}_snikt.html'
     params:
@@ -72,7 +72,7 @@ rule ont_qc:
 rule ont_filtering:
     input:
         sif_file = config["filtlong_sif"],
-        fastq = config['output_directory']+'{sample_id_pattern}_ONT.fastq.gz'
+        fastq = config['input_directory']+'{sample_id_pattern}_ONT.fastq.gz'
     output:
         config['output_directory']+'{sample_id_pattern}_filtered.fastq.gz'
     params:

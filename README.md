@@ -117,13 +117,16 @@ The `config_files/yaml/config_modular_local.yaml` file can be customized—for e
 
 **Typical Examples:**
 ```bash
-# Illumina data
+# Illumina/Illumina+Nanopore data for each isolate
 python ardetype.py -i <batch_path> -m all
 
 # Nanopore data
 python ardetype.py -i <batch_path> -m all -ont
 
-# Merge batches (Illimina + Illumina; Nanopore + Nanopore; Hybrid + Hybrid)
+# Pre-assembled (_contigs.fasta) data
+python ardetype.py -i <batch_path> -m all -fa
+
+# Merge batches (Illimina + Illumina; Nanopore + Nanopore; Hybrid + Hybrid; Fasta + Fasta) - add -fa or -ont flag for fasta/Nanopore data
 python ardetype.py -m merge --merge_from <batch_path1> <batch_path2> <batch_path3> -o <target_batch_path>
 
 # Rerun all rules
@@ -195,7 +198,7 @@ Notes:
 
   -mf MERGE_FROM [MERGE_FROM ...], --merge_from MERGE_FROM [MERGE_FROM ...]
       One or more paths to folders containing ARDETYPE output to be merged.
-      Allowed combinations: Hybrid + Hybrid, Illumina + Illumina, Nanopore + Nanopore.
+      Allowed combinations: Hybrid + Hybrid, Illumina + Illumina, Nanopore + Nanopore, Fasta + Fasta.
 
   -fr FORCE_RULES [FORCE_RULES ...], --force_rules FORCE_RULES [FORCE_RULES ...]
       Specify one or more Snakemake rule names (check `snakefiles/`) to force rerun within the pipeline.

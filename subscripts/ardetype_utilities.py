@@ -85,7 +85,7 @@ class Ardetype_housekeeper(hk):
                 print(f'Was Unable to verify data type for the following batches:\n{nl.join(unmarked)}\nPlease check folder contents.', file=sys.stderr)
                 sys.exit(1)
             
-            dtype_check = [all(v == dtype for v in dtype_dict.values()) for dtype in ["ONT_mark","ILL_mark","HYB_mark"]]
+            dtype_check = [all(v == dtype for v in dtype_dict.values()) for dtype in ["ONT_mark","ILL_mark","HYB_mark", "FA_mark"]]
             if sum(dtype_check) != 1: # exatcly one is true
                 print(f'Some batches in the --merged_from list are unmergable based on stated rules (ALLOWED MERGES: Illumina + Hybrid, Illumina + Illumina, Nanopore + Nanopore).\nPlease check data types.', file=sys.stderr)
                 sys.exit(1)
