@@ -262,7 +262,7 @@
     },
     "results_alleles.tsv": {
         "rule": "chewbbaca_cgmlst",
-        "method": "cgmlst typing using chewbbaca & redom schema",
+        "method": "cgmlst typing using chewbbaca & Ridom schema",
         "tool": "chewbbaca",
         "link": "https://github.com/B-UMMI/chewBBACA",
         "reference": "Silva M, Machado MP, Silva DN, Rossi M, Moran-Gilad J, Santos S, Ramirez M, Carriço JA. 2018. chewBBACA: A complete suite for gene-by-gene schema creation and strain identification. Microb Genom 4:000166. doi:10.1099/mgen.0.000166"

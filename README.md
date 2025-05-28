@@ -217,3 +217,39 @@ required arguments:
         merge  - Combine outputs from previous ARDETYPE runs (see `--merge_from`),
                    then generate unified reports under `--output_dir`.
 ```
+
+**Report summary**
+
+| File | Description |
+|------|-------------|
+| aquamis_qc_report.csv | comparing QC values against threshold defined in [AQUAMIS](https://gitlab.com/bfr_bioinformatics/AQUAMIS/-/blob/master/resources/AQUAMIS_thresholds.json?ref_type=heads) pipeline |
+| ardetype_report.csv | QC and truncated species-specific typing information |
+| agrvate_report.csv | [agr typing](https://github.com/VishnuRaghuram94/AgrVATE) for S.aureus |
+| amrfp_mutation_report.csv | [Detecting AMR markers](https://github.com/ncbi/amr) in bacterial NGS data. |
+| chewbbaca_qc_report.csv | cgmlst profile quality using [chewbbaca](https://github.com/B-UMMI/chewBBACA) & Ridom schema |
+| ectyper_report.csv | [serotyping](https://github.com/phac-nml/ecoli_serotyping) for E.coli |
+| emmtyper_report.csv | [emm-type and emm-cluster](https://github.com/MDU-PHL/emmtyper) prediction for S.pyogenes |
+| harmonized_resistance_profile.tsv | combined [resfinder](https://bitbucket.org/genomicepidemiology/resfinder/src/master/) and [RGI/CARD](https://github.com/arpcard/rgi) predictions |
+| hicap_report.csv | [serotyping](https://github.com/scwatts/hicap) for H. Influenzae |
+| kleborate_report.csv | [serotyping, resistance and virulence](https://github.com/katholt/Kleborate) profiles for K.pneumoniae |
+| kraken2contigs_report.csv | all hits with [kraken2](https://github.com/DerrickWood/kraken2)/[minikraken](https://benlangmead.github.io/aws-indexes/k2#:~:text=Older%20%E2%80%9CMinikraken%E2%80%9D%20indexes) applied to contigs |
+| kraken2reads_report.csv | all hits with [kraken2](https://github.com/DerrickWood/kraken2)/[minikraken](https://benlangmead.github.io/aws-indexes/k2#:~:text=Older%20%E2%80%9CMinikraken%E2%80%9D%20indexes) applied to contigs |
+| legsta_report.csv | [sequence-based typing (SBT)](https://github.com/tseemann/legsta) for L. Pneumophila |
+| lissero_report.csv | [serotyping](https://github.com/MDU-PHL/LisSero) for L.monocytogenes |
+| lrefinder_report.csv | [predicting linezolid resistance](https://bitbucket.org/genomicepidemiology/lre-finder) in Enterococci faecalis and E. faecium |
+| meningotype_report.csv | [serotyping](https://github.com/MDU-PHL/meningotype) for N.meningitidis |
+| mobtyper_contig_summary.csv | [Detection and reconstruction](https://github.com/phac-nml/mob-suite) of mobile genetic elements from bacterial NGS data |
+| mobtyper_summary.csv | [Detection](https://github.com/phac-nml/mob-suite) and reconstruction of mobile genetic elements from bacterial NGS data |
+| plasmidfinder_summary.csv | [Detecting mobile genetic elements](https://bitbucket.org/genomicepidemiology/plasmidfinder/src/master/) in bacterial NGS data (contigs) |
+| pointfinder_report.csv | [Detecting AMR-associated mutations](https://bitbucket.org/genomicepidemiology/resfinder/src/master/) in bacterial NGS data (contigs) |
+| quast_report.csv | [Quality control of genomes](https://github.com/ablab/quast) assembled from short-read NGS data |
+| resfinder_mobtyper_mapping.csv | AMR-MGE link prediction from MOBSuite and Resfinder based on contig overlap |
+| resfinder_pheno_table_gathered.csv | phenotypic resistance predictions by [resfinder](https://bitbucket.org/genomicepidemiology/resfinder/src/master/) |
+| seqsero2_report.csv | [serotyping](https://github.com/denglab/SeqSero2) for S.enterica |
+| seroba_report.csv | [serotyping](https://github.com/sanger-pathogens/seroba) for S.pneumoniae |
+| shigatyper_report.csv | [serotyping](https://github.com/CFSAN-Biostatistics/shigatyper) for Shigella |
+| sistr_report.csv | [serotyping](https://github.com/phac-nml/sistr_cmd) for S.enterica |
+| software_log.csv | software/database versions |
+| spatyper_report.csv | [spa typing](https://github.com/HCGB-IGTP/spaTyper) for S.aureus |
+| stecfinder_report.csv | [Shigatoxin typing](https://github.com/LanLab/STECFinder) for E.coli |
+| virulencefinder_summary.csv | [Detecting virulence genetic elements](https://bitbucket.org/genomicepidemiology/virulencefinder/src/master/) in bacterial NGS data |
