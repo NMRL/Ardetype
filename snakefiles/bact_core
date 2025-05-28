@@ -106,7 +106,7 @@ rule illumina_qc:
 rule ont_qc:
     input:
         sif_file = config["snikt_sif"],
-        fastq = ancient(config['output_directory']+'{sample_id_pattern}_ONT.fastq.gz')
+        fastq = config['output_directory']+'{sample_id_pattern}_ONT.fastq.gz'
     output:
         config['output_directory']+'{sample_id_pattern}_snikt.html'
     params:
@@ -295,8 +295,8 @@ rule filter_phix:
     input:
         kraken_sif = ancient(config["kraken2_sif"]),     
         pigz_sif = ancient(config["pigz_sif"]),
-        read_1 = ancient(config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz'), # quality-trimmed reads
-        read_2 = ancient(config['output_directory']+'{sample_id_pattern}_fastp_2.fastq.gz')
+        read_1 = config['output_directory']+'{sample_id_pattern}_fastp_1.fastq.gz', # quality-trimmed reads
+        read_2 = config['output_directory']+'{sample_id_pattern}_fastp_2.fastq.gz'
     output:                                                                                                         
         temp(config['output_directory']+'{sample_id_pattern}_phix_1.fastq'), # phix reads (temp)
         temp(config['output_directory']+'{sample_id_pattern}_phix_2.fastq'),                                        
@@ -334,8 +334,8 @@ rule filter_host:
     input:
         kraken_sif = ancient(config["kraken2_sif"]),     
         pigz_sif = ancient(config["pigz_sif"]),
-        read_1 = ancient(config['output_directory']+'{sample_id_pattern}_phix_filtered_1.fastq.gz'), # quality-trimmed reads
-        read_2 = ancient(config['output_directory']+'{sample_id_pattern}_phix_filtered_2.fastq.gz')
+        read_1 = config['output_directory']+'{sample_id_pattern}_phix_filtered_1.fastq.gz', # quality-trimmed reads
+        read_2 = config['output_directory']+'{sample_id_pattern}_phix_filtered_2.fastq.gz'
     output:                                                                                                         
         temp(config['output_directory']+'{sample_id_pattern}_host_1.fastq'), # host reads (temp)
         temp(config['output_directory']+'{sample_id_pattern}_host_2.fastq'),                                        
@@ -372,8 +372,8 @@ rule filter_host:
 rule illumina_assembly:
     input:
         sif_file = ancient(config["shovill_sif"]),
-        read_1   = ancient(config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz'),
-        read_2   = ancient(config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz'),
+        read_1   = config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz',
+        read_2   = config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz',
     threads: 
         config["core_tool_configs"]["shovill"]["cpus"]
     output:
@@ -422,8 +422,8 @@ rule classify_reads:
         krona_sif = ancient(config["krona_sif"]),         #kreport2krona converts kraken2 output to krona format & ktImportText converts the result to interactive format
         kraken_sif = ancient(config["kraken2_sif"]),
         pigz_sif = ancient(config["pigz_sif"]),
-        read_1   = ancient(config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz'), # quality-trimmed, host-filtered reads
-        read_2   = ancient(config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz')    
+        read_1   = config['output_directory']+'{sample_id_pattern}_host_filtered_1.fastq.gz', # quality-trimmed, host-filtered reads
+        read_2   = config['output_directory']+'{sample_id_pattern}_host_filtered_2.fastq.gz'    
     output:
         config['output_directory']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz', # classified reads
         config['output_directory']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz',
@@ -469,7 +469,7 @@ rule classify_contigs:
         krona_sif = ancient(config["krona_sif"]),
         kraken_sif = ancient(config["kraken2_sif"]),
         pigz_sif = ancient(config["pigz_sif"]),
-        contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta')
+        contigs  = config['output_directory']+'{sample_id_pattern}_contigs.fasta'
     output:
         report_name    = config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt',
         filtering_data = temp(config['output_directory']+'{sample_id_pattern}_kraken2_contig_data.txt')

@@ -47,7 +47,7 @@ class Ardetype_housekeeper(hk):
         Excludes and deletes files from source paths specified in exclude_files.
         '''
 
-        confirm = input(f'WARNING: merge WILL ATTEMPT TO MOVE everything FROM each --merge_from folder to --output_dir path and run the pipeline on it.\n Original folders will NOT be deleted.\nPlease verify if you wish to proceed [yY/nN]')
+        confirm = input(f'WARNING: merge WILL ATTEMPT TO MOVE everything FROM each --merge_from folder to --output_dir path and run the pipeline on it.\n Original folders will NOT be deleted, but logs will not be merged.\nPlease verify if you wish to proceed [yY/nN]')
 
 
         if confirm.lower() == "y":

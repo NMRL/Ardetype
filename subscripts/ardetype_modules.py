@@ -277,7 +277,11 @@ class Ardetype_module(Module):
             else:
                 #if timestamp is missing - add timestamp
                 new_path = os.path.dirname(self.output_path) + "_" + timestamp + "/"
-            move(self.output_path, new_path)
+            try:
+                move(self.output_path, new_path)
+            except FileNotFoundError as e:
+                print(f'Was unable to find {self.output_path} directory - please check if the timestamp is correct.', file=sys.stderr)
+                sys.exit(1)
             if new_path not in self.aggr_taxonomy_path:
                 self.aggr_taxonomy_path  = self.aggr_taxonomy_path.replace(os.path.abspath(self.output_path), os.path.dirname(new_path)) #f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
             if new_path not in self.config_file_path:
