@@ -65,6 +65,11 @@
                 "-ont",
                 "--nanopore_only",
                 "Run the pipeline on a folder containing exclusively Nanopore reads (with _ONT.fastq.gz extension).\nBy default, the pipeline expects either Illumina data (_001.fastq.gz) alone or combined Illumina and Nanopore data."
+            ],
+            [
+                "-fa",
+                "--fasta",
+                "Run the pipeline on a folder containing exclusively fasta input (with _contigs.fasta extension).\nBy default, the pipeline expects either Illumina data (_001.fastq.gz) alone or combined Illumina and Nanopore data."
             ]
         ],
         "nargs": [

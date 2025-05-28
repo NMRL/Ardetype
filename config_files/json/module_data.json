@@ -3,6 +3,7 @@
     "snakefiles": {
         "core": "snakefiles/bact_core",
         "core_ont": "snakefiles/bact_core_ont",
+        "core_fasta": "snakefiles/bact_core_fasta",
         "shell": "snakefiles/bact_shell",
         "shell_ont": "snakefiles/bact_shell_ont",
         "tip": "snakefiles/bact_tip",
@@ -75,14 +76,19 @@
                 "_snikt.html",
                 "_kraken2_contigs_report.txt",
                 "_contigs.fasta"
+            ],
+            "FA": [
+                "_kraken2_contigs_report.txt",
+                "_contigs.fasta"
             ]
         },
         "patterns": {
             "inputs": {
                 "ILL": "001.fastq.gz",
-                "ONT": "ONT.fastq.gz"
+                "ONT": "ONT.fastq.gz",
+                "FASTA": "_contigs.fasta"
             },
-            "sample_sheet": "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_ONT.fastq.gz)"
+            "sample_sheet": "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_ONT.fastq.gz|_contigs.fasta)"
         },
         "job_name": "bact_core",
         "requests": {
