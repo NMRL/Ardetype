@@ -141,12 +141,6 @@ Notes:
 - Refer to `config_files/json/specific_tool_map.json` for details on each tool and the species it is applicable to.
 - By default, live pipeline logs are saved in the `Ardetype/.snakemake/logs/` directory.
 
-**Pipeline modules:**
-- `bact_core`: QC, host read removal, assembly, classification
-- `bact_shell`: assembly QC, AMR profiling, plasmid typing
-- `bact_tip`: species-specific subtyping
-- `bact_shape`: results summarization
-
 **Command-line options:**
 
 ```text
