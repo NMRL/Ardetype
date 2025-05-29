@@ -1,5 +1,5 @@
 {
-    "description": "Typical usage examples:\n\n  Illumina data: python ardetype.py -i <batch_path> -m all\n  Nanopore data: python ardetype.py -i <batch_path> -m all -ont\n\nARDETYPE is a modular bioinformatics pipeline for bacterial whole genome sequencing (WGS) analysis, designed for use in clinical microbiology, public health surveillance, and research settings. It supports both Illumina paired-end and Oxford Nanopore sequencing data.\n\nThe pipeline performs species-agnostic and species-specific analyses, integrating open-source tools to assess sequence quality, assemble genomes, classify organisms taxonomically, predict antimicrobial resistance (AMR), reconstruct plasmids, and generate structured reports. \n\nARDETYPE is organized into four core modules:\n  - bact_core: quality control, host read removal, genome assembly, taxonomic classification\n  - bact_shell: assembly QC, AMR profiling, plasmid reconstruction and typing\n  - bact_tip: species-specific subtyping\n  - bact_shape: structured summarization of results\n\nBy combining established tools such as fastp, Kraken2, Shovill, QUAST, RGI, ResFinder, AMR++, and MOB-suite, ARDETYPE provides a comprehensive workflow for bacterial isolate characterization in high-stakes applications like outbreak investigation, resistance monitoring, and genomic epidemiology.",
+    "description": "Typical usage examples:\n\n  Illumina data: python ardetype.py -i <batch_path> -m all\n  Nanopore data: python ardetype.py -i <batch_path> -m all -ont\n  Pre-assembled: python ardetype.py -i <batch_path> -m all -fa\n  Merge: python ardetype.py -m merge --merge_from <batch_path1> ... <batch_pathN> -o <target_batch_path>\n  Force-rerun: python ardetype.py -m all -i <batch_path> -f\n  Rerun specific: python ardetype.py -m all -i <batch_path> -fr <rule_name1> ... <rule_nameN>\n\nARDETYPE is a modular bioinformatics pipeline for bacterial whole genome sequencing (WGS) analysis, designed for use in clinical microbiology, public health surveillance, and research settings. It supports both Illumina paired-end and Oxford Nanopore sequencing data.\n\nThe pipeline performs species-agnostic and species-specific analyses, integrating open-source tools to assess sequence quality, assemble genomes, classify organisms taxonomically, predict antimicrobial resistance (AMR), reconstruct plasmids, and generate structured reports. \n\nARDETYPE is organized into four core modules:\n  - bact_core: quality control, host read removal, genome assembly, taxonomic classification\n  - bact_shell: assembly QC, AMR profiling, plasmid reconstruction and typing\n  - bact_tip: species-specific subtyping\n  - bact_shape: structured summarization of results\n\nBy combining established tools such as fastp, Kraken2, Shovill, QUAST, RGI, ResFinder, AMR++, and MOB-suite, ARDETYPE provides a comprehensive workflow for bacterial isolate characterization in high-stakes applications like outbreak investigation, resistance monitoring, and genomic epidemiology.",
     "required_arguments": [
         [
             "-m",
@@ -12,13 +12,13 @@
             [
                 "-i",
                 "--input",
-                "Path to directory that contains files to be analysed (files are NOT parsed from subfolders).\nCheck config_files/json/module_data/patterns/inputs section for expected input file extensions for bact_core module",
+                "Path to directory that contains files to be analysed (files are NOT parsed from subfolders).\nExpected extensions: Illumina - `_R{1,2}_001.fastq.gz`; Nanopore - `_ONT.fastq.gz`; Assemblies - `_contigs.fasta`",
                 null
             ],
             [
                 "-c",
                 "--config",
-                "Path to a custom pipeline configuration file in YAML format.\n\t\tIf not provided, a default config file (config_files/yaml/config_modular_local.yaml) will be used.\n\t\tThe configuration defines global parameters and tool-specific settings used during execution.",
+                "Path to a custom pipeline configuration file in YAML format.\n\t\tIf not provided, a default config file (config_files/yaml/config_modular_local.yaml) will be used.\n\t\tThe configuration defines global parameters and tool-specific settings used during execution. File structure should match that of the default config file.",
                 "./config_files/yaml/config_modular_local.yaml"
             ],
             [
@@ -76,12 +76,12 @@
             [
                 "-mf",
                 "--merge_from",
-                "One or more paths to folders containing Ardetype output to be merged.\nAllowed merge combinations: Hybrid + Hybrid, Illumina + Illumina, Nanopore + Nanopore."
+                "One or more paths to folders containing Ardetype output to be merged.\nAllowed merge combinations: Hybrid + Hybrid, Illumina + Illumina, Nanopore + Nanopore, Fasta + Fasta."
             ],
             [
                 "-fr",
                 "--force_rules",
-                "Specify one or more Snakemake rule names (check snakefiles folder) to force rerun within the pipeline."
+                "Specify one or more Snakemake rule names (check snakefiles/<module name> for rule names) to force rerun within the pipeline."
             ]
         ]
     }
