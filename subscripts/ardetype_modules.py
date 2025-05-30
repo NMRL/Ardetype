@@ -473,6 +473,7 @@ def run_all(args, num_jobs):
 
     print(f'{shell.module_name}: Verifying output completion', file=sys.stdout)
     shell.check_module_output()
+    shell.add_taxonomy_column()
     shell.write_sample_sheet()
     print(f'{shell.module_name}: Finished', file=sys.stdout)
 
