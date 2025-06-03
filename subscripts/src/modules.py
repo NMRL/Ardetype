@@ -37,6 +37,7 @@ class Module:
             snakefile_path      : str, 
             cluster_config_path : str,
             retry_times         : int,
+            snakemake_cpus      : int,
             force_all           : bool, 
             pack_output         : bool, 
             rules_to_rerun      : list,
@@ -64,13 +65,14 @@ class Module:
         self.snakefile_path      = snakefile_path #to the rule file to be run as single job on HPC if self.run_mode is True; used by submit_module_job
         self.retry_times         = retry_times #number of times snakemake will attempt to rerun failed jobs (default=3); used by run_module_cluster
         self.force_all           = "--forceall" if force_all else "" #to store forceall flag if it is supplied, else empty string is stored
+        self.snakemake_cpus      = snakemake_cpus
         self.removed_samples     = pd.DataFrame() #to store dataframe containing information about samples that were deemed invalid by the module
         self.pack_output         = pack_output #switch to control putting output files into one folder named after sample_id; used by fold_output
         self.status_script       = f"{os.path.dirname(Path(__file__).parents[0].absolute())}/pbs-status.py"
         self.failed_stamp        = None #added if module has failed to produce requested files for 1 or more steps of the workflow
         self.rules_to_rerun      = [rule for rule in rules_to_rerun if rule in self._get_rule_names_from_snakefile(self.snakefile_path)] if rules_to_rerun is not None else []
         self.force_specific      = f"-R {' '.join(self.rules_to_rerun)}" if self.rules_to_rerun else ""
-
+        
     @staticmethod
     def _get_rule_names_from_snakefile(snakefile_path):
         rule_names = []
@@ -365,7 +367,7 @@ class Module:
             cmd = f'''
             source "$(conda info --base)/etc/profile.d/conda.sh"
             conda activate $(dirname $(dirname $(which conda)))/envs/ardetype
-            snakemake --cores 6 --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific}
+            snakemake --cores {self.snakemake_cpus} --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific}
             '''
             result = subprocess.run(cmd, shell=True, executable="/bin/bash", check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             self.job_id = result.stdout
@@ -376,7 +378,6 @@ class Module:
             print(f"{self.module_name} finished with runtime error:\nSTDOUT:\n{e.stdout}\nSTDERR:\n{e.stderr}", file=sys.stderr)
             sys.exit(1)
         finally:
-            # self.clear_working_directory()
             self.clear_scratch()
 
 
@@ -395,7 +396,6 @@ class Module:
             print(f"{self.module_name} module job submission failed with error:{msg}", file=sys.stderr)
             sys.exit(1)
         finally:
-            # self.clear_working_directory()
             self.clear_scratch()
         
 

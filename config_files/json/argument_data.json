@@ -38,6 +38,12 @@
                 "--num_jobs",
                 "Maximum number of Snakemake jobs to run in parallel. Applies when executing on HPC. Default is 12.",
                 12
+            ],
+            [
+                "-cpu",
+                "--max_cpus",
+                "Maximum number of CPUs Snakemake is allowed to use to run the jobs on local machine. Default is 6.",
+                6
             ]
         ],
         "flags": [
