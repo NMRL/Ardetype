@@ -117,7 +117,8 @@ The `config_files/yaml/config_modular_local.yaml` file can be customized—for e
 **Input Structure Examples:**
 
 - `isolate` stands for sample ID.
-- Most IDs will work, however it is not recommended to include "_" as part of sample ID.
+- Having `_` as part of sample ID may cause unexpected behavior.
+- `isolate` in total `must shorter than 27 characters`, otherwise chewbbaca (cgMLST) will fail.
 ```bash
 illumina/
 ├── isolate_R1_001.fastq.gz
