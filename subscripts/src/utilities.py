@@ -1,6 +1,8 @@
 import os, sys, yaml, pandas as pd, re, argparse, json, base64, requests, urllib, pandas as pd, concurrent.futures
 from dateutil.relativedelta import relativedelta
-from Bio import SeqIO, Entrez
+import re
+from pathlib import Path
+from typing import Dict
 from datetime import datetime
 from pathlib import Path
 from shutil import move
@@ -9,6 +11,37 @@ from shutil import move
 class Housekeeper:
     '''Class to contain methods that perform general housekeeping tasks for the pipeline, 
     like reading from/writing to certain file types, generating sample sheets etc.'''
+
+    @staticmethod
+    def get_failed_sample_counts(log_content: str) -> Dict[str, int]:
+        # Regex patterns
+        error_jobid_pattern = re.compile(r"Error in rule .*?:\s+jobid: (\d+)")
+        launch_block_pattern = re.compile(
+            r"^.*rule .*?:.*?jobid: (\d+).*?wildcards: sample_id_pattern=(\S+)", re.DOTALL
+        )
+
+        # Step 1: Collect all failed job IDs
+        failed_jobids = list(map(int, error_jobid_pattern.findall(log_content)))
+
+        # Step 2: Scan job launch blocks to match job IDs to sample IDs
+        job_blocks = log_content.split("[")
+        jobid_to_sample = {}
+        for block in job_blocks:
+            match = launch_block_pattern.search(block)
+            if match:
+                jobid = int(match.group(1))
+                sample_id = match.group(2)
+                jobid_to_sample[jobid] = sample_id
+
+        # Step 3: Count failures per sample ID
+        sample_fail_counts: Dict[str, int] = {}
+        for jobid in failed_jobids:
+            sample_id = jobid_to_sample.get(jobid)
+            if sample_id:
+                sample_fail_counts[sample_id] = sample_fail_counts.get(sample_id, 0) + 1
+
+        return sample_fail_counts
+
 
     @staticmethod
     def join_sif_paths(d, substring, *prefix):

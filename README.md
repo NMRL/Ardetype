@@ -161,6 +161,10 @@ Notes:
 - The `-fr` option does not validate whether the specified rules exist in the pipeline.<br>Please double-check rule names (`snakefiles/`) and review the output to ensure that the expected steps are reprocessed correctly.
 - Refer to `config_files/json/specific_tool_map.json` for details on each tool and the species it is applicable to.
 - By default, live pipeline logs are saved in the `Ardetype/.snakemake/logs/` directory.
+- The pipeline will iteratively exclude samples that fail any Snakemake rule in any module more than --retry_times (default: 3).
+    - All input and output files associated with excluded samples will be moved to the <batch_path>_failed directory.
+    - If all samples are excluded, the pipeline will terminate.
+    - Detailed error information can be found in the Ardetype/.snakemake/log/ and <batch_path>/logs/ directories.
 
 **Command-line options:**
 

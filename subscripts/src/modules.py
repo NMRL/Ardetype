@@ -1,6 +1,5 @@
 from .utilities import Housekeeper as hk
 import os, warnings, re, subprocess, shutil, time, pandas as pd, glob, sys
-from datetime import datetime
 from itertools import chain
 from getpass import getuser
 from pathlib import Path
@@ -41,7 +40,9 @@ class Module:
             force_all           : bool, 
             pack_output         : bool, 
             rules_to_rerun      : list,
-            run_local           : bool
+            run_local           : bool,
+            nanopore_mode       : bool,
+            fasta_mode          : bool
             ) -> None:
         
         self.run_mode            = run_mode #If true, snakemake will be run as single job, else - will run as job submitter on the login node
@@ -72,6 +73,8 @@ class Module:
         self.failed_stamp        = None #added if module has failed to produce requested files for 1 or more steps of the workflow
         self.rules_to_rerun      = [rule for rule in rules_to_rerun if rule in self._get_rule_names_from_snakefile(self.snakefile_path)] if rules_to_rerun is not None else []
         self.force_specific      = f"-R {' '.join(self.rules_to_rerun)}" if self.rules_to_rerun else ""
+        self.fasta_mode          = fasta_mode
+        self.nanopore_mode       = nanopore_mode
         
     @staticmethod
     def _get_rule_names_from_snakefile(snakefile_path):
@@ -362,23 +365,86 @@ class Module:
             return self.removed_samples
     
 
+
     def run_modules_local(self):
-        try:
-            cmd = f'''
-            source "$(conda info --base)/etc/profile.d/conda.sh"
-            conda activate $(dirname $(dirname $(which conda)))/envs/ardetype
-            snakemake --cores {self.snakemake_cpus} --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific}
-            '''
-            result = subprocess.run(cmd, shell=True, executable="/bin/bash", check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            self.job_id = result.stdout
-        except KeyboardInterrupt:
-            print(f"{self.module_name} interrupted by SIGTERM : Run the same command to continue (make sure to include timestamp added to batch folder name).", file=sys.stderr)
-            sys.exit(1)
-        except Exception as e:
-            print(f"{self.module_name} finished with runtime error:\nSTDOUT:\n{e.stdout}\nSTDERR:\n{e.stderr}", file=sys.stderr)
-            sys.exit(1)
-        finally:
-            self.clear_scratch()
+        input_dir = Path(self.output_path)
+        failed_dir = Path(f"{os.path.dirname(self.output_path)}_failed")
+        failed_samples = []
+
+        def remaining_samples(class_instance):
+            if class_instance.fasta_mode:
+                return {p.name.split("_contigs.fasta")[0] for p in input_dir.glob("*_contigs.fasta")}
+            elif class_instance.nanopore_mode:
+                return {p.name.split("_ONT.fastq.gz")[0] for p in input_dir.glob("*_ONT.fastq.gz")}
+            else:
+                return {p.name.split("_R1_001.fastq.gz")[0] for p in input_dir.glob("*_R1_001.fastq.gz")}
+
+        while True:
+            try:
+                if failed_samples:
+                    if self.nanopore_mode:
+                        self.fill_input_dict(pattern_path='ONT')
+                        self.fill_sample_sheet(pattern=self.patterns['inputs']['ONT'])
+                    elif self.fasta_mode:
+                        self.fill_input_dict(pattern_path='FASTA')
+                        self.fill_sample_sheet(pattern=self.patterns['inputs']['FASTA'])
+                    else:
+                        self.fill_input_dict(pattern_path='ILL')
+                        self.fill_sample_sheet(pattern=self.patterns['inputs']['ILL'])
+                    self.get_sample_groups(fasta=self.fasta_mode)
+                    self.write_sample_sheet()
+                    self.fill_target_list(grouped=True)
+                    self.add_module_targets()
+                    self.add_output_dir()
+                    self.write_module_config()
+                cmd = f'''
+                source "$(conda info --base)/etc/profile.d/conda.sh"
+                conda activate $(dirname $(dirname $(which conda)))/envs/ardetype
+                snakemake --cores {self.snakemake_cpus} --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific}
+                '''
+                result = subprocess.run(cmd, shell=True, executable="/bin/bash", check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                self.job_id = result.stdout
+                break
+
+            except subprocess.CalledProcessError as e:
+                failed_samples = hk.get_failed_sample_counts(e.stderr)
+                failed_dir.mkdir(exist_ok=True)
+
+                if not failed_samples:
+                    print(f"Snakemake failed, but no failed samples found: {e.stderr}", file=sys.stderr)
+                    sys.exit(1)
+
+                for sample in failed_samples:
+                    if failed_samples[sample] > int(self.retry_times):
+                        for f in input_dir.glob(f"{sample}*"):
+                            f.rename(failed_dir / f.name)
+
+                if not remaining_samples(class_instance=self):
+                    print(f"Missing input files in {input_dir} after moving failed ones to {failed_dir}, exiting.", file=sys.stderr)
+                    sys.exit(1)
+            except KeyboardInterrupt:
+                print("Interrupted by user.", file=sys.stderr)
+                sys.exit(1)
+            finally:
+                self.clear_scratch()
+
+    # def run_modules_local(self):
+    #     try:
+    #         cmd = f'''
+    #         source "$(conda info --base)/etc/profile.d/conda.sh"
+    #         conda activate $(dirname $(dirname $(which conda)))/envs/ardetype
+    #         snakemake --cores {self.snakemake_cpus} --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific}
+    #         '''
+    #         result = subprocess.run(cmd, shell=True, executable="/bin/bash", check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    #         self.job_id = result.stdout
+    #     except KeyboardInterrupt:
+    #         print(f"{self.module_name} interrupted by SIGTERM : Run the same command to continue (make sure to include timestamp added to batch folder name).", file=sys.stderr)
+    #         sys.exit(1)
+    #     except Exception as e:
+    #         print(f"{self.module_name} finished with runtime error:\nSTDOUT:\n{e.stdout}\nSTDERR:\n", file=sys.stderr)
+    #         sys.exit(1)
+    #     finally:
+    #         self.clear_scratch()
 
 
     def submit_module_job(self, jobscript_path):

@@ -351,7 +351,9 @@ def run_all(args, num_jobs):
             targets             = module_data['core']['targets'],
             requests            = module_data['core']['requests'],
             snakefile_path      = module_data['snakefiles']['core'],
-            cluster_config_path = module_data['cluster_config']
+            cluster_config_path = module_data['cluster_config'],
+            nanopore_mode       = args.nanopore_only,
+            fasta_mode          = args.fasta
             )
 
     shell = Ardetype_module(
@@ -371,7 +373,9 @@ def run_all(args, num_jobs):
         targets             = module_data['shell']['targets'],
         requests            = module_data['shell']['requests'],
         snakefile_path      = module_data['snakefiles']['shell'],
-        cluster_config_path = module_data['cluster_config']
+        cluster_config_path = module_data['cluster_config'],
+        nanopore_mode       = args.nanopore_only,
+        fasta_mode          = args.fasta
         )
     tip = Ardetype_module(
         module_name         = 'tip', 
@@ -390,7 +394,9 @@ def run_all(args, num_jobs):
         targets             = module_data['tip']['targets'],
         requests            = module_data['tip']['requests'],
         snakefile_path      = module_data['snakefiles']['tip'],
-        cluster_config_path = module_data['cluster_config']
+        cluster_config_path = module_data['cluster_config'],
+        nanopore_mode       = args.nanopore_only,
+        fasta_mode          = args.fasta
     )
     shape = Ardetype_module(
         module_name         = 'shape',
@@ -409,7 +415,9 @@ def run_all(args, num_jobs):
         targets             = module_data['shape']['targets'],
         requests            = module_data['shape']['requests'],
         snakefile_path      = module_data['snakefiles']['shape'],
-        cluster_config_path = module_data['cluster_config']
+        cluster_config_path = module_data['cluster_config'],
+        nanopore_mode       = args.nanopore_only,
+        fasta_mode          = args.fasta
     )
 
     #Running core
