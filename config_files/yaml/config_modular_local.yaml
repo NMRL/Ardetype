@@ -116,6 +116,8 @@ shigatyper_shigella_sif:
 ##############
 multiqc_sif:
   resources/image_files/multiqc_1.11.sif
+cgmlst_dists_sif:
+  resources/image_files/cgmlst-dists_0.4.0.sif
 
 
 #########################

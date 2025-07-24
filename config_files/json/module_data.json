@@ -12,6 +12,7 @@
         "shape_ont": "snakefiles/bact_shape_ont"
     },
     "reports": [
+        "cgmlst_aggregated",
         "_ardetype_report.csv",
         "pointfinder_report.csv",
         "amrfp_mutation_report.csv",
