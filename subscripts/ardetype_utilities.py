@@ -651,6 +651,36 @@ class Ardetype_housekeeper(hk):
             return report
 
     @staticmethod
+    def capybara_results(cpb_result_path:str, batch:str):
+        try:
+            report = pd.read_csv(cpb_result_path, sep="\t")
+            report.columns = [
+                'query',
+                "ESL",
+                "Clade",
+                "Coverage"
+            ]
+            report["sample_id"] = report["query"].apply(lambda x:os.path.basename(x).replace('_contigs.fasta', ''))
+            report["seq_batch"] = [os.path.basename(os.path.dirname(cpb_result_path)) for _ in report.index]
+            report = report[[
+                    "sample_id",
+                    "seq_batch",
+                    "ESL",
+                    "Clade",
+                    "Coverage"
+                ]]
+            return report
+        except pd.errors.EmptyDataError:
+            report = pd.DataFrame.from_dict({
+                'sample_id':[os.path.basename(cpb_result_path).replace('_capybara.tsv', '').split('_')[0]],
+                'seq_batch':[os.path.basename(os.path.dirname(batch))],
+                "ESL":[None],
+                "Clade":[None],
+                "Coverage":[None]
+                })
+            return report
+
+    @staticmethod
     def stecfinder_results(stf_result_path: str, batch: str) -> pd.DataFrame:
         '''To combine stecfinder reports and map them to sample_id-batch pair.'''
         df = pd.read_csv(stf_result_path, sep='\t')

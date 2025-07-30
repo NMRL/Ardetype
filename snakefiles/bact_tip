@@ -108,6 +108,9 @@ rule all:
         hicap_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_hicap.tsv", extractor = hk.hicap_results)
         hicap_results.to_csv(f"{config['output_directory']}hicap_report.csv", header=True, index=False)
 
+        #Aggregate capybara results
+        capybara_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_capybara.tsv", extractor = hk.capybara_results)
+        capybara_results.to_csv(f"{config['output_directory']}capybara_report.csv", header=True, index=False)
 
 rule hicap_hinfluenzae:
     input:
@@ -345,8 +348,8 @@ rule emmtyper_spyogenes:
 
 rule seqsero_senterica:
     input:
-        read_1   = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz'),
-        read_2   = ancient(config['work_dir']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz'),
+        read_1   = ancient(config['output_directory']+'{sample_id_pattern}_bact_reads_classified_1.fastq.gz'),
+        read_2   = ancient(config['output_directory']+'{sample_id_pattern}_bact_reads_classified_2.fastq.gz'),
         sif_file = ancient(config['seqsero2_senterica_sif'])
     threads:
         config['tip_tool_configs']['seqsero_senterica']['threads']
