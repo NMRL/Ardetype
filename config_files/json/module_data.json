@@ -11,6 +11,7 @@
         "shape_ont": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shape_ont"
     },
     "reports": [
+        "cgmlst_aggregated",
         "_ardetype_report.csv",
         "pointfinder_report.csv",
         "amrfp_mutation_report.csv",

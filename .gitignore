@@ -7,6 +7,9 @@ log_summary.html
 clst_bct_cl.o*
 *.sif
 workflow/*
+TODO
+resources/*
+tests/*
 
 # Various system folders
 /.snakemake

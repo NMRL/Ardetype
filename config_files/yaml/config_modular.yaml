@@ -142,7 +142,8 @@ shigatyper_shigella_sif:
 ##############
 multiqc_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/fastq_screen.sif
-
+cgmlst_dists_sif:
+  /mnt/beegfs2/home/groups/nmrl/image_files/cgmlst-dists_0.4.0.sif
 
 #########################
 # bact_core configuration
