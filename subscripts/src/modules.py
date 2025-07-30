@@ -52,7 +52,7 @@ class Module:
         self.output_path         = f"{os.path.abspath(output_path)}/" #Path to the output folder, where files will be saved (converted to full path)
         self.target_list         = None #List of all target files the module expects to create; filled by fill_target_list
         self.sample_sheet        = None #to store current state of sample_sheet dataframe; filled by create_sample_sheet; altered by fill_sample_sheet & receive_sample_sheet
-        self.aggr_taxonomy_path  = f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
+        self.aggr_taxonomy_path  = f'{os.path.abspath(self.output_path)}/core_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
         self.config_file_path    = f'{os.path.abspath(self.output_path)}/config.yaml' #where to look for operational copy of the configuration file; used by submit_module_job & run_module_cluster
         self.cluster_config_path = cluster_config_path #where to look for job resource definition file; used by run_module_cluster
         self.config_file         = hk.read_yaml(module_config) if isinstance(module_config, str) else module_config #read module configuration from file if string is supplied (path expected); else - reads dictionary; used by add_module_targets, add_output_dir, write_module_config
@@ -416,7 +416,10 @@ class Module:
         '''Reads taxonomy information from self.aggr_taxonomy_path into self.taxonomy_dict 
         and adds taxonomy information as new column to the self.sample_sheet.'''
         self.taxonomy_dict = hk.read_json_dict(self.aggr_taxonomy_path)
+        if 'taxonomy' in self.sample_sheet.columns:
+            self.sample_sheet = self.sample_sheet.drop('taxonomy', axis=1)
         self.sample_sheet = hk.map_new_column(self.sample_sheet,self.taxonomy_dict,'sample_id','taxonomy')
+            
 
 
     def clear_working_directory(self):

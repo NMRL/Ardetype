@@ -486,6 +486,7 @@ def run_all(args, num_jobs):
             raise e
     shell.check_module_output()
     shell.write_sample_sheet()
+    shell.add_taxonomy_column()
     shell.clear_working_directory()
 
     # Connecting shell & core to tip/shape

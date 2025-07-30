@@ -114,21 +114,22 @@ rule all:
                     new_map[smp] = dest_path
 
                 # Generate species template
-                template = new_map[list(new_map.keys())[0]]
-                
-                combined_prof_path = os.path.join(wd,f'agg_results_alleles_{sp.lower().replace(" ","_")}.tsv')
-                os.system(f'head -1 {template} > {combined_prof_path}')
+                if new_map:
+                    template = new_map[list(new_map.keys())[0]]
+                    
+                    combined_prof_path = os.path.join(wd,f'agg_results_alleles_{sp.lower().replace(" ","_")}.tsv')
+                    os.system(f'head -1 {template} > {combined_prof_path}')
 
-                # Fill-in the template
-                for s,p in new_map.items():
-                    os.system(f'tail -1 {p} >> {combined_prof_path}')
+                    # Fill-in the template
+                    for s,p in new_map.items():
+                        os.system(f'tail -1 {p} >> {combined_prof_path}')
 
-                # Replace contigs suffix
-                os.system(f"sed -i 's/_contigs//g' {combined_prof_path}")
-                
-                # Calculate distance matrix
-                dm_path = os.path.join(wd,f'cgmlst-dists_{sp.lower().replace(" ","_")}.tsv')
-                os.system(f'module load singularity && singularity --silent run --bind {config["output_directory"]}:{config["output_directory"]} {config["cgmlst_dists_sif"]} cgmlst-dists {combined_prof_path} > {dm_path}')
+                    # Replace contigs suffix
+                    os.system(f"sed -i 's/_contigs//g' {combined_prof_path}")
+                    
+                    # Calculate distance matrix
+                    dm_path = os.path.join(wd,f'cgmlst-dists_{sp.lower().replace(" ","_")}.tsv')
+                    os.system(f'module load singularity && singularity --silent run --bind {config["output_directory"]}:{config["output_directory"]} {config["cgmlst_dists_sif"]} cgmlst-dists {combined_prof_path} > {dm_path}')
 
 
 rule extract_kraken2:
