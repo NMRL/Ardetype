@@ -11,6 +11,7 @@
         "shape_ont": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shape_ont"
     },
     "reports": [
+        "pf_abaumannii_report.csv",
         "cgmlst_aggregated",
         "_ardetype_report.csv",
         "pointfinder_report.csv",
@@ -198,7 +199,8 @@
             "Acinetobacter baumannii": [
                 "_capybara.tsv",
                 "_ab_pumblst.json",
-                "_chewbbaca/results_alleles.tsv"
+                "_chewbbaca/results_alleles.tsv",
+                "_abplasmidtype.txt"
             ],
             "Escherichia coli": [
                 "_ectyper.tsv",

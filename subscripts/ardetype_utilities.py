@@ -651,6 +651,42 @@ class Ardetype_housekeeper(hk):
             return report
 
     @staticmethod
+    def pt_ab_results(pt_ab_result_path:str, batch:str):
+        try:
+            report = pd.read_csv(pt_ab_result_path, sep='\t', header=None)
+            report.columns = [
+                "qseqid", "sseqid", "pident", "length", "mismatch", "gapopen",
+                "qstart", "qend", "sstart", "send", "evalue", "bitscore"
+            ]
+            sample_id = os.path.basename(pt_ab_result_path).replace('_abplasmidtype.txt', '')
+            report["sample_id"] = [sample_id for _ in report.index]
+            report["seq_batch"] = [os.path.basename(os.path.dirname(pt_ab_result_path)) for _ in report.index]
+            report = report[[
+                "sample_id","seq_batch",
+                "qseqid", "sseqid", "pident", "length", "mismatch", "gapopen",
+                "qstart", "qend", "sstart", "send", "evalue", "bitscore"
+            ]]
+            return report
+        except pd.errors.EmptyDataError:
+            report = pd.DataFrame.from_dict({
+                'sample_id':[os.path.basename(pt_ab_result_path).replace('_abplasmidtype.txt', '')],
+                'seq_batch':[os.path.basename(os.path.dirname(batch))],
+                "qseqid":[None], 
+                "sseqid":[None], 
+                "pident":[None], 
+                "length":[None], 
+                "mismatch":[None], 
+                "gapopen":[None],
+                "qstart":[None], 
+                "qend":[None], 
+                "sstart":[None], 
+                "send":[None], 
+                "evalue":[None], 
+                "bitscore":[None]
+                })
+            return report
+
+    @staticmethod
     def capybara_results(cpb_result_path:str, batch:str):
         try:
             report = pd.read_csv(cpb_result_path, sep="\t")

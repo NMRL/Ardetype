@@ -112,6 +112,10 @@ rule all:
         capybara_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_capybara.tsv", extractor = hk.capybara_results)
         capybara_results.to_csv(f"{config['output_directory']}capybara_report.csv", header=True, index=False)
 
+        #Aggregate plasmidtype_abaumannii results
+        pt_ab_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_abplasmidtype.txt", extractor = hk.pt_ab_results)
+        pt_ab_results.to_csv(f"{config['output_directory']}pf_abaumannii_report.csv", header=True, index=False)
+
 rule hicap_hinfluenzae:
     input:
         contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
@@ -135,6 +139,28 @@ rule hicap_hinfluenzae:
 
         rm -r ~/hicap/{wildcards.sample_id_pattern}*
         rmdir --ignore-fail-on-non-empty ~/hicap/
+        """
+
+
+rule plasmidtype_abaumannii:
+    input:
+        contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['tip_tool_configs']['abaumanniiplasmidtype']['abp_sif']),
+        database = ancient(config['tip_tool_configs']['abaumanniiplasmidtype']['database'])
+    output:
+        config['output_directory']+'{sample_id_pattern}_abplasmidtype.txt'
+    envmodules:
+        'singularity'
+    shell:
+        """
+        mkdir -p /scratch/plasmidtype_ab_{wildcards.sample_id_pattern}/
+        cp {input.contigs} /scratch/plasmidtype_ab_{wildcards.sample_id_pattern}/
+
+        singularity --silent run --bind $(dirname {input.database}),/scratch/plasmidtype_ab_{wildcards.sample_id_pattern}/,{config[output_directory]},{config[work_dir]}:$(dirname {input.database}),/scratch/plasmidtype_ab_{wildcards.sample_id_pattern}/,{config[output_directory]},{config[work_dir]} {input.sif_file} \
+        blastn -query {input.database} -subject /scratch/plasmidtype_ab_{wildcards.sample_id_pattern}/$(basename {input.contigs}) -outfmt 6 -out /scratch/plasmidtype_ab_{wildcards.sample_id_pattern}/$(basename {output}) -perc_identity 95
+
+        mv /scratch/plasmidtype_ab_{wildcards.sample_id_pattern}/$(basename {output}) {output}
+        rm -r /scratch/plasmidtype_ab_{wildcards.sample_id_pattern}/
         """
 
 
