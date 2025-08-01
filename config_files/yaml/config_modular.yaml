@@ -452,7 +452,7 @@ tip_tool_configs:
   shigatyper_shigella:
   abaumanniiplasmidtype:
     abp_sif: /mnt/beegfs2/home/groups/nmrl/image_files/blast_2.16.0+.sif
-    database: /mnt/beegfs2/home/groups/nmrl/db/AcinetobacterPlasmidTyping/acinetobacterplasmidtype_feb2025_V3.fasta
+    database: /mnt/beegfs2/home/groups/nmrl/db/AcinetobacterPlasmidTyping/acinetobacterplasmidtyper.fasta
 
 #########################
 # bact_shape configuration
