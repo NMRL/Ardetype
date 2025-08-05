@@ -287,5 +287,12 @@
         "tool": "capybara",
         "link": "https://github.com/Zhou-lab-SUDA/CAPYBARA",
         "reference": "hengkai Li, Heng Li, Guilai Jiang, Shengke Wang, Min Wang, Yilei Wu, Xiao Liu, Ling Zhong, Shichang Xie, Yi Ren, Yongliang Lou, Jimei Du, Zhemin Zhou, 2024, Emergence and Global Spread of a Dominant Multidrug-Resistant Variant in Acinetobacter baumannii, https://doi.org/10.21203/rs.3.rs-4224555/v1"
+    },
+    "pf_abaumannii_report.csv": {
+        "rule": "plasmidtype_abaumannii",
+        "method": "AcinetobacterPlasmidTyping comprises a database of Acinetobacter plasmid replication initiation protein-encoding rep sequences corresponding to an updated plasmid rep typing scheme for Acinetobacter baumannii.",
+        "tool": "plasmidtype_abaumannii",
+        "link": "https://github.com/MehradHamidian/AcinetobacterPlasmidTyping",
+        "reference": "Lam MMC, Koong J, Holt KE, Hall RM, Hamidian M. Detection and Typing of Plasmids in Acinetobacter baumannii Using rep Genes Encoding Replication Initiation Proteins. Microbiol Spectr. 2023 Feb 14;11(1):e0247822. doi: 10.1128/spectrum.02478-22. PMID: 36472426; PMCID: PMC9927589. https://pubmed.ncbi.nlm.nih.gov/36472426/"
     }
 }

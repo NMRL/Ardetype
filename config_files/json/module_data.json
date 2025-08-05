@@ -12,6 +12,7 @@
         "shape_ont": "snakefiles/bact_shape_ont"
     },
     "reports": [
+        "pf_abaumannii_report.csv",
         "cgmlst_aggregated",
         "_ardetype_report.csv",
         "pointfinder_report.csv",
@@ -202,7 +203,8 @@
             ],
             "Acinetobacter baumannii": [
                 "_capybara.tsv",
-                "_chewbbaca/results_alleles.tsv"
+                "_chewbbaca/results_alleles.tsv",
+                "_abplasmidtype.txt"
             ],
             "Escherichia coli": [
                 "_ectyper.tsv",

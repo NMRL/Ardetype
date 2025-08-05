@@ -411,7 +411,9 @@ tip_tool_configs:
   lrefinder_efaecium_efaecalis:
     id: 80
   shigatyper_shigella:
-  
+  abaumanniiplasmidtype:
+    abp_sif: resources/image_files/blast_2.16.0+.sif
+    database: resources/databases/acinetobacterplasmidtyper.fasta
 
 #########################
 # bact_shape configuration

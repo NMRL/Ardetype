@@ -85,7 +85,8 @@ class Wrapper():
             },
             "resfinder": self._get_datestamp(self._config_dict['shell_tool_configs']['resfinder']['resfinder_db'], 'resfinder_db'),
             "plasmidfinder": self._get_datestamp(f'{db_path}', 'plasmidfinder_db_new'),
-            "virulencefinder": self._get_datestamp(f'{db_path}', 'virulencefinder_db_new')
+            "virulencefinder": self._get_datestamp(f'{db_path}', 'virulencefinder_db_new'),
+            "plasmidtype_abaumannii": self._get_datestamp(f'{db_path}', 'acinetobacterplasmidtyper.fasta')
         }
 
     def set_tool_vers_map(self):
@@ -195,7 +196,8 @@ class Wrapper():
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "polca":"4.1.0",
             "medaka": sp.run(f'singularity --silent run {self._config_dict["medaka_sif"]} medaka --version 2> /dev/null', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1].split()[1],
-            "capybara":"1.0"
+            "capybara":"1.0",
+            "plasmidtype_abaumannii":"2022"
         }
 
 

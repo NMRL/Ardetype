@@ -87,6 +87,11 @@ rule all:
         capybara_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_capybara.tsv", extractor = hk.capybara_results)
         capybara_results.to_csv(f"{config['output_directory']}capybara_report.csv", header=True, index=False)
 
+        #Aggregate plasmidtype_abaumannii results
+        pt_ab_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_abplasmidtype.txt", extractor = hk.pt_ab_results)
+        pt_ab_results.to_csv(f"{config['output_directory']}pf_abaumannii_report.csv", header=True, index=False)
+
+
 rule hicap_hinfluenzae:
     input:
         contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
@@ -114,6 +119,29 @@ rule hicap_hinfluenzae:
         rmdir --ignore-fail-on-non-empty {config[scratch]}hicap/ 2>> {log}
         """
 
+
+rule plasmidtype_abaumannii:
+    input:
+        contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
+        sif_file = ancient(config['tip_tool_configs']['abaumanniiplasmidtype']['abp_sif']),
+        database = ancient(config['tip_tool_configs']['abaumanniiplasmidtype']['database'])
+    output:
+        config['output_directory']+'{sample_id_pattern}_abplasmidtype.txt'
+    envmodules:
+        'singularity'
+    log:
+        config['output_directory']+'logs/'+'{sample_id_pattern}_plasmidtype_abaumannii.log'
+    shell:
+        """
+        mkdir -p {config[scratch]}plasmidtype_ab_{wildcards.sample_id_pattern}/ 2>> {log}
+        cp {input.contigs} {config[scratch]}plasmidtype_ab_{wildcards.sample_id_pattern}/ 2>> {log}
+
+        singularity --silent run --bind {config[scratch]}plasmidtype_ab_{wildcards.sample_id_pattern}/,{config[output_directory]}:{config[scratch]}plasmidtype_ab_{wildcards.sample_id_pattern}/,{config[output_directory]} {input.sif_file} \
+        blastn -query {input.database} -subject {config[scratch]}plasmidtype_ab_{wildcards.sample_id_pattern}/$(basename {input.contigs}) -outfmt 6 -out {config[scratch]}plasmidtype_ab_{wildcards.sample_id_pattern}/$(basename {output}) -perc_identity 95 2>> {log}
+
+        mv {config[scratch]}plasmidtype_ab_{wildcards.sample_id_pattern}/$(basename {output}) {output} 2>> {log}
+        rm -r {config[scratch]}plasmidtype_ab_{wildcards.sample_id_pattern}/ 2>> {log}
+        """
 
 rule meningotype_nmeningitidis:
     input:
