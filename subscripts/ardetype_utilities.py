@@ -710,7 +710,7 @@ class Ardetype_housekeeper(hk):
             report = pd.read_csv(plassembler_result_path, sep='\t')
             sample_id = os.path.basename(plassembler_result_path).replace('_with_sample.tsv', '')
             report["sample_id"] = [sample_id for _ in report.index]
-            report["seq_batch"] = [os.path.basename(os.path.dirname(plassembler_result_path)) for _ in report.index]
+            report["seq_batch"] = [os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(plassembler_result_path))))) for _ in report.index]
             report = report[['sample_id','seq_batch']+columns]
             return report
         except pd.errors.EmptyDataError:
