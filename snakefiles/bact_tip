@@ -116,6 +116,10 @@ rule all:
         pt_ab_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_abplasmidtype.txt", extractor = hk.pt_ab_results)
         pt_ab_results.to_csv(f"{config['output_directory']}pf_abaumannii_report.csv", header=True, index=False)
 
+        #Aggregate plassembler results
+        plassembler_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*/supplementary_results/plassembler_individual_summaries/*_with_sample.tsv", extractor = hk.plassembler_results)
+        plassembler_results.to_csv(f"{config['output_directory']}plassembler_report.csv", header=True, index=False)
+
 rule hicap_hinfluenzae:
     input:
         contigs  = ancient(config['work_dir']+'{sample_id_pattern}_contigs.fasta'),

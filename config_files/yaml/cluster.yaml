@@ -37,6 +37,14 @@ ont_qc:
   queue: "batch"
   jobout: "oe"
 
+hybracter:
+  jobname: "ardetype.hybracter"
+  procs: 5
+  pmem: "1500mb"
+  walltime: "01:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
 
 ont_filtering:
   jobname: "ardetype.ont_filtering"

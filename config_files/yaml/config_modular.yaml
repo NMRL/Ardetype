@@ -51,6 +51,8 @@ snikt_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/snikt_0.5.0.sif
 medaka_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/medaka_0.11.2.sif
+hybracter_sif:
+  /mnt/beegfs2/home/groups/nmrl/image_files/hybracter_0.11.0.sif
 
 
 ##############
@@ -198,6 +200,8 @@ core_tool_configs:
   medaka:
     threads: 12
     ram_mb: 6144
+  hybracter:
+    threads: 4
 
 #########################
 # bact_shell configuration
