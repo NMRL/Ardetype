@@ -45,7 +45,8 @@
         "seroba_report.csv",
         "emmtyper_report.csv",
         "hicap_report.csv",
-        "capybara_report.csv"
+        "capybara_report.csv",
+        "plassembler_report.csv"
     ],
     "core": {
         "targets": {

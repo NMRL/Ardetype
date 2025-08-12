@@ -694,6 +694,41 @@ class Ardetype_housekeeper(hk):
                 "Coverage":[None]
                 })
             return report
+    
+
+    @staticmethod
+    def plassembler_results(plassembler_result_path:str, batch:str):
+        columns = ["contig", "length", "mean_depth_long", "sd_depth_long", "q25_depth_long", "q75_depth_long",
+                "plasmid_copy_number_long", "circularity", "PLSDB_hit", "NUCCORE_ACC", "mash_distance", "mash_pval",
+                "mash_matching_hashes", "NUCCORE_UID", "NUCCORE_Description", "NUCCORE_CreateDate", "NUCCORE_Topology",
+                "NUCCORE_Completeness", "NUCCORE_TaxonID", "NUCCORE_Genome", "NUCCORE_Length", "NUCCORE_DuplicatedEntry",
+                "NUCCORE_Source", "NUCCORE_BiosampleID", "BIOSAMPLE_UID", "BIOSAMPLE_ACC", "BIOSAMPLE_Location",
+                "BIOSAMPLE_Coordinates", "BIOSAMPLE_IsolationSource", "BIOSAMPLE_Host", "BIOSAMPLE_CollectionDate",
+                "BIOSAMPLE_HostDisease", "BIOSAMPLE_SampleType", "ASSEMBLY_UID", "ASSEMBLY_ACC", "ASSEMBLY_Status",
+                "ASSEMBLY_coverage", "ASSEMBLY_SeqReleaseDate", "ASSEMBLY_SubmissionDate", "ASSEMBLY_Lastest",
+                "ASSEMBLY_BiosampleID", "TAXONOMY_superkingdom", "TAXONOMY_phylum", "TAXONOMY_class", "TAXONOMY_order",
+                "TAXONOMY_family", "TAXONOMY_genus", "TAXONOMY_species", "TAXONOMY_strain", "TAXONOMY_UID",
+                "TAXONOMY_taxon_rank", "TAXONOMY_taxon_name", "TAXONOMY_taxon_lineage", "TAXONOMY_superkingdom_id",
+                "TAXONOMY_phylum_id", "TAXONOMY_class_id", "TAXONOMY_order_id", "TAXONOMY_family_id", "TAXONOMY_genus_id",
+                "TAXONOMY_species_id", "TAXONOMY_strain_id", "has_biosample", "has_assembly", "has_location",
+                "rMLST_hits", "rMLST_hitscount", "inclusions", "NUCCORE_GC", "Length", "BIOSAMPLE_Host_processed",
+                "BIOSAMPLE_Host_processed_source", "BIOSAMPLE_Host_label", "BIOSAMPLE_HostDisease_processed",
+                "loc_lat", "loc_lng", "loc_parsed", "D1", "D2", "plasmidfinder", "pmlst"
+            ]
+        try:
+            report = pd.read_csv(plassembler_result_path, sep='\t')
+            sample_id = os.path.basename(plassembler_result_path).replace('_with_sample.tsv', '')
+            report["sample_id"] = [sample_id for _ in report.index]
+            report["seq_batch"] = [os.path.basename(os.path.dirname(plassembler_result_path)) for _ in report.index]
+            report = report[columns]
+            return report
+        except pd.errors.EmptyDataError:
+            report = pd.DataFrame.from_dict({
+                'sample_id': [os.path.basename(plassembler_result_path).replace('_abplasmidtype.txt', '')],
+                'seq_batch': [os.path.basename(os.path.dirname(batch))],
+                **{col: [None] for col in columns}
+            })
+            return report
 
     @staticmethod
     def stecfinder_results(stf_result_path: str, batch: str) -> pd.DataFrame:
