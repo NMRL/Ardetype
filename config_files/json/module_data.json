@@ -72,13 +72,15 @@
                 "_kraken2_host_filtering_report.txt",
                 ".fastp.json",
                 ".fastp.html",
-                "_contigs.fasta"
+                "_contigs.fasta",
+                "_hybracter.fasta"
             ],
             "ONT": [
                 ".circularized.fasta",
                 "_snikt.html",
                 "_kraken2_contigs_report.txt",
-                "_contigs.fasta"
+                "_contigs.fasta",
+                "_hybracter.fasta"
             ],
             "FA": [
                 "_kraken2_contigs_report.txt",

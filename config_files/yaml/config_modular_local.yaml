@@ -41,6 +41,8 @@ snikt_sif:
   resources/image_files/snikt_0.5.0.sif
 medaka_sif:
   resources/image_files/medaka_latest.sif
+hybracter_sif:
+  resources/image_files/hybracter_0.11.0.sif
 
 
 ##############
@@ -168,6 +170,8 @@ core_tool_configs:
     ram_mb: 6144
   circlator:
     skip: True
+  hybracter:
+    threads: 4
 
 #########################
 # bact_shell configuration
