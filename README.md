@@ -68,7 +68,9 @@ ARDETYPE consists of four main modules:
 | [staphopia-sccmec](https://github.com/staphopia/staphopia-sccmec)    | bact_tip   |
 | [stecfinder](https://github.com/LanLab/STECFinder)                   | bact_tip   |
 | [virulencefinder](https://bitbucket.org/genomicepidemiology/virulencefinder/src/master/) | bact_shell |
-
+| [hybracter](https://github.com/gbouras13/hybracter) | bact_core |
+| [cgmlst-dists](https://github.com/tseemann/cgmlst-dists) | bact_shape |
+| [AcinetobacterPlasmidTyping](https://github.com/MehradHamidian/AcinetobacterPlasmidTyping) | bact_tip |
 ---
 
 ## Installation
@@ -275,4 +277,5 @@ required arguments:
 | software_log.csv | software/database versions |
 | spatyper_report.csv | [spa typing](https://github.com/HCGB-IGTP/spaTyper) for S.aureus |
 | stecfinder_report.csv | [Shigatoxin typing](https://github.com/LanLab/STECFinder) for E.coli |
-| virulencefinder_summary.csv | [Detecting virulence genetic elements](https://bitbucket.org/genomicepidemiology/virulencefinder/src/master/) in bacterial NGS data |
+| virulencefinder_summary.csv | [Detecting virulence genetic elements](https://bitbucket.org/genomicepidemiology/virulencefinder/src/master/) in bacterial NGS data (including full [VFDB](https://www.mgc.ac.cn/VFs/download.htm) database) |
+| pf_abaumannii_report.csv | [Acinetobacter baumannii MGA search results](https://github.com/MehradHamidian/AcinetobacterPlasmidTyping) |
