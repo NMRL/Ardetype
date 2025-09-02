@@ -1,7 +1,8 @@
+
 ##############
 # default - any rule for which resources were not defined
 ##############
-
+cluster: slurm
 __default__:
   jobname: "default"
   nodes: 1

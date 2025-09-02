@@ -1,7 +1,7 @@
 ##############
 # default - any rule for which resources were not defined
 ##############
-
+cluster: pbs
 __default__:
   jobname: "default"
   procs: 1

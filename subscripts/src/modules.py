@@ -495,17 +495,21 @@ class Module:
         Allows the snakemake to do job submissions to the computing nodes automatically.     
         '''
         #job_submission command to be used by snakmake to automatically submit jobs to HPC; stuff in curly brackets are snakemake arguments, not python variables
-        if os.path.basename(self.cluster_config_path) == 'cluster.yaml':
+        cluster = hk.read_yaml(self.cluster_config_path)['cluster']
+        self.job_cancel = 'qdel'
+        if cluster == 'pbs':
             job_submission_command = '"qsub -N {cluster.jobname} -l nodes={cluster.nodes}:ppn={cluster.procs},pmem={cluster.pmem},walltime={cluster.walltime},feature={cluster.feature},file={cluster.file} -q {cluster.queue} -j {cluster.jobout} -o {cluster.outdir} -A {cluster.account} -V"'
-        elif os.path.basename(self.cluster_config_path) == 'cluster_slurm.yaml':
-            job_submission_command = '"sbatch --job-name {cluster.jobname} -N {cluster.nodes} --ntasks={cluster.ppn} --mem-per-cpu={cluster.mempc} -t {cluster.time} -o {cluster.outdir}{cluster.output} -e {cluster.outdir}{cluster.error} --export=ALL"'
+        elif cluster == 'slurm':
+            job_submission_command = '"sbatch --parsable --job-name {cluster.jobname} -N {cluster.nodes} --ntasks={cluster.npn} --mem-per-cpu={cluster.mempc} -t {cluster.time} -o {cluster.outdir}{cluster.output} -e {cluster.outdir}{cluster.error} --export=ALL"'
+            self.status_script = f"{os.path.dirname(Path(__file__).parents[0].absolute())}/slurm-status.py"
+            self.job_cancel = 'scancel'
         else:
             job_submission_command = '"qsub -N {cluster.jobname} -l procs={cluster.procs},pmem={cluster.pmem},walltime={cluster.walltime},feature={cluster.feature} -q {cluster.queue} -j {cluster.jobout} -o {cluster.outdir} -A {cluster.account} -V"'
         #shell command run by the wrapper (includes qsub command as substring);
+                # eval "$(conda shell.bash hook)";
+        # source activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake;
         shell_command = f'''
-        eval "$(conda shell.bash hook)";
-        source activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake;
-        snakemake --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific} --cluster {job_submission_command}'''
+        snakemake --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel {self.job_cancel} --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific} --cluster {job_submission_command}'''
         try:
             process_data = subprocess.check_call(shell_command, shell=True, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as smk_error:

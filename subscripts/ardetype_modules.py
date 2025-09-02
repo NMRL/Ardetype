@@ -321,7 +321,7 @@ class Ardetype_module(Module):
         copy cluster.yaml into self.output_path/logs/
         and change self.config_file_path to self.output_path/logs/
         '''
-        self.job_log_path     = os.path.join(self.output_path,'logs')
+        self.job_log_path     = os.path.join(self.output_path,'logs/')
         cluster_config        = hk.read_yaml(self.cluster_config_path)
         os.makedirs(self.job_log_path , exist_ok=True)
         hk.edit_nested_dict(cluster_config,'outdir', self.job_log_path)
