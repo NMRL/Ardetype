@@ -55,12 +55,16 @@ rule all:
         # rMLST reports to aggregate 
         rmlst                = expand(config['output_directory']+'{sample_id}_rmlst.json', sample_id=sample_sheet['sample_id']),
 
+        # PLSDB reports to aggregate
+        plsdb                = expand(config['output_directory']+'{sample_id}_plsdb_mob_recon.csv', sample_id=sample_sheet['sample_id']),
+
     run:
         #Use only non-empty files (hamronization fails otherwise or easier to implement custom aggregation)
         input.hamr_resfinder = [ path for path in input.hamr_resfinder if not os.path.getsize(path) == 0]
         input.hamr_rgi       = [ path for path in input.hamr_rgi if not os.path.getsize(path) == 0]
         input.amrfp_mut      = [ path for path in input.amrfp_mut if not os.path.getsize(path) == 0]
         input.mobtyper       = [ path for path in input.mobtyper if not os.path.getsize(path) == 0]
+        input.plsdb          = [ path for path in input.plsdb if not os.path.getsize(path) == 0]
 
         #Create single tsv report from all resistance inference tools.
         command = f'''
@@ -110,6 +114,10 @@ echo bact_shell finished
         #Aggregate amrfinder+ mutation results
         amfp = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.amrfpm_results, pathlist = input.amrfp_mut)
         amfp.to_csv(f"{config['output_directory']}amrfp_mutation_report.csv", header=True, index=False)
+
+        #Aggregate plsdb search results
+        plsdb = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.plsdb_results, pathlist = input.plsdb)
+        plsdb.to_csv(f"{config['output_directory']}plsdb_report.csv", index=False)
 
         # Search for AMR-plasmid associations in resfinder & mobtyper output
         if not os.path.getsize(f"{config['output_directory']}mobtyper_contig_summary.csv") == 0:
@@ -163,6 +171,56 @@ rule mob_recon:
             touch {output[2]} 2>>{log}
         fi
         """
+
+
+rule plsdb_api_query:
+    resources: API_calls=1  # Each job consumes 1 API_calls unit
+    input:
+        config['output_directory']+'{sample_id_pattern}_mob_recon/contig_report.txt'
+    output:
+        config['output_directory']+'{sample_id_pattern}_plsdb_mob_recon.csv'
+    log:
+        config['output_directory']+"logs/{sample_id_pattern}_plsdb.log"
+    run:
+        import os
+        from glob import glob
+        from plsdbapi import query
+        import pandas as pd
+
+        log_file = log[0]
+
+        with open(log_file, "w") as logf:
+            logf.write(f"Starting PLSDB query for sample {wildcards.sample_id_pattern}\n")
+
+            plasmid_paths = glob(config['output_directory'] + f'{wildcards.sample_id_pattern}_mob_recon/plasmid_*fasta')
+            logf.write(f"Found {len(plasmid_paths)} plasmid FASTA files: {plasmid_paths}\n")
+
+            results = pd.DataFrame()
+
+            if plasmid_paths:
+                for path in plasmid_paths:
+                    try:
+                        logf.write(f"Querying PLSDB for {path}...\n")
+                        df = query.query_plasmid_sequence("mash_screen", ifile=path)
+
+                        if not df.empty:
+                            df['query'] = [path for _ in df.index]
+                            df['seq_batch'] = [os.path.basename(os.path.dirname(config['output_directory'])) for _ in df.index]
+                            df['sample_id'] = [wildcards.sample_id_pattern for _ in df.index]
+                            results = pd.concat([results, df])
+                            logf.write(f"  -> {len(df)} hits found for {path}\n")
+                        else:
+                            logf.write(f"  -> No hits found for {path}\n")
+
+                    except Exception as e:
+                        logf.write(f"  -> ERROR querying {path}: {e}\n")
+
+            else:
+                logf.write("No plasmid FASTA files found, writing empty CSV.\n")
+
+            results.to_csv(output[0], index=False)
+            logf.write(f"Results written to {output[0]}\n")
+            logf.write("PLSDB query finished.\n")
 
 
 rule resfinder:

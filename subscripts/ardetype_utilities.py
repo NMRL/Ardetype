@@ -860,6 +860,13 @@ class Ardetype_housekeeper(hk):
             sample_id = os.path.basename(rmlst_result_path).replace('_rmlst.json','')
             df = pd.DataFrame.from_dict({"sample_id":[sample_id], "species":[""]})
             return df
+        
+    @staticmethod
+    def plsdb_results(plsdb_result_path: str, batch: str):
+        df = pd.read_csv(plsdb_result_path)
+        columns = ['sample_id', 'seq_batch', 'query'] + list(df.columns)[:-3]
+        df = df[columns]
+        return df
 
     @staticmethod
     def lrefinder_results(lrefinder_pos_path:str, batch: str):

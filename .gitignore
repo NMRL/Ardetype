@@ -1,4 +1,5 @@
 # Specific files
+*plsdb_api_test*
 *.env*
 *.session_token
 devsync

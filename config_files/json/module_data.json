@@ -114,6 +114,7 @@
             "_resfinder/ResFinder_results.txt",
             "_quast/icarus.html",
             "_mob_recon/mobtyper_results.txt",
+            "_plsdb_mob_recon.csv",
             "_amrfinderplus.tab",
             "_plasmidfinder/Hit_in_genome_seq.fsa",
             "_plasmidfinder/Plasmid_seqs.fsa",
