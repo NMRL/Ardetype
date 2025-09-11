@@ -197,7 +197,8 @@ class Wrapper():
             "polca":"4.1.0",
             "medaka": sp.run(f'singularity --silent run {self._config_dict["medaka_sif"]} medaka --version 2> /dev/null', stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split('\n')[-1].split()[1],
             "capybara":"1.0",
-            "plasmidtype_abaumannii":"2022"
+            "plasmidtype_abaumannii":"2022",
+            "hybracter": "0.11.0"
         }
 
 

@@ -132,6 +132,27 @@
             "tool": "medaka",
             "link": "https://github.com/nanoporetech/medaka",
             "reference": "https://github.com/nanoporetech/medaka"
+        },
+        "hybracter": {
+            "rule": "hybracter",
+            "method": "Hybrid (long-read-first) & long-read only assembly of genomes and plasmids",
+            "tool": "hybracter",
+            "link": "https://github.com/gbouras13/hybracter",
+            "reference": "https://doi.org/10.1099/mgen.0.001244"
+        },
+        "rmlst_API": {
+            "rule": "rmlst",
+            "method": "Bacterial species identification",
+            "tool": "rmlst API",
+            "link": "https://pubmlst.org/species-id/species-identification-via-api",
+            "reference": "https://doi.org/10.1099/mic.0.055459-0"
+        },
+        "PLSDB_API": {
+            "rule": "plsdb_api_query",
+            "method": "Plasmid sequence similarity search",
+            "tool": "PLSDB API",
+            "link": "https://github.com/CCB-SB/plsdbapi",
+            "reference": "https://ccb-microbe.cs.uni-saarland.de/plsdb2025/"
         }
     },
     "_meningotype.tsv": {
