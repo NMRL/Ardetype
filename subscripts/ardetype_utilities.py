@@ -863,9 +863,12 @@ class Ardetype_housekeeper(hk):
         
     @staticmethod
     def plsdb_results(plsdb_result_path: str, batch: str):
-        df = pd.read_csv(plsdb_result_path)
-        columns = ['sample_id', 'seq_batch', 'query'] + list(df.columns)[:-3]
-        df = df[columns]
+        try:
+            df = pd.read_csv(plsdb_result_path)
+            columns = ['sample_id', 'seq_batch', 'query'] + list(df.columns)[:-3]
+            df = df[columns]
+        except:
+            df = pd.DataFrame(columns='NUCCORE_ACC,NUCCORE_Topology,Length,NUCCORE_GC,NUCCORE_Source,ASSEMBLY__ASSEMBLY_ACC,BIOSAMPLE__BIOSAMPLE_ACC,BIOSAMPLE__LOCATION_name,BIOSAMPLE__ECOSYSTEM_tags,BIOSAMPLE__ECOSYSTEM_taxid,BIOSAMPLE__DISEASE_ontid,TAXONOMY__TAXONOMY_UID,TAXONOMY__TAXONOMY_taxon_name,TAXONOMY__TAXONOMY_taxon_rank,BIOSAMPLE__ECOSYSTEM_query,NUCCORE_CreateDate,TAXONOMY__TAXONOMY_class,TAXONOMY__TAXONOMY_family,TAXONOMY__TAXONOMY_genus,TAXONOMY__TAXONOMY_order,TAXONOMY__TAXONOMY_phylum,TAXONOMY__TAXONOMY_species,TAXONOMY__TAXONOMY_strain,TAXONOMY__TAXONOMY_superkingdom,BIOSAMPLE__LOCATION_lat,BIOSAMPLE__LOCATION_lng,UMAP_D1,UMAP_D2,MOB__PMLST_scheme,MOB__rep_type,MOB__relaxase_type,MOB__mpf_type,qseqid,evalue,bitscore,qstart,qend,sstart,send,qcov,qcovhsp,pident,identity,shared_hashes,median_multiplicity,pvalue,query,seq_batch,sample_id'.split(','))
         return df
 
     @staticmethod
