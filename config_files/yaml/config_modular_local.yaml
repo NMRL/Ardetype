@@ -63,7 +63,7 @@ resfinder_sif:
 rgi_sif:
   resources/image_files/rgi_6.0.3--pyha8f3691_0.sif
 resfinder_version: resfinder_v4.6
-resfinder_dtb_version: resfinder_2024-06-18
+resfinder_dtb_version: 2.6.0
 rgi_version: 6.0.3 
 rgi_dtb_version: 6.0.3 
 amrfinderplus_version: 4.0.19

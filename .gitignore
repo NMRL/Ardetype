@@ -2,7 +2,7 @@
 *plsdb_api_test*
 *.env*
 *.session_token
-devsync
+devsync*
 *.fastq.gz
 log_summary.html
 clst_bct_cl.o*

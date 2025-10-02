@@ -45,6 +45,11 @@ class Wrapper():
         datestamp = datetime.datetime.fromtimestamp(os.path.getmtime(os.path.join(common_dir, name))).strftime('%Y-%m-%d')
         return datestamp
 
+    def _read_cge_verstion(self, file_path:str) -> str:
+        '''Parses VERSION file and returns version as string'''
+        with open(file_path, 'r+') as f:
+            version = f.read().strip()
+        return version
 
     def set_db_vers_map(self):
         '''Setter for db_vers_map'''
@@ -83,7 +88,7 @@ class Wrapper():
                     "Mycobacterium"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['mycobacterium']['db'],
                 }.items()
             },
-            "resfinder": self._get_datestamp(self._config_dict['shell_tool_configs']['resfinder']['resfinder_db'], 'resfinder_db'),
+            "resfinder": self._read_cge_verstion(os.path.join(self._config_dict['shell_tool_configs']['resfinder']['resfinder_db'],'resfinder_db/VERSION')), #self._get_datestamp(self._config_dict['shell_tool_configs']['resfinder']['resfinder_db'], 'resfinder_db'),
             "plasmidfinder": self._get_datestamp(f'{db_path}', 'plasmidfinder_db_new'),
             "virulencefinder": self._get_datestamp(f'{db_path}', 'virulencefinder_db_new'),
             "plasmidtype_abaumannii": self._get_datestamp(f'{db_path}', 'acinetobacterplasmidtyper.fasta')

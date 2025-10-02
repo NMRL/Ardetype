@@ -82,7 +82,7 @@ rgi_env:
 hamronization_sif:
   /mnt/beegfs2/home/groups/nmrl/image_files/hamronization_latest.sif
 resfinder_version: resfinder_v4.5
-resfinder_db_version: resfinder_2024-06-18
+resfinder_db_version: 2.6.0
 rgi_version: 6.0.3 
 rgi_db_version: 6.0.3 
 #https://quay.io/repository/biocontainers/rgi?tab=tags&tag=latest
