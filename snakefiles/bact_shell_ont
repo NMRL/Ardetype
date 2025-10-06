@@ -41,6 +41,7 @@ rule all:
 
         #Lists of specific resistance cases not covered by hamronization
         amrfp_mut            = expand(config['output_directory']+'{sample_id}_amrfinderplus_point.tab', sample_id=sample_sheet['sample_id']),
+        amrfp_new            = expand(config['output_directory']+'{sample_id}_amrfinderplus.tab', sample_id=sample_sheet['sample_id']),
 
         #Lists of plasmid reports to aggregate
         plasmidfinder        = expand(config['output_directory']+'{sample_id}_plasmidfinder/results_tab.tsv', sample_id=sample_sheet['sample_id']),
@@ -61,6 +62,7 @@ rule all:
         input.hamr_resfinder = [ path for path in input.hamr_resfinder if not os.path.getsize(path) == 0]
         input.hamr_rgi       = [ path for path in input.hamr_rgi if not os.path.getsize(path) == 0]
         input.amrfp_mut      = [ path for path in input.amrfp_mut if not os.path.getsize(path) == 0]
+        input.amrfp_new      = [ path for path in input.amrfp_new if not os.path.getsize(path) == 0]
         input.mobtyper       = [ path for path in input.mobtyper if not os.path.getsize(path) == 0]
         input.rmlst          = [ path for path in input.rmlst if not os.path.getsize(path) == 0]
         input.plsdb          = [ path for path in input.plsdb if not os.path.getsize(path) == 0]
@@ -113,6 +115,10 @@ echo bact_shell finished
         #Aggregate amrfinder+ mutation results
         amfp = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.amrfpm_results, pathlist = input.amrfp_mut)
         amfp.to_csv(f"{config['output_directory']}amrfp_mutation_report.csv", header=True, index=False)
+
+        #Aggregate amrfinder+ new version results (not covered by hamronization)
+        amfp_new = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.amrfpnew_results, pathlist = input.amrfp_new)
+        amfp_new.to_csv(f"{config['output_directory']}amrfp_report.csv", header=True, index=False)
 
         #Aggregate plsdb search results
         plsdb = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.plsdb_results, pathlist = input.plsdb)

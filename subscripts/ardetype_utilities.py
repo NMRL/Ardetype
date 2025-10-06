@@ -375,6 +375,20 @@ class Ardetype_housekeeper(hk):
             os.path.dirname(batch)) for _ in df.index])
 
         return df
+    
+
+    @staticmethod
+    def resreads_results(rfr_result_path: str, batch: str) -> pd.DataFrame:
+        '''Returns a dataframe - containing valid resistance genes.'''
+        df = pd.read_csv(rfr_result_path, sep="\t")
+        sample_id = re.sub(r'(_S[0-9]*)?_resfinder_reads',
+                           '', os.path.basename(os.path.dirname(rfr_result_path)))
+
+        # Add identifiers
+        df.insert(0, 'sample_id', [sample_id for _ in df.index])
+        df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
+
+        return df
 
     @staticmethod
     def plasmidfinder_results(plf_result_path: str, batch: str) -> pd.DataFrame:
@@ -826,6 +840,15 @@ class Ardetype_housekeeper(hk):
         '''To combine amrfinder+ mutation reports and map them to sample_id-batch pair.'''
         df = pd.read_csv(amrfpm_result_path, sep='\t')
         sample_id = re.sub(r'(_S[0-9]*)?_amrfinderplus_point.tab', '', os.path.basename(amrfpm_result_path))
+        df.insert(0, 'sample_id', [sample_id for _ in df.index])
+        df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
+        return df
+    
+    @staticmethod
+    def amrfpnew_results(amrfpnew_result_path: str, batch: str):
+        '''To combine amrfinder+ mutation reports and map them to sample_id-batch pair.'''
+        df = pd.read_csv(amrfpnew_result_path, sep='\t')
+        sample_id = re.sub(r'(_S[0-9]*)?_amrfinderplus.tab', '', os.path.basename(amrfpnew_result_path))
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
         df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
         return df

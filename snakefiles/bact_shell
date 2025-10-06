@@ -41,8 +41,12 @@ rule all:
         hamr_rgi             = expand(config['output_directory']+'{sample_id}.rgi.hamr.tab', sample_id=sample_sheet['sample_id']),
         hamr_resfinder_pheno = expand(config['output_directory']+'{sample_id}_resfinder_pheno.txt', sample_id=sample_sheet['sample_id']),
 
+        #List of resfinder read-based reports to be aggregated
+        resfinder_reads      = expand(config['output_directory']+'{sample_id}_resfinder/{sample_id}_resfinder_reads/ResFinder_results_tab.txt', sample_id=sample_sheet['sample_id']),
+
         #Lists of specific resistance cases not covered by hamronization
         amrfp_mut            = expand(config['output_directory']+'{sample_id}_amrfinderplus_point.tab', sample_id=sample_sheet['sample_id']),
+        amrfp_new            = expand(config['output_directory']+'{sample_id}_amrfinderplus.tab', sample_id=sample_sheet['sample_id']),
 
         #Lists of plasmid reports to aggregate
         plasmidfinder        = expand(config['output_directory']+'{sample_id}_plasmidfinder/results_tab.tsv', sample_id=sample_sheet['sample_id']),
@@ -61,8 +65,10 @@ rule all:
     run:
         #Use only non-empty files (hamronization fails otherwise or easier to implement custom aggregation)
         input.hamr_resfinder = [ path for path in input.hamr_resfinder if not os.path.getsize(path) == 0]
+        input.resfinder_reads = [ path for path in input.resfinder_reads if not os.path.getsize(path) == 0]
         input.hamr_rgi       = [ path for path in input.hamr_rgi if not os.path.getsize(path) == 0]
         input.amrfp_mut      = [ path for path in input.amrfp_mut if not os.path.getsize(path) == 0]
+        input.amrfp_new      = [ path for path in input.amrfp_new if not os.path.getsize(path) == 0]
         input.mobtyper       = [ path for path in input.mobtyper if not os.path.getsize(path) == 0]
         input.plsdb          = [ path for path in input.plsdb if not os.path.getsize(path) == 0]
 
@@ -82,6 +88,10 @@ echo bact_shell finished
         if 'analysis_batch_id' not in res_sum.columns:
             res_sum.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in res_sum.index])
         res_sum.to_csv(f"{config['output_directory']}harmonized_resistance_profile.tsv", sep='\t', header=True, index=False)
+
+        #Aggregating resfinder read-based results
+        rf = hk.aggregator(outfolder_path = config['output_directory'],  proc_num = 6, extractor = hk.resreads_results, pathlist = input.resfinder_reads)
+        rf.to_csv(f"{config['output_directory']}resfinder_reads_report.csv", header=True, index=False)
 
         #Aggregating resfinder phenotype info
         df = hk.aggregator(outfolder_path = config['output_directory'],  proc_num = 6, extractor = hk.respheno_results, pathlist = input.hamr_resfinder_pheno)
@@ -114,6 +124,10 @@ echo bact_shell finished
         #Aggregate amrfinder+ mutation results
         amfp = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.amrfpm_results, pathlist = input.amrfp_mut)
         amfp.to_csv(f"{config['output_directory']}amrfp_mutation_report.csv", header=True, index=False)
+
+        #Aggregate amrfinder+ new version results (not covered by hamronization)
+        amfp_new = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.amrfpnew_results, pathlist = input.amrfp_new)
+        amfp_new.to_csv(f"{config['output_directory']}amrfp_report.csv", header=True, index=False)
 
         #Aggregate plsdb search results
         plsdb = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.plsdb_results, pathlist = input.plsdb)

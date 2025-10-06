@@ -1,5 +1,5 @@
 {
-    "cluster_config": "config_files/yaml/cluster.yaml",
+    "cluster_config": "config_files/yaml/cluster_slurm.yaml",
     "snakefiles": {
         "core": "snakefiles/bact_core",
         "core_ont": "snakefiles/bact_core_ont",
@@ -14,10 +14,12 @@
     "reports": [
         "plsdb_report.csv",
         "pf_abaumannii_report.csv",
+        "resfinder_reads_report.csv",
         "cgmlst_aggregated",
         "_ardetype_report.csv",
         "pointfinder_report.csv",
         "amrfp_mutation_report.csv",
+        "amrfp_report.csv",
         "resfinder_pheno_table_gathered.csv",
         "harmonized_resistance_profile.tsv",
         "software_log.csv",
