@@ -250,7 +250,8 @@ rule resfinder:
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_Resistance_gene_seq.fsa",
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_results_tab.txt",
         config['output_directory']+"{sample_id_pattern}_resfinder/ResFinder_results.txt",
-        config['output_directory']+'{sample_id_pattern}_resfinder/{sample_id_pattern}_resfinder.hamr.tab'
+        config['output_directory']+'{sample_id_pattern}_resfinder/{sample_id_pattern}_resfinder.hamr.tab',
+        config['output_directory']+'{sample_id_pattern}_resfinder/{sample_id_pattern}_resfinder_reads/ResFinder_results_tab.txt'
     log:
         config['output_directory']+"logs/{sample_id_pattern}_resfinder.resfinder.log"
     run:
