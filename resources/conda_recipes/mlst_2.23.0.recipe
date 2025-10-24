@@ -3,9 +3,41 @@ From: continuumio/miniconda3
 
 %files
     ../env_defs/mlst_2.23.0.yaml mlst_2.23.0.yaml
+
 %post
+    set -e
+
+    # Install wget (needed by mlst-download_pub_mlst)
+    apt-get update && apt-get install -y --no-install-recommends wget ca-certificates && rm -rf /var/lib/apt/lists/*
+
+    # Create and activate the mlst environment
     conda env create --name mlst_2.23.0 --file mlst_2.23.0.yaml
+    . /opt/conda/etc/profile.d/conda.sh
+    conda activate mlst_2.23.0
+
+    # Define paths
+    ENV_PREFIX=/opt/conda/envs/mlst_2.23.0
+    MLST_SCRIPTS_DIR=$ENV_PREFIX/scripts
+    MLST_DBDIR=$ENV_PREFIX/db
+
+    # Update PubMLST database
+    cd $MLST_SCRIPTS_DIR
+    mkdir -p ./pubmlst
+    ./mlst-download_pub_mlst -d ./pubmlst | bash
+
+    rm -rf $MLST_DBDIR/pubmlst
+    mv pubmlst $MLST_DBDIR/pubmlst
+
+    ./mlst-make_blast_db
+
+    $ENV_PREFIX/bin/mlst --list
+
+    # Clean up
+    conda clean -afy
+
 %environment
     export PATH=/opt/conda/envs/mlst_2.23.0/bin:$PATH
+    export MLST_DB_DIR=/opt/conda/envs/mlst_2.23.0/db/pubmlst
+
 %runscript
     exec "$@"
