@@ -412,6 +412,13 @@ tip_tool_configs:
         locus_count: 13745
         db_update: "2023-01-12"
         reference: "Frentrup M, Zhou Z, Steglich M, Meier-Kolthoff JP, Göker M, Riedel T, Bunk B, Sprö8er C, Overmann J, Blaschitz M, Indra A, von Müller L, Kohl TA, Niemann S, Seyboldt C, Klawonn F, Kumar N, Lawley TD, García-Fernández S, Cantón R, Del Campo R, Zimmermann O, Groß U, Achtman M, Nübel U. A publicly accessible database for Clostridioides difficile genome sequences supports tracing of transmission chains and epidemics. Microb Genom. 2020 Aug;6(8):mgen000410. doi: 10.1099/mgen.0.000410. Epub 2020 Jul 29. PMID: 32726198; PMCID: PMC7641423."
+      corynebacterium:
+        db: Corynebacterium_diphtheriae_ridom
+        version: "2025-10-28"
+        origin: https://www.cgmlst.org/ncs/schema/Cdiphtheriae369/
+        locus_count: 1553
+        db_update: "2025-10-28"
+        reference: "Dangel A, Berger A, Konrad R, Bischoff H, and Sing A. Geographically Diverse Clusters of Nontoxigenic Corynebacterium diphtheriae Infection, Germany, 2016-2017. Emerg Infect Dis. 2018, 24: 1239-1245"
   lrefinder_efaecium_efaecalis:
     id: 80
   shigatyper_shigella:

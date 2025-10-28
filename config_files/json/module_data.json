@@ -66,7 +66,6 @@
                 "_contigs.fasta"
             ],
             "FUL": [
-                "_poly_polished.fasta.PolcaCorrected.fa",
                 "_snikt.html",
                 "_bact_reads_classified_1.fastq.gz",
                 "_bact_reads_classified_2.fastq.gz",
@@ -237,6 +236,9 @@
             "Clostridioides difficile": [
                 "_chewbbaca/results_alleles.tsv"
             ],
+            "Corynebacterium diphtheriae": [
+                "_chewbbaca/results_alleles.tsv"
+            ],
             "Enterobacter hormaechei": [
                 "_chewbbaca/results_alleles.tsv"
             ],
@@ -294,6 +296,7 @@
                 "Campylobacter coli",
                 "Clostridium botulinum",
                 "Clostridium difficile",
+                "Corynebacterium diphtheriae",
                 "Klebsiella quasipneumoniae",
                 "Enterococcus faecalis",
                 "Enterococcus faecium",
@@ -372,6 +375,7 @@
             "Yersinia frederiksenii": [],
             "Enterobacter hormaechei": [],
             "Clostridioides difficile": [],
+            "Corynebacterium diphtheriae": [],
             "Shigella sonnei": [],
             "Mycobacterium tuberculosis": [],
             "Mycobacterium bovis": [],
