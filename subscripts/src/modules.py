@@ -400,7 +400,7 @@ class Module:
                 cmd = f'''
                 source "$(conda info --base)/etc/profile.d/conda.sh"
                 conda activate $(dirname $(dirname $(which conda)))/envs/ardetype
-                snakemake --cores {self.snakemake_cpus} --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific}
+                snakemake --cores {self.snakemake_cpus} --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific} | tee /tmp/snakemake_run_$(date +%s).log
                 '''
                 result = subprocess.run(cmd, shell=True, executable="/bin/bash", check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 self.job_id = result.stdout
@@ -509,7 +509,7 @@ class Module:
                 # eval "$(conda shell.bash hook)";
         # source activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake;
         shell_command = f'''
-        snakemake --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel {self.job_cancel} --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific} --cluster {job_submission_command}'''
+        snakemake --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel {self.job_cancel} --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 300 {self.force_all} {self.force_specific} --cluster {job_submission_command}'''
         try:
             process_data = subprocess.check_call(shell_command, shell=True, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as smk_error:

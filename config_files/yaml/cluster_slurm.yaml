@@ -28,6 +28,17 @@ illumina_qc:
   error: "ardetype.quality_control-%j.out"
   output: "ardetype.quality_control-%j.err"
 
+hybracter:
+  jobname: "ardetype.hybracter"
+  nodes: 1
+  npn: 16
+  mempc: "1500mb"
+  time: "03:30:00"
+  account: "rakus"
+  error: "ardetype.ont_qc-%j.out"
+  output: "ardetype.ont_qc-%j.err"
+
+
 ont_qc:
   jobname: "ardetype.ont_qc"
   nodes: 1
@@ -63,7 +74,7 @@ medaka:
   nodes: 1
   npn: 12
   mempc: "1000mb"
-  time: "01:00:00"
+  time: "03:00:00"
   account: "rakus"
   error: "ardetype.medaka-%j.out"
   output: "ardetype.medaka-%j.err"
@@ -93,7 +104,7 @@ hybrid_polishing:
   nodes: 1
   npn: 12
   mempc: "1500mb"
-  time: "00:20:00"
+  time: "01:30:00"
   account: "rakus"
   error: "ardetype.hybrid_polishing-%j.out"
   output: "ardetype.hybrid_polishing-%j.err"
@@ -146,7 +157,7 @@ illumina_assembly:
   nodes: 1
   npn: 24
   mempc: "1500mb"
-  time: "24:00:00"
+  time: "02:30:00"
   account: "rakus"
   error: "ardetype.illumina_assembly-%j.out"
   output: "ardetype.illumina_assembly-%j.err"
@@ -161,7 +172,7 @@ res_gen_id:
   nodes: 1
   npn: 4
   mempc: "1000mb"
-  time: "00:10:00"
+  time: "01:00:00"
   account: "rakus"
   error: "ardetype.rgi_card-%j.out"
   output: "ardetype.rgi_card-%j.err"
@@ -171,7 +182,7 @@ rmlst:
   nodes: 1
   npn: 5
   mempc: "1000mb"
-  time: "00:15:00"
+  time: "01:00:00"
   account: "rakus"
   error: "ardetype.rmlst-%j.out"
   output: "ardetype.rmlst-%j.err"
@@ -193,7 +204,7 @@ resfinder:
   nodes: 1
   npn: 12
   mempc: "1000mb"
-  time: "00:10:00"
+  time: "03:00:00"
   account: "rakus"
   error: "ardetype.resfinder-%j.out"
   output: "ardetype.resfinder-%j.err"

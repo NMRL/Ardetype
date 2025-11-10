@@ -25,7 +25,8 @@ def choose_assembly_branch(wildcards):
     condition_ill = ill_present and not ont_present
 
     if condition_hybr:
-        hybr_asm_tgt = os.path.join(config['output_directory'],f'{wildcards.sample_id_pattern}_poly_polished.fasta.PolcaCorrected.fa')
+        hybr_asm_tgt = os.path.join(config['output_directory'],f'{wildcards.sample_id_pattern}_hybracter.fasta')
+        # hybr_asm_tgt = os.path.join(config['output_directory'],f'{wildcards.sample_id_pattern}_poly_polished.fasta.PolcaCorrected.fa')
         return hybr_asm_tgt
     elif condition_ill:
         ill_asm_tgt = os.path.join(config['output_directory'],f'{wildcards.sample_id_pattern}_contigs/contigs.fa')

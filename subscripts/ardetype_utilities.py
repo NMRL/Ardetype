@@ -356,6 +356,19 @@ class Ardetype_housekeeper(hk):
         return df
 
     @staticmethod
+    def resreads_results(rfr_result_path: str, batch: str) -> pd.DataFrame:
+        '''Returns a dataframe - containing valid resistance genes.'''
+        df = pd.read_csv(rfr_result_path, sep="\t")
+        sample_id = re.sub(r'(_S[0-9]*)?_resfinder_reads',
+                           '', os.path.basename(os.path.dirname(rfr_result_path)))
+
+        # Add identifiers
+        df.insert(0, 'sample_id', [sample_id for _ in df.index])
+        df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
+
+        return df
+
+    @staticmethod
     def respheno_results(rfp_result_path: str, batch: str) -> pd.DataFrame:
         '''Returns a dataframe - containing valid resistance genes.'''
         df = pd.read_csv(rfp_result_path, skiprows=16, sep="\t")
@@ -373,20 +386,6 @@ class Ardetype_housekeeper(hk):
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
-
-        return df
-    
-
-    @staticmethod
-    def resreads_results(rfr_result_path: str, batch: str) -> pd.DataFrame:
-        '''Returns a dataframe - containing valid resistance genes.'''
-        df = pd.read_csv(rfr_result_path, sep="\t")
-        sample_id = re.sub(r'(_S[0-9]*)?_resfinder_reads',
-                           '', os.path.basename(os.path.dirname(rfr_result_path)))
-
-        # Add identifiers
-        df.insert(0, 'sample_id', [sample_id for _ in df.index])
-        df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
 
         return df
 
@@ -690,7 +689,8 @@ class Ardetype_housekeeper(hk):
                 "Coverage"
             ]
             report["sample_id"] = report["query"].apply(lambda x:os.path.basename(x).replace('_contigs.fasta', ''))
-            report["seq_batch"] = report["query"].apply(lambda x:os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(x)))))
+            seq_batch = os.path.basename(os.path.dirname(cpb_result_path))
+            report["seq_batch"] = [seq_batch for _ in report.index]
             report = report[[
                     "sample_id",
                     "seq_batch",

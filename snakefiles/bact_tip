@@ -1,4 +1,4 @@
-localrules: all
+localrules: all, publmst_ngonorrhoe
 
 #imports
 import sys, pandas as pd, os, json

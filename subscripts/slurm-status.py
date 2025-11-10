@@ -43,7 +43,7 @@ squeue_out = run_cmd(f"squeue -j {jobid} -h -o %T")
 if squeue_out:
     state = squeue_out.strip()
     if state in ["PENDING", "CONFIGURING"]:
-        print("pending")
+        print("running")
     elif state in ["RUNNING", "COMPLETING"]:
         print("running")
     else:
