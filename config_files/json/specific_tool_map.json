@@ -132,6 +132,27 @@
             "tool": "medaka",
             "link": "https://github.com/nanoporetech/medaka",
             "reference": "https://github.com/nanoporetech/medaka"
+        },
+        "hybracter": {
+            "rule": "hybracter",
+            "method": "Hybrid (long-read-first) & long-read only assembly of genomes and plasmids",
+            "tool": "hybracter",
+            "link": "https://github.com/gbouras13/hybracter",
+            "reference": "https://doi.org/10.1099/mgen.0.001244"
+        },
+        "rmlst_API": {
+            "rule": "rmlst",
+            "method": "Bacterial species identification",
+            "tool": "rmlst API",
+            "link": "https://pubmlst.org/species-id/species-identification-via-api",
+            "reference": "https://doi.org/10.1099/mic.0.055459-0"
+        },
+        "PLSDB_API": {
+            "rule": "plsdb_api_query",
+            "method": "Plasmid sequence similarity search",
+            "tool": "PLSDB API",
+            "link": "https://github.com/CCB-SB/plsdbapi",
+            "reference": "https://ccb-microbe.cs.uni-saarland.de/plsdb2025/"
         }
     },
     "_meningotype.tsv": {
@@ -262,7 +283,7 @@
     },
     "results_alleles.tsv": {
         "rule": "chewbbaca_cgmlst",
-        "method": "cgmlst typing using chewbbaca & redom schema",
+        "method": "cgmlst typing using chewbbaca & Ridom schema",
         "tool": "chewbbaca",
         "link": "https://github.com/B-UMMI/chewBBACA",
         "reference": "Silva M, Machado MP, Silva DN, Rossi M, Moran-Gilad J, Santos S, Ramirez M, Carriço JA. 2018. chewBBACA: A complete suite for gene-by-gene schema creation and strain identification. Microb Genom 4:000166. doi:10.1099/mgen.0.000166"
@@ -280,5 +301,19 @@
         "tool": "lrefinder",
         "link": "https://bitbucket.org/genomicepidemiology/lre-finder",
         "reference": "LRE-Finder, a Web Tool for detection of the 23S rRNA mutations, and the optrA, cfr, cfr(B) and poxtA genes, encoding linezolid resistance in Enterococci from whole genome sequences Henrik HASMAN, Philip T.L.C. CLAUSEN, Hulya KAYA, Frank HANSEN, Jenny Dahl KNUDSEN, Mikala WANG, Barbara Juliane HOLZKNECHT, Jurgita SAMULIONIENE, Bent ROEDER, Niels FRIMODT-MOELLER, Ole LUND, and Anette M. HAMMERUM"
+    },
+    "capybara.tsv": {
+        "rule": "capybara",
+        "method": "Assignment of query strain into the epidemic super-lineage (ESL) (IC1 and IC2), if it belongs, as well as one of the lineages, clusters, and clades in the ESL",
+        "tool": "capybara",
+        "link": "https://github.com/Zhou-lab-SUDA/CAPYBARA",
+        "reference": "hengkai Li, Heng Li, Guilai Jiang, Shengke Wang, Min Wang, Yilei Wu, Xiao Liu, Ling Zhong, Shichang Xie, Yi Ren, Yongliang Lou, Jimei Du, Zhemin Zhou, 2024, Emergence and Global Spread of a Dominant Multidrug-Resistant Variant in Acinetobacter baumannii, https://doi.org/10.21203/rs.3.rs-4224555/v1"
+    },
+    "pf_abaumannii_report.csv": {
+        "rule": "plasmidtype_abaumannii",
+        "method": "AcinetobacterPlasmidTyping comprises a database of Acinetobacter plasmid replication initiation protein-encoding rep sequences corresponding to an updated plasmid rep typing scheme for Acinetobacter baumannii.",
+        "tool": "plasmidtype_abaumannii",
+        "link": "https://github.com/MehradHamidian/AcinetobacterPlasmidTyping",
+        "reference": "Lam MMC, Koong J, Holt KE, Hall RM, Hamidian M. Detection and Typing of Plasmids in Acinetobacter baumannii Using rep Genes Encoding Replication Initiation Proteins. Microbiol Spectr. 2023 Feb 14;11(1):e0247822. doi: 10.1128/spectrum.02478-22. PMID: 36472426; PMCID: PMC9927589. https://pubmed.ncbi.nlm.nih.gov/36472426/"
     }
 }

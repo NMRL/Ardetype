@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/shovill_1.1.0.yaml shovill_1.1.0.yaml
+%post
+    conda env create --name shovill_1.1.0 --file shovill_1.1.0.yaml
+%environment
+    export PATH=/opt/conda/envs/shovill_1.1.0/bin:$PATH
+%runscript
+    exec "$@"

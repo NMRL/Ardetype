@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/snikt_0.5.0.yaml snikt_0.5.0.yaml
+%post
+    conda env create --name snikt_0.5.0 --file snikt_0.5.0.yaml
+%environment
+    export PATH=/opt/conda/envs/snikt_0.5.0/bin:$PATH
+%runscript
+    exec "$@"

@@ -1,6 +1,8 @@
-import os, sys, yaml, pandas as pd, re, argparse, json, base64, requests, numpy as np, urllib, pandas as pd, concurrent.futures
+import os, sys, yaml, pandas as pd, re, argparse, json, base64, requests, urllib, pandas as pd, concurrent.futures
 from dateutil.relativedelta import relativedelta
-from Bio import SeqIO, Entrez
+import re
+from pathlib import Path
+from typing import Dict
 from datetime import datetime
 from pathlib import Path
 from shutil import move
@@ -11,13 +13,57 @@ class Housekeeper:
     like reading from/writing to certain file types, generating sample sheets etc.'''
 
     @staticmethod
+    def get_failed_sample_counts(log_content: str) -> Dict[str, int]:
+        # Regex patterns
+        error_jobid_pattern = re.compile(r"Error in rule .*?:\s+jobid: (\d+)")
+        launch_block_pattern = re.compile(
+            r"^.*rule .*?:.*?jobid: (\d+).*?wildcards: sample_id_pattern=(\S+)", re.DOTALL
+        )
+
+        # Step 1: Collect all failed job IDs
+        failed_jobids = list(map(int, error_jobid_pattern.findall(log_content)))
+
+        # Step 2: Scan job launch blocks to match job IDs to sample IDs
+        job_blocks = log_content.split("[")
+        jobid_to_sample = {}
+        for block in job_blocks:
+            match = launch_block_pattern.search(block)
+            if match:
+                jobid = int(match.group(1))
+                sample_id = match.group(2)
+                jobid_to_sample[jobid] = sample_id
+
+        # Step 3: Count failures per sample ID
+        sample_fail_counts: Dict[str, int] = {}
+        for jobid in failed_jobids:
+            sample_id = jobid_to_sample.get(jobid)
+            if sample_id:
+                sample_fail_counts[sample_id] = sample_fail_counts.get(sample_id, 0) + 1
+
+        return sample_fail_counts
+
+
+    @staticmethod
+    def join_sif_paths(d, substring, *prefix):
+        for key, value in d.items():
+            if isinstance(value, dict):
+                # Recurse into sub-dictionaries
+                Housekeeper.join_sif_paths(value, substring, *prefix)
+            elif substring in key:
+                if not os.path.isabs(d[key]):
+                    # Update the value using os.path.join
+                    d[key] = os.path.join(*prefix, value)
+
+    @staticmethod
     def parse_folder(folder_pth_str:str, file_fmt_str:str, substr_lst:list=None, regstr_lst:list=None) -> list:
         '''
         Given path to the folder (folder_pth_str) and file format (file_fmt_str), returns a list, 
         containing absolute paths to all files of specified format found in folder and subfolders,
         except for files that contain patterns to exclude (specified in regstr_lst) or substrings to exclude (specified in substr_lst).    
         '''
-        if not os.path.isdir(folder_pth_str): raise ValueError(f'Expected path to folder - {folder_pth_str} does not exist or refers to a file')
+        if not os.path.isdir(folder_pth_str): 
+            print(f'Expected path to folder - {folder_pth_str} does not exist or refers to a file', file=sys.stderr)
+            sys.exit(1)
         name_series = pd.Series(dtype="str") #initialize pandas series to store path values
         for (root,_,files) in os.walk(folder_pth_str, topdown=True): #get list of file paths (from parent dir & subdir)
             new_files = pd.Series(files, dtype="str") #convert file names in new folder to pandas series
@@ -48,15 +94,15 @@ class Housekeeper:
         file_series = pd.Series(file_lst, dtype="str") #to facilitate filtering
         ss_df = pd.DataFrame(dtype="str") #to store sample sheet
         if mode not in [0,1]:
-            raise Exception(f"utilities/create_sample_sheet: Accepted mode values are 0 for fasta and 1 for fastq: {mode} was given.") 
+            raise Exception(f"utilities.create_sample_sheet: Accepted mode values are 0 for fasta and 1 for fastq: {mode} was given.") 
 
         if mode == 1:  #If function is used to produce sample sheet from fasta files
             id_extractor = lambda x: os.path.basename(x).replace(generic_str, "") #extract id from string by replacing generic part
             id_series = file_series.apply(id_extractor) 
             if regex_str is not None: 
                 id_series = id_series[id_series.str.contains(regex_str)] #additional sample id filtering based on regex was requested
-                if len(id_series) == 0:
-                    raise Exception('utilities/create_sample_sheet: After filtering sample ids using regex no sample ids left')
+                if not id_series:
+                    raise Exception('utilities.create_sample_sheet: no sample ids left after filtering sample ids using regex')
             path_series = file_series[file_series.str.contains("|".join(id_series))].reset_index(drop=True) #getting corresponding paths to fastq files
             ss_df['sample_id'], ss_df['fa'] = id_series, path_series #adding to sample sheet dataframe
             return ss_df
@@ -65,8 +111,8 @@ class Housekeeper:
         id_series = file_series.apply(id_extractor).drop_duplicates(keep = "first").sort_values().reset_index(drop=True)
         if regex_str is not None: #additional sample id filtering based on regex was requested
             id_series = id_series[id_series.str.contains(regex_str)]
-            if len(id_series) == 0:
-                raise Exception('utilities/create_sample_sheet: After filtering sample ids using regex no sample ids left')
+            if not id_series:
+                raise Exception('utilities.create_sample_sheet: no sample ids left after filtering sample ids using regex')
         read_1_dict, read_2_dict = {}, {} #to use python mapping to ensure correspondance between id and path
 
         for id in id_series:
@@ -89,15 +135,15 @@ class Housekeeper:
         Given a pandas dataframe (object), a dictionary where each row in id_column is matched with information to be added (dict, values to be added as one column),
         and a new column name (str), returns a pandas dataframe (object), that contains new column where new information is added to the corresponding row of id_column.
         """
-        if not isinstance(ss_df, pd.DataFrame): raise TypeError('Expected pandas.DataFrame as ss_df')
-        elif not isinstance(info_dict, dict): raise TypeError('Expected dictionary as info_dict')
-        elif id_column not in ss_df.columns: raise KeyError('id_column should be present in ss_df')
+        if not isinstance(ss_df, pd.DataFrame): raise TypeError('utilities.map_new_column: Expected pandas.DataFrame as ss_df')
+        elif not isinstance(info_dict, dict): raise TypeError('utilities.map_new_column: Expected dictionary as info_dict')
+        elif id_column not in ss_df.columns: raise KeyError('utilities.map_new_column: id_column should be present in ss_df')
         elif not set(info_dict.keys()).intersection(set(ss_df[id_column])):
             if info_dict:
                 ss_df.to_csv('test_df.csv', header=True, index=False)
                 with open('id_check_dict.json', 'w+') as f:
                     json.dump(info_dict, f, indent=4)
-                raise KeyError('No overlap between ids in ss_df.id_column and info_dict')
+                raise KeyError('utilities.map_new_column: No overlap between ids in ss_df.id_column and info_dict')
 
         ss_df[new_col_name] = ss_df[id_column].map(info_dict)
         return ss_df
@@ -135,6 +181,7 @@ class Housekeeper:
                 if isinstance(value, dict):
                     return Housekeeper.edit_nested_dict(value, param, new_value)
 
+
     @staticmethod
     def find_in_nested_dict(nested_dict:dict, key_sequence:list):
         '''
@@ -167,7 +214,6 @@ class Housekeeper:
                     raise LookupError('Problem with keys: reached non-dict value before processing all keys in sequence.')
             except KeyError:
                 raise LookupError(f'Problem with keys: {key} not found in nested_dict.')
-
             
     @staticmethod
     def get_all_keys(input_dict:dict, key_set=set()):
@@ -189,7 +235,7 @@ class Housekeeper:
         return key_set #return is reached only when there are no recursive calls, hence all nested structure was parsed
 
     @staticmethod
-    def validate_yaml(input_dict:dict, template_yaml_path:str='./config_files/yaml/config_modular.yaml'):
+    def validate_yaml(input_dict:dict, template_yaml_path:str='./config_files/yaml/config_modular_local.yaml'):
         """
         Given a dictionary (dict), return 0 if the structure of the dictionary corresponds to the yaml template structure (read from file),
         return 1 if some keys are missing in the dictionary, return 2 if some new keys are found in the dictionary.
@@ -222,30 +268,6 @@ class Housekeeper:
         """
         with open(json_path, "w+") as json_handle:
             json.dump(input_dict,json_handle)
-
-
-    @staticmethod
-    def install_snakemake():
-        '''Function is used as a wrapper for bash script that checks if snakemake is installed and installs if absent.'''
-        os.system(
-        '''
-        eval "$(conda shell.bash hook)"
-        DEFAULT_ENV=/mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake$
-        SEARCH_SNAKEMAKE=$(conda env list | grep -oP "${DEFAULT_ENV}")
-        if [ ${SEARCH_SNAKEMAKE} -ef ${DEFAULT_ENV::-1} ]; then
-            echo Running with --install_snakemake flag: Snakemake is already installed for this user
-        else
-            echo Running with --install_snakemake flag:
-            conda create -n mamba_env
-            source activate mamba_env
-            conda install python=3.9
-            conda install -c conda-forge mamba
-            mamba create -c conda-forge -c bioconda -n snakemake snakemake=7.6.1
-            source activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake
-            pip install PyYAML bs4 lxml
-        fi    
-        '''
-        )
 
     @staticmethod
     def read_json_dict(json_path:str):
@@ -317,7 +339,7 @@ class Housekeeper:
         if seqs:
             SeqIO.write([rec for rec in seqs if len(rec.seq) > minlen], output_multifasta_path, "fasta")
         else:
-            raise ValueError('Input fasta parsing error')
+            raise ValueError(f"Contig filtering by length failed - {input_multifasta_path} is either malformed or empty.")
 
         
     @staticmethod
@@ -368,6 +390,8 @@ class Housekeeper:
             parser.print_help(sys.stderr)
             sys.exit(1)
         args = parser.parse_args()
+        if args.output_dir is None:
+            args.output_dir = args.input
         return args
 
     @staticmethod
@@ -622,7 +646,7 @@ class Housekeeper:
         os.system(
             f'''
             eval "$(conda shell.bash hook)" 
-            source activate {env_path}
+            conda activate {env_path}
             jupyter nbconvert --to html --execute --no-input {notebook_path} --output-dir={output_dir}
             chmod 775 {output_dir} 2>/dev/null
             ''')
@@ -651,47 +675,4 @@ class Housekeeper:
         new_file_name = f'{tstemp}-log_aggregate_{pipeline_name}.csv'
         updated_df.drop_duplicates(subset=['log_path'], keep='first', inplace=True)
         if file_search: os.remove(f'{job_log_dir}/{current_file}')
-        updated_df.to_csv(f'{job_log_dir}/{new_file_name}', header=True, index=False)
-
-
-
-
-
-class Query_ncbi:
-    '''Class is set to contain methods to send requests to ncbi nucleotied database via biopython Entrez API.'''
-    email = "jevgenijs.bodrenko@aslimnica.lv"
-    database = 'nucleotide'
-
-    @classmethod #uses email and database defined in Query
-    def check_output(valid_accession:str):
-        '''Method checks if record exists in NCBI database given accession number.'''
-        Entrez.email = Query_ncbi.email
-        try:
-            handle = Entrez.efetch(db=Query_ncbi.database, id = valid_accession, rettype="acc") #Attempts to open connection to NCBI database
-            data = handle.read() #Reads up-to-date accession from NCBI
-            handle.close() #Closes connection
-            if valid_accession in data: #Checks if found accession contains query
-                return True
-            else: 
-                return False
-        except urllib.error.HTTPError as e: #If query is invalid, the exception is thrown
-            if str(e) == "HTTP Error 400: Bad Request":
-                return False
-
-    @classmethod
-    def get_fasta(cls, valid_accession):
-        '''Method attempts to get fasta sequence (header + sequence separately) given accession number.'''
-        Entrez.email = Query_ncbi.email
-        handle = Entrez.efetch(db=Query_ncbi.database, id = valid_accession, rettype="fasta") #Attempts to open connection to NCBI database
-        record = SeqIO.read(handle, "fasta") #Reads sequence in fasta format from ncbi
-        handle.close() #Closes connection
-        return record.seq, record.id
-
-    @classmethod
-    def get_taxonomy(cls, valid_accession):
-        '''Method attempts to get taxonomy information(list) from NCBI database given accession number.'''
-        Entrez.email = cls.email
-        handle = Entrez.efetch(db=Query_ncbi.database, id = valid_accession, rettype="gb") #Attempts to open connection to NCBI database
-        tax_data = SeqIO.read(handle, format='genbank').annotations['taxonomy']
-        handle.close() #Closes connection
-        return tax_data
+        updated_df.to_csv(f'{job_log_dir}/{new_file_name}', header=True, index=False)    

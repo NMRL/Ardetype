@@ -1,18 +1,19 @@
 localrules: all
 
-import sys, pandas as pd, os, json, time
+import sys, pandas as pd, os, json, time, tempfile, shutil
 from datetime import date
-sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
-from ardetype_utilities import Ardetype_housekeeper as Housekeeper
-from ardetype_modules import Wrapper as wp
+sys.path.insert(0, os.path.abspath('./'))
+from subscripts.ardetype_utilities import Ardetype_housekeeper as Housekeeper
+from subscripts.ardetype_modules import Wrapper as wp
 
 
-sip_wild = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
+
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv").astype(str)
 date = date.today().strftime("%Y-%m-%d")
-specific_tool_map = Housekeeper.read_json_dict("/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/json/specific_tool_map.json")
+specific_tool_map = Housekeeper.read_json_dict(os.path.join(os.path.abspath('./'),"config_files/json/specific_tool_map.json"))
 aquamis_qc_db = Housekeeper.read_json_dict(config["aquamis_qc_reference"])
 aquamis_update_timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(config["aquamis_qc_reference"])))
+
 
 
 rule all:
@@ -30,7 +31,7 @@ rule all:
                 aggr_dict[df['sample_id'][0]] = df #add all columns
 
 
-        report = pd.concat(aggr_dict.values()) #combile all dataframes as rows into single report (one row for each sample_id)
+        report = pd.concat(aggr_dict.values()) #combine all dataframes as rows into single report (one row for each sample_id)
 
 
         #Generating combined report
@@ -55,6 +56,7 @@ rule all:
         report = report[order_list]
 
         #generate per-sample and per-batch tool reports
+        print(f'shape: extracting tool/database versions', file=sys.stdout)
         wrapper = wp()
         wrapper.set_db_vers_map()
         wrapper.set_tool_vers_map()
@@ -62,28 +64,58 @@ rule all:
 
         #add output folder name as analysis batch id
         report.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(config['output_directory'])) for _ in report.index])
-        #generate aquamis-based qc reports
-        aquamis_qc_report = pd.DataFrame()
-        # for sid, bid, spc in zip(report['sample_id'],report['analysis_batch_id'], report['species']):
-        #     qc_report = Housekeeper.check_quality_thr(
-        #         thresholds_db = aquamis_qc_db, 
-        #         sample_id = sid, 
-        #         batch_id = bid, 
-        #         species = spc, 
-        #         ardetype_report = report, 
-        #         quast_report_path = config['output_directory']+f'{sid}_quast/transposed_report.tsv', 
-        #         thresholds_db_timestamp = aquamis_update_timestamp
-        #         )
-        #     aquamis_qc_report = pd.concat([aquamis_qc_report, qc_report])
         
         # #Prettify ids
         report.sample_id = report.sample_id.astype(str).str.replace(r'_S[0-9]*', '', regex=True)
-        # aquamis_qc_report.sample_id = aquamis_qc_report.sample_id.astype(str).str.replace(r'_S[0-9]*', '', regex=True)
 
         # #save as csv
         report.to_csv(config['output_directory']+f'{date}_ardetype_report.csv', header=True, index=False)
-        # aquamis_qc_report.to_csv(config['output_directory']+f'{date}_aquamis_qc_report.csv', header=True, index=False)
 
+
+        # Combine profiles by species
+        with open(config['output_directory']+'core_aggregated_taxonomy.json', "r") as json_handle:
+            tax_map = json.load(json_handle)
+        
+        tax_df = pd.DataFrame(tax_map.items(), columns=['sample_id', 'species'])
+        unq_spcs = tax_df['species'].unique()
+
+
+        wd = os.path.join(config["output_directory"], 'cgmlst_aggregated')
+        if os.path.isdir(wd):
+            shutil.rmtree(wd)
+        os.makedirs(wd)
+
+        # For each detected species
+        for sp in unq_spcs:
+            samples = tax_df[tax_df['species'] == sp]['sample_id'].to_list()
+            profiles = [os.path.join(config['output_directory'], f'{sample}_chewbbaca', 'results_alleles.tsv') for sample in samples]
+            profiles = {s:p for s,p in zip(samples,profiles) if os.path.exists(p)}
+
+
+            with tempfile.TemporaryDirectory() as tmpdir:
+                # Copy profiles for processing
+                new_map = {}
+                for smp, pf in profiles.items():
+                    dest_path = os.path.join(tmpdir, f'{smp}_results_alleles.tsv')
+                    shutil.copy(pf, dest_path)
+                    new_map[smp] = dest_path
+
+                # Generate species template
+                template = new_map[list(new_map.keys())[0]]
+                
+                combined_prof_path = os.path.join(wd,f'agg_results_alleles_{sp.lower().replace(" ","_")}.tsv')
+                os.system(f'head -1 {template} > {combined_prof_path}')
+
+                # Fill-in the template
+                for s,p in new_map.items():
+                    os.system(f'tail -1 {p} >> {combined_prof_path}')
+
+                # Replace contigs suffix
+                os.system(f"sed -i 's/_contigs//g' {combined_prof_path}")
+                
+                # Calculate distance matrix
+                dm_path = os.path.join(wd,f'cgmlst-dists_{sp.lower().replace(" ","_")}.tsv')
+                os.system(f'singularity --silent run --bind {config["output_directory"]}:{config["output_directory"]} {config["cgmlst_dists_sif"]} cgmlst-dists {combined_prof_path} > {dm_path}')
 
 
 rule extract_kraken2:
@@ -453,7 +485,7 @@ rule extract_SISTR:
             key = "_sistr.csv"
             report = pd.read_csv(input[0])
             report = report[["serovar", "serogroup"]]
-            report["type"] = report[["serovar", "serogroup"]].agg('; '.join, axis=1) #textjoin in pandas accross columns
+            report["type"] = report[["serovar", "serogroup"]].agg('; '.join, axis=1)
             report = report[["type"]]
             report["sample_id"] = wildcards.sample_id_pattern
             report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']

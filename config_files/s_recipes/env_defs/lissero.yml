@@ -1,5 +1,0 @@
-name: lissero
-channels:
-  - bioconda
-dependencies:
-  - lissero

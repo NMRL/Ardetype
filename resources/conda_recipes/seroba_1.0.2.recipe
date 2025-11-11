@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/seroba_1.0.2.yaml seroba_1.0.2.yaml
+%post
+    conda env create --name seroba_1.0.2 --file seroba_1.0.2.yaml
+%environment
+    export PATH=/opt/conda/envs/seroba_1.0.2/bin:$PATH
+%runscript
+    exec "$@"

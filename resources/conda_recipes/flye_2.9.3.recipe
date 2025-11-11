@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/flye_2.9.3.yaml flye_2.9.3.yaml
+%post
+    conda env create --name flye_2.9.3 --file flye_2.9.3.yaml
+%environment
+    export PATH=/opt/conda/envs/flye_2.9.3/bin:$PATH
+%runscript
+    exec "$@"

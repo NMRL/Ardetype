@@ -1,0 +1,12 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- agrvate=1.0.1
+- blast
+- hmmer
+- mummer
+- seqkit
+- snippy
+name: agrvate_1.0.1

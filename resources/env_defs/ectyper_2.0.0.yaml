@@ -1,0 +1,18 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- ectyper=2.0.0
+- python >=3.5
+- pytest >=3.5
+- bcftools >=1.8.*
+- blast >=2.7.1.*
+- requests >=2.*.*
+- bowtie2 >=2.3.*
+- mash >=2.0.*
+- pandas >=0.23.1.*
+- samtools >=1.8.*
+- seqtk >=1.2.*
+- biopython >=1.70.*
+name: ectyper_2.0.0

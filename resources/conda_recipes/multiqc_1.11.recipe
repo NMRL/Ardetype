@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/multiqc_1.11.yaml multiqc_1.11.yaml
+%post
+    conda env create --name multiqc_1.11 --file multiqc_1.11.yaml
+%environment
+    export PATH=/opt/conda/envs/multiqc_1.11/bin:$PATH
+%runscript
+    exec "$@"

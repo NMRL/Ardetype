@@ -8,15 +8,13 @@ import pathlib
 import shutil
 import pandas as pd
 
+from glob import glob
 from pathlib import Path
-from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor as ppe, as_completed, ThreadPoolExecutor
 from bisect import bisect_left
 sys.path.insert(0, os.path.dirname(os.path.dirname(Path(__file__).absolute())))
-sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/utils/phylogenetics_tools/')
 
 from subscripts.src.utilities import Housekeeper as hk
-# from process_chewbacca_profiles_edits import initialize_logging, gather_chewbacca_data, cluster_analysis, cluster_counter
 
 
 ###############
@@ -24,6 +22,7 @@ from subscripts.src.utilities import Housekeeper as hk
 ###############
 
 cluster_counter = 0
+ardetype_path = os.path.dirname(Path(__file__).parents[0].absolute())
 
 ###############
 
@@ -48,52 +47,89 @@ class Ardetype_housekeeper(hk):
         Excludes and deletes files from source paths specified in exclude_files.
         '''
 
-        def move_item(src, dst):
-            """Move item from src to dst."""
-            if os.path.exists(dst):
-                raise ValueError(f"Collision detected at destination path '{dst}'")
-            os.system(f'chmod -R 775 {src}')
-            os.system(f'mv {src} {dst}')
+        confirm = input(f'WARNING: merge WILL ATTEMPT TO MOVE everything FROM each --merge_from folder to --output_dir path and run the pipeline on it.\n Original folders will NOT be deleted, but logs will not be merged.\nPlease verify if you wish to proceed [yY/nN]')
 
-        def delete_item(src):
-            """Delete the specified item."""
-            os.system(f'rm -rf {src}')
 
-        if not target_folder:
-            raise ValueError("target_folder argument is required")
+        if confirm.lower() == "y":
+            def move_item(src, dst):
+                """Move item from src to dst."""
+                if os.path.exists(dst):
+                    if not dst.endswith("_mark"):
+                        print(f"Collision detected at destination path '{dst}'", file=sys.stderr)
+                        sys.exit(1)
+                if not any(p in dst for p in ["data", "config", "reports", "scratch","logs","_mark"]):
+                    shutil.move(src, dst)
 
-        # Check for naming collisions among source directories and with the target directory
-        src_name_to_paths = {}
-        os.system(f'mkdir -m 775 -p {target_folder}')
-        for src in src_list:
-            if os.path.abspath(src) == os.path.abspath(target_folder):
-                raise ValueError("Source and target folders cannot be the same.")
-                
-            for item in os.listdir(src):
-                dest_path = os.path.join(target_folder, item)
-                
-                if not ignore_collisions:
-                    if item in src_name_to_paths:
-                        raise ValueError(f"Naming collision detected for '{item}' in sources '{src_name_to_paths[item]}' and '{src}'")
-                    if os.path.exists(dest_path):
-                        raise ValueError(f"Naming collision detected for '{item}' between source '{src}' and target '{target_folder}'")
+            def delete_item(path):
+                if os.path.isdir(path) and not os.path.islink(path):
+                    shutil.rmtree(path)
+                elif os.path.exists(path):
+                    os.remove(path)
 
-                    src_name_to_paths[item] = src
+            if not target_folder:
+                raise ValueError("target_folder argument is required")
 
-        with ThreadPoolExecutor() as executor:
-            futures = []
+
+            # Check for merge compatibility
+            unmarked = []
+            dtype_dict = {}
             for src in src_list:
-                for item in os.listdir(src):
-                    src_item_path = os.path.join(src, item)
-                    dest_item_path = os.path.join(target_folder, item)
-                    if os.path.basename(item) in exclude_files:
-                        futures.append(executor.submit(delete_item, src_item_path))
-                    else:
-                        futures.append(executor.submit(move_item, src_item_path, dest_item_path))
+                mark = glob(os.path.join(src,'*mark'))
+                if mark:
+                    dtype_dict[src] = os.path.basename(mark[0])
+                else:
+                    unmarked.append(src)
+            
+            if unmarked:
+                nl = "\n"
+                print(f'Was Unable to verify data type for the following batches:\n{nl.join(unmarked)}\nPlease check folder contents.', file=sys.stderr)
+                sys.exit(1)
+            
+            dtype_check = [all(v == dtype for v in dtype_dict.values()) for dtype in ["ONT_mark","ILL_mark","HYB_mark", "FA_mark"]]
+            if sum(dtype_check) != 1: # exatcly one is true
+                print(f'Some batches in the --merged_from list are unmergable based on stated rules (ALLOWED MERGES: Illumina + Hybrid, Illumina + Illumina, Nanopore + Nanopore).\nPlease check data types.', file=sys.stderr)
+                sys.exit(1)
 
-            for future in as_completed(futures):
-                # Handle any exceptions or errors that might have occurred
-                future.result()
+            # Check for naming collisions among source directories and with the target directory
+            src_name_to_paths = {}
+            os.makedirs(target_folder, mode=0o775, exist_ok=True)
+
+
+            for src in src_list:
+                if os.path.abspath(src) == os.path.abspath(target_folder):
+                    print("Source and target folders cannot be the same.", file=sys.stderr)
+                    sys.exit(1)
+                    
+                for item in os.listdir(src):
+                    dest_path = os.path.join(target_folder, item)
+                    
+                    if not ignore_collisions:
+                        if item in src_name_to_paths:
+                            print(f"Naming collision detected for '{item}' in sources '{src_name_to_paths[item]}' and '{src}'", file=sys.stderr)
+                            sys.exit(1)
+                        if os.path.exists(dest_path):
+                            print(f"Naming collision detected for '{item}' between source '{src}' and target '{target_folder}'")
+                            sys.exit(1)
+
+                        src_name_to_paths[item] = src
+
+            with ThreadPoolExecutor() as executor:
+                futures = []
+                for src in src_list:
+                    for item in os.listdir(src):
+                        src_item_path = os.path.join(src, item)
+                        dest_item_path = os.path.join(target_folder, item)
+                        if os.path.basename(item) in exclude_files:
+                            futures.append(executor.submit(delete_item, src_item_path))
+                        else:
+                            futures.append(executor.submit(move_item, src_item_path, dest_item_path))
+
+                for future in as_completed(futures):
+                    # Handle any exceptions or errors that might have occurred
+                    future.result()
+        else:
+            print('Batch merge aborted.')
+            sys.exit(0)
 
 
     @staticmethod
@@ -106,10 +142,10 @@ class Ardetype_housekeeper(hk):
         from rauth import OAuth1Session
         from dotenv import load_dotenv
         from subscripts.pubmlst_rest_auth import retrieve_token, get_session_token
-        load_dotenv('/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/.env')
+        load_dotenv(os.path.join(ardetype_path,'config_files/.env'))
         CONSUMER_KEY = os.getenv('CONSUMER_KEY')
         CONSUMER_SECRET = os.getenv('CONSUMER_SECRET')
-        SESSION_TOKEN = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/.session_token'
+        SESSION_TOKEN = os.path.join(ardetype_path,'config_files/.session_token')
         route='/sequence'
 
         (token, secret) = None, None
@@ -173,64 +209,6 @@ class Ardetype_housekeeper(hk):
         else:
             print("Error:")
             print(response.text)
-
-
-    @staticmethod
-    def copy_files_by_species(taxonomy_map:dict, file_list:list, collection_path:str, batch_depth:int=1, extension:str='contigs.fasta') -> None:
-        '''
-        Creates a copy of each file in file_list in the contig_repo_path 
-        according to inferred taxonomy of the corresponding sample.
-        If the species folder does not exist, it will be created.
-        '''
-        files_df = pd.DataFrame(file_list, columns=['file_path'])
-        files_df['sample_id'] = files_df['file_path'].apply(lambda x: [id for id in taxonomy_map if id in x][0])
-        
-        def get_batch_id_from_path(path, depth):
-            '''Recursive logic to get folder name at a given depth'''
-            if depth == 0:
-                return os.path.basename(path)
-            else:
-                return get_batch_id_from_path(os.path.dirname(path), depth - 1)
-
-
-        # Extract batch ID from each file's directory name
-        files_df['batch_id'] = files_df['file_path'].apply(lambda x: get_batch_id_from_path(x, batch_depth))
-        
-        taxonomy_df = pd.DataFrame(list(taxonomy_map.items()), columns=['sample_id', 'taxonomy'])
-        merged_df = pd.merge(files_df, taxonomy_df, on='sample_id', how='left')
-        # Adjust the new_path to include the batch_id in the filename
-        merged_df['new_path'] = merged_df.apply(
-            lambda row: os.path.join(
-                collection_path,
-                row['taxonomy'].replace(" ", "_"),
-                f"{re.sub(r'_S[0-9]*','',row['sample_id'])}_{row['batch_id']}_{extension}"  # Adjusted filename format
-            ),
-            axis=1
-        )
-        
-        # Prepare a list of tuples (src, dst) for copying
-        file_operations = list(merged_df[['file_path', 'new_path']].itertuples(index=False, name=None))
-
-        def copy_file(src, dst):
-            '''
-            Copies a single file from src to dst.
-            Creates the destination directory if it does not exist.
-            '''
-            os.makedirs(os.path.dirname(dst), exist_ok=True)
-            shutil.copy(src, dst)
-
-        # Use ThreadPoolExecutor to copy files in parallel
-        with ThreadPoolExecutor() as executor:
-            # Submit all the file copy operations to the executor
-            futures = [executor.submit(copy_file, src, dst) for src, dst in file_operations]
-            
-            # Optionally, wait for all futures to complete and handle exceptions
-            for future in futures:
-                try:
-                    future.result()  # This will raise exceptions from the copy operation, if any
-                except Exception as e:
-                    print(f"Error copying file: {e}")
-        os.system(f'chmod -R 775 {collection_path} 2> /dev/null')
 
                     
 #######################
@@ -365,7 +343,7 @@ class Ardetype_housekeeper(hk):
         '''Returns dataframe containing sample_id and analysis_batch_id columns
         where the same sample id and batch id are matched to all findings for a given sample.'''
         df = pd.read_csv(pf_results_path, sep='\t')
-        sample_id = re.sub(r'_S[0-9]*_resfinder', '',
+        sample_id = re.sub(r'(_S[0-9]*)?_resfinder', '',
                            os.path.basename(os.path.dirname(pf_results_path)))
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
         df.insert(1, 'analysis_batch_id',
@@ -378,10 +356,23 @@ class Ardetype_housekeeper(hk):
         return df
 
     @staticmethod
+    def resreads_results(rfr_result_path: str, batch: str) -> pd.DataFrame:
+        '''Returns a dataframe - containing valid resistance genes.'''
+        df = pd.read_csv(rfr_result_path, sep="\t")
+        sample_id = re.sub(r'(_S[0-9]*)?_resfinder_reads',
+                           '', os.path.basename(os.path.dirname(rfr_result_path)))
+
+        # Add identifiers
+        df.insert(0, 'sample_id', [sample_id for _ in df.index])
+        df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
+
+        return df
+
+    @staticmethod
     def respheno_results(rfp_result_path: str, batch: str) -> pd.DataFrame:
         '''Returns a dataframe - containing valid resistance genes.'''
         df = pd.read_csv(rfp_result_path, skiprows=16, sep="\t")
-        sample_id = re.sub(r'_S[0-9]*_resfinder_pheno.txt',
+        sample_id = re.sub(r'(_S[0-9]*)?_resfinder_pheno.txt',
                            '', os.path.basename(rfp_result_path))
 
         # remove all rows that contain "No resistance" in "WGS-predicted phenotype" column
@@ -432,7 +423,7 @@ class Ardetype_housekeeper(hk):
     @staticmethod
     def mobtyper_results(mbt_result_path: str, batch: str) -> pd.DataFrame:
         '''To combine mob_typer reports and map them to sample_id-batch pair.'''
-        sample_id = re.sub(r'(_S[0-9]*_mob_recon|_mob_recon)',
+        sample_id = re.sub(r'(_S[0-9]*)?_mob_recon',
                         '', os.path.basename(os.path.dirname(mbt_result_path)))
         df = pd.read_csv(mbt_result_path, sep='\t')
         df.rename(columns={'sample_id': 'genetic_element'}, inplace=True)
@@ -458,7 +449,7 @@ class Ardetype_housekeeper(hk):
     def kraken2contigs_results(k2c_report_path: str, batch: str) -> pd.DataFrame:
         '''To combine kraken2 contig reports and map them to sample_id-batch pair.'''
         sample_id = re.sub(
-            r'_S[0-9]*_kraken2_contigs_report.txt', '', os.path.basename(k2c_report_path))
+            r'(_S[0-9]*)?_kraken2_contigs_report.txt', '', os.path.basename(k2c_report_path))
         columns = [
             "cl_cov_frac",
             "cl_cov_abs",
@@ -490,7 +481,7 @@ class Ardetype_housekeeper(hk):
     @staticmethod
     def kraken2reads_results(k2r_report_path: str, batch: str) -> pd.DataFrame:
         '''To combine kraken2 read reports and map them to sample_id-batch pair.'''
-        sample_id = re.sub(r'_S[0-9]*_kraken2_reads_report.txt',
+        sample_id = re.sub(r'(_S[0-9]*)?_kraken2_reads_report.txt',
                            '', os.path.basename(k2r_report_path))
         columns = [
             "cl_cov_frac",
@@ -512,7 +503,7 @@ class Ardetype_housekeeper(hk):
     @staticmethod
     def quast_results(qst_report_path: str, batch: str) -> pd.DataFrame:
         '''To combine quast reports and map them to sample_id-batch pair.'''
-        sample_id = re.sub(r'_S[0-9]*_quast', '', os.path.basename(os.path.dirname(qst_report_path)))
+        sample_id = re.sub(r'(_S[0-9]*)?_quast', '', os.path.basename(os.path.dirname(qst_report_path)))
         df = pd.read_csv(qst_report_path, header=None, sep='\t')
         df = df.T
         df.columns = df.iloc[0]
@@ -550,15 +541,18 @@ class Ardetype_housekeeper(hk):
             "iucC", "iucD", "iutA", "iroB", "iroC", "iroD", "iroN", "rmpA", "rmpD", "rmpC",
             "spurious_virulence_hits",
         ]
-
-        df = pd.read_csv(klbt_result_path, sep='\t')
-        df['strain'] = df['strain'].str.replace(
-            r'_S[0-9]*_contigs', '', regex=True)
-        # reorder columns and aggregate results even if resistance scan was not performed
-        df = df.reindex(columns=columns, fill_value=None)
-        df.insert(1, 'analysis_batch_id', [os.path.basename(
-            os.path.dirname(batch)) for _ in df.index])
-        return df
+        try:
+            df = pd.read_csv(klbt_result_path, sep='\t')
+            df['strain'] = df['strain'].str.replace(
+                r'(_S[0-9]*)?_contigs', '', regex=True)
+            # reorder columns and aggregate results even if resistance scan was not performed
+            df = df.reindex(columns=columns, fill_value=None)
+            df.insert(1, 'analysis_batch_id', [os.path.basename(
+                os.path.dirname(batch)) for _ in df.index])
+            return df
+        except Exception as e:
+            print(e)
+            return pd.DataFrame(columns=columns)
 
     @staticmethod
     def ectyper_results(ect_result_path: str, batch: str) -> pd.DataFrame:
@@ -566,7 +560,7 @@ class Ardetype_housekeeper(hk):
         df = pd.read_csv(ect_result_path, sep='\t')
         df.rename(columns={'Name': 'sample_id'}, inplace=True)
         df.sample_id = df.sample_id.str.replace(
-            r'_S[0-9]*_contigs', '', regex=True)
+            r'(_S[0-9]*)?_contigs', '', regex=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
@@ -646,6 +640,109 @@ class Ardetype_housekeeper(hk):
                 'IS1016_hits':[None],
                 })
             return report
+        
+
+    @staticmethod
+    def pt_ab_results(pt_ab_result_path:str, batch:str):
+        try:
+            report = pd.read_csv(pt_ab_result_path, sep='\t', header=None)
+            report.columns = [
+                "qseqid", "sseqid", "pident", "length", "mismatch", "gapopen",
+                "qstart", "qend", "sstart", "send", "evalue", "bitscore"
+            ]
+            sample_id = os.path.basename(pt_ab_result_path).replace('_abplasmidtype.txt', '')
+            report["sample_id"] = [sample_id for _ in report.index]
+            report["seq_batch"] = [os.path.basename(os.path.dirname(pt_ab_result_path)) for _ in report.index]
+            report = report[[
+                "sample_id","seq_batch",
+                "qseqid", "sseqid", "pident", "length", "mismatch", "gapopen",
+                "qstart", "qend", "sstart", "send", "evalue", "bitscore"
+            ]]
+            return report
+        except pd.errors.EmptyDataError:
+            report = pd.DataFrame.from_dict({
+                'sample_id':[os.path.basename(pt_ab_result_path).replace('_abplasmidtype.txt', '')],
+                'seq_batch':[os.path.basename(os.path.dirname(batch))],
+                "qseqid":[None], 
+                "sseqid":[None], 
+                "pident":[None], 
+                "length":[None], 
+                "mismatch":[None], 
+                "gapopen":[None],
+                "qstart":[None], 
+                "qend":[None], 
+                "sstart":[None], 
+                "send":[None], 
+                "evalue":[None], 
+                "bitscore":[None]
+                })
+            return report
+    
+    @staticmethod
+    def capybara_results(cpb_result_path:str, batch:str):
+        try:
+            report = pd.read_csv(cpb_result_path, sep="\t")
+            report.columns = [
+                'query',
+                "ESL",
+                "Clade",
+                "Coverage"
+            ]
+            report["sample_id"] = report["query"].apply(lambda x:os.path.basename(x).replace('_contigs.fasta', ''))
+            seq_batch = os.path.basename(os.path.dirname(cpb_result_path))
+            report["seq_batch"] = [seq_batch for _ in report.index]
+            report = report[[
+                    "sample_id",
+                    "seq_batch",
+                    "ESL",
+                    "Clade",
+                    "Coverage"
+                ]]
+            return report
+        except pd.errors.EmptyDataError:
+            report = pd.DataFrame.from_dict({
+                'sample_id':[os.path.basename(cpb_result_path).replace('_capybara.tsv', '').split('_')[0]],
+                'seq_batch':[os.path.basename(os.path.dirname(batch))],
+                "ESL":[None],
+                "Clade":[None],
+                "Coverage":[None]
+                })
+            return report
+    
+
+    @staticmethod
+    def plassembler_results(plassembler_result_path:str, batch:str):
+        columns = ["contig", "length", "mean_depth_long", "sd_depth_long", "q25_depth_long", "q75_depth_long",
+                "plasmid_copy_number_long", "circularity", "PLSDB_hit", "NUCCORE_ACC", "mash_distance", "mash_pval",
+                "mash_matching_hashes", "NUCCORE_UID", "NUCCORE_Description", "NUCCORE_CreateDate", "NUCCORE_Topology",
+                "NUCCORE_Completeness", "NUCCORE_TaxonID", "NUCCORE_Genome", "NUCCORE_Length", "NUCCORE_DuplicatedEntry",
+                "NUCCORE_Source", "NUCCORE_BiosampleID", "BIOSAMPLE_UID", "BIOSAMPLE_ACC", "BIOSAMPLE_Location",
+                "BIOSAMPLE_Coordinates", "BIOSAMPLE_IsolationSource", "BIOSAMPLE_Host", "BIOSAMPLE_CollectionDate",
+                "BIOSAMPLE_HostDisease", "BIOSAMPLE_SampleType", "ASSEMBLY_UID", "ASSEMBLY_ACC", "ASSEMBLY_Status",
+                "ASSEMBLY_coverage", "ASSEMBLY_SeqReleaseDate", "ASSEMBLY_SubmissionDate", "ASSEMBLY_Lastest",
+                "ASSEMBLY_BiosampleID", "TAXONOMY_superkingdom", "TAXONOMY_phylum", "TAXONOMY_class", "TAXONOMY_order",
+                "TAXONOMY_family", "TAXONOMY_genus", "TAXONOMY_species", "TAXONOMY_strain", "TAXONOMY_UID",
+                "TAXONOMY_taxon_rank", "TAXONOMY_taxon_name", "TAXONOMY_taxon_lineage", "TAXONOMY_superkingdom_id",
+                "TAXONOMY_phylum_id", "TAXONOMY_class_id", "TAXONOMY_order_id", "TAXONOMY_family_id", "TAXONOMY_genus_id",
+                "TAXONOMY_species_id", "TAXONOMY_strain_id", "has_biosample", "has_assembly", "has_location",
+                "rMLST_hits", "rMLST_hitscount", "inclusions", "NUCCORE_GC", "Length", "BIOSAMPLE_Host_processed",
+                "BIOSAMPLE_Host_processed_source", "BIOSAMPLE_Host_label", "BIOSAMPLE_HostDisease_processed",
+                "loc_lat", "loc_lng", "loc_parsed", "D1", "D2", "plasmidfinder", "pmlst"
+            ]
+        try:
+            report = pd.read_csv(plassembler_result_path, sep='\t')
+            sample_id = os.path.basename(plassembler_result_path).replace('_with_sample.tsv', '')
+            report["sample_id"] = [sample_id for _ in report.index]
+            report["seq_batch"] = [os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(plassembler_result_path))))) for _ in report.index]
+            report = report[columns]
+            return report
+        except pd.errors.EmptyDataError:
+            report = pd.DataFrame.from_dict({
+                'sample_id': [os.path.basename(plassembler_result_path).replace('_abplasmidtype.txt', '')],
+                'seq_batch': [os.path.basename(os.path.dirname(batch))],
+                **{col: [None] for col in columns}
+            })
+            return report
 
     @staticmethod
     def stecfinder_results(stf_result_path: str, batch: str) -> pd.DataFrame:
@@ -653,7 +750,7 @@ class Ardetype_housekeeper(hk):
         df = pd.read_csv(stf_result_path, sep='\t')
         df.rename(columns={'Sample': 'sample_id'}, inplace=True)
         df.sample_id = df.sample_id.str.replace(
-            r'_S[0-9]*_bact_reads_classified', '', regex=True)
+            r'(_S[0-9]*)?_bact_reads_classified', '', regex=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
@@ -664,7 +761,7 @@ class Ardetype_housekeeper(hk):
         df = pd.read_csv(agv_result_path, sep='\t')
         df.rename(columns={'#filename': 'sample_id'}, inplace=True)
         df.sample_id = df.sample_id.str.replace(
-            r'_S[0-9]*_contigs', '', regex=True)
+            r'(_S[0-9]*)?_contigs', '', regex=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
@@ -677,7 +774,7 @@ class Ardetype_housekeeper(hk):
         df['sample_id'] = df['sample_id'].apply(
             lambda x: os.path.basename(x)).astype(str)
         df.sample_id = df.sample_id.str.replace(
-            r'_S[0-9]*_contigs.fasta', '', regex=True)
+            r'(_S[0-9]*)?_contigs.fasta', '', regex=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
@@ -690,7 +787,7 @@ class Ardetype_housekeeper(hk):
         df['sample_id'] = df['sample_id'].apply(
             lambda x: os.path.basename(x)).astype(str)
         df.sample_id = df.sample_id.str.replace(
-            r'_S[0-9]*_contigs.fasta', '', regex=True)
+            r'(_S[0-9]*)?_contigs.fasta', '', regex=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
@@ -703,7 +800,7 @@ class Ardetype_housekeeper(hk):
         df['sample_id'] = df['sample_id'].apply(
             lambda x: os.path.basename(x)).astype(str)
         df.sample_id = df.sample_id.str.replace(
-            r'_S[0-9]*_contigs.fasta', '', regex=True)
+            r'(_S[0-9]*)?_contigs.fasta', '', regex=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
@@ -717,7 +814,7 @@ class Ardetype_housekeeper(hk):
         df['sample_id'] = df['sample_id'].apply(
             lambda x: os.path.basename(x)).astype(str)
         df.sample_id = df.sample_id.str.replace(
-            r'_S[0-9]*_contigs', '', regex=True)
+            r'(_S[0-9]*)?_contigs', '', regex=True)
         df.insert(7, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
@@ -742,16 +839,66 @@ class Ardetype_housekeeper(hk):
     def amrfpm_results(amrfpm_result_path: str, batch: str):
         '''To combine amrfinder+ mutation reports and map them to sample_id-batch pair.'''
         df = pd.read_csv(amrfpm_result_path, sep='\t')
-        sample_id = re.sub(r'_S[0-9]*_amrfinderplus_point.tab', '', os.path.basename(amrfpm_result_path))
+        sample_id = re.sub(r'(_S[0-9]*)?_amrfinderplus_point.tab', '', os.path.basename(amrfpm_result_path))
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
         df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
+        return df
+    
+    @staticmethod
+    def amrfpnew_results(amrfpnew_result_path: str, batch: str):
+        '''To combine amrfinder+ mutation reports and map them to sample_id-batch pair.'''
+        df = pd.read_csv(amrfpnew_result_path, sep='\t')
+        sample_id = re.sub(r'(_S[0-9]*)?_amrfinderplus.tab', '', os.path.basename(amrfpnew_result_path))
+        df.insert(0, 'sample_id', [sample_id for _ in df.index])
+        df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
+        return df
+    
+    @staticmethod
+    def rmlst_results(rmlst_result_path: str, batch: str):
+        '''To combine rmlst species reports and map them to sample_id'''
+        # Parse json file
+        try:
+            with open(rmlst_result_path, 'r') as f:
+                data = json.load(f)
+
+            # Get species (if present) and sample identifier
+            species = data.get('fields', {}).get('species', '')
+            taxons = data.get('taxon_prediction',[])
+            sample_id = os.path.basename(rmlst_result_path).replace('_rmlst.json','')
+
+            # Get top species if mix inferred
+            if species:
+                splt = species.split(",")
+                if len(splt) > 1:
+                    species = splt[0]
+            else:
+                if taxons:
+                    species = max(taxons, key=lambda x: x['support'])['taxon']
+
+            # Convert to pandas df
+            df = pd.DataFrame.from_dict({"sample_id":[sample_id], "species": species})
+            return df
+        except Exception as e:
+            print(f'WARNING: rMLST failed with exception: {e}')
+            sample_id = os.path.basename(rmlst_result_path).replace('_rmlst.json','')
+            df = pd.DataFrame.from_dict({"sample_id":[sample_id], "species":[""]})
+            return df
+        
+    @staticmethod
+    def plsdb_results(plsdb_result_path: str, batch: str):
+        try:
+            df = pd.read_csv(plsdb_result_path)
+            columns = ['sample_id', 'seq_batch', 'query'] + list(df.columns)[:-3]
+            df = df[columns]
+        except:
+            df = pd.DataFrame(columns='NUCCORE_ACC,NUCCORE_Topology,Length,NUCCORE_GC,NUCCORE_Source,ASSEMBLY__ASSEMBLY_ACC,BIOSAMPLE__BIOSAMPLE_ACC,BIOSAMPLE__LOCATION_name,BIOSAMPLE__ECOSYSTEM_tags,BIOSAMPLE__ECOSYSTEM_taxid,BIOSAMPLE__DISEASE_ontid,TAXONOMY__TAXONOMY_UID,TAXONOMY__TAXONOMY_taxon_name,TAXONOMY__TAXONOMY_taxon_rank,BIOSAMPLE__ECOSYSTEM_query,NUCCORE_CreateDate,TAXONOMY__TAXONOMY_class,TAXONOMY__TAXONOMY_family,TAXONOMY__TAXONOMY_genus,TAXONOMY__TAXONOMY_order,TAXONOMY__TAXONOMY_phylum,TAXONOMY__TAXONOMY_species,TAXONOMY__TAXONOMY_strain,TAXONOMY__TAXONOMY_superkingdom,BIOSAMPLE__LOCATION_lat,BIOSAMPLE__LOCATION_lng,UMAP_D1,UMAP_D2,MOB__PMLST_scheme,MOB__rep_type,MOB__relaxase_type,MOB__mpf_type,qseqid,evalue,bitscore,qstart,qend,sstart,send,qcov,qcovhsp,pident,identity,shared_hashes,median_multiplicity,pvalue,query,seq_batch,sample_id'.split(','))
         return df
 
     @staticmethod
     def lrefinder_results(lrefinder_pos_path:str, batch: str):
         '''To combine lrefinder mutation reports and map them to sample_id-batch pair.'''
         df = pd.read_csv(lrefinder_pos_path, sep='\t')
-        sample_id = re.sub(r'_S[0-9]*.pos', '', os.path.basename(lrefinder_pos_path))
+        sample_id = re.sub(r'(_S[0-9]*)?.pos', '', os.path.basename(lrefinder_pos_path))
         df.insert(0, 'sample_id', [sample_id for _ in df.index])
         df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
         return df
@@ -769,7 +916,7 @@ class Ardetype_housekeeper(hk):
         '''To combine chewbbaca allele calling reports and map them to sample_id-batch pair.'''
         df = pd.read_csv(lrefinder_pos_path, sep='\t')
         df.rename(columns={'FILE': 'sample_id'}, inplace=True)
-        df.sample_id = df.sample_id.str.replace(r'_S[0-9]*_contigs', '', regex=True)
+        df.sample_id = df.sample_id.str.replace(r'(_S[0-9]*)?_contigs', '', regex=True)
         df.insert(1, 'analysis_batch_id', [os.path.basename(os.path.dirname(batch)) for _ in df.index])
         return df
 

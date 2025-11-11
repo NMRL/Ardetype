@@ -1,6 +1,5 @@
 from .utilities import Housekeeper as hk
 import os, warnings, re, subprocess, shutil, time, pandas as pd, glob, sys
-from datetime import datetime
 from itertools import chain
 from getpass import getuser
 from pathlib import Path
@@ -37,14 +36,17 @@ class Module:
             snakefile_path      : str, 
             cluster_config_path : str,
             retry_times         : int,
-            dry_run             : bool, 
+            snakemake_cpus      : int,
             force_all           : bool, 
-            rule_graph          : bool, 
             pack_output         : bool, 
             rules_to_rerun      : list,
-            unpack_output:bool) -> None:
+            run_local           : bool,
+            nanopore_mode       : bool,
+            fasta_mode          : bool
+            ) -> None:
         
         self.run_mode            = run_mode #If true, snakemake will be run as single job, else - will run as job submitter on the login node
+        self.run_local           = run_local #If true, each module will be executed on the machine where the wrapper is run
         self.job_id              = None  #Will be added if self.run_mode is True and job was submitted to HPC; filled by submit_module_job
         self.taxonomy_dict       = None   #Required if module creates different targets for different samples based on taxonomy information; filled by add_taxonomy_column
         self.module_name         = module_name #To be used in configuration file & sample_sheet file + to connect between modules (using remove_invalid_samples)
@@ -52,7 +54,7 @@ class Module:
         self.output_path         = f"{os.path.abspath(output_path)}/" #Path to the output folder, where files will be saved (converted to full path)
         self.target_list         = None #List of all target files the module expects to create; filled by fill_target_list
         self.sample_sheet        = None #to store current state of sample_sheet dataframe; filled by create_sample_sheet; altered by fill_sample_sheet & receive_sample_sheet
-        self.aggr_taxonomy_path  = f'{os.path.abspath(self.output_path)}/{self.module_name}_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
+        self.aggr_taxonomy_path  = f'{os.path.abspath(self.output_path)}/core_aggregated_taxonomy.json' #where to look for top kraken2 hits if snakemake will produce it; used by add_taxonomy_column
         self.config_file_path    = f'{os.path.abspath(self.output_path)}/config.yaml' #where to look for operational copy of the configuration file; used by submit_module_job & run_module_cluster
         self.cluster_config_path = cluster_config_path #where to look for job resource definition file; used by run_module_cluster
         self.config_file         = hk.read_yaml(module_config) if isinstance(module_config, str) else module_config #read module configuration from file if string is supplied (path expected); else - reads dictionary; used by add_module_targets, add_output_dir, write_module_config
@@ -62,19 +64,18 @@ class Module:
         self.targets             = targets #to store file extensions of expected output files; used by fill_target_list, check_module_output
         self.requests            = requests #to store file extensions for files that are neccessary to run the modules; used by remove_invalid_samples
         self.snakefile_path      = snakefile_path #to the rule file to be run as single job on HPC if self.run_mode is True; used by submit_module_job
-        self.dry_run             = "-np" if dry_run else "" #to store dry-run flag if it is supplied, else empty string is stored
         self.retry_times         = retry_times #number of times snakemake will attempt to rerun failed jobs (default=3); used by run_module_cluster
         self.force_all           = "--forceall" if force_all else "" #to store forceall flag if it is supplied, else empty string is stored
-        self.rule_graph          = f"--rulegraph | dot -Tpdf > {self.module_name}.pdf" if rule_graph else "" #to store rule_graph flag if it is supplied, else empty string is stored
-        self.unpack_output       = True if force_all else unpack_output #used to move files outside sample folders and do a rerun; used by unfold_output
+        self.snakemake_cpus      = snakemake_cpus
         self.removed_samples     = pd.DataFrame() #to store dataframe containing information about samples that were deemed invalid by the module
         self.pack_output         = pack_output #switch to control putting output files into one folder named after sample_id; used by fold_output
-        self.cleanup_dict        = {} #to map origin paths of input files to path in working directory; filled by move_to_wd; used by clear_working_directory
         self.status_script       = f"{os.path.dirname(Path(__file__).parents[0].absolute())}/pbs-status.py"
         self.failed_stamp        = None #added if module has failed to produce requested files for 1 or more steps of the workflow
         self.rules_to_rerun      = [rule for rule in rules_to_rerun if rule in self._get_rule_names_from_snakefile(self.snakefile_path)] if rules_to_rerun is not None else []
         self.force_specific      = f"-R {' '.join(self.rules_to_rerun)}" if self.rules_to_rerun else ""
-
+        self.fasta_mode          = fasta_mode
+        self.nanopore_mode       = nanopore_mode
+        
     @staticmethod
     def _get_rule_names_from_snakefile(snakefile_path):
         rule_names = []
@@ -101,21 +102,24 @@ class Module:
                                 self.input_path,substr_lst=substring_list,
                                 file_fmt_str=pattern)
                             if not parsed_files:
-                                raise FileNotFoundError(f'Missing {fmt} files in input directory')
+                                print(f'Missing {fmt} files in input directory', file=sys.stderr)
+                                sys.exit(1)
                             self.input_dict[pattern] = parsed_files
                     elif isinstance(self.patterns['inputs'][fmt], str):
                         parsed_files = hk.parse_folder(
                                 self.input_path,substr_lst=substring_list,
                                 file_fmt_str=self.patterns['inputs'][fmt])
                         if not parsed_files:
-                            raise FileNotFoundError(f'Missing {fmt} files in input directory')
+                            print(f'Missing {fmt} files in input directory', file=sys.stderr)
+                            sys.exit(1)
                         self.input_dict[self.patterns['inputs'][fmt]] = parsed_files
 
         elif mixed or empty:
-            for fmt in self.patterns['inputs']['required']: 
+            for fmt in self.patterns['inputs']['required']:
                 self.input_dict[fmt] = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=fmt)
                 if not self.input_dict[fmt]:
-                    raise FileNotFoundError(f'Missing {fmt} files in input directory')
+                    print(f'Missing {fmt} files in input directory', file=sys.stderr)
+                    sys.exit(1)
             
             if not empty:
                 for fmt in self.patterns['inputs']['optional']:
@@ -136,57 +140,93 @@ class Module:
             self.sample_sheet = hk.map_new_column(self.sample_sheet,fasta_dict,'sample_id','fa')
 
 
-    def get_sample_groups(self, regexp:str=f'(_R[1,2]_001.fastq.gz|_ONT.fastq.gz)'):
+    def get_sample_groups(self, regexp:str=f'(_R[1,2]_001.fastq.gz|_ONT.fastq.gz)', fasta:bool=False):
         '''Extracts grouping information for samples based on the available input files'''
-        file_list = glob.glob(os.path.join(self.input_path, '*'))
-        file_map = {}
-        for f in file_list:
-            sample_id = os.path.basename(re.sub(regexp, '', f))
-            finding = re.search(regexp, f)
-            if finding is not None:
-                finding = finding.group(0)
-                file_map[sample_id] = file_map.get(sample_id, list())
-                file_map[sample_id].append(finding)
-        #Equalize column length
-        for k, v in file_map.items():
-            ln = len(v)
-            if ln < 3:
-                for _ in range(3 - ln):
-                    file_map[k].append(str(None))
-            file_map[k].sort()
-        
+        if fasta:
+            file_list = glob.glob(os.path.join(self.input_path, '*'))
+            file_map = {}
+            for f in file_list:
+                sample_id = os.path.basename(re.sub(r'\_contigs.fasta', '', f))
+                finding = re.search(r'\_contigs.fasta', f)
+                if finding is not None:
+                    finding = finding.group(0)
+                    file_map[sample_id] = file_map.get(sample_id, list())
+                    file_map[sample_id].append(finding)
 
-        #Define groups of samples
-        df = pd.DataFrame.from_dict(file_map, orient='index').reset_index()
-        df.columns = ['sample_id', 'ONT', 'ILL1', 'ILL2']
-        ont_case = df.ONT.str.contains('None') & df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
-        ill_case = df.ONT.str.contains('None') & ~df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
-        ful_case = ~df.ONT.str.contains('None') & ~df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
+            df = pd.DataFrame.from_dict(file_map, orient='index').astype(str).reset_index()
+            df.columns = ['sample_id', 'FA']
+            fa_case = ~df.FA.str.contains('None')
+
+            ont_fa = df[fa_case]
+
+            #Add groups to the sample sheet
+            self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ont_fa['sample_id']), 'sample_group'] = 'FA'
+
+            #Add mark file accordingly
+            if not ont_fa.empty:
+                f = open(os.path.join(self.output_path,'FA_mark'), 'w')
+                f.close()
+        else:
+            file_list = glob.glob(os.path.join(self.input_path, '*'))
+            file_map = {}
+            for f in file_list:
+                sample_id = os.path.basename(re.sub(regexp, '', f))
+                finding = re.search(regexp, f)
+                if finding is not None:
+                    finding = finding.group(0)
+                    file_map[sample_id] = file_map.get(sample_id, list())
+                    file_map[sample_id].append(finding)
+            #Equalize column length
+            for k, v in file_map.items():
+                ln = len(v)
+                if ln < 3:
+                    for _ in range(3 - ln):
+                        file_map[k].append(str(None))
+                file_map[k].sort()
+            
+            #Define groups of samples
+            df = pd.DataFrame.from_dict(file_map, orient='index').reset_index()
+            df.columns = ['sample_id', 'ONT', 'ILL1', 'ILL2']
+            ont_case = df.ONT.str.contains('None') & df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
+            ill_case = df.ONT.str.contains('None') & ~df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
+            ful_case = ~df.ONT.str.contains('None') & ~df.ILL1.str.contains('None') & ~df.ILL2.str.contains('None')
 
 
-        ont_pg = df[ont_case]
-        ill_gp = df[ill_case]
-        ful_gp = df[ful_case]
+            ont_pg = df[ont_case]
+            ill_gp = df[ill_case]
+            ful_gp = df[ful_case]
 
-        #Add groups to the sample sheet
-        self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ont_pg['sample_id']), 'sample_group'] = 'ONT'
-        self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ill_gp['sample_id']), 'sample_group'] = 'ILL'
-        self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ful_gp['sample_id']), 'sample_group'] = 'FUL'
+
+            #Add groups to the sample sheet
+            self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ont_pg['sample_id']), 'sample_group'] = 'ONT'
+            self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ill_gp['sample_id']), 'sample_group'] = 'ILL'
+            self.sample_sheet.loc[self.sample_sheet['sample_id'].isin(ful_gp['sample_id']), 'sample_group'] = 'FUL'
+
+            #Add mark file accordingly
+            if not ont_pg.empty:
+                f = open(os.path.join(self.output_path,'ONT_mark'), 'w')
+                f.close()
+            elif not ful_gp.empty:
+                f = open(os.path.join(self.output_path,'HYB_IO_mark'), 'w')
+                f.close()
+            else:
+                f = open(os.path.join(self.output_path,'ILL_mark'), 'w')
+                f.close()
 
 
     def fill_target_list(self, taxonomy_based:bool=False, mixed:bool=False, empty:bool=False, grouped:bool=False):
         '''Fills self.target_list using data stored in self.sample_sheet instance variable.'''
         if taxonomy_based:#specific targets for each species
-            self.target_list = [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
+            self.target_list = [os.path.join(self.output_path,f'{id}{tmpl}') for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
         elif mixed or empty:#both species-specific and non-specific targets
-            self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'].to_list()+self.removed_samples['sample_id'].to_list() for tmpl in self.targets['general']]
+            self.target_list = [os.path.join(self.output_path,f'{id}{tmpl}') for id in self.sample_sheet['sample_id'].to_list()+self.removed_samples['sample_id'].to_list() for tmpl in self.targets['general']]
             if not empty:
-                self.target_list += [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
+                self.target_list += [os.path.join(self.output_path,f'{id}{tmpl}') for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['taxonomy'][idx]]]
         else:#only non-specific targets
             if grouped:
-                self.target_list = [f'{self.output_path}{id}{tmpl}' for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['sample_group'][idx]]]
+                self.target_list = [os.path.join(self.output_path,f'{id}{tmpl}') for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['sample_group'][idx]]]
             else:
-                self.target_list = [f'{self.output_path}{id}{tmpl}' for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
+                self.target_list = [os.path.join(self.output_path,f'{id}{tmpl}') for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
             
 
     def make_output_dir(self):
@@ -196,34 +236,64 @@ class Module:
 
     def write_sample_sheet(self):
         '''Creates sample_sheet.csv file in the self.output_path folder, using self.sample_sheet.'''
-        self.sample_sheet.to_csv(f"{self.output_path}sample_sheet.csv", header=True, index=False)
+        self.sample_sheet.to_csv(os.path.join(self.output_path, "sample_sheet.csv"), header=True, index=False)
 
 
     def add_module_targets(self):
         '''Updates self.config_file, using self.module_name.'''
-        output_code = hk.edit_nested_dict(config_dict=self.config_file, param=f"{self.module_name}_target_files", new_value=self.target_list)
         validation_code = hk.validate_yaml(self.config_file)
-        if not output_code == 0: raise Exception(f'Config editing failed with error code {output_code}')
-        elif not validation_code == 0: raise Exception(f'Config validation failed with error code {validation_code}')
+        if validation_code != 0:
+            print(f'Config file structure differs from expected template (see config_files/yaml/config_modular_local.yaml for example).', file=sys.stderr)
+            sys.exit(1)
+
+        output_code = hk.edit_nested_dict(config_dict=self.config_file, param=f"{self.module_name}_target_files", new_value=self.target_list)
+        if output_code != 0:
+            nl = '\n'
+            print(f'Failed to set {self.module_name}_target_files value to\n\n{nl.join(self.target_list)}\n\nPlease ensure that config file contains {self.module_name}_target_files parameter (see config_files/yaml/config_modular_local.yaml for example).', file=sys.stderr)
+            sys.exit(1)
 
 
     def add_output_dir(self):
         '''Updates self.config_file using self.output_path.'''
-        output_code = hk.edit_nested_dict(config_dict=self.config_file, param="output_directory", new_value=self.output_path)
+
         validation_code = hk.validate_yaml(self.config_file)
-        if not output_code == 0: raise Exception(f'Config editing failed with error code {output_code}')
-        elif not validation_code == 0: raise Exception(f'Config validation failed with error code {validation_code}')
+        if validation_code != 0:
+            print(f'Config file structure differs from expected template (see config_files/yaml/config_modular_local.yaml for example).', file=sys.stderr)
+            sys.exit(1)
+
+        output_code = hk.edit_nested_dict(config_dict=self.config_file, param="output_directory", new_value=self.output_path)
+        if output_code != 0:
+            print(f'Failed to set output_directory value to {self.output_path}.\nPlease ensure that config file contains output_directory parameter (see config_files/yaml/config_modular_local.yaml for example).', file=sys.stderr)
+            sys.exit(1)
+
+        inpath = self.output_path if self.output_path == self.input_path else os.path.abspath(self.input_path) + "/"
+        output_code = hk.edit_nested_dict(config_dict=self.config_file, param="input_directory", new_value=inpath)
+        if output_code != 0:
+            print(f'Failed to set input_directory value to {self.input_path}.\nPlease ensure that config file contains input_directory parameter (see config_files/yaml/config_modular_local.yaml for example).', file=sys.stderr)
+            sys.exit(1)
+
+        #Updating paths in config
+        ardetype_path = str(Path(os.path.abspath('./')))
+        for p in ["databases"]:
+            if not os.path.isabs(self.config_file[p]):
+                self.config_file[p] = os.path.join(ardetype_path, self.config_file[p])
+
+        for p in ["scratch"]:
+            if not os.path.isabs(self.config_file[p]):
+                self.config_file[p] = os.path.join(ardetype_path, self.output_path, self.config_file[p])
+
+        for substr in ["_database", "_db", "_sif"]:
+            hk.join_sif_paths(self.config_file, substr, ardetype_path)
 
 
     def write_module_config(self):
         '''Writes self.config_file to the self.output_path'''
-        hk.write_yaml(self.config_file, f'{self.output_path}config.yaml')
+        hk.write_yaml(self.config_file, os.path.join(self.output_path,'config.yaml'))
 
 
     def check_module_output(self, mixed:bool=False):
         '''Checks if output files are generated according to self.module_name and adds check_note_{self.module_name} column 
         to the self.sample_sheet dataframe, where boolean value is stored for each expected file.'''
-        ###Development - Automatically scale dirs_up depending on input structure - currently two dirs up max
         check_dict = hk.check_file_existance(file_list=self.target_list)
         if mixed:
             id_check_dict = {id:"" for id in self.sample_sheet['sample_id'].to_list()+self.removed_samples['sample_id'].to_list()}
@@ -295,6 +365,88 @@ class Module:
             return self.removed_samples
     
 
+
+    def run_modules_local(self):
+        input_dir = Path(self.output_path)
+        failed_dir = Path(f"{os.path.dirname(self.output_path)}_failed")
+        failed_samples = []
+
+        def remaining_samples(class_instance):
+            if class_instance.fasta_mode:
+                return {p.name.split("_contigs.fasta")[0] for p in input_dir.glob("*_contigs.fasta")}
+            elif class_instance.nanopore_mode:
+                return {p.name.split("_ONT.fastq.gz")[0] for p in input_dir.glob("*_ONT.fastq.gz")}
+            else:
+                return {p.name.split("_R1_001.fastq.gz")[0] for p in input_dir.glob("*_R1_001.fastq.gz")}
+
+        while True:
+            try:
+                if failed_samples:
+                    if self.nanopore_mode:
+                        self.fill_input_dict(pattern_path='ONT')
+                        self.fill_sample_sheet(pattern=self.patterns['inputs']['ONT'])
+                    elif self.fasta_mode:
+                        self.fill_input_dict(pattern_path='FASTA')
+                        self.fill_sample_sheet(pattern=self.patterns['inputs']['FASTA'])
+                    else:
+                        self.fill_input_dict(pattern_path='ILL')
+                        self.fill_sample_sheet(pattern=self.patterns['inputs']['ILL'])
+                    self.get_sample_groups(fasta=self.fasta_mode)
+                    self.write_sample_sheet()
+                    self.fill_target_list(grouped=True)
+                    self.add_module_targets()
+                    self.add_output_dir()
+                    self.write_module_config()
+                cmd = f'''
+                source "$(conda info --base)/etc/profile.d/conda.sh"
+                conda activate $(dirname $(dirname $(which conda)))/envs/ardetype
+                snakemake --cores {self.snakemake_cpus} --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific} | tee /tmp/snakemake_run_$(date +%s).log
+                '''
+                result = subprocess.run(cmd, shell=True, executable="/bin/bash", check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                self.job_id = result.stdout
+                break
+
+            except subprocess.CalledProcessError as e:
+                failed_samples = hk.get_failed_sample_counts(e.stderr)
+                failed_dir.mkdir(exist_ok=True)
+
+                if not failed_samples:
+                    print(f"Snakemake failed, but no failed samples found: {e.stderr}", file=sys.stderr)
+                    sys.exit(1)
+
+                for sample in failed_samples:
+                    if failed_samples[sample] > int(self.retry_times):
+                        for f in input_dir.glob(f"{sample}*"):
+                            f.rename(failed_dir / f.name)
+
+                if not remaining_samples(class_instance=self):
+                    print(f"Missing input files in {input_dir} after moving failed ones to {failed_dir}, exiting.", file=sys.stderr)
+                    sys.exit(1)
+            except KeyboardInterrupt:
+                print("Interrupted by user.", file=sys.stderr)
+                sys.exit(1)
+            finally:
+                self.clear_scratch()
+
+    # def run_modules_local(self):
+    #     try:
+    #         cmd = f'''
+    #         source "$(conda info --base)/etc/profile.d/conda.sh"
+    #         conda activate $(dirname $(dirname $(which conda)))/envs/ardetype
+    #         snakemake --cores {self.snakemake_cpus} --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific}
+    #         '''
+    #         result = subprocess.run(cmd, shell=True, executable="/bin/bash", check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    #         self.job_id = result.stdout
+    #     except KeyboardInterrupt:
+    #         print(f"{self.module_name} interrupted by SIGTERM : Run the same command to continue (make sure to include timestamp added to batch folder name).", file=sys.stderr)
+    #         sys.exit(1)
+    #     except Exception as e:
+    #         print(f"{self.module_name} finished with runtime error:\nSTDOUT:\n{e.stdout}\nSTDERR:\n", file=sys.stderr)
+    #         sys.exit(1)
+    #     finally:
+    #         self.clear_scratch()
+
+
     def submit_module_job(self, jobscript_path):
         """
         Submits module as a job to HPC cluster, given path to the job_script, setting self.job_id to the bytestring representing job_id.
@@ -305,9 +457,12 @@ class Module:
         try:
             self.job_id = subprocess.check_output(['qsub', '-F', f'{self.snakefile_path} {self.config_file_path}', f'{self.output_path}ardetype_jobscript.sh'])
             os.remove(f'{self.output_path}ardetype_jobscript.sh') #cleanup
-            # os.system(f"rm {self.output_path}ardetype_jobscript.sh") #cleanup
+
         except subprocess.CalledProcessError as msg:
-            raise Exception(f"{self.module_name} job submission error: {msg}")
+            print(f"{self.module_name} module job submission failed with error:{msg}", file=sys.stderr)
+            sys.exit(1)
+        finally:
+            self.clear_scratch()
         
 
     def check_job_completion(self, sleeping_time=5):
@@ -340,17 +495,21 @@ class Module:
         Allows the snakemake to do job submissions to the computing nodes automatically.     
         '''
         #job_submission command to be used by snakmake to automatically submit jobs to HPC; stuff in curly brackets are snakemake arguments, not python variables
-        if os.path.basename(self.cluster_config_path) == 'cluster.yaml':
+        cluster = hk.read_yaml(self.cluster_config_path)['cluster']
+        self.job_cancel = 'qdel'
+        if cluster == 'pbs':
             job_submission_command = '"qsub -N {cluster.jobname} -l nodes={cluster.nodes}:ppn={cluster.procs},pmem={cluster.pmem},walltime={cluster.walltime},feature={cluster.feature},file={cluster.file} -q {cluster.queue} -j {cluster.jobout} -o {cluster.outdir} -A {cluster.account} -V"'
-        elif os.path.basename(self.cluster_config_path) == 'cluster_slurm.yaml':
-            job_submission_command = '"sbatch --job-name {cluster.jobname} -N {cluster.nodes} --ntasks={cluster.ppn} --mem-per-cpu={cluster.mempc} -t {cluster.time} -o {cluster.outdir}{cluster.output} -e {cluster.outdir}{cluster.error} --export=ALL"'
+        elif cluster == 'slurm':
+            job_submission_command = '"sbatch --parsable --job-name {cluster.jobname} -N {cluster.nodes} --ntasks={cluster.npn} --mem-per-cpu={cluster.mempc} -t {cluster.time} -o {cluster.outdir}{cluster.output} -e {cluster.outdir}{cluster.error} --export=ALL"'
+            self.status_script = f"{os.path.dirname(Path(__file__).parents[0].absolute())}/slurm-status.py"
+            self.job_cancel = 'scancel'
         else:
             job_submission_command = '"qsub -N {cluster.jobname} -l procs={cluster.procs},pmem={cluster.pmem},walltime={cluster.walltime},feature={cluster.feature} -q {cluster.queue} -j {cluster.jobout} -o {cluster.outdir} -A {cluster.account} -V"'
         #shell command run by the wrapper (includes qsub command as substring);
+                # eval "$(conda shell.bash hook)";
+        # source activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake;
         shell_command = f'''
-        eval "$(conda shell.bash hook)";
-        source activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake;
-        snakemake --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel qdel --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific} {self.dry_run} --cluster {job_submission_command} {self.rule_graph}'''
+        snakemake --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel {self.job_cancel} --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 300 {self.force_all} {self.force_specific} --cluster {job_submission_command}'''
         try:
             process_data = subprocess.check_call(shell_command, shell=True, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as smk_error:
@@ -358,103 +517,50 @@ class Module:
             failed_samples_tag = 'Out of jobs ready to be started, but not all files built yet.'
 
             if re.search(failed_samples_tag, smk_log):
-                raise Exception(f"{self.module_name} module process: {failed_samples_tag}")
                 #case 1: snakemake throws an error if it is out of jobs - workflow restart required
+                print(f"{self.module_name} module failed for {failed_samples_tag} samples.", file=sys.stderr)
+                sys.exit(1)
             else:
                 #case 2: snakemake throws an error if there is a bug in the workflow code - fix required
-                raise Exception(f"{self.module_name} module process running error: {smk_error.output}")
+                print(f"{self.module_name} module code contains error: {smk_error.output}", file=sys.stderr)
+                sys.exit(1)
         except KeyboardInterrupt as ki:
-            raise Exception(f"{self.module_name} was interrupted by the user: {ki}")
             #case 3 - keyboard interrupt by the user
+            print(f"{self.module_name} was interrupted by the user: {ki}", file=sys.stderr)
+            sys.exit(1)           
         else:
             #if the workflow finished normally
             print(process_data)
 
 
-    def pack_failed(self):
-        '''
-        Parses check_note_{self.module_name} of {self.sample_sheet} to get list of samples with at least 1 missing file.
-        Creates {self.output_path}_failed_{self.module_name}_{timestamp} folder under parent folder of {self.output_path}.
-        Moves all folders and files related to failed samples 
-        from {self.output_path} to {self.output_path}_failed_{self.module_name}_{timestamp}.
-        Sets {self.failed_stamp} to {timestamp} (default = None).
-        '''
-        failed_samples  = self.sample_sheet[self.sample_sheet[f'check_note_{self.module_name}'].str.contains('False')]['sample_id'].tolist()
-        timestamp       = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
-        failed_dir_path = f'{os.path.abspath(self.output_path)}_failed_{self.module_name}_{timestamp}'
-
-        os.makedirs(failed_dir_path, mode=775, exist_ok=True)
-
-        for id in failed_samples:
-            for f in glob.glob(f'{self.output_path}{id}*'):
-                move(f, f'{failed_dir_path}/')
-
-        self.failed_stamp = timestamp
-
-
     def run_module(self, job_count, jobscript_path='./subscripts/ardetype_jobscript.sh'):
         '''Runs module on hpc as job or as snakemake submitter (on login node), based on self.run_mode value (True - job, False - submitter).'''
-        if self.run_mode:
-            self.submit_module_job(jobscript_path)
-            self.check_job_completion()
+        if not self.run_local:
+            if self.run_mode:
+                self.submit_module_job(jobscript_path)
+                self.check_job_completion()
+            else:
+                self.run_module_cluster(job_count)
         else:
-            self.run_module_cluster(job_count)
-
+            self.run_modules_local()
         
     def add_taxonomy_column(self):
         '''Reads taxonomy information from self.aggr_taxonomy_path into self.taxonomy_dict 
         and adds taxonomy information as new column to the self.sample_sheet.'''
+        if 'taxonomy' in self.sample_sheet.columns:
+            self.sample_sheet = self.sample_sheet.drop('taxonomy', axis=1)
         self.taxonomy_dict = hk.read_json_dict(self.aggr_taxonomy_path)
         self.sample_sheet = hk.map_new_column(self.sample_sheet,self.taxonomy_dict,'sample_id','taxonomy')
-
-
-    def clear_working_directory(self):
-        '''Moves all files from working directory to source directory stored in self.cleanup_dict.'''
-        # with open(f'{self.config_file["output_directory"]}/cleanup_dict.json', 'w+') as f:
-        #     json.dump(self.cleanup_dict, f, indent=4)
-        for key in self.cleanup_dict: 
-            try:
-                move(key, self.cleanup_dict[key])
-            except:
-                continue
-            
-
-    def files_to_wd(self, redirect_filter:dict=None):
-        '''
-        Moves all input files from input and output directories to working directory before running snakemake.
-        If redirect_filter dictionary is passed, checks each files against the keys of it. If a match is found,
-        sets source path in self.cleanup_dict to the value mapped to the corresponding key of redirect_filter (only one filter applied to each file).
-        '''
-        os.makedirs(os.path.abspath(self.config_file['work_dir']), exist_ok=True)
-        for format in self.input_dict:
-            map_dict = {}
-            for source_path in self.input_dict[format]:
-                full_path = f"{self.config_file['work_dir']}/{os.path.basename(source_path)}" #full input path to file
-                if redirect_filter is not None: #if redirection was requested
-                    for filter in redirect_filter: #starting to check filters against file names
-                        if filter in source_path: #if match
-                            map_dict[full_path] = redirect_filter[filter] #redirect
-                            try:
-                                # copy(source_path, os.path.abspath(self.config_file['work_dir']))
-                                move(source_path, os.path.abspath(self.config_file['work_dir']))  #move to wd
-                            except:
-                                break #match found by moving file was not succesful
-                            break #stop matching filters
-                    if full_path not in map_dict: #if all filters are parsed but no match (if match happend, the full path will be in map_dict)
-                        map_dict[full_path] = source_path #no redirection
-                        try:
-                            # copy(source_path, os.path.abspath(self.config_file['work_dir']))
-                            move(source_path, os.path.abspath(self.config_file['work_dir']))
-                        except Exception as e:
-                            print(e)
-                            continue
-                else: #if no filtering required during function call
-                    map_dict[full_path] = source_path
-                    try:
-                        move(source_path, os.path.abspath(self.config_file['work_dir']))
-                    except:
-                        continue
-            self.cleanup_dict.update(map_dict) #add new entries to self.cleanup_dict - these are use to place files back to source/redirect location during cleanup
+        
+    def clear_scratch(self):
+        ''' Removed every file and folder from scratch directory.'''
+        if os.path.isdir(self.config_file["scratch"]):
+            dir_contents = [os.path.join(self.config_file["scratch"],p) for p in os.listdir(self.config_file["scratch"])]
+            for path in dir_contents:
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
 
 
     def fold_output(self):
@@ -485,16 +591,20 @@ class Module:
 
     def unfold_output(self):
         '''Moves target files outside of folders created by fold_output method in order to avoid having to move file out manually to do a rerun.'''
-        for file in glob.glob(f'{self.output_path}folded_*_output/*'):
+        unfolding_path = self.output_path if self.input_path == self.output_path else self.input_path
+        
+        for file in glob.glob(f'{unfolding_path}folded_*_output/*'):
             try:
-                move(file, self.output_path)
-            except:
+                move(file, unfolding_path)
+            except Exception as e:
+                print(e)
                 continue
 
-        for file in glob.glob(f'{self.output_path}reports/*'):
+        for file in glob.glob(f'{unfolding_path}reports/*'):
             try:
-                move(file, self.output_path)
-            except:
+                move(file, unfolding_path)
+            except Exception as e:
+                print(e)
                 continue
 
     def set_permissions(self, permissions:str='775'):

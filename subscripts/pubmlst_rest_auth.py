@@ -35,9 +35,11 @@ import json
 import base64
 from rauth import OAuth1Service, OAuth1Session
 from urllib.parse import parse_qs
+from pathlib import Path
 
 from dotenv import load_dotenv
-load_dotenv('/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/.env')
+ardetype_path = os.path.dirname(Path(__file__).parents[0].absolute())
+load_dotenv(os.path.join(ardetype_path, 'config_files/.env'))
 
 CONSUMER_KEY = os.getenv('CONSUMER_KEY')
 CONSUMER_SECRET = os.getenv('CONSUMER_SECRET')
@@ -45,7 +47,7 @@ TEST_REST_URL = os.getenv('TEST_REST_URL')
 SESSION_REST_URL = os.getenv('SESSION_REST_URL')
 TEST_WEB_URL = os.getenv('TEST_WEB_URL')
 ACCESS_TOKEN_PATH = os.getenv('ACCESS_TOKEN_PATH')
-SESSION_TOKEN = '/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/.session_token'
+SESSION_TOKEN = os.path.join(ardetype_path, 'config_files/.session_token')
 
 REQUEST_TOKEN_URL = TEST_REST_URL + "/oauth/get_request_token"
 ACCESS_TOKEN_URL = TEST_REST_URL + "/oauth/get_access_token"

@@ -1,7 +1,8 @@
+
 ##############
 # default - any rule for which resources were not defined
 ##############
-
+cluster: slurm
 __default__:
   jobname: "default"
   nodes: 1
@@ -17,8 +18,8 @@ __default__:
 ##############
 # bact_core
 ##############
-quality_control:
-  jobname: "ardetype.quality_control"
+illumina_qc:
+  jobname: "ardetype.illumina_qc"
   nodes: 1
   npn: 12
   mempc: "1500mb"
@@ -27,6 +28,96 @@ quality_control:
   error: "ardetype.quality_control-%j.out"
   output: "ardetype.quality_control-%j.err"
 
+hybracter:
+  jobname: "ardetype.hybracter"
+  nodes: 1
+  npn: 16
+  mempc: "1500mb"
+  time: "03:30:00"
+  account: "rakus"
+  error: "ardetype.ont_qc-%j.out"
+  output: "ardetype.ont_qc-%j.err"
+
+
+ont_qc:
+  jobname: "ardetype.ont_qc"
+  nodes: 1
+  npn: 16
+  mempc: "1500mb"
+  time: "00:30:00"
+  account: "rakus"
+  error: "ardetype.ont_qc-%j.out"
+  output: "ardetype.ont_qc-%j.err"
+
+ont_filtering:
+  jobname: "ardetype.ont_filtering"
+  nodes: 1
+  npn: 12
+  mempc: "1500mb"
+  time: "01:00:00"
+  account: "rakus"
+  error: "ardetype.ont_filtering-%j.out"
+  output: "ardetype.ont_filtering-%j.err"
+
+ont_assembly:
+  jobname: "ardetype.ont_assembly"
+  nodes: 1
+  npn: 24
+  mempc: "1500mb"
+  time: "03:20:00"
+  account: "rakus"
+  error: "ardetype.ont_assembly-%j.out"
+  output: "ardetype.ont_assembly-%j.err"
+
+medaka:
+  jobname: "ardetype.medaka"
+  nodes: 1
+  npn: 12
+  mempc: "1000mb"
+  time: "03:00:00"
+  account: "rakus"
+  error: "ardetype.medaka-%j.out"
+  output: "ardetype.medaka-%j.err"
+
+circlator:
+  jobname: "ardetype.circlator"
+  nodes: 1
+  npn: 6
+  mempc: "1000mb"
+  time: "01:00:00"
+  account: "rakus"
+  error: "ardetype.circlator-%j.out"
+  output: "ardetype.circlator-%j.err"
+
+ont_polishing:
+  jobname: "ardetype.ont_polishing"
+  nodes: 1
+  npn: 32
+  mempc: "1500mb"
+  time: "10:00:00"
+  account: "rakus"
+  error: "ardetype.ont_polishing-%j.out"
+  output: "ardetype.ont_polishing-%j.err"
+
+hybrid_polishing:
+  jobname: "ardetype.hybrid_polishing"
+  nodes: 1
+  npn: 12
+  mempc: "1500mb"
+  time: "01:30:00"
+  account: "rakus"
+  error: "ardetype.hybrid_polishing-%j.out"
+  output: "ardetype.hybrid_polishing-%j.err"
+
+filter_phix:
+  jobname: "ardetype.filter_phix"
+  nodes: 1
+  npn: 12
+  mempc: "8256mb"
+  time: "00:40:00"
+  account: "rakus"
+  error: "ardetype.filter_phix-%j.out"
+  output: "ardetype.filter_phix-%j.err"
 
 filter_host:
   jobname: "ardetype.filter_host"
@@ -61,15 +152,15 @@ classify_contigs:
   output: "ardetype.classify_contigs-%j.err"
 
 
-contig_assembly:
-  jobname: "ardetype.contig_assembly"
+illumina_assembly:
+  jobname: "ardetype.illumina_assembly"
   nodes: 1
   npn: 24
   mempc: "1500mb"
-  time: "00:40:00"
+  time: "02:30:00"
   account: "rakus"
-  error: "ardetype.contig_assembly-%j.out"
-  output: "ardetype.contig_assembly-%j.err"
+  error: "ardetype.illumina_assembly-%j.out"
+  output: "ardetype.illumina_assembly-%j.err"
 
 
 
@@ -81,10 +172,20 @@ res_gen_id:
   nodes: 1
   npn: 4
   mempc: "1000mb"
-  time: "00:10:00"
+  time: "01:00:00"
   account: "rakus"
   error: "ardetype.rgi_card-%j.out"
   output: "ardetype.rgi_card-%j.err"
+
+rmlst:
+  jobname: "ardetype.rmlst"
+  nodes: 1
+  npn: 5
+  mempc: "1000mb"
+  time: "01:00:00"
+  account: "rakus"
+  error: "ardetype.rmlst-%j.out"
+  output: "ardetype.rmlst-%j.err"
 
 
 mlst:
@@ -103,22 +204,22 @@ resfinder:
   nodes: 1
   npn: 12
   mempc: "1000mb"
-  time: "00:10:00"
+  time: "03:00:00"
   account: "rakus"
   error: "ardetype.resfinder-%j.out"
   output: "ardetype.resfinder-%j.err"
 
 
 
-amrpp:
-  jobname: "ardetype.amrpp"
+amrfinderplus:
+  jobname: "ardetype.amrfinderplus"
   nodes: 1
   npn: 25
   mempc: "1500mb"
   time: "01:00:00"
   account: "rakus"
-  error: "ardetype.resfinder-%j.out"
-  output: "ardetype.resfinder-%j.err"
+  error: "ardetype.amrfinderplus-%j.out"
+  output: "ardetype.amrfinderplus-%j.err"
 
 
 
@@ -132,6 +233,23 @@ mob_recon:
   error: "ardetype.mob_recon-%j.out"
   output: "ardetype.mob_recon-%j.err"
 
+virulencefinder:
+  jobname: "ardetype.virulencefinder"
+  nodes: 1
+  npn: 12
+  time: "00:30:00"
+  account: "rakus"
+  error: "ardetype.virulencefinder-%j.out"
+  output: "ardetype.virulencefinder-%j.err"
+
+plasmidfinder:
+  jobname: "ardetype.plasmidfinder"
+  nodes: 1
+  npn: 12
+  time: "01:00:00"
+  account: "rakus"
+  error: "ardetype.plasmidfinder-%j.out"
+  output: "ardetype.plasmidfinder-%j.err"
 
 mob_typer:
   jobname: "ardetype.mob_typer"
@@ -166,6 +284,26 @@ hicap_hinfluenzae:
   account: "rakus"
   error: "ardetype.hicap-%j.out"
   output: "ardetype.hicap-%j.err"
+
+capybara:
+  jobname: "ardetype.capybara"
+  nodes: 1
+  npn: 16
+  mempc: "3096mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.capybara-%j.out"
+  output: "ardetype.capybara-%j.err"
+
+chewbbaca_cgmlst:
+  jobname: "ardetype.chewbbaca_cgmlst"
+  nodes: 1
+  npn: 16
+  mempc: "3096mb"
+  time: "24:30:00"
+  account: "rakus"
+  error: "ardetype.chewbbaca_cgmlst-%j.out"
+  output: "ardetype.chewbbaca_cgmlst-%j.err"
 
 
 meningotype_nmeningitidis:
@@ -320,3 +458,98 @@ ectyper_ecoli:
   account: "rakus"
   error: "ardetype.ectyper-%j.out"
   output: "ardetype.ectyper-%j.err"
+
+
+stecfinder_ecoli:
+  jobname: "ardetype.stecfinder"
+  nodes: 1
+  npn: 12
+  mempc: "2000mb"
+  time: "02:00:00"
+  account: "rakus"
+  error: "ardetype.stecfinder-%j.out"
+  output: "ardetype.stecfinder-%j.err"
+
+seroba_spneumoniae:
+  jobname: "ardetype.seroba"
+  nodes: 1
+  npn: 20
+  mempc: "1000mb"
+  time: "00:30:00"
+  account: "rakus"
+  error: "ardetype.seroba-%j.out"
+  output: "ardetype.seroba-%j.err"
+
+
+lrefinder_efaecium_efaecalis:
+  jobname: "ardetype.lrefinder_efaecium_efaecalis"
+  nodes: 1
+  npn: 12
+  mempc: "2000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.lrefinder_efaecium_efaecalis-%j.out"
+  output: "ardetype.lrefinder_efaecium_efaecalis-%j.err"
+  
+shigatyper:
+  jobname: "ardetype.shigatyper"
+  nodes: 1
+  npn: 1
+  mempc: "6000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.shigatyper-%j.out"
+  output: "ardetype.shigatyper-%j.err"
+
+##############
+# bact_shape
+##############
+extract_fastp:
+  jobname: "ardetype.extract_fastp"
+  nodes: 1
+  npn: 3
+  mempc: "1000mb"
+  time: "00:30:00"
+  account: "rakus"
+  error: "ardetype.extract_fastp-%j.out"
+  output: "ardetype.extract_fastp-%j.err"
+
+extract_kraken2:
+  jobname: "ardetype.extract_kraken2"
+  nodes: 1
+  npn: 3
+  mempc: "1000mb"
+  time: "00:30:00"
+  account: "rakus"
+  error: "ardetype.extract_kraken2-%j.out"
+  output: "ardetype.extract_kraken2-%j.err"
+
+extract_mlst:
+  jobname: "ardetype.extract_mlst"
+  nodes: 1
+  npn: 3
+  mempc: "1000mb"
+  time: "00:30:00"
+  account: "rakus"
+  error: "ardetype.extract_mlst-%j.out"
+  output: "ardetype.extract_mlst-%j.err"
+
+extract_rmlst:
+  jobname: "ardetype.extract_rmlst"
+  nodes: 1
+  npn: 3
+  mempc: "1000mb"
+  time: "00:30:00"
+  account: "rakus"
+  error: "ardetype.extract_rmlst-%j.out"
+  output: "ardetype.extract_rmlst-%j.err"
+
+extract_quast:
+  jobname: "ardetype.extract_quast"
+  nodes: 1
+  npn: 3
+  mempc: "1000mb"
+  time: "00:30:00"
+  account: "rakus"
+  error: "ardetype.extract_quast-%j.out"
+  output: "ardetype.extract_quast-%j.err"

@@ -1,16 +1,17 @@
 localrules: all
 
-import sys, pandas as pd, os, json, time
+import sys, pandas as pd, os, json, time, tempfile, shutil
+from glob import glob
 from datetime import date
-sys.path.insert(0, '/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/subscripts/')
-from ardetype_utilities import Ardetype_housekeeper as Housekeeper
-from ardetype_modules import Wrapper as wp
+sys.path.insert(0, os.path.abspath('./'))
+from subscripts.ardetype_utilities import Ardetype_housekeeper as Housekeeper
+from subscripts.ardetype_modules import Wrapper as wp
 
 
-sip_wild = config['work_dir']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
+sip_wild = config['input_directory']+'{sample_id_pattern}_R[1,2]_001.fastq.gz'
 sample_sheet = pd.read_csv(f"{config['output_directory']}sample_sheet.csv").astype(str)
 date = date.today().strftime("%Y-%m-%d")
-specific_tool_map = Housekeeper.read_json_dict("/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/json/specific_tool_map.json")
+specific_tool_map = Housekeeper.read_json_dict(os.path.join(os.path.abspath('./'),"config_files/json/specific_tool_map.json"))
 aquamis_qc_db = Housekeeper.read_json_dict(config["aquamis_qc_reference"])
 aquamis_update_timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(os.path.getmtime(config["aquamis_qc_reference"])))
 
@@ -73,6 +74,7 @@ rule all:
         report = report[order_list]
 
         #generate per-sample and per-batch tool reports
+        print(f'shape: extracting tool/database versions', file=sys.stdout)
         wrapper = wp()
         wrapper.set_db_vers_map()
         wrapper.set_tool_vers_map()
@@ -98,13 +100,63 @@ rule all:
         report.sample_id = report.sample_id.astype(str).str.replace(r'_S[0-9]*', '', regex=True)
         aquamis_qc_report.sample_id = aquamis_qc_report.sample_id.astype(str).str.replace(r'_S[0-9]*', '', regex=True)
 
+        #Remove previous reports if present
+        prev_adt_reps = glob(os.path.join(config['output_directory'],f'*_ardetype_report.csv'))
+        prev_aq_reps = glob(os.path.join(config['output_directory'],f'*_aquamis_qc_report.csv'))
+        prev_reps = prev_adt_reps + prev_aq_reps
+        
+        if prev_reps:
+            for p in prev_reps:
+                os.remove(p)
+
         #save as csv
         report.to_csv(config['output_directory']+f'{date}_ardetype_report.csv', header=True, index=False)
         aquamis_qc_report.to_csv(config['output_directory']+f'{date}_aquamis_qc_report.csv', header=True, index=False)
 
-
+        # Combine profiles by species
+        with open(config['output_directory']+'core_aggregated_taxonomy.json', "r") as json_handle:
+            tax_map = json.load(json_handle)
         
+        tax_df = pd.DataFrame(tax_map.items(), columns=['sample_id', 'species'])
+        unq_spcs = tax_df['species'].unique()
 
+
+        wd = os.path.join(config["output_directory"], 'cgmlst_aggregated')
+        if os.path.isdir(wd):
+            shutil.rmtree(wd)
+        os.makedirs(wd)
+
+        # For each detected species
+        for sp in unq_spcs:
+            samples = tax_df[tax_df['species'] == sp]['sample_id'].to_list()
+            profiles = [os.path.join(config['output_directory'], f'{sample}_chewbbaca', 'results_alleles.tsv') for sample in samples]
+            profiles = {s:p for s,p in zip(samples,profiles) if os.path.exists(p)}
+
+            if profiles:
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    # Copy profiles for processing
+                    new_map = {}
+                    for smp, pf in profiles.items():
+                        dest_path = os.path.join(tmpdir, f'{smp}_results_alleles.tsv')
+                        shutil.copy(pf, dest_path)
+                        new_map[smp] = dest_path
+
+                    # Generate species template
+                    template = new_map[list(new_map.keys())[0]]
+                    
+                    combined_prof_path = os.path.join(wd,f'agg_results_alleles_{sp.lower().replace(" ","_")}.tsv')
+                    os.system(f'head -1 {template} > {combined_prof_path}')
+
+                    # Fill-in the template
+                    for s,p in new_map.items():
+                        os.system(f'tail -1 {p} >> {combined_prof_path}')
+
+                    # Replace contigs suffix
+                    os.system(f"sed -i 's/_contigs//g' {combined_prof_path}")
+                    
+                    # Calculate distance matrix
+                    dm_path = os.path.join(wd,f'cgmlst-dists_{sp.lower().replace(" ","_")}.tsv')
+                    os.system(f'singularity --silent run --bind {config["output_directory"]}:{config["output_directory"]} {config["cgmlst_dists_sif"]} cgmlst-dists {combined_prof_path} > {dm_path}')
 
 rule extract_fastp:
     input:
@@ -181,8 +233,12 @@ rule extract_rmlst:
     output:
         config['output_directory']+'{sample_id_pattern}_rmlst_std.csv'
     run:
-        with open(input[0], 'r+') as file:
-            data = json.load(file)
+        try:
+            with open(input[0], 'r+') as file:
+                data = json.load(file)
+        except Exception as e:
+            data = {}
+            print(f'WARNING: {input[0]} parsing failed with error - {e}.')
         
         if data:
             if data.get('taxon_prediction', []):
@@ -266,33 +322,6 @@ rule extract_legsta:
             report.to_csv(output[0], header=True, index=False)
         except pd.errors.EmptyDataError:
             key = "_legsta.csv"
-            df = pd.DataFrame.from_dict({
-                'sample_id':[wildcards.sample_id_pattern], 
-                f"method|{specific_tool_map[key]['tool']}":[None],
-                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
-                f'type|{specific_tool_map[key]["tool"]}':[None]
-                })
-            df.to_csv(output[0],header=True, index=False)
-
-
-rule extract_legionella_pneumophila_genomics:
-    input: 
-        config['output_directory']+"{sample_id_pattern}-predictResults.txt"
-    output:
-        config['output_directory']+"{sample_id_pattern}-predictResults_std.csv"
-    run:
-        try:
-            key = "-predictResults.txt"
-            report = pd.read_csv(input[0])
-            report = report[["x"]]
-            report.columns = ["type"]
-            report["sample_id"] = wildcards.sample_id_pattern
-            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
-            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
-            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
-            report.to_csv(output[0], header=True, index=False)
-        except pd.errors.EmptyDataError:
-            key = "-predictResults.txt"
             df = pd.DataFrame.from_dict({
                 'sample_id':[wildcards.sample_id_pattern], 
                 f"method|{specific_tool_map[key]['tool']}":[None],

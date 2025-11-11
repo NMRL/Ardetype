@@ -1,5 +1,0 @@
-name: mtbseq_mtuberculosis
-channels:
-  - bioconda
-dependencies:
-  - mtbseq

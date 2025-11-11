@@ -169,6 +169,8 @@ core_tool_configs:
     ram_host_mb: 262144
     bact_db: /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/minikraken_bact/ 
     ram_bact_mb: 262144
+    phix_db: /mnt/beegfs2/home/groups/nmrl/db/db-kraken2/phix/
+    ram_phix_mb: 4096
   shovill:
     minlen: 1
     mincov: 0
@@ -177,6 +179,7 @@ core_tool_configs:
     depth: 100
     modules: --noreadcorr
   fastp:
+    thread: 12
     max_len1: 0 #trim bases after given length in read1
     max_len2: 0 #trim bases after given length in read2
   polypolish:
@@ -193,6 +196,7 @@ core_tool_configs:
     sample_size: 10000
   medaka:
     threads: 12
+    ram_mb: 6144
 
 #########################
 # bact_shell configuration
@@ -257,6 +261,8 @@ shell_tool_configs:
   rmlst_pubmlst:
     schema: https://rest.pubmlst.org/db/pubmlst_rmlst_seqdef_kiosk/schemes/1
     api_seq_limit: 75
+  mob_suite:
+    mob_recon_threads: 12
 
 
 
@@ -279,6 +285,9 @@ tip_tool_configs:
   lpgenomics_lpneumophila:
   meningotype_nmeningitidis:
   pasteurmlst_lmonocytogenes:
+  capybara_abaumannii:
+    threads: 12
+    capybara_sif: /mnt/beegfs2/home/groups/nmrl/image_files/capybara_250416.sif
   publmst_ngonorrhoe:
   sccmec_saureus:
   seqsero_senterica:
@@ -286,6 +295,7 @@ tip_tool_configs:
   sistr_senterica:
   spatyper_saureus:
   ectyper_ecoli:
+    cores: 10
   seroba_spneumoniae:
   cgmlstfinder:
     cgmlstfinder_sif: /mnt/beegfs2/home/groups/nmrl/image_files/cgmlstfinder.sif
@@ -301,8 +311,15 @@ tip_tool_configs:
       clostridium: clostridium
   chewbbaca:
     chewbbaca_sif: /mnt/beegfs2/home/groups/nmrl/image_files/chewbbaca_3.3.10.sif #chewbacca_cgmlst.sif
-    chewbbaca_cores: 24
+    chewbbaca_cores: 48
     chewbbaca_orgs:
+      mycobacterium:
+        db: Mycobacterium_species_complex_alleles
+        version: 2.1
+        origin: https://www.cgmlst.org/ncs/schema/Mtuberculosis2101/
+        allele_count: 2891
+        db_update: "2025-04-01"
+        reference: "Kohl TA, Diel R, Harmsen D, Rothgänger J, Walter KM, Merker M, Weniger T, and Niemann S. Whole-genome-based Mycobacterium tuberculosis surveillance: a standardized, portable, and expandable approach. J. Clin. Microbiol. 2014, 52: 2479-86: 2479-86"
       salmonella:
         db: Salmonella_enterica
         version: 2.0
@@ -311,11 +328,11 @@ tip_tool_configs:
         db_update: "2023-05-15"
         reference: "Alikhan NF, Zhou Z, Sergeant MJ, and Achtman M. A genomic overview of the population structure of Salmonella. PLoS Genet. 2018, 14: e1007261 [PubMed 29621240]"
       escherichia:
-        db: Escherichia_coli
+        db: Ecoli_cgmlst # ecoli_wgmlst_alleles
         version: 1.0
         origin: https://www.cgmlst.org/ncs/schema/5064703/
         allele_count: 2513
-        db_update: "2023-05-17"
+        db_update: "2025-04-03"
         reference: "Zhou Z, Alikhan NF, Mohamed K, Fan Y, and . The EnteroBase user's guide, with case studies on Salmonella transmissions, Yersinia pestis phylogeny, and Escherichia core genomic diversity. Genome Res. 2020, 30: 138-152 [PubMed 31809257]"
       enterobacter:
         db: Escherichia_coli
@@ -429,6 +446,13 @@ tip_tool_configs:
         allele_count: 13745
         db_update: "2023-01-12"
         reference: "Frentrup M, Zhou Z, Steglich M, Meier-Kolthoff JP, Göker M, Riedel T, Bunk B, Sprö8er C, Overmann J, Blaschitz M, Indra A, von Müller L, Kohl TA, Niemann S, Seyboldt C, Klawonn F, Kumar N, Lawley TD, García-Fernández S, Cantón R, Del Campo R, Zimmermann O, Groß U, Achtman M, Nübel U. A publicly accessible database for Clostridioides difficile genome sequences supports tracing of transmission chains and epidemics. Microb Genom. 2020 Aug;6(8):mgen000410. doi: 10.1099/mgen.0.000410. Epub 2020 Jul 29. PMID: 32726198; PMCID: PMC7641423."
+      corynebacterium:
+        db: Corynebacterium_diphtheriae_ridom
+        version: "2025-10-28"
+        origin: https://www.cgmlst.org/ncs/schema/Cdiphtheriae369/
+        allele_count: 1553
+        db_update: "2025-10-28"
+        reference: "Dangel A, Berger A, Konrad R, Bischoff H, and Sing A. Geographically Diverse Clusters of Nontoxigenic Corynebacterium diphtheriae Infection, Germany, 2016-2017. Emerg Infect Dis. 2018, 24: 1239-1245"
   lrefinder_efaecium_efaecalis:
     id: 80
   shigatyper_shigella:

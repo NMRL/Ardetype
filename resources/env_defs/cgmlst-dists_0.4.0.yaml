@@ -1,0 +1,8 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- cgmlst-dists=0.4.0
+- libgcc-ng >=12
+name: cgmlst-dists_0.4.0

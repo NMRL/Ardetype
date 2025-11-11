@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/shigatyper_2.0.5.yaml shigatyper_2.0.5.yaml
+%post
+    conda env create --name shigatyper_2.0.5 --file shigatyper_2.0.5.yaml
+%environment
+    export PATH=/opt/conda/envs/shigatyper_2.0.5/bin:$PATH
+%runscript
+    exec "$@"

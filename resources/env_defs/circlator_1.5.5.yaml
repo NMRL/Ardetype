@@ -1,0 +1,17 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- circlator=1.5.5
+- samtools
+- bwa
+- prodigal
+- openpyxl
+- spades
+- python 3.5*
+- pysam >=0.8.1
+- bio_assembly_refinement >=0.4.0
+- pyfastaq >=3.12.1
+- pymummer >=0.9.0
+name: circlator_1.5.5

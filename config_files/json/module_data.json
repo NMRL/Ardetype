@@ -1,19 +1,25 @@
 {
-    "cluster_config": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/config_files/yaml/cluster.yaml",
+    "cluster_config": "config_files/yaml/cluster_slurm.yaml",
     "snakefiles": {
-        "core": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_core",
-        "core_ont": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_core_ont",
-        "shell": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shell",
-        "shell_ont": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shell_ont",
-        "tip": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_tip",
-        "tip_ont": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_tip_ont",
-        "shape": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shape",
-        "shape_ont": "/mnt/beegfs2/home/groups/nmrl/bact_analysis/Ardetype/snakefiles/bact_shape_ont"
+        "core": "snakefiles/bact_core",
+        "core_ont": "snakefiles/bact_core_ont",
+        "core_fasta": "snakefiles/bact_core_fasta",
+        "shell": "snakefiles/bact_shell",
+        "shell_ont": "snakefiles/bact_shell_ont",
+        "tip": "snakefiles/bact_tip",
+        "tip_ont": "snakefiles/bact_tip_ont",
+        "shape": "snakefiles/bact_shape",
+        "shape_ont": "snakefiles/bact_shape_ont"
     },
     "reports": [
+        "plsdb_report.csv",
+        "pf_abaumannii_report.csv",
+        "resfinder_reads_report.csv",
+        "cgmlst_aggregated",
         "_ardetype_report.csv",
         "pointfinder_report.csv",
         "amrfp_mutation_report.csv",
+        "amrfp_report.csv",
         "resfinder_pheno_table_gathered.csv",
         "harmonized_resistance_profile.tsv",
         "software_log.csv",
@@ -41,7 +47,9 @@
         "shigatyper_report.csv",
         "seroba_report.csv",
         "emmtyper_report.csv",
-        "hicap_report.csv"
+        "hicap_report.csv",
+        "capybara_report.csv",
+        "plassembler_report.csv"
     ],
     "core": {
         "targets": {
@@ -58,7 +66,6 @@
                 "_contigs.fasta"
             ],
             "FUL": [
-                "_poly_polished.fasta.PolcaCorrected.fa",
                 "_snikt.html",
                 "_bact_reads_classified_1.fastq.gz",
                 "_bact_reads_classified_2.fastq.gz",
@@ -68,11 +75,17 @@
                 "_kraken2_host_filtering_report.txt",
                 ".fastp.json",
                 ".fastp.html",
-                "_contigs.fasta"
+                "_contigs.fasta",
+                "_hybracter.fasta"
             ],
             "ONT": [
                 ".circularized.fasta",
                 "_snikt.html",
+                "_kraken2_contigs_report.txt",
+                "_contigs.fasta",
+                "_hybracter.fasta"
+            ],
+            "FA": [
                 "_kraken2_contigs_report.txt",
                 "_contigs.fasta"
             ]
@@ -80,9 +93,10 @@
         "patterns": {
             "inputs": {
                 "ILL": "001.fastq.gz",
-                "ONT": "ONT.fastq.gz"
+                "ONT": "ONT.fastq.gz",
+                "FASTA": "_contigs.fasta"
             },
-            "sample_sheet": "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_ONT.fastq.gz)"
+            "sample_sheet": "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_ONT.fastq.gz|_contigs.fasta)"
         },
         "job_name": "bact_core",
         "requests": {
@@ -102,6 +116,7 @@
             "_resfinder/ResFinder_results.txt",
             "_quast/icarus.html",
             "_mob_recon/mobtyper_results.txt",
+            "_plsdb_mob_recon.csv",
             "_amrfinderplus.tab",
             "_plasmidfinder/Hit_in_genome_seq.fsa",
             "_plasmidfinder/Plasmid_seqs.fsa",
@@ -117,8 +132,13 @@
         ],
         "patterns": {
             "inputs": {
-                "ILL/FUL": ["001.fastq.gz", "_contigs.fasta"],
-                "ONT": ["_contigs.fasta"]
+                "ILL/FUL": [
+                    "001.fastq.gz",
+                    "_contigs.fasta"
+                ],
+                "ONT": [
+                    "_contigs.fasta"
+                ]
             },
             "sample_sheet": "(_R[1,2]_001.fastq.gz|_contigs.fasta)"
         },
@@ -135,7 +155,6 @@
             ],
             "Legionella pneumophila": [
                 "_legsta.csv",
-                "-predictResults.txt",
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Haemophilus influenzae": [
@@ -189,9 +208,9 @@
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Acinetobacter baumannii": [
-                "_kleborate.tsv",
-                "_ab_pumblst.json",
-                "_chewbbaca/results_alleles.tsv"
+                "_capybara.tsv",
+                "_chewbbaca/results_alleles.tsv",
+                "_abplasmidtype.txt"
             ],
             "Escherichia coli": [
                 "_ectyper.tsv",
@@ -217,18 +236,39 @@
             "Clostridioides difficile": [
                 "_chewbbaca/results_alleles.tsv"
             ],
+            "Corynebacterium diphtheriae": [
+                "_chewbbaca/results_alleles.tsv"
+            ],
             "Enterobacter hormaechei": [
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Shigella sonnei": [
                 "_chewbbaca/results_alleles.tsv",
                 "_shigatyper/shigatyper.tsv"
+            ],
+            "Mycobacterium tuberculosis": [
+                "_chewbbaca/results_alleles.tsv"
+            ],
+            "Mycobacterium bovis": [
+                "_chewbbaca/results_alleles.tsv"
+            ],
+            "Mycobacterium africanum": [
+                "_chewbbaca/results_alleles.tsv"
+            ],
+            "Mycobacterium canettii": [
+                "_chewbbaca/results_alleles.tsv"
             ]
         },
         "patterns": {
             "inputs": {
-                "ILL/FUL": ["_bact_reads_classified_1.fastq.gz","_bact_reads_classified_2.fastq.gz", "_contigs.fasta"],
-                "ONT": ["_contigs.fasta"]
+                "ILL/FUL": [
+                    "_bact_reads_classified_1.fastq.gz",
+                    "_bact_reads_classified_2.fastq.gz",
+                    "_contigs.fasta"
+                ],
+                "ONT": [
+                    "_contigs.fasta"
+                ]
             },
             "sample_sheet": "(_R[1,2]_001.fastq.gz|_[1,2].fastq.gz|_contigs.fasta)"
         },
@@ -256,6 +296,7 @@
                 "Campylobacter coli",
                 "Clostridium botulinum",
                 "Clostridium difficile",
+                "Corynebacterium diphtheriae",
                 "Klebsiella quasipneumoniae",
                 "Enterococcus faecalis",
                 "Enterococcus faecium",
@@ -266,7 +307,11 @@
                 "Yersinia frederiksenii",
                 "Clostridioides difficile",
                 "Enterobacter hormaechei",
-                "Shigella sonnei"
+                "Shigella sonnei",
+                "Mycobacterium tuberculosis",
+                "Mycobacterium bovis",
+                "Mycobacterium africanum",
+                "Mycobacterium canettii"
             ]
         }
     },
@@ -284,8 +329,7 @@
                 "_meningotype_std.csv"
             ],
             "Legionella pneumophila": [
-                "_legsta_std.csv",
-                "-predictResults_std.csv"
+                "_legsta_std.csv"
             ],
             "Haemophilus influenzae": [
                 "_hicap_std.csv"
@@ -304,9 +348,7 @@
             "Streptococcus pyogenes": [
                 "_emmtyper_std.csv"
             ],
-            "Neisseria gonorrhoeae": [
-                "_ngmast_std.csv"
-            ],
+            "Neisseria gonorrhoeae": [],
             "Listeria monocytogenes": [
                 "_lissero_std.csv"
             ],
@@ -314,9 +356,7 @@
                 "_sistr_std.csv",
                 "_SeqSero_std.csv"
             ],
-            "Acinetobacter baumannii": [
-                "_kleborate_std.csv"
-            ],
+            "Acinetobacter baumannii": [],
             "Escherichia coli": [
                 "_ectyper_std.csv",
                 "_stecfinder_std.csv"
@@ -335,7 +375,12 @@
             "Yersinia frederiksenii": [],
             "Enterobacter hormaechei": [],
             "Clostridioides difficile": [],
-            "Shigella sonnei": []
+            "Corynebacterium diphtheriae": [],
+            "Shigella sonnei": [],
+            "Mycobacterium tuberculosis": [],
+            "Mycobacterium bovis": [],
+            "Mycobacterium africanum": [],
+            "Mycobacterium canettii": []
         },
         "patterns": {
             "inputs": {
@@ -358,7 +403,7 @@
                     "_lissero.tsv",
                     "_sistr.csv",
                     "_SeqSero.tsv",
-                    "_ab_pumblst.json",
+                    "_ab_pubmlst.json",
                     "_ectyper.tsv",
                     "_seroba.tsv",
                     "_stecfinder.tsv"

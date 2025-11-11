@@ -1,0 +1,18 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- kraken2=2.1.3
+- _openmp_mutex >=4.5
+- blast
+- libgcc >=13
+- libstdcxx >=13
+- libzlib >=1.3.1,<2.0a0
+- perl >=5.32.1,<5.33.0a0 *_perl5
+- python
+- rsync
+- tar
+- wget
+- zlib
+name: kraken2_2.1.3

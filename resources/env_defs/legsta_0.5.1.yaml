@@ -1,0 +1,10 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- legsta=0.5.1
+- perl
+- any2fasta
+- ispcr
+name: legsta_0.5.1

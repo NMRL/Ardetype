@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/legsta_0.5.1.yaml legsta_0.5.1.yaml
+%post
+    conda env create --name legsta_0.5.1 --file legsta_0.5.1.yaml
+%environment
+    export PATH=/opt/conda/envs/legsta_0.5.1/bin:$PATH
+%runscript
+    exec "$@"

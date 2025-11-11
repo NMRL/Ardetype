@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/pigz_2.4.yaml pigz_2.4.yaml
+%post
+    conda env create --name pigz_2.4 --file pigz_2.4.yaml
+%environment
+    export PATH=/opt/conda/envs/pigz_2.4/bin:$PATH
+%runscript
+    exec "$@"

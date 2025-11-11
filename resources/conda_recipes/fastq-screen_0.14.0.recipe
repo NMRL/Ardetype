@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/fastq-screen_0.14.0.yaml fastq-screen_0.14.0.yaml
+%post
+    conda env create --name fastq-screen_0.14.0 --file fastq-screen_0.14.0.yaml
+%environment
+    export PATH=/opt/conda/envs/fastq-screen_0.14.0/bin:$PATH
+%runscript
+    exec "$@"

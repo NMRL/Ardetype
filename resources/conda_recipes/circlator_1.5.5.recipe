@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/circlator_1.5.5.yaml circlator_1.5.5.yaml
+%post
+    conda env create --name circlator_1.5.5 --file circlator_1.5.5.yaml
+%environment
+    export PATH=/opt/conda/envs/circlator_1.5.5/bin:$PATH
+%runscript
+    exec "$@"

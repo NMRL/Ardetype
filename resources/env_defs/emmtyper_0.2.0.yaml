@@ -1,0 +1,14 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- emmtyper=0.2.0
+- click
+- python-dateutil
+- ispcr
+- python >=3
+- blast >=2.6.0
+- scipy >=1.1.0
+- numpy >=1.15.0
+name: emmtyper_0.2.0

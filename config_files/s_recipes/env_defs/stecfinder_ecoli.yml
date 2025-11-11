@@ -1,6 +1,0 @@
-name: stecfinder_ecoli
-channels:
-  - bioconda
-  - conda-forge
-dependencies:
-  - stecfinder
