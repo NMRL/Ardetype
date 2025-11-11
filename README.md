@@ -264,7 +264,7 @@ required arguments:
 | hicap_report.csv | [serotyping](https://github.com/scwatts/hicap) for H. Influenzae |
 | kleborate_report.csv | [serotyping, resistance and virulence](https://github.com/katholt/Kleborate) profiles for K.pneumoniae |
 | kraken2contigs_report.csv | all hits with [kraken2](https://github.com/DerrickWood/kraken2)/[minikraken](https://benlangmead.github.io/aws-indexes/k2#:~:text=Older%20%E2%80%9CMinikraken%E2%80%9D%20indexes) applied to contigs |
-| kraken2reads_report.csv | all hits with [kraken2](https://github.com/DerrickWood/kraken2)/[minikraken](https://benlangmead.github.io/aws-indexes/k2#:~:text=Older%20%E2%80%9CMinikraken%E2%80%9D%20indexes) applied to contigs |
+| kraken2reads_report.csv | all hits with [kraken2](https://github.com/DerrickWood/kraken2)/[minikraken](https://benlangmead.github.io/aws-indexes/k2#:~:text=Older%20%E2%80%9CMinikraken%E2%80%9D%20indexes) applied to QC-pass, non-host reads |
 | legsta_report.csv | [sequence-based typing (SBT)](https://github.com/tseemann/legsta) for L. Pneumophila |
 | lissero_report.csv | [serotyping](https://github.com/MDU-PHL/LisSero) for L.monocytogenes |
 | lrefinder_report.csv | [predicting linezolid resistance](https://bitbucket.org/genomicepidemiology/lre-finder) in Enterococci faecalis and E. faecium |
@@ -274,7 +274,7 @@ required arguments:
 | plasmidfinder_summary.csv | [Detecting mobile genetic elements](https://bitbucket.org/genomicepidemiology/plasmidfinder/src/master/) in bacterial NGS data (contigs) |
 | pointfinder_report.csv | [Detecting AMR-associated mutations](https://bitbucket.org/genomicepidemiology/resfinder/src/master/) in bacterial NGS data (contigs) |
 | quast_report.csv | [Quality control of genomes](https://github.com/ablab/quast) assembled from short-read NGS data |
-| resfinder_mobtyper_mapping.csv | AMR-MGE link prediction from MOBSuite and Resfinder based on contig overlap |
+| resfinder_mobtyper_mapping.csv | AMR-MGE link prediction from MOBSuite and Resfinder based on contig coordinate overlap |
 | resfinder_pheno_table_gathered.csv | phenotypic resistance predictions by [resfinder](https://bitbucket.org/genomicepidemiology/resfinder/src/master/) |
 | seqsero2_report.csv | [serotyping](https://github.com/denglab/SeqSero2) for S.enterica |
 | seroba_report.csv | [serotyping](https://github.com/sanger-pathogens/seroba) for S.pneumoniae |
