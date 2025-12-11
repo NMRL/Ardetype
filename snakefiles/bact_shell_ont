@@ -1,4 +1,4 @@
-localrules: all
+localrules: all, rmlst, plsdb_api_query
 
 import pandas as pd, os, sys, json
 from Bio import SeqIO
