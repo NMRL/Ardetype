@@ -225,6 +225,13 @@
         "link": "https://rest.pubmlst.org/db/pubmlst_neisseria_seqdef/schemes/71",
         "reference": ""
     },
+    "_ngmaster.tsv": {
+        "rule": "ngmaster",
+        "method": "NG-MAST typing for Neisseria sp.",
+        "tool": "ngmaster",
+        "link": "https://github.com/MDU-PHL/ngmaster",
+        "reference": "Kwong JC, Gonçalves da Silva A, Dyet K, Williamson DA, Stinear TP, Howden BP and Seemann T. NGMASTER: in silico multi-antigen sequence typing for Neisseria gonorrhoeae Microbial Genomics 2016 Aug 25;2(8):e000076. PMID:28348871 DOI:10.1099/mgen.0.000076"
+    },
     "_lissero.tsv": {
         "rule": "lissero_lmonocytogenes",
         "method": "serotyping for L.monocytogenes",

@@ -1,0 +1,9 @@
+core: Checking input
+core: Adding targets to config file
+core: Launching snakemake
+core: Verifying output completion
+core: Finished
+shell: Parsing core output
+shell: Removing samples lacking required files
+shell: Adding targets to config file
+shell: Launching snakemake

@@ -95,6 +95,10 @@ rule all:
         plassembler_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*/supplementary_results/plassembler_individual_summaries/*_with_sample.tsv", extractor = hk.plassembler_results)
         plassembler_results.to_csv(f"{config['output_directory']}plassembler_report.csv", header=True, index=False)
 
+        #Aggregate ngmaster results
+        negmaster_results = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_ngmaster.tsv", extractor = hk.ngmaster_results)
+        negmaster_results.to_csv(f"{config['output_directory']}ngmaster_report.csv", header=True, index=False)
+
 
 rule hicap_hinfluenzae:
     input:
@@ -518,3 +522,25 @@ rule chewbbaca_cgmlst:
                 logfile.write(f"[{datetime.now().isoformat()}] Successfully updated and saved QC file.\n")
             except Exception as e:
                 logfile.write(f"[{datetime.now().isoformat()}] ERROR during QC DataFrame update: {str(e)}\n")
+
+rule ngmaster:
+    input:
+        image_file    = ancient(config['tip_tool_configs']['ngmaster_neisseria']['ngmaster_sif']),
+        contigs       = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta')
+    output:
+        ngmaster = config['output_directory']+'{sample_id_pattern}_ngmaster.tsv',
+    log:
+        config['output_directory'] + 'logs/' + '{sample_id_pattern}_ngmaster.ngmaster.log'
+    run:
+        scratch_path = f'{config["scratch"]}ngmaster_{wildcards.sample_id_pattern}'
+        os.system(f'''
+        
+        if [ -d "{scratch_path}" ]; then rm -Rf {scratch_path} 2>> {log[0]}; fi
+
+        mkdir {scratch_path} 2>> {log[0]}
+        cp {input.contigs} {scratch_path}/ 2>> {log[0]}
+
+        singularity --silent run --bind {scratch_path}:{scratch_path} {input.image_file} ngmaster {scratch_path}/$(basename {input.contigs}) > {output.ngmaster} 2>> {log[0]}
+
+        rm -r {scratch_path} 2>> {log[0]}
+        ''')

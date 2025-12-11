@@ -12,6 +12,7 @@
         "shape_ont": "snakefiles/bact_shape_ont"
     },
     "reports": [
+        "ngmaster_report.csv",
         "plsdb_report.csv",
         "pf_abaumannii_report.csv",
         "resfinder_reads_report.csv",
@@ -151,7 +152,8 @@
     "tip": {
         "targets": {
             "Neisseria meningitidis": [
-                "_meningotype.tsv"
+                "_meningotype.tsv",
+                "_ngmaster.tsv"
             ],
             "Legionella pneumophila": [
                 "_legsta.csv",
@@ -190,7 +192,8 @@
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Neisseria gonorrhoeae": [
-                "_ngmast.json"
+                "_ngmast.json",
+                "_ngmaster.tsv"
             ],
             "Listeria monocytogenes": [
                 "_lissero.tsv",

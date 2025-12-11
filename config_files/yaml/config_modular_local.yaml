@@ -425,6 +425,8 @@ tip_tool_configs:
   abaumanniiplasmidtype:
     abp_sif: resources/image_files/blast_2.16.0+.sif
     database: resources/databases/acinetobacterplasmidtyper.fasta
+  ngmaster_neisseria:
+      ngmaster_sif: resources/image_files/ngmaster_1.0.0.sif
 
 #########################
 # bact_shape configuration

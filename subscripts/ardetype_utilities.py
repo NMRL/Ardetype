@@ -745,6 +745,21 @@ class Ardetype_housekeeper(hk):
             return report
 
     @staticmethod
+    def ngmaster_results(ngmaster_result_path:str, batch:str):
+        report = pd.read_csv(ngmaster_result_path, sep='\t')
+        sample_id = os.path.basename(ngmaster_result_path).replace('_ngmaster.tsv', '')
+        seq_batch = os.path.basename(os.path.dirname(ngmaster_result_path))
+        columns = list(report.columns)
+        columns.remove('FILE')
+        report["sample_id"] = [sample_id for _ in report.index]
+        report["seq_batch"] = [seq_batch for _ in report.index]
+        columns.insert(0,"sample_id")
+        columns.insert(1,"seq_batch")
+        report = report[columns]
+        return report
+
+
+    @staticmethod
     def stecfinder_results(stf_result_path: str, batch: str) -> pd.DataFrame:
         '''To combine stecfinder reports and map them to sample_id-batch pair.'''
         df = pd.read_csv(stf_result_path, sep='\t')
