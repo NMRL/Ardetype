@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/kleborate_3.1.2.yaml kleborate_3.1.2.yaml
+%post
+    conda env create --name kleborate_3.1.2 --file kleborate_3.1.2.yaml
+%environment
+    export PATH=/opt/conda/envs/kleborate_3.1.2/bin:$PATH
+%runscript
+    exec "$@"

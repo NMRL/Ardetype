@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    env_defs/cgmlst-dists_0.4.0.yaml cgmlst-dists_0.4.0.yaml
+%post
+    conda env create --name cgmlst-dists_0.4.0 --file cgmlst-dists_0.4.0.yaml
+%environment
+    export PATH=/opt/conda/envs/cgmlst-dists_0.4.0/bin:$PATH
+%runscript
+    exec "$@"

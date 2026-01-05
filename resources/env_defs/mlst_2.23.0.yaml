@@ -1,0 +1,15 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- mlst=2.23.0
+- perl
+- zlib
+- perl-json
+- perl-list-moreutils
+- any2fasta
+- perl-moo
+- perl-bioperl >=1.7.2
+- blast >=2.9.0
+name: mlst_2.23.0

@@ -1,0 +1,559 @@
+##############
+# default - any rule for which resources were not defined
+##############
+cluster: pbs
+__default__:
+  jobname: "default"
+  procs: 1
+  pmem: "1000mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  feature: "vasara"
+  queue: "batch"
+  jobout: "oe"
+  outdir: "ardetype_job_logs/"
+  file: 2048
+
+
+##############
+# bact_core
+##############
+
+illumina_qc:
+  jobname: "ardetype.illumina_qc"
+  procs: 12
+  pmem: "1500mb"
+  walltime: "01:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+ont_qc:
+  jobname: "ardetype.ont_qc"
+  procs: 16
+  pmem: "1500mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+ont_filtering:
+  jobname: "ardetype.ont_filtering"
+  procs: 12
+  pmem: "1500mb"
+  walltime: "01:00:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+ont_assembly:
+  jobname: "ardetype.ont_assembly"
+  procs: 24
+  pmem: "1500mb"
+  walltime: "03:20:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+medaka:
+  jobname: "ardetype.medaka"
+  procs: 12
+  pmem: "1000mb"
+  walltime: "01:00:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+  
+circlator:
+  jobname: "ardetype.circlator"
+  procs: 6
+  pmem: "1000mb"
+  walltime: "01:00:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+ont_polishing:
+  jobname: "ardetype.ont_polyshing"
+  procs: 32
+  pmem: "1500mb"
+  walltime: "10:00:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+hybrid_polishing:
+  jobname: "ardetype.hybrid_polishing"
+  procs: 12
+  pmem: "1500mb"
+  walltime: "00:20:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+filter_host:
+  jobname: "ardetype.filter_host"
+  procs: 43
+  pmem: "6000mb"
+  walltime: "00:18:00"
+  feature: "vasara"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+filter_phix:
+  jobname: "ardetype.filter_phix"
+  procs: 12
+  pmem: "2048mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+classify_reads:
+  jobname: "ardetype.classify_reads"
+  procs: 12
+  pmem: "22500mb"
+  walltime: "01:00:00"
+  feature: "vasara"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+classify_contigs:
+  jobname: "ardetype.classify_contigs"
+  procs: 12
+  pmem: "22500mb"
+  walltime: "01:00:00"
+  feature: "vasara"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+illumina_assembly:
+  jobname: "ardetype.illumina_assembly"
+  procs: 38
+  pmem: "6000mb"
+  walltime: "10:40:00"
+  account: "rakus"
+  feature: "largescratch"
+  queue: "batch"
+  jobout: "oe"
+  nodes: 1
+
+
+##############
+# bact_shell
+##############
+res_gen_id:
+  jobname: "ardetype.rgi_card"
+  procs: 4
+  pmem: "1000mb"
+  walltime: "03:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+res_marker_concordance:
+  jobname: "ardetype.rmc"
+  procs: 30
+  pmem: "1000mb"
+  walltime: "02:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+rmlst:
+  jobname: "ardetype.rmlst"
+  procs: 5
+  pmem: "1000mb"
+  walltime: "00:15:00"
+  account: "rakus"
+  queue: "fast"
+  jobout: "oe"
+
+
+mlst:
+  jobname: "ardetype.mlst"
+  procs: 6
+  pmem: "1000mb"
+  walltime: "02:00:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+resfinder:
+  jobname: "ardetype.resfinder"
+  procs: 12
+  pmem: "1000mb"
+  walltime: "05:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+plasmidfinder:
+  jobname: "ardetype.plasmidfinder"
+  procs: 12
+  pmem: "1000mb"
+  walltime: "01:00:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+virulencefinder:
+  jobname: "ardetype.virulencefinder"
+  procs: 12
+  pmem: "1000mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+amrfinderplus:
+  jobname: "ardetype.amrfinderplus"
+  procs: 12
+  pmem: "1000mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+amrpp:
+  jobname: "ardetype.amrpp"
+  procs: 25
+  pmem: "1500mb"
+  walltime: "06:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+
+mob_recon:
+  jobname: "ardetype.mob_recon"
+  procs: 12
+  pmem: "1000mb"
+  walltime: "08:30:00"
+  feature: "largescratch"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+mob_typer:
+  jobname: "ardetype.mob_typer"
+  procs: 12
+  pmem: "1000mb"
+  walltime: "02:20:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+quast:
+  jobname: "ardetype.quast"
+  procs: 5
+  pmem: "1000mb"
+  walltime: "00:15:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+##############
+# bact_tip
+##############
+hicap_hinfluenzae:
+  jobname: "ardetype.hicap"
+  procs: 8
+  pmem: "1000mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+cgmlstfinder:
+  jobname: "ardetype.cgmlstfinder"
+  procs: 30
+  pmem: "6000mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  queue: "batch"
+  nodes: 1
+  jobout: "oe"
+
+
+capybara:
+  jobname: "ardetype.capybara"
+  procs: 16
+  pmem: "3096mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+chewbbaca_cgmlst:
+  jobname: "ardetype.chewbbaca_cgmlst"
+  procs: 48
+  pmem: "2048mb"
+  feature: "largescratch"
+  walltime: "24:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+  
+
+meningotype_nmeningitidis:
+  jobname: "ardetype.meningotype"
+  procs: 8
+  pmem: "1000mb"
+  walltime: "00:01:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+legsta_lpneumophila:
+  jobname: "ardetype.legsta"
+  procs: 8
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+lpgenomics_lpneumophila:
+  jobname: "ardetype.lpgenomics"
+  procs: 24
+  pmem: "3000mb"
+  walltime: "24:00:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+kleborate_kpneumoniae:
+  jobname: "ardetype.kleborate"
+  procs: 8
+  pmem: "1000mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+agrvate_saureus:
+  jobname: "ardetype.agrvate"
+  procs: 3
+  pmem: "1000mb"
+  walltime: "00:01:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+spatyper_saureus:
+  jobname: "ardetype.spatyper"
+  procs: 8
+  pmem: "1000mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+sccmec_saureus:
+  jobname: "ardetype.sccmec"
+  procs: 10
+  pmem: "1000mb"
+  walltime: "00:01:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+emmtyper_spyogenes:
+  jobname: "ardetype.emmtyper"
+  procs: 8
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+seqsero_senterica:
+  jobname: "ardetype.seqsero"
+  procs: 12
+  pmem: "1500mb"
+  walltime: "01:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+sistr_senterica:
+  jobname: "ardetype.sistr"
+  procs: 10
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+lissero_lmonocytogenes:
+  jobname: "ardetype.lissero"
+  procs: 10
+  pmem: "1000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+pasteur_pcr_serogroup_lmonocytogenes:
+  jobname: "ardetype.pasteur_pcrsero"
+  procs: 5
+  pmem: "1000mb"
+  walltime: "00:15:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+pasteur_cgmlst_lmonocytogenes:
+  jobname: "ardetype.pasteur_cgmlst"
+  procs: 5
+  pmem: "1000mb"
+  walltime: "00:15:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+pasteur_cgmlst_ecoli:
+  jobname: "ardetype.pasteur_cgmlst"
+  procs: 5
+  pmem: "1000mb"
+  walltime: "00:15:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+publmst_ngonorrhoe:
+  jobname: "ardetype.publmst"
+  procs: 5
+  pmem: "1000mb"
+  walltime: "00:15:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+ectyper_ecoli:
+  jobname: "ardetype.ectyper"
+  procs: 10
+  pmem: "1000mb"
+  walltime: "01:00:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+stecfinder_ecoli:
+  jobname: "ardetype.stecfinder"
+  procs: 12
+  pmem: "2000mb"
+  walltime: "02:00:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+seroba_spneumoniae:
+  jobname: "ardetype.seroba"
+  procs: 20
+  pmem: "1000mb"
+  walltime: "00:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+lrefinder_efaecium_efaecalis:
+  jobname: "ardetype.lrefinder_efaecium_efaecalis"
+  procs: 12
+  pmem: "2000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+
+shigatyper:
+  jobname: "ardetype.shigatyper"
+  procs: 1
+  pmem: "6000mb"
+  walltime: "00:10:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+##############
+# bact_shape
+##############
+extract_fastp:
+  jobname: "ardetype.extract_fastp"
+  procs: 3
+  pmem: "1000mb"
+  walltime: "01:05:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+extract_kraken2:
+  jobname: "ardetype.extract_kraken2"
+  procs: 3
+  pmem: "1000mb"
+  walltime: "01:05:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+extract_mlst:
+  jobname: "ardetype.extract_mlst"
+  procs: 3
+  pmem: "1000mb"
+  walltime: "01:05:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+extract_rmlst:
+  jobname: "ardetype.extract_rmlst"
+  procs: 6
+  pmem: "1000mb"
+  walltime: "01:05:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+extract_quast:
+  jobname: "ardetype.extract_quast"
+  procs: 3
+  pmem: "1000mb"
+  walltime: "01:05:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"

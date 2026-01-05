@@ -1,0 +1,13 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/masurca_4.1.0.yaml masurca_4.1.0.yaml
+%post
+    conda env create --name masurca_4.1.0 --file masurca_4.1.0.yaml
+    conda install -n masurca_4.1.0 -c conda-forge which
+    
+%environment
+    export PATH=/opt/conda/envs/masurca_4.1.0/bin:$PATH
+%runscript
+    exec "$@"

@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/emmtyper_0.2.0.yaml emmtyper_0.2.0.yaml
+%post
+    conda env create --name emmtyper_0.2.0 --file emmtyper_0.2.0.yaml
+%environment
+    export PATH=/opt/conda/envs/emmtyper_0.2.0/bin:$PATH
+%runscript
+    exec "$@"

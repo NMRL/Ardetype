@@ -1,0 +1,13 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- snikt=0.5.0
+- r-gridextra
+- seqtk
+- r-tidyverse
+- r-lubridate
+- r-docopt
+- r-base >=4.1,<4.2.0a0
+name: snikt_0.5.0

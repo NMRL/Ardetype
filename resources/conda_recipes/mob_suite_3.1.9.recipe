@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/mob_suite_3.1.9.yaml mob_suite_3.1.9.yaml
+%post
+    conda env create --name mob_suite_3.1.9 --file mob_suite_3.1.9.yaml
+%environment
+    export PATH=/opt/conda/envs/mob_suite_3.1.9/bin:$PATH
+%runscript
+    exec "$@"

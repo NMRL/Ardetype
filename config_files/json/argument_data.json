@@ -1,0 +1,94 @@
+{
+    "description": "Typical usage examples:\n\n  Illumina data: python ardetype.py -i <batch_path> -m all\n  Nanopore data: python ardetype.py -i <batch_path> -m all -ont\n  Pre-assembled: python ardetype.py -i <batch_path> -m all -fa\n  Merge: python ardetype.py -m merge --merge_from <batch_path1> ... <batch_pathN> -o <target_batch_path>\n  Force-rerun: python ardetype.py -m all -i <batch_path> -f\n  Rerun specific: python ardetype.py -m all -i <batch_path> -fr <rule_name1> ... <rule_nameN>\n\nARDETYPE is a modular bioinformatics pipeline for bacterial whole genome sequencing (WGS) analysis, designed for use in clinical microbiology, public health surveillance, and research settings. It supports both Illumina paired-end and Oxford Nanopore sequencing data.\n\nThe pipeline performs species-agnostic and species-specific analyses, integrating open-source tools to assess sequence quality, assemble genomes, classify organisms taxonomically, predict antimicrobial resistance (AMR), reconstruct plasmids, and generate structured reports. \n\nARDETYPE is organized into four core modules:\n  - bact_core: quality control, host read removal, genome assembly, taxonomic classification\n  - bact_shell: assembly QC, AMR profiling, plasmid reconstruction and typing\n  - bact_tip: species-specific subtyping\n  - bact_shape: structured summarization of results\n\nBy combining established tools such as fastp, Kraken2, Shovill, QUAST, RGI, ResFinder, AMR++, and MOB-suite, ARDETYPE provides a comprehensive workflow for bacterial isolate characterization in high-stakes applications like outbreak investigation, resistance monitoring, and genomic epidemiology.",
+    "required_arguments": [
+        [
+            "-m",
+            "--run_mode",
+            "Selects pipeline execution mode:\n\n  all   - Run the complete pipeline on raw FASTQ files, including all analysis modules (bact_core, bact_shell, bact_tip, bact_shape).\n\n  merge - Combine outputs from previous ARDETYPE runs located in one or more folders (see --merge_from),\n\tthen generate unified reports under --output_dir.\n"
+        ]
+    ],
+    "optional": {
+        "arguments": [
+            [
+                "-i",
+                "--input",
+                "Path to directory that contains files to be analysed (files are NOT parsed from subfolders).\nExpected extensions: Illumina - `_R{1,2}_001.fastq.gz`; Nanopore - `_ONT.fastq.gz`; Assemblies - `_contigs.fasta`",
+                null
+            ],
+            [
+                "-c",
+                "--config",
+                "Path to a custom pipeline configuration file in YAML format.\n\t\tIf not provided, a default config file (config_files/yaml/config_modular_local.yaml) will be used.\n\t\tThe configuration defines global parameters and tool-specific settings used during execution. File structure should match that of the default config file.",
+                "./config_files/yaml/config_modular_local.yaml"
+            ],
+            [
+                "-o",
+                "--output_dir",
+                "Directory where pipeline outputs will be saved. By default, it is set to '--input' as for most use cases it is recommended to ensure idempotent re-runs.\n\t\tIn 'merge' mode, this must be specified explicitly as the destination for combined results.",
+                null
+            ],
+            [
+                "-r",
+                "--retry_times",
+                "Number of times Snakemake will attempt to rerun failed jobs. Helps recover from intermittent Network and/or I/O errors. Default is 3.",
+                3
+            ],
+            [
+                "-n",
+                "--num_jobs",
+                "Maximum number of Snakemake jobs to run in parallel. Applies when executing on HPC. Default is 12.",
+                12
+            ],
+            [
+                "-cpu",
+                "--max_cpus",
+                "Maximum number of CPUs Snakemake is allowed to use to run the jobs on local machine. Default is 6.",
+                6
+            ]
+        ],
+        "flags": [
+            [
+                "-hpc",
+                "--hpc",
+                "Enable HPC execution mode.\nWith appropriate configuration, this allows submitting each pipeline module\n(via subscripts/ardetype_jobscript.sh, --hpc, and -sm flags)\nor per-sample job (via config_files/yaml/cluster.yaml and --hpc flag) to a cluster scheduler (PBS by default).\nBy default, the pipeline runs locally on the machine where the script is invoked."
+            ],
+            [
+                "-sm",
+                "--submit_modules",
+                "Run each pipeline module as a separate HPC job. Snakemake sub-jobs are not submitted to the cluster in this mode.\nRequires manual adjustment of subscripts/ardetype_jobscript.sh to control behavior. Effective only with --hpc."
+            ],
+            [
+                "-f",
+                "--force_all",
+                "Force rerun of all Snakemake rules across all pipeline modules, regardless of previous results or timestamps."
+            ],
+            [
+                "-sp",
+                "--skip_packing",
+                "Disable output packing. By default, output files are organized into per-sample folders. Use this flag to keep a flat output directory structure."
+            ],
+            [
+                "-ont",
+                "--nanopore_only",
+                "Run the pipeline on a folder containing exclusively Nanopore reads (with _ONT.fastq.gz extension).\nBy default, the pipeline expects either Illumina data (_001.fastq.gz) alone or combined Illumina and Nanopore data."
+            ],
+            [
+                "-fa",
+                "--fasta",
+                "Run the pipeline on a folder containing exclusively fasta input (with _contigs.fasta extension).\nBy default, the pipeline expects either Illumina data (_001.fastq.gz) alone or combined Illumina and Nanopore data."
+            ]
+        ],
+        "nargs": [
+            [
+                "-mf",
+                "--merge_from",
+                "One or more paths to folders containing Ardetype output to be merged.\nAllowed merge combinations: Hybrid + Hybrid, Illumina + Illumina, Nanopore + Nanopore, Fasta + Fasta."
+            ],
+            [
+                "-fr",
+                "--force_rules",
+                "Specify one or more Snakemake rule names (check snakefiles/<module name> for rule names) to force rerun within the pipeline."
+            ]
+        ]
+    }
+}

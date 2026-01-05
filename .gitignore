@@ -1,0 +1,33 @@
+# Specific files
+*plsdb_api_test*
+*.env*
+*.session_token
+devsync*
+*.fastq.gz
+log_summary.html
+clst_bct_cl.o*
+*.sif
+workflow/*
+resources/databases/* 
+resources/image_files/*
+
+# Various system folders
+/.snakemake
+.ipynb_checkpoints
+__pycache__
+
+# Old legacy pipeline
+/historical
+
+# Working directories
+/ardetype_job_logs
+/ardetype_output
+/input_files
+/data
+
+# Analysis directories 
+/test_cases
+/special_processing
+/latest_integrated_output
+
+/23*

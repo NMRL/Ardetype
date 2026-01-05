@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/seqsero2_1.3.1.yaml seqsero2_1.3.1.yaml
+%post
+    conda env create --name seqsero2_1.3.1 --file seqsero2_1.3.1.yaml
+%environment
+    export PATH=/opt/conda/envs/seqsero2_1.3.1/bin:$PATH
+%runscript
+    exec "$@"

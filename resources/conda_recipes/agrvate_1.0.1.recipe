@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/agrvate_1.0.1.yaml agrvate_1.0.1.yaml
+%post
+    conda env create --name agrvate_1.0.1 --file agrvate_1.0.1.yaml
+%environment
+    export PATH=/opt/conda/envs/agrvate_1.0.1/bin:$PATH
+%runscript
+    exec "$@"

@@ -1,0 +1,14 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- kleborate=3.1.2
+- minimap2
+- mash
+- dna_features_viewer
+- kaptive
+- python >=3.9
+- biopython >=1.83
+- numpy >=1.22
+name: kleborate_3.1.2

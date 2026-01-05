@@ -1,0 +1,11 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- fastq-screen=0.14.0
+- bowtie2
+- bowtie
+- perl-gdgraph
+- perl >=5.26.2,<5.26.3.0a0
+name: fastq-screen_0.14.0

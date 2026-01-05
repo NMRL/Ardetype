@@ -1,0 +1,12 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- shigatyper=2.0.5
+- python >=3.7
+- samtools >=1.9
+- pandas >=0.24.2
+- bcftools >=1.9
+- minimap2 >=2.16
+name: shigatyper_2.0.5

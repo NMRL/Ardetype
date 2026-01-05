@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/kraken2_2.1.3.yaml kraken2_2.1.3.yaml
+%post
+    conda env create --name kraken2_2.1.3 --file kraken2_2.1.3.yaml
+%environment
+    export PATH=/opt/conda/envs/kraken2_2.1.3/bin:$PATH
+%runscript
+    exec "$@"

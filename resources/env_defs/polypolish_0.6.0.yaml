@@ -1,0 +1,9 @@
+channels:
+- bioconda
+- conda-forge
+- defaults
+dependencies:
+- polypolish=0.6.0
+- libgcc >=13
+- libstdcxx >=13
+name: polypolish_0.6.0

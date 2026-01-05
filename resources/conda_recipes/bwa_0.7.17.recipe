@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/bwa_0.7.17.yaml bwa_0.7.17.yaml
+%post
+    conda env create --name bwa_0.7.17 --file bwa_0.7.17.yaml
+%environment
+    export PATH=/opt/conda/envs/bwa_0.7.17/bin:$PATH
+%runscript
+    exec "$@"

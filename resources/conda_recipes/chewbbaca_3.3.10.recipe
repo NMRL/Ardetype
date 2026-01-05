@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+%files
+    ../env_defs/chewbbaca_3.3.10.yaml chewbbaca_3.3.10.yaml
+%post
+    conda env create --name chewbbaca_3.3.10 --file chewbbaca_3.3.10.yaml
+%environment
+    export PATH=/opt/conda/envs/chewbbaca_3.3.10/bin:$PATH
+%runscript
+    exec "$@"
