@@ -9,7 +9,7 @@ from shutil import move
 
 
 class Housekeeper:
-    '''Class to contain methods that perform general housekeeping tasks for the pipeline,
+    '''Class to contain methods that perform general housekeeping tasks for the pipeline, 
     like reading from/writing to certain file types, generating sample sheets etc.'''
 
     @staticmethod
@@ -22,43 +22,6 @@ class Housekeeper:
 
         # Step 1: Collect all failed job IDs
         failed_jobids = list(map(int, error_jobid_pattern.findall(log_content)))
-
-        # Step 2: Scan job launch blocks to match job IDs to sample IDs
-        job_blocks = log_content.split("[")
-        jobid_to_sample = {}
-        for block in job_blocks:
-            match = launch_block_pattern.search(block)
-            if match:
-                jobid = int(match.group(1))
-                sample_id = match.group(2)
-                jobid_to_sample[jobid] = sample_id
-
-        # Step 3: Count failures per sample ID
-        sample_fail_counts: Dict[str, int] = {}
-        for jobid in failed_jobids:
-            sample_id = jobid_to_sample.get(jobid)
-            if sample_id:
-                sample_fail_counts[sample_id] = sample_fail_counts.get(sample_id, 0) + 1
-
-        return sample_fail_counts
-
-    @staticmethod
-    def get_failed_sample_counts_extended(log_content: str) -> Dict[str, int]:
-        """
-        Extended version of get_failed_sample_counts that also handles
-        'Job X completed successfully, but some output files are missing' errors.
-        """
-        # Regex patterns for different error types
-        error_jobid_pattern = re.compile(r"Error in rule .*?:\s+jobid: (\d+)")
-        missing_output_pattern = re.compile(r"Job (\d+) completed successfully, but some output files are missing")
-        launch_block_pattern = re.compile(
-            r"^.*rule .*?:.*?jobid: (\d+).*?wildcards: sample_id_pattern=(\S+)", re.DOTALL
-        )
-
-        # Step 1: Collect all failed job IDs from both error types
-        failed_jobids_errors = list(map(int, error_jobid_pattern.findall(log_content)))
-        failed_jobids_missing = list(map(int, missing_output_pattern.findall(log_content)))
-        failed_jobids = failed_jobids_errors + failed_jobids_missing
 
         # Step 2: Scan job launch blocks to match job IDs to sample IDs
         job_blocks = log_content.split("[")
@@ -94,11 +57,11 @@ class Housekeeper:
     @staticmethod
     def parse_folder(folder_pth_str:str, file_fmt_str:str, substr_lst:list=None, regstr_lst:list=None) -> list:
         '''
-        Given path to the folder (folder_pth_str) and file format (file_fmt_str), returns a list,
+        Given path to the folder (folder_pth_str) and file format (file_fmt_str), returns a list, 
         containing absolute paths to all files of specified format found in folder and subfolders,
-        except for files that contain patterns to exclude (specified in regstr_lst) or substrings to exclude (specified in substr_lst).
+        except for files that contain patterns to exclude (specified in regstr_lst) or substrings to exclude (specified in substr_lst).    
         '''
-        if not os.path.isdir(folder_pth_str):
+        if not os.path.isdir(folder_pth_str): 
             print(f'Expected path to folder - {folder_pth_str} does not exist or refers to a file', file=sys.stderr)
             sys.exit(1)
         name_series = pd.Series(dtype="str") #initialize pandas series to store path values
@@ -126,24 +89,24 @@ class Housekeeper:
     def create_sample_sheet(file_lst:list, generic_str:str, regex_str:str=None, mode:int=0):
         """
         Given (list) of paths to files and a generic part of the file name (e.g. _contigs.fasta or _R[1,2]_001.fastq.gz string, regex expected for fastq), mode value (int 1 for fasta, 0 (default) for fastq)
-        and a sample_id regex pattern to exclude (regex string), returns pandas dataframe with sample_id column and one (fa for fasta) or two (fq1 fq2, for fastq) file path columns.
+        and a sample_id regex pattern to exclude (regex string), returns pandas dataframe with sample_id column and one (fa for fasta) or two (fq1 fq2, for fastq) file path columns. 
         """
         file_series = pd.Series(file_lst, dtype="str") #to facilitate filtering
         ss_df = pd.DataFrame(dtype="str") #to store sample sheet
         if mode not in [0,1]:
-            raise Exception(f"utilities.create_sample_sheet: Accepted mode values are 0 for fasta and 1 for fastq: {mode} was given.")
+            raise Exception(f"utilities.create_sample_sheet: Accepted mode values are 0 for fasta and 1 for fastq: {mode} was given.") 
 
         if mode == 1:  #If function is used to produce sample sheet from fasta files
             id_extractor = lambda x: os.path.basename(x).replace(generic_str, "") #extract id from string by replacing generic part
-            id_series = file_series.apply(id_extractor)
-            if regex_str is not None:
+            id_series = file_series.apply(id_extractor) 
+            if regex_str is not None: 
                 id_series = id_series[id_series.str.contains(regex_str)] #additional sample id filtering based on regex was requested
                 if not id_series:
                     raise Exception('utilities.create_sample_sheet: no sample ids left after filtering sample ids using regex')
             path_series = file_series[file_series.str.contains("|".join(id_series))].reset_index(drop=True) #getting corresponding paths to fastq files
             ss_df['sample_id'], ss_df['fa'] = id_series, path_series #adding to sample sheet dataframe
             return ss_df
-
+        
         id_extractor = lambda x: re.sub(generic_str,"",os.path.basename(x)) #extract id from string by using regex
         id_series = file_series.apply(id_extractor).drop_duplicates(keep = "first").sort_values().reset_index(drop=True)
         if regex_str is not None: #additional sample id filtering based on regex was requested
@@ -159,7 +122,7 @@ class Housekeeper:
                 read_2_dict[id] = read_files[1]
             except KeyError:
                 read_2_dict[id] = read_files[0]
-
+            
         ss_df['sample_id'] = id_series #adding to sample sheet dataframe
         ss_df['fq1'] = ss_df['sample_id'].map(read_1_dict)
         ss_df['fq2'] = ss_df['sample_id'].map(read_2_dict)
@@ -192,7 +155,7 @@ class Housekeeper:
         indicating if it is present in the file system.
         """
         return {file: os.path.isfile(file) for file in file_list}
-
+                
     @staticmethod
     def read_yaml(yaml_path:str):
         """
@@ -222,7 +185,7 @@ class Housekeeper:
     @staticmethod
     def find_in_nested_dict(nested_dict:dict, key_sequence:list):
         '''
-        Given a dictionary and an ordered sequence of keys in a form of list, returns value mapped to last key in sequence, by parsing the dictionary.
+        Given a dictionary and an ordered sequence of keys in a form of list, returns value mapped to last key in sequence, by parsing the dictionary. 
         Raises exceptions if key is not found or non-dict value reached before last key in sequence is reached.
         '''
         if not isinstance(nested_dict,dict):
@@ -251,18 +214,18 @@ class Housekeeper:
                     raise LookupError('Problem with keys: reached non-dict value before processing all keys in sequence.')
             except KeyError:
                 raise LookupError(f'Problem with keys: {key} not found in nested_dict.')
-
+            
     @staticmethod
     def get_all_keys(input_dict:dict, key_set=set()):
         """
-        Given a nested dictionary (dict), return a (set) of all keys in that dictionary.
+        Given a nested dictionary (dict), return a (set) of all keys in that dictionary. 
         When called multiple times without passing new set object, all keys get saved to the same set.
-        Default function call example:
+        Default function call example: 
             get_all_keys(input_dict, set()) - returns all keys in input_dict, overwrites the content of key_set, if function was called before.
-        Accumulating function call example:
+        Accumulating function call example: 
             get_all_keys(input_dict):
                 if function is called for the first time - default behavior
-                if function called multiple times - adds all keys in input_dict to the content of key_set
+                if function called multiple times - adds all keys in input_dict to the content of key_set 
                 (assign key_set value to a variable when calling a function in order not to lose the reference to it)
         """
         for key, value in input_dict.items(): #start at the top level
@@ -283,7 +246,7 @@ class Housekeeper:
         for key in found_keys:
             if key not in valid_key_dict: #if undefined key is found
                 return 2
-            else:
+            else:   
                 valid_key_dict[key] += 1 #if valid key is found - set its check value to 1 (True)
         if all(valid_key_dict.values()): #if all defined keys are found
             return 0
@@ -378,12 +341,12 @@ class Housekeeper:
         else:
             raise ValueError(f"Contig filtering by length failed - {input_multifasta_path} is either malformed or empty.")
 
-
+        
     @staticmethod
     def parse_arguments(arg_dict:dict):
         """
         Parse pre-defined set of arguments from the command line, returning a namespace (object),
-        that allows accessing arguments as instance variables of namespace by their full name.
+        that allows accessing arguments as instance variables of namespace by their full name. 
         Expected arg_dict structure:
         {
             'description':'',
@@ -407,23 +370,23 @@ class Housekeeper:
         #Argument parsers
         parser = argparse.ArgumentParser(description=arg_dict['description'], formatter_class=argparse.RawTextHelpFormatter)
         req_arg_grp = parser.add_argument_group('Required arguments') #to display argument under required header in help message
-
+        
         #Required
-        for req_arg in arg_dict['required_arguments']:
+        for req_arg in arg_dict['required_arguments']: 
             req_arg_grp.add_argument(req_arg[0], req_arg[1], metavar='\b', help=req_arg[2],default=None, required=True)
 
         #Optional
         #Arguments
-        for opt_arg in arg_dict['optional']['arguments']:
+        for opt_arg in arg_dict['optional']['arguments']: 
             parser.add_argument(opt_arg[0], opt_arg[1], metavar='\b', help=opt_arg[2], default=opt_arg[3], required=False)
-
+        
         #Flags
         for flag in arg_dict['optional']['flags']: parser.add_argument(flag[0], flag[1], help = flag[2], action='store_true')
 
         for flag in arg_dict['optional']['nargs']: parser.add_argument(flag[0], flag[1], nargs='+', help=flag[2])
 
         #If no arguments provided - display help and stop the script
-        if len(sys.argv)==1:
+        if len(sys.argv)==1: 
             parser.print_help(sys.stderr)
             sys.exit(1)
         args = parser.parse_args()
@@ -467,14 +430,14 @@ class Housekeeper:
     @staticmethod
     def rename_file(path_to_file:str, pattern_to_add:str, target_folder_path:str=f"{os.path.dirname(Path(__file__).parents[0].absolute())}/ardetype_job_logs"):
         '''
-        Given path to file and pattern to add in file name,
+        Given path to file and pattern to add in file name, 
         saves file in the same directory with pattern added to its name.
         '''
         new_path = f"{target_folder_path}/{pattern_to_add}_{os.path.basename(path_to_file)}"
         move(path_to_file,new_path)
 
 
-    @staticmethod
+    @staticmethod 
     def name_job_logs(pipeline_name:str, path_to_log_dir:str=None):
         '''Given path to the pipeline_name_job_logs folder, adds sample id to the name of each log file (skips the file if sample id is not found in it).'''
         if path_to_log_dir is None:
@@ -488,7 +451,7 @@ class Housekeeper:
                 sample_id = Housekeeper.extract_log_id(log)
             except PermissionError:
                 continue
-            if sample_id and sample_id not in log:
+            if sample_id and sample_id not in log: 
                 Housekeeper.rename_file(log, sample_id, path_to_log_dir) #if no sample id is found, the extract_log_id returns False
 
 
@@ -497,7 +460,7 @@ class Housekeeper:
     def remove_old_files(path_to_folder:str, valid_days:int=30):
         '''
         Given path to folder, removes all files that were created more than 30 days ago.
-        By providing number of days beyond which the files are discarded (valid_days),
+        By providing number of days beyond which the files are discarded (valid_days), 
         removes all the files in folder that are older than that number of days.
         '''
         os.chdir(path_to_folder)
@@ -533,7 +496,7 @@ class Housekeeper:
         bar = fill * filledLength + '-' * (length - filledLength)
         print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
         # Print New Line on Complete
-        if iteration == total:
+        if iteration == total: 
             print()
 
 
@@ -541,18 +504,18 @@ class Housekeeper:
     def find_job_logs(pipeline_name:str, logs_to_skip:list=[]):
         '''
         Given pipeline name, returns generator of paths (as str) to all log files that contain pipeline name as substring in file name.
-        Returns empty list if none is found.
+        Returns empty list if none is found. 
         '''
         path_to_log_dir=f"{os.path.dirname(Path(__file__).parents[1].absolute())}/{pipeline_name}_job_logs" #get path to log folder - static for default pipeline template
         processed_log_set = set(logs_to_skip) #to use set operations for speedup
         path_joiner = lambda p: os.path.join(path_to_log_dir, p) #helper function to apply map instead of using for loop
         full_log_set = set(map(path_joiner, os.listdir(path_to_log_dir))) #applying helper to all log paths to get set of full paths
         fresh_logs = full_log_set - processed_log_set
-        if fresh_logs:
-            return (path for path in fresh_logs), len(fresh_logs) #using set operations to keep only paths to unprocessed logs + generator to avoid loading all
+        if fresh_logs: 
+            return (path for path in fresh_logs), len(fresh_logs) #using set operations to keep only paths to unprocessed logs + generator to avoid loading all 
         else:
             return [], 0
-
+                
 
     @staticmethod
     def parse_snakemake_log(path_to_log:str) -> pd.DataFrame:
@@ -624,7 +587,7 @@ class Housekeeper:
             time_sec_req = time_sec_req.hours*3600+time_sec_req.minutes*60+time_sec_req.seconds
             Eff = round(100*time_sec_total/time_sec_req,2)
             if sample_id not in path_to_log: path_to_log = path_to_log.replace('_job_logs/', f'_job_logs/{sample_id}_')
-
+            
             df = pd.DataFrame({
                 "log_path":[path_to_log],
                 "job_name":[job_name],
@@ -641,7 +604,7 @@ class Housekeeper:
             return df
         except:
             return pd.DataFrame()
-
+        
 
     @staticmethod
     def aggregate_job_logs(log_path_list:list, count:int, procs:int=24) -> pd.DataFrame:
@@ -682,7 +645,7 @@ class Housekeeper:
         '''Running the notebook from the command line with nbconvert.'''
         os.system(
             f'''
-            eval "$(conda shell.bash hook)"
+            eval "$(conda shell.bash hook)" 
             conda activate {env_path}
             jupyter nbconvert --to html --execute --no-input {notebook_path} --output-dir={output_dir}
             chmod 775 {output_dir} 2>/dev/null
@@ -696,13 +659,13 @@ class Housekeeper:
         file_search = [path for path in os.listdir(f"{job_log_dir}") if '-log_aggregate_' in path]
         if file_search: current_file = file_search[0]
         else: current_file = 'none'
-        if os.path.isfile(f'{job_log_dir}/{current_file}'):
+        if os.path.isfile(f'{job_log_dir}/{current_file}'): 
             current_df = pd.read_csv(f'{job_log_dir}/{current_file}')
         else:
             current_df = None
         path_gen, log_count = Housekeeper.find_job_logs(pipeline_name, logs_to_skip=list(current_df['log_path']) if current_df is not None else [])
         new_log_df = Housekeeper.aggregate_job_logs(log_path_list=path_gen, count=log_count)
-        if current_df is not None and not new_log_df.empty:
+        if current_df is not None and not new_log_df.empty: 
             updated_df = pd.concat([current_df, new_log_df], sort=False)
         elif new_log_df.empty:
             updated_df = current_df
@@ -712,4 +675,4 @@ class Housekeeper:
         new_file_name = f'{tstemp}-log_aggregate_{pipeline_name}.csv'
         updated_df.drop_duplicates(subset=['log_path'], keep='first', inplace=True)
         if file_search: os.remove(f'{job_log_dir}/{current_file}')
-        updated_df.to_csv(f'{job_log_dir}/{new_file_name}', header=True, index=False)
+        updated_df.to_csv(f'{job_log_dir}/{new_file_name}', header=True, index=False)    

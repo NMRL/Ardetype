@@ -1,4 +1,4 @@
-from .utilities_fixed import Housekeeper as hk
+from .utilities import Housekeeper as hk
 import os, warnings, re, subprocess, shutil, time, pandas as pd, glob, sys
 from itertools import chain
 from getpass import getuser
@@ -23,28 +23,28 @@ class Module:
     '''Class represents single module of the ardetype pipeline'''
 
     def __init__(
-            self,
-            module_name         : str,
-            input_path          : str,
-            module_config,
-            output_path         : str,
-            run_mode            : bool,
-            job_name            : str,
-            patterns            : dict,
-            targets             : list,
-            requests            : dict,
-            snakefile_path      : str,
+            self, 
+            module_name         : str, 
+            input_path          : str, 
+            module_config, 
+            output_path         : str, 
+            run_mode            : bool, 
+            job_name            : str, 
+            patterns            : dict, 
+            targets             : list, 
+            requests            : dict, 
+            snakefile_path      : str, 
             cluster_config_path : str,
             retry_times         : int,
             snakemake_cpus      : int,
-            force_all           : bool,
-            pack_output         : bool,
+            force_all           : bool, 
+            pack_output         : bool, 
             rules_to_rerun      : list,
             run_local           : bool,
             nanopore_mode       : bool,
             fasta_mode          : bool
             ) -> None:
-
+        
         self.run_mode            = run_mode #If true, snakemake will be run as single job, else - will run as job submitter on the login node
         self.run_local           = run_local #If true, each module will be executed on the machine where the wrapper is run
         self.job_id              = None  #Will be added if self.run_mode is True and job was submitted to HPC; filled by submit_module_job
@@ -75,7 +75,7 @@ class Module:
         self.force_specific      = f"-R {' '.join(self.rules_to_rerun)}" if self.rules_to_rerun else ""
         self.fasta_mode          = fasta_mode
         self.nanopore_mode       = nanopore_mode
-
+        
     @staticmethod
     def _get_rule_names_from_snakefile(snakefile_path):
         rule_names = []
@@ -90,7 +90,7 @@ class Module:
 
     def fill_input_dict(self, substring_list=['reads_unclassified', 'reads_classified'], mixed:bool=False, empty:bool=False, pattern_path:str=""):
         '''Fills self.input_dict using self.input_path and self.module_name by
-        mapping each file format to the list of files of that format, found in the self.input_path,
+        mapping each file format to the list of files of that format, found in the self.input_path, 
         excluding files that contain substrings in their names (supply None to avoid excluding files).
         If some files of required format are missing, raises an exception, indicating missing file format.'''
         if pattern_path:
@@ -120,7 +120,7 @@ class Module:
                 if not self.input_dict[fmt]:
                     print(f'Missing {fmt} files in input directory', file=sys.stderr)
                     sys.exit(1)
-
+            
             if not empty:
                 for fmt in self.patterns['inputs']['optional']:
                     parsed_files = hk.parse_folder(self.input_path,substr_lst=substring_list, file_fmt_str=fmt)
@@ -183,7 +183,7 @@ class Module:
                     for _ in range(3 - ln):
                         file_map[k].append(str(None))
                 file_map[k].sort()
-
+            
             #Define groups of samples
             df = pd.DataFrame.from_dict(file_map, orient='index').reset_index()
             df.columns = ['sample_id', 'ONT', 'ILL1', 'ILL2']
@@ -227,7 +227,7 @@ class Module:
                 self.target_list = [os.path.join(self.output_path,f'{id}{tmpl}') for idx, id in enumerate(self.sample_sheet['sample_id']) for tmpl in self.targets[self.sample_sheet['sample_group'][idx]]]
             else:
                 self.target_list = [os.path.join(self.output_path,f'{id}{tmpl}') for id in self.sample_sheet['sample_id'] for tmpl in self.targets]
-
+            
 
     def make_output_dir(self):
         '''Creates output directory (if not present in the file system) using self.output_path.'''
@@ -292,7 +292,7 @@ class Module:
 
 
     def check_module_output(self, mixed:bool=False):
-        '''Checks if output files are generated according to self.module_name and adds check_note_{self.module_name} column
+        '''Checks if output files are generated according to self.module_name and adds check_note_{self.module_name} column 
         to the self.sample_sheet dataframe, where boolean value is stored for each expected file.'''
         check_dict = hk.check_file_existance(file_list=self.target_list)
         if mixed:
@@ -360,10 +360,10 @@ class Module:
     def save_removed(self):
         '''Generates a csv file in self.output_path folder, containing information about samples that were
         filtered as invalid by the module (see remove_invalid_samples). Does nothing if self.removed_samples is empty.'''
-        if not self.removed_samples.empty:
+        if not self.removed_samples.empty: 
             self.removed_samples.to_csv(f"{self.output_path}removed_samples_{self.module_name}.csv", header=True, index=False)
             return self.removed_samples
-
+    
 
 
     def run_modules_local(self):
@@ -428,6 +428,24 @@ class Module:
             finally:
                 self.clear_scratch()
 
+    # def run_modules_local(self):
+    #     try:
+    #         cmd = f'''
+    #         source "$(conda info --base)/etc/profile.d/conda.sh"
+    #         conda activate $(dirname $(dirname $(which conda)))/envs/ardetype
+    #         snakemake --cores {self.snakemake_cpus} --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific}
+    #         '''
+    #         result = subprocess.run(cmd, shell=True, executable="/bin/bash", check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    #         self.job_id = result.stdout
+    #     except KeyboardInterrupt:
+    #         print(f"{self.module_name} interrupted by SIGTERM : Run the same command to continue (make sure to include timestamp added to batch folder name).", file=sys.stderr)
+    #         sys.exit(1)
+    #     except Exception as e:
+    #         print(f"{self.module_name} finished with runtime error:\nSTDOUT:\n{e.stdout}\nSTDERR:\n", file=sys.stderr)
+    #         sys.exit(1)
+    #     finally:
+    #         self.clear_scratch()
+
 
     def submit_module_job(self, jobscript_path):
         """
@@ -445,11 +463,11 @@ class Module:
             sys.exit(1)
         finally:
             self.clear_scratch()
-
+        
 
     def check_job_completion(self, sleeping_time=5):
         """
-        Checks if the job is complete every n seconds, given sleeping time (in seconds) between checks (int).
+        Checks if the job is complete every n seconds, given sleeping time (in seconds) between checks (int). 
         Waiting is finished when the job status is C (complete), then the file with job std(out/err) is moved to self.output_path.
         """
         self.job_id = self.job_id.decode('UTF-8').strip() #job id is returned as byte string
@@ -468,27 +486,15 @@ class Module:
             move(job_report, f'{self.output_path}/{self.module_name}_{self.job_name}_{self.job_id}.txt') #move job report to the output folder, where the rest of related files are generated
         except:
             print(f'Failed to move {job_report} to {self.output_path}')
+        #os.system(f"mv {job_report} {self.output_path}/{self.module_name}_{self.job_name}_{self.job_id}.txt") #move job report to the output folder, where the rest of related files are generated
 
 
-    def run_module_cluster(self, job_count):
+    def run_module_cluster(self, job_count): #AKA do_not_mess_with_my_quatation_marks
         '''
         Runs module on the login node of the HPC cluster, given number of jobs to run in parallel (int).
-        Allows the snakemake to do job submissions to the computing nodes automatically.
-        Implements retry logic with failed sample handling similar to run_modules_local.
+        Allows the snakemake to do job submissions to the computing nodes automatically.     
         '''
-        input_dir = Path(self.output_path)
-        failed_dir = Path(f"{os.path.dirname(self.output_path)}_failed")
-        failed_samples = {}
-
-        def remaining_samples(class_instance):
-            if class_instance.fasta_mode:
-                return {p.name.split("_contigs.fasta")[0] for p in input_dir.glob("*_contigs.fasta")}
-            elif class_instance.nanopore_mode:
-                return {p.name.split("_ONT.fastq.gz")[0] for p in input_dir.glob("*_ONT.fastq.gz")}
-            else:
-                return {p.name.split("_R1_001.fastq.gz")[0] for p in input_dir.glob("*_R1_001.fastq.gz")}
-
-        # job_submission command to be used by snakemake to automatically submit jobs to HPC
+        #job_submission command to be used by snakmake to automatically submit jobs to HPC; stuff in curly brackets are snakemake arguments, not python variables
         cluster = hk.read_yaml(self.cluster_config_path)['cluster']
         self.job_cancel = 'qdel'
         if cluster == 'pbs':
@@ -499,77 +505,32 @@ class Module:
             self.job_cancel = 'scancel'
         else:
             job_submission_command = '"qsub -N {cluster.jobname} -l procs={cluster.procs},pmem={cluster.pmem},walltime={cluster.walltime},feature={cluster.feature} -q {cluster.queue} -j {cluster.jobout} -o {cluster.outdir} -A {cluster.account} -V"'
+        #shell command run by the wrapper (includes qsub command as substring);
+                # eval "$(conda shell.bash hook)";
+        # source activate /mnt/home/$(whoami)/.conda/envs/mamba_env/envs/snakemake;
+        shell_command = f'''
+        snakemake --scheduler greedy --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel {self.job_cancel} --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 300 {self.force_all} {self.force_specific} --cluster {job_submission_command}'''
+        try:
+            process_data = subprocess.check_call(shell_command, shell=True, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as smk_error:
+            smk_log            = smk_error.output
+            failed_samples_tag = 'Out of jobs ready to be started, but not all files built yet.'
 
-        while True:
-            try:
-                # Regenerate sample sheet and config if we have failed samples from previous iteration
-                if failed_samples:
-                    if self.nanopore_mode:
-                        self.fill_input_dict(pattern_path='ONT')
-                        self.fill_sample_sheet(pattern=self.patterns['inputs']['ONT'])
-                    elif self.fasta_mode:
-                        self.fill_input_dict(pattern_path='FASTA')
-                        self.fill_sample_sheet(pattern=self.patterns['inputs']['FASTA'])
-                    else:
-                        self.fill_input_dict(pattern_path='ILL')
-                        self.fill_sample_sheet(pattern=self.patterns['inputs']['ILL'])
-                    self.get_sample_groups(fasta=self.fasta_mode)
-                    self.write_sample_sheet()
-                    self.fill_target_list(grouped=True)
-                    self.add_module_targets()
-                    self.add_output_dir()
-                    self.write_module_config()
-
-                shell_command = f'''
-                snakemake --scheduler greedy --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel {self.job_cancel} --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 300 {self.force_all} {self.force_specific} --cluster {job_submission_command}'''
-
-                # Use subprocess.run to capture both stdout and stderr
-                result = subprocess.run(
-                    shell_command,
-                    shell=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    check=True
-                )
-                # If we reach here, snakemake succeeded
-                print(result.stdout)
-                break
-
-            except subprocess.CalledProcessError as smk_error:
-                # Combine stdout and stderr for parsing (snakemake may output to either)
-                combined_output = (smk_error.stdout or "") + (smk_error.stderr or "")
-
-                # Use extended parser that handles both "Error in rule" and "missing output files"
-                failed_samples = hk.get_failed_sample_counts_extended(combined_output)
-                failed_dir.mkdir(exist_ok=True)
-
-                if not failed_samples:
-                    # No failed samples detected - could be a different error
-                    failed_samples_tag = 'Out of jobs ready to be started, but not all files built yet.'
-                    if re.search(failed_samples_tag, combined_output):
-                        print(f"{self.module_name} module failed: {failed_samples_tag}", file=sys.stderr)
-                    else:
-                        print(f"{self.module_name} module failed with error:\nSTDOUT:\n{smk_error.stdout}\nSTDERR:\n{smk_error.stderr}", file=sys.stderr)
-                    sys.exit(1)
-
-                # Move samples that exceeded retry threshold to failed directory
-                for sample in failed_samples:
-                    if failed_samples[sample] > int(self.retry_times):
-                        for f in input_dir.glob(f"{sample}*"):
-                            f.rename(failed_dir / f.name)
-
-                # Check if any samples remain
-                if not remaining_samples(class_instance=self):
-                    print(f"Missing input files in {input_dir} after moving failed ones to {failed_dir}, exiting.", file=sys.stderr)
-                    sys.exit(1)
-
-            except KeyboardInterrupt:
-                print(f"{self.module_name} was interrupted by the user.", file=sys.stderr)
+            if re.search(failed_samples_tag, smk_log):
+                #case 1: snakemake throws an error if it is out of jobs - workflow restart required
+                print(f"{self.module_name} module failed for {failed_samples_tag} samples.", file=sys.stderr)
                 sys.exit(1)
-
-            finally:
-                self.clear_scratch()
+            else:
+                #case 2: snakemake throws an error if there is a bug in the workflow code - fix required
+                print(f"{self.module_name} module code contains error: {smk_error.output}", file=sys.stderr)
+                sys.exit(1)
+        except KeyboardInterrupt as ki:
+            #case 3 - keyboard interrupt by the user
+            print(f"{self.module_name} was interrupted by the user: {ki}", file=sys.stderr)
+            sys.exit(1)           
+        else:
+            #if the workflow finished normally
+            print(process_data)
 
 
     def run_module(self, job_count, jobscript_path='./subscripts/ardetype_jobscript.sh'):
@@ -582,15 +543,15 @@ class Module:
                 self.run_module_cluster(job_count)
         else:
             self.run_modules_local()
-
+        
     def add_taxonomy_column(self):
-        '''Reads taxonomy information from self.aggr_taxonomy_path into self.taxonomy_dict
+        '''Reads taxonomy information from self.aggr_taxonomy_path into self.taxonomy_dict 
         and adds taxonomy information as new column to the self.sample_sheet.'''
         if 'taxonomy' in self.sample_sheet.columns:
             self.sample_sheet = self.sample_sheet.drop('taxonomy', axis=1)
         self.taxonomy_dict = hk.read_json_dict(self.aggr_taxonomy_path)
         self.sample_sheet = hk.map_new_column(self.sample_sheet,self.taxonomy_dict,'sample_id','taxonomy')
-
+        
     def clear_scratch(self):
         ''' Removed every file and folder from scratch directory.'''
         if os.path.isdir(self.config_file["scratch"]):
@@ -605,11 +566,11 @@ class Module:
     def fold_output(self):
         '''Creates a folder for each sample_id in self.sample_sheet and self.removed_samples.
         Structures the pipeline output by putting all targets for each sample into curresponding folder.'''
-        full_sample_list = self.sample_sheet['sample_id'].tolist()
+        full_sample_list = self.sample_sheet['sample_id'].tolist() 
         if not self.removed_samples.empty: full_sample_list += self.removed_samples['sample_id'].to_list()
-        for sample_id in full_sample_list:
+        for sample_id in full_sample_list: 
             os.makedirs(f'{self.output_path}folded_{sample_id}_output', exist_ok=True)
-            for file in glob.glob(f'{self.output_path}{sample_id}*'):
+            for file in glob.glob(f'{self.output_path}{sample_id}*'): 
                 try:
                     move(file, f'{self.output_path}folded_{sample_id}_output/')
                 except Exception as e:
@@ -626,12 +587,12 @@ class Module:
                         move(f'{self.output_path}{file}', f'{self.output_path}reports/')
                     except:
                         continue
-
+        
 
     def unfold_output(self):
         '''Moves target files outside of folders created by fold_output method in order to avoid having to move file out manually to do a rerun.'''
         unfolding_path = self.output_path if self.input_path == self.output_path else self.input_path
-
+        
         for file in glob.glob(f'{unfolding_path}folded_*_output/*'):
             try:
                 move(file, unfolding_path)
@@ -649,3 +610,4 @@ class Module:
     def set_permissions(self, permissions:str='775'):
         '''Given Linux permission string in numeric format, sets requested permissions (775 by default) recursively on the contents of self.output_path.'''
         hk.asign_perm_rec(self.output_path, permissions)
+
