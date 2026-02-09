@@ -12,6 +12,9 @@
         "shape_ont": "snakefiles/bact_shape_ont"
     },
     "reports": [
+        "rmlst_loci_report.csv",
+        "mlst_raw_report.csv",
+        "mlst_long_report.csv",
         "ngmaster_report.csv",
         "plsdb_report.csv",
         "pf_abaumannii_report.csv",

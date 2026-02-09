@@ -900,6 +900,136 @@ class Ardetype_housekeeper(hk):
             return df
         
     @staticmethod
+    def rmlst_loci_results(rmlst_result_path, batch):
+        """
+        Process a single RMLST JSON report and return a pandas DataFrame
+        with columns: sample_id, seq_batch, species, support, rST, BACT000001 ... BACT000065
+        """
+        # Patterns
+        MAX_LOCI = 65
+
+        # Load JSON
+        with open(rmlst_result_path, 'r') as f:
+            data = json.load(f)
+
+        # Extract sample_id and seq_batch
+        sample_id = os.path.basename(rmlst_result_path).replace('_rmlst.json','')
+        seq_batch = os.path.basename(os.path.dirname(batch))
+
+        # Extract species
+        species = data.get("fields", {}).get('species', '')
+        if not species:
+            species = data.get("taxon_prediction", [{}])[0].get('taxon', '')
+        if not species:
+            species = "-"
+
+        # Extract support
+        support = data.get("taxon_prediction", [{}])[0].get('support', '')
+        if not support:
+            support = "-"
+
+        # Extract rST
+        rST = data.get("fields", {}).get('rST', '')
+        if not rST:
+            rST = "-"
+
+        # Build loci list
+        loci = [f"BACT0000{i:02d}" for i in range(1, MAX_LOCI + 1)]
+        row = {
+            "sample_id": sample_id,
+            "seq_batch": seq_batch,
+            "species": species,
+            "support": support,
+            "rST": rST
+        }
+
+        # Fill loci alleles
+        exact_matches = data.get("exact_matches", {})
+        for locus in loci:
+            entries = exact_matches.get(locus)
+            if entries and isinstance(entries, list):
+                allele = entries[0].get("allele_id", "-")
+            else:
+                allele = "-"
+            row[locus] = allele
+
+        # Create DataFrame
+        df = pd.DataFrame([row], columns=["sample_id", "seq_batch", "species", "support", "rST"] + loci)
+        return df
+
+
+    @staticmethod
+    def mlst_raw(report_path: str, batch):
+        """
+        Parse a single MLST CSV report and return the raw DataFrame:
+        sample × seq_batch × schema × ST × allelic_profile
+        """
+        sample_id = re.sub(r'(_S[0-9]*)?_mlst_output.csv', '', os.path.basename(report_path))
+        seq_batch = os.path.basename(os.path.dirname(batch))
+
+        # Parse CSV line
+        with open(report_path) as fh:
+            line = fh.readline().strip()
+
+        # Safety check
+        if not line or line.count(",") < 2:
+            schema = "-"
+            st = "-"
+            allelic_profile = "-"
+        else:
+            parts = line.split(",", 3)
+            if len(parts) == 3:
+                schema = parts[1]
+                st = parts[2]
+                allelic_profile = "-"
+            else:
+                _, schema, st, allelic_profile = parts
+                allelic_profile = allelic_profile if allelic_profile else "-"
+
+        df_raw = pd.DataFrame([{
+            "sample_id": sample_id,
+            "seq_batch": seq_batch,
+            "schema": schema,
+            "st": st,
+            "allelic_profile": allelic_profile
+        }])
+
+        return df_raw
+
+    @staticmethod
+    def mlst_long(report_path: str, batch):
+        """
+        Parse a single MLST CSV report and return the long-format DataFrame:
+        sample × seq_batch × schema × ST × locus × allele
+        """
+        # Reuse mlst_raw to get basic info
+        df_raw = Ardetype_housekeeper.mlst_raw(report_path, batch)
+        row = df_raw.iloc[0]
+
+        allelic_profile = row["allelic_profile"]
+        rows = []
+
+        if allelic_profile != "-" and pd.notna(allelic_profile):
+            for entry in allelic_profile.split(","):
+                entry = entry.strip()
+                if "(" not in entry:
+                    continue
+                locus, allele = entry.split("(", 1)
+                allele = allele.rstrip(")")
+                rows.append({
+                    "sample_id": row["sample_id"],
+                    "seq_batch": row["seq_batch"],
+                    "schema": row["schema"],
+                    "st": row["st"],
+                    "locus": locus,
+                    "allele": allele
+                })
+
+        df_long = pd.DataFrame(rows)
+        return df_long
+
+
+    @staticmethod
     def plsdb_results(plsdb_result_path: str, batch: str):
         try:
             df = pd.read_csv(plsdb_result_path)

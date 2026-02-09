@@ -149,6 +149,14 @@ echo bact_shell finished
         with open(config['output_directory']+'core_aggregated_taxonomy.json', "w+") as json_handle:
             json.dump(updated_taxonomy, json_handle, indent=4)
 
+         # Extract extended rmlst output
+        rmlst_loci = hk.aggregator(
+            outfolder_path = config['output_directory'], 
+            proc_num = 6, extractor = hk.rmlst_loci_results, 
+            pathlist = input.rmlst
+        )
+        rmlst_loci.to_csv(f"{config['output_directory']}rmlst_loci_report.csv", header=True, index=False)
+
 
 rule mob_recon:
     input:
