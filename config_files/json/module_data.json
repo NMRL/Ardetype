@@ -260,6 +260,15 @@
             ],
             "Mycobacterium canettii": [
                 "_chewbbaca/results_alleles.tsv"
+            ],
+            "Brucella melitensis": [
+                "_chewbbaca/results_alleles.tsv"
+            ],
+            "Brucella suis": [
+                "_chewbbaca/results_alleles.tsv"
+            ],
+            "Brucella abortus": [
+                "_chewbbaca/results_alleles.tsv"
             ]
         },
         "patterns": {
@@ -314,7 +323,10 @@
                 "Mycobacterium tuberculosis",
                 "Mycobacterium bovis",
                 "Mycobacterium africanum",
-                "Mycobacterium canettii"
+                "Mycobacterium canettii",
+                "Brucella melitensis",
+                "Brucella suis",
+                "Brucella abortus"
             ]
         }
     },
@@ -383,7 +395,10 @@
             "Mycobacterium tuberculosis": [],
             "Mycobacterium bovis": [],
             "Mycobacterium africanum": [],
-            "Mycobacterium canettii": []
+            "Mycobacterium canettii": [],
+            "Brucella melitensis": [],
+            "Brucella suis": [],
+            "Brucella abortus": []
         },
         "patterns": {
             "inputs": {

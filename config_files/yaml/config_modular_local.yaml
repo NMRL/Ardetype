@@ -419,6 +419,21 @@ tip_tool_configs:
         locus_count: 1553
         db_update: "2025-10-28"
         reference: "Dangel A, Berger A, Konrad R, Bischoff H, and Sing A. Geographically Diverse Clusters of Nontoxigenic Corynebacterium diphtheriae Infection, Germany, 2016-2017. Emerg Infect Dis. 2018, 24: 1239-1245"
+      brucella:
+        db: Brucella_spp_cgMLST_alleles_chewie
+        version: "2026-01-22"
+        origin: https://www.cgmlst.org/ncs/schema/Brucella1818/
+        locus_count: 1764
+        db_update: "2026-01-19"
+        reference: "Abdel-Glil MY, Thomas P, Brandt C, Melzer F, Subbaiyan A, Chaudhuri P, Harmsen D, Jolley KA, Janowicz A, Garofolo G, Neubauer H, and Pletz MW. Core Genome Multilocus Sequence Typing Scheme for Improved Characterization and Epidemiological Surveillance of Pathogenic Brucella. J Clin Microbiol. 2022, 60: e0031122 [PubMed 35852343]"
+      brucella melitensis:
+        db: Brucella_melitensis_cgMLST_alleles_chewie
+        version: "2026-01-22"
+        origin: https://www.cgmlst.org/ncs/schema/Bmelitensis1822/
+        locus_count: 2704
+        db_update: "2026-01-04"
+        reference: "Janowicz A, De Massis F, Ancora M, Cammà C, Patavino C, Battisti A, Prior K, Harmsen D, Scholz H, Zilli K, Sacchini L, Di Giannatale E, and Garofolo G. Core Genome Multilocus Sequence Typing and Single Nucleotide Polymorphism Analysis in the Epidemiology of Brucella melitensis Infections. J. Clin. Microbiol. 2018, 56 [PubMed 29925641]"
+      
   lrefinder_efaecium_efaecalis:
     id: 80
   shigatyper_shigella:
