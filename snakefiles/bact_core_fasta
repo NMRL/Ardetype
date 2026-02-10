@@ -18,10 +18,6 @@ rule all:
         # list of all contig files in output
         contig_list = expand(
             config['output_directory']+'{sample_id}_contigs.fasta', 
-            sample_id=sample_sheet['sample_id']),
-
-        mlst_list = expand(
-            config['output_directory']+'{sample_id}_mlst_output.csv',
             sample_id=sample_sheet['sample_id'])
     
     run:

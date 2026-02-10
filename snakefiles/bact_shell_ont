@@ -57,6 +57,10 @@ rule all:
         # PLSDB reports to aggregate
         plsdb                = expand(config['output_directory']+'{sample_id}_plsdb_mob_recon.csv', sample_id=sample_sheet['sample_id']),
 
+        mlst_list = expand(
+            config['output_directory']+'{sample_id}_mlst_output.csv',
+            sample_id=sample_sheet['sample_id'])
+
     run:
         #Use only non-empty files (hamronization fails otherwise or easier to implement custom aggregation)
         input.hamr_resfinder = [ path for path in input.hamr_resfinder if not os.path.getsize(path) == 0]

@@ -25,11 +25,6 @@ rule all:
         contig_list = expand(
             config['output_directory']+'{sample_id}_contigs.fasta', 
             sample_id=sample_sheet['sample_id'])
-
-        mlst_list = expand(
-            config['output_directory']+'{sample_id}_mlst_output.csv',
-            sample_id=sample_sheet['sample_id'])
-    
     run:
         total_dict = {}
         for file in input.k2c_list:                                                                             #looping over reports
