@@ -158,6 +158,20 @@ echo bact_shell finished
         rmlst_loci.to_csv(f"{config['output_directory']}rmlst_loci_report.csv", header=True, index=False)
 
 
+        # Extract extended mlst output
+        mlst_raw = hk.aggregator(
+            outfolder_path = config['output_directory'], 
+            proc_num = 6, extractor = hk.mlst_raw, 
+            pathlist = input.mlst_list
+        )
+        mlst_long = hk.aggregator(
+            outfolder_path = config['output_directory'], 
+            proc_num = 6, extractor = hk.mlst_long, 
+            pathlist = input.mlst_list
+        )
+        mlst_raw.to_csv(f"{config['output_directory']}mlst_raw_report.csv", header=True, index=False)
+        mlst_long.to_csv(f"{config['output_directory']}mlst_long_report.csv", header=True, index=False)
+
 rule mob_recon:
     input:
         mob_suite_sif = ancient(config['mob_suite_sif']),
