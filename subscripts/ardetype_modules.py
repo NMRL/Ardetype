@@ -26,8 +26,9 @@ class Wrapper():
         ardetype_path = str(Path(os.path.abspath('./')))
         self._config_dict   = hk.read_yaml(os.path.join(ardetype_path,'config_files/yaml/config_modular_local.yaml'))
         self._tool_ref_map  = hk.read_json_dict(os.path.join(ardetype_path, 'config_files/json/specific_tool_map.json'))
+        self._tool_vers_map = hk.read_json_dict(os.path.join(ardetype_path, 'config_files/json/tool_versions.json'))
         self._db_vers_map = None
-        self._tool_vers_map = None
+        # self._tool_vers_map = None
 
         #Updating paths in config to match user file system
         for p in ["databases"]:

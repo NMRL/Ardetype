@@ -59,7 +59,7 @@ rule all:
         print(f'shape: extracting tool/database versions', file=sys.stdout)
         wrapper = wp()
         wrapper.set_db_vers_map()
-        wrapper.set_tool_vers_map()
+        # wrapper.set_tool_vers_map()
         wrapper.report_tool_versions(output_path = config['output_directory'], sample_ids = report.sample_id)
 
         #add output folder name as analysis batch id
