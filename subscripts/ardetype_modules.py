@@ -87,6 +87,10 @@ class Wrapper():
                     "Clostridioides"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['clostridioides']['db'],
                     "Clostridium"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['clostridium']['db'],
                     "Mycobacterium"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['mycobacterium']['db'],
+                    "Corynebacterium"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['corynebacterium']['db'],
+                    "Brucella"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['brucella']['db'],
+                    "Brucella melitensis"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['brucella melitensis']['db'],
+                    
                 }.items()
             },
             "resfinder": self._read_cge_verstion(os.path.join(self._config_dict['shell_tool_configs']['resfinder']['resfinder_db'],'resfinder_db/VERSION')), #self._get_datestamp(self._config_dict['shell_tool_configs']['resfinder']['resfinder_db'], 'resfinder_db'),
