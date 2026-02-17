@@ -914,6 +914,7 @@ class Ardetype_housekeeper(hk):
 
         # Extract sample_id and seq_batch
         sample_id = os.path.basename(rmlst_result_path).replace('_rmlst.json','')
+        sample_id = re.sub(r'_S[0-9]*','',sample_id)
         seq_batch = os.path.basename(os.path.dirname(batch))
 
         # Extract species

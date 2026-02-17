@@ -62,9 +62,7 @@ rule all:
         # PLSDB reports to aggregate
         plsdb                = expand(config['output_directory']+'{sample_id}_plsdb_mob_recon.csv', sample_id=sample_sheet['sample_id']),
 
-        mlst_list = expand(
-            config['output_directory']+'{sample_id}_mlst_output.csv',
-            sample_id=sample_sheet['sample_id'])
+        mlst_list = expand(config['output_directory']+'{sample_id}_mlst_output.csv', sample_id=sample_sheet['sample_id'])
 
     run:
         #Use only non-empty files (hamronization fails otherwise or easier to implement custom aggregation)
@@ -166,7 +164,7 @@ echo bact_shell finished
         rmlst_loci = hk.aggregator(
             outfolder_path = config['output_directory'], 
             proc_num = 6, extractor = hk.rmlst_loci_results, 
-            pathlist = input.rmlst_results
+            pathlist = input.rmlst
         )
         rmlst_loci.to_csv(f"{config['output_directory']}rmlst_loci_report.csv", header=True, index=False)
 
