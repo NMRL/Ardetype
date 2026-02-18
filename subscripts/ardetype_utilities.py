@@ -734,7 +734,7 @@ class Ardetype_housekeeper(hk):
             sample_id = os.path.basename(plassembler_result_path).replace('_with_sample.tsv', '')
             report["sample_id"] = [sample_id for _ in report.index]
             report["seq_batch"] = [os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(plassembler_result_path))))) for _ in report.index]
-            report = report[columns]
+            report = report[['sample_id', "seq_batch"] + columns]
             return report
         except pd.errors.EmptyDataError:
             report = pd.DataFrame.from_dict({
@@ -1081,6 +1081,7 @@ class Ardetype_housekeeper(hk):
         hr.input_file_name = hr.input_file_name.astype(str)
         cr.sample_id = cr.sample_id.astype(str)
         cr.sample_id = cr.sample_id.str.replace(r"_S[0-9]*", '', regex=True)
+        cr.contig_id = cr.contig_id.astype(str)
         hamr_pls_merge = hr.merge(cr, 
                                   how='right', 
                                   left_on=['input_file_name', 'input_sequence_id'], 
