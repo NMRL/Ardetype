@@ -183,7 +183,12 @@ class Ardetype_housekeeper(hk):
             data = seq_file.read()
             extra_params["sequence"] = data
             extra_params["details"] = "true"
-    
+
+        try:
+            print(json.dumps(extra_params, indent=4))
+        except JSONDecodeError:
+            print(extra_params)
+            return
         response = session.post(
             url,
             params={},
@@ -780,6 +785,18 @@ class Ardetype_housekeeper(hk):
         df.insert(1, 'analysis_batch_id', [os.path.basename(
             os.path.dirname(batch)) for _ in df.index])
         return df
+
+    @staticmethod
+    def elgato_results(elgt_result_path: str, batch: str) -> pd.DataFrame:
+        '''To combine legsta reports and map them to sample_id-batch pair.'''
+        df = pd.read_csv(elgt_result_path, header=None, sep='\t')
+        df.columns = ['sample_id','ST','flaA','pilE','asd','mip','mompS','proA','neuA_neuAH']
+        df.sample_id = df.sample_id.str.replace(
+            r'(_S[0-9]*)?_contigs', '', regex=True)
+        df.insert(1, 'analysis_batch_id', [os.path.basename(
+            os.path.dirname(batch)) for _ in df.index])
+        return df
+
 
     @staticmethod
     def legsta_results(lgs_result_path: str, batch: str) -> pd.DataFrame:

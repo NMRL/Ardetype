@@ -81,8 +81,10 @@ hicap_hinfluenzae_sif:
   resources/image_files/hicap_1.0.4.sif
 kleborate_kpneumoniae_sif:
   resources/image_files/kleborate_3.1.2.sif
-legsta_lpneumophila_sif:
-  resources/image_files/legsta_0.5.1.sif
+# legsta_lpneumophila_sif:
+#   resources/image_files/legsta_0.5.1.sif
+elgato_legionella_sif:
+  resources/image_files/el_gato_1.22.0.sif
 lissero_lmonocytogenes_sif:
   resources/image_files/lissero_0.4.9.sif
 meningotype_nmeningitidis_sif:
@@ -322,12 +324,12 @@ tip_tool_configs:
         db_update: "2023-05-17"
         reference: "Higgins PG, Prior K, Harmsen D, and Seifert H. Development and evaluation of a core genome multilocus typing scheme for whole-genome sequence-based typing of Acinetobacter baumannii. PLoS ONE. 2017, 12: e0179228: e0179228 [PubMed 28594944]"
       streptococcus pyogenes:
-        db: spyogenes_wgMLST
-        version: "2021-07-27"
-        origin: https://chewbbaca.online/species/1
-        locus_count: 3044
-        db_update: "2023-10-02"
-        reference: "Friães A, Mamede R, Ferreira M, Melo-Cristino J, Ramirez M. 2022. Annotated Whole-Genome Multilocus Sequence Typing Schema for Scalable High-Resolution Typing of Streptococcus pyogenes. J Clin Microbiol 60:e0031522. PMID: 35531659"
+        db: strpyo_ridom_chewie #spyogenes_wgMLST
+        version: "2026-04-07" # "2021-07-27"
+        origin: https://www.cgmlst.org/ncs/schema/Spyogenes/ # https://chewbbaca.online/species/1
+        locus_count: 1095 # 3044
+        db_update: "2026-04-08" # "2023-10-02"
+        reference: "Toorop MMA, Kraakman MEM, Hoogendijk IV, van Prehn J, Claas ECJ, Wessels E, and Boers SA. A core-genome multilocus sequence typing scheme for the detection of genetically related Streptococcus pyogenes clusters. J Clin Microbiol. 2023, 61: e0055823 [PubMed 37815371]" #"Friães A, Mamede R, Ferreira M, Melo-Cristino J, Ramirez M. 2022. Annotated Whole-Genome Multilocus Sequence Typing Schema for Scalable High-Resolution Typing of Streptococcus pyogenes. J Clin Microbiol 60:e0031522. PMID: 35531659"
       streptococcus pneumoniae:
         db: Streptococcus.cgMLSTv1_alleles
         version: "2020-10-09"

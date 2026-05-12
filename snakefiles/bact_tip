@@ -70,8 +70,12 @@ rule all:
         meningotype_summary.to_csv(f"{config['output_directory']}meningotype_report.csv", header=True, index=False)
 
         #Aggregate legsta results
-        legsta_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*legsta.csv", extractor = hk.legsta_results)
-        legsta_summary.to_csv(f"{config['output_directory']}legsta_report.csv", header=True, index=False)
+        # legsta_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*legsta.csv", extractor = hk.legsta_results)
+        # legsta_summary.to_csv(f"{config['output_directory']}legsta_report.csv", header=True, index=False)
+
+        #Aggregate el_gato results
+        elgato_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*elgato.tsv", extractor = hk.elgato_results)
+        elgato_summary.to_csv(f"{config['output_directory']}elgato_report.csv", header=True, index=False)
 
         #Aggregate LRE-Finder results
         lrefinder_summary = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, wildcard = "*_lrefinder/*.pos", extractor = hk.lrefinder_results)
@@ -192,27 +196,50 @@ rule meningotype_nmeningitidis:
         """
 
 
-rule legsta_lpneumophila:
+rule elgato_legionella:
     input:
         contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
-        sif_file = ancient(config['legsta_lpneumophila_sif'])
+        sif_file = ancient(config['elgato_legionella_sif'])
     envmodules:
         'singularity'
     output:
-        config['output_directory']+'{sample_id_pattern}_legsta.csv'
+        config['output_directory']+'{sample_id_pattern}_elgato.tsv'
     log:
-        config['output_directory']+'logs/'+'{sample_id_pattern}_legsta_lpneumophila.legsta.log'
+        config['output_directory']+'logs/'+'{sample_id_pattern}_elgato_legionella.elgato.log'
     shell:
         """
-        mkdir -p {config[scratch]}legsta/ 2>> {log}
-        cp {input.contigs} {config[scratch]}legsta/ 2>> {log}
+        mkdir -p {config[scratch]}{wildcards.sample_id_pattern}_elgato/ 2>> {log}
+        cp {input.contigs} {config[scratch]}{wildcards.sample_id_pattern}_elgato/ 2>> {log}
         
-        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} legsta --csv {config[scratch]}legsta/$(basename {input.contigs}) >> {config[scratch]}legsta/$(basename {output}) 2>> {log}
+        singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} el_gato.py \
+            --assembly {config[scratch]}{wildcards.sample_id_pattern}_elgato/$(basename {input.contigs}) --out {config[scratch]}{wildcards.sample_id_pattern}_elgato/out >> {output} 2>> {log}
         
-        mv {config[scratch]}legsta/$(basename {output}) {output} 2>> {log}
-        rm -r {config[scratch]}legsta/{wildcards.sample_id_pattern}* 2>> {log}
-        rmdir --ignore-fail-on-non-empty {config[scratch]}legsta/ 2>> {log}
+        cp -r {config[scratch]}{wildcards.sample_id_pattern}_elgato/out {config[output_directory]}{wildcards.sample_id_pattern}_elgato_out 2>> {log}
+        rm -r {config[scratch]}{wildcards.sample_id_pattern}_elgato/ 2>> {log}
         """
+
+
+# rule legsta_lpneumophila:
+#     input:
+#         contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
+#         sif_file = ancient(config['legsta_lpneumophila_sif'])
+#     envmodules:
+#         'singularity'
+#     output:
+#         config['output_directory']+'{sample_id_pattern}_legsta.csv'
+#     log:
+#         config['output_directory']+'logs/'+'{sample_id_pattern}_legsta_lpneumophila.legsta.log'
+#     shell:
+#         """
+#         mkdir -p {config[scratch]}legsta/ 2>> {log}
+#         cp {input.contigs} {config[scratch]}legsta/ 2>> {log}
+        
+#         singularity --silent exec --bind {config[output_directory]}:{config[output_directory]} {input.sif_file} legsta --csv {config[scratch]}legsta/$(basename {input.contigs}) >> {config[scratch]}legsta/$(basename {output}) 2>> {log}
+        
+#         mv {config[scratch]}legsta/$(basename {output}) {output} 2>> {log}
+#         rm -r {config[scratch]}legsta/{wildcards.sample_id_pattern}* 2>> {log}
+#         rmdir --ignore-fail-on-non-empty {config[scratch]}legsta/ 2>> {log}
+#         """
   
 
 rule kleborate_kpneumoniae:

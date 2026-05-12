@@ -12,6 +12,7 @@
         "shape_ont": "snakefiles/bact_shape_ont"
     },
     "reports": [
+        "elgato_report.csv",
         "rmlst_loci_report.csv",
         "mlst_raw_report.csv",
         "mlst_long_report.csv",
@@ -42,7 +43,6 @@
         "sistr_report.csv",
         "lissero_report.csv",
         "meningotype_report.csv",
-        "legsta_report.csv",
         "resfinder_mobtyper_mapping.csv",
         "lrefinder_report.csv",
         "chewbbaca_qc_report.csv",
@@ -159,7 +159,7 @@
                 "_ngmaster.tsv"
             ],
             "Legionella pneumophila": [
-                "_legsta.csv",
+                "_elgato.tsv",
                 "_chewbbaca/results_alleles.tsv"
             ],
             "Haemophilus influenzae": [
@@ -346,9 +346,7 @@
             "Neisseria meningitidis": [
                 "_meningotype_std.csv"
             ],
-            "Legionella pneumophila": [
-                "_legsta_std.csv"
-            ],
+            "Legionella pneumophila": [],
             "Haemophilus influenzae": [
                 "_hicap_std.csv"
             ],
@@ -412,7 +410,7 @@
                 ],
                 "optional": [
                     "_meningotype.tsv",
-                    "_legsta.csv",
+                    "_elgato.tsv",
                     "-predictResults.txt",
                     "_hicap.tsv",
                     "_kleborate.tsv",

@@ -327,6 +327,15 @@ legsta_lpneumophila:
   error: "ardetype.legsta-%j.out"
   output: "ardetype.legsta-%j.err"
 
+elgato_legionella:
+  jobname: "ardetype.elgato"
+  nodes: 1
+  npn: 8
+  mempc: "1000mb"
+  time: "00:10:00"
+  account: "rakus"
+  error: "ardetype.elgato-%j.out"
+  output: "ardetype.elgato-%j.err"
 
 lpgenomics_lpneumophila:
   jobname: "ardetype.lpgenomics"
