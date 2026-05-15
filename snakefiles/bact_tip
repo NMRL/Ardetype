@@ -125,8 +125,8 @@ rule hicap_hinfluenzae:
     input:
         contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['hicap_hinfluenzae_sif'])
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_hi_hicap.tsv'
     log:
@@ -156,8 +156,8 @@ rule plasmidtype_abaumannii:
         database = ancient(config['tip_tool_configs']['abaumanniiplasmidtype']['database'])
     output:
         config['output_directory']+'{sample_id_pattern}_abplasmidtype.txt'
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_plasmidtype_abaumannii.log'
     shell:
@@ -177,8 +177,8 @@ rule meningotype_nmeningitidis:
     input:
         contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['meningotype_nmeningitidis_sif'])
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_meningotype.tsv'
     log:
@@ -200,8 +200,8 @@ rule elgato_legionella:
     input:
         contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['elgato_legionella_sif'])
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_elgato.tsv'
     log:
@@ -246,8 +246,8 @@ rule kleborate_kpneumoniae:
     input:
         contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['kleborate_kpneumoniae_sif'])
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_kleborate.tsv'
     log:
@@ -275,8 +275,8 @@ rule agrvate_saureus:
     input:
         contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['agrvate_saureus_sif'])
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_agrvate_summary.tab'
     log:
@@ -304,8 +304,8 @@ rule spatyper_saureus:
     input:
         contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['spatyper_saureus_sif'])
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_spatyper.txt'
     log:
@@ -332,8 +332,8 @@ rule sccmec_saureus:
     input:
         contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['sccmec_saureus_sif'])
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_sccmec.tsv'
     log:
@@ -355,8 +355,8 @@ rule emmtyper_spyogenes:
     input:
         contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['emmtyper_spyogenes_sif'])
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_strp_emmtyper.tsv'
     log:
@@ -386,8 +386,8 @@ rule seqsero_senterica:
         sif_file = ancient(config['seqsero2_senterica_sif'])
     threads:
         config['tip_tool_configs']['seqsero_senterica']['threads']
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_SeqSero.tsv'
     log:
@@ -415,8 +415,8 @@ rule sistr_senterica:
     input:
         contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['sistr_senterica_sif'])
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_sistr.csv'
     log:
@@ -443,8 +443,8 @@ rule lissero_lmonocytogenes:
     input:
         contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta'),
         sif_file = ancient(config['lissero_lmonocytogenes_sif'])
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_lissero.tsv'
     log:
@@ -520,8 +520,8 @@ rule ectyper_ecoli:
         sif_file = config['ectyper_ecoli_sif']
     output:
         config['output_directory']+'{sample_id_pattern}_ectyper.tsv'        
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory'] + 'logs/' + '{sample_id_pattern}_ectyper_ecoli.ectyper.log'
     shell:
@@ -543,8 +543,8 @@ rule stecfinder_ecoli:
         sif_file = ancient(config['stecfinder_ecoli_sif'])
     output:
         result   = config['output_directory']+'{sample_id_pattern}_stecfinder.tsv'
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory'] + 'logs/' + '{sample_id_pattern}_stecfinder_ecoli.stecfinder.log'
     shell:
@@ -567,8 +567,8 @@ rule seroba_spneumoniae:
         sif_file = ancient(config['seroba_spneumoniae_sif'])
     output:
         config['output_directory']+'{sample_id_pattern}_seroba.tsv'
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory'] + 'logs/' + '{sample_id_pattern}_seroba_spneumoniae.seroba.log'
     shell: 

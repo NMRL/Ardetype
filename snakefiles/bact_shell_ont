@@ -184,8 +184,8 @@ rule mob_recon:
         config['output_directory']+'{sample_id_pattern}_mob_recon/chromosome.fasta', #expected in any case, unless only plasmid was sequenced
         config['output_directory']+'{sample_id_pattern}_mob_recon/contig_report.txt', #contig scanning results
         config['output_directory']+'{sample_id_pattern}_mob_recon/mobtyper_results.txt'
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+"logs/{sample_id_pattern}_mob_recon.mob_suite.log"
     shell:
@@ -374,8 +374,8 @@ rule virulencefinder:
         config['output_directory']+"{sample_id_pattern}_virulencefinder/results_tab.tsv",
         config['output_directory']+"{sample_id_pattern}_virulencefinder/results.txt",
         config['output_directory']+"{sample_id_pattern}_virulencefinder/data.json"
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+"logs/{sample_id_pattern}_virulencefinder.virulencefinder.log"
     shell:
@@ -409,8 +409,8 @@ rule plasmidfinder:
         config['output_directory']+"{sample_id_pattern}_plasmidfinder/results_tab.tsv",
         config['output_directory']+"{sample_id_pattern}_plasmidfinder/results.txt",
         config['output_directory']+"{sample_id_pattern}_plasmidfinder/data.json"
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+"logs/{sample_id_pattern}_plasmidfinder.plasmidfinder.log"
     shell:
@@ -491,8 +491,8 @@ rule mlst:
     output:
         mlst_output = config['output_directory']+'{sample_id_pattern}_mlst_output.csv',
     threads: 4
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+"logs/{sample_id_pattern}_mlst.mlst.log"
     shell:
@@ -511,8 +511,8 @@ rule res_gen_id:
         config['output_directory']+'{sample_id_pattern}.rgi.json',
         config['output_directory']+'{sample_id_pattern}.rgi.hamr.tab'
     threads: 4
-    envmodules:
-        "singularity"
+    # envmodules:
+    #     "singularity"
     log:
         config['output_directory']+"logs/{sample_id_pattern}_res_gen_id.rgi_card.log"
     shell:
@@ -530,8 +530,8 @@ rule quast:
     input:
         sif_file = ancient(config['quast_sif']),
         contigs  = ancient(config['output_directory']+'{sample_id_pattern}_contigs.fasta')
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     output:
         config['output_directory']+'{sample_id_pattern}_quast/icarus.html'
     log:

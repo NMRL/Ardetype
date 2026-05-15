@@ -54,8 +54,8 @@ rule classify_contigs:
         report_name    = config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt',
         filtering_data = temp(config['output_directory']+'{sample_id_pattern}_kraken2_contig_data.txt')
     threads: config["core_tool_configs"]["kraken2"]["threads"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_classify_contigs.kraken2.log'
     shell:

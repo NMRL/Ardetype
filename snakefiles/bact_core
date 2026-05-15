@@ -83,8 +83,8 @@ rule illumina_qc:
         sif_file = ancient(config["fastp_sif"]),                                                                         #path to singularity image file
         read_1   = ancient(config['input_directory']+'{sample_id_pattern}_R1_001.fastq.gz'),
         read_2   = ancient(config['input_directory']+'{sample_id_pattern}_R2_001.fastq.gz')
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log: 
         config['output_directory']+'logs/'+'{sample_id_pattern}_illumina_qc.fastp.log'
     output: 
@@ -113,8 +113,8 @@ rule ont_qc:
         config['output_directory']+'{sample_id_pattern}_snikt.html'
     params:
         s=config["core_tool_configs"]["snikt"]["sample_size"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_ont_qc.snikt.log'
     shell:
@@ -131,8 +131,8 @@ rule ont_filtering:
         config['output_directory']+'{sample_id_pattern}_filtered.fastq.gz'
     params:
         keep_percent=config["core_tool_configs"]["filtlong"]["keep_percent"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_ont_filtering.filtlong.log'
     shell:
@@ -150,8 +150,8 @@ rule ont_assembly:
         config['output_directory']+'{sample_id_pattern}.flyed.fasta'
     params:
         threads=config["core_tool_configs"]["flye"]["threads"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_ont_assembly.flye.log'
     shell:
@@ -178,8 +178,8 @@ rule circlator:
         contigs = temp(config['output_directory']+'{sample_id_pattern}_circlator.fasta'),
         assembly = config['output_directory']+'{sample_id_pattern}.circularized.fasta',
         logs = config['output_directory']+'{sample_id_pattern}_circlator.log'
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_circlator.circlator.log'
     shell:
@@ -202,8 +202,8 @@ rule medaka:
         medaka_cor_consensus = config['output_directory']+'{sample_id_pattern}.medaka.fasta'
     params:
         threads=config["core_tool_configs"]["medaka"]["threads"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_medaka.medaka.log'
     shell:
@@ -236,8 +236,8 @@ rule ont_polishing:
     params:
         low_filt_th=config["core_tool_configs"]["polypolish"]["min_th"],
         high_filt_th=config["core_tool_configs"]["polypolish"]["max_th"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_ont_polishing.polypolish.log'
     shell:
@@ -280,8 +280,8 @@ rule hybrid_polishing:
     params:
         threads=config["core_tool_configs"]["polca"]["threads"],
         memory=config["core_tool_configs"]["polca"]["ram_gbp_thread"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_hybrid_polishing.polca.log'
     shell:
@@ -310,8 +310,8 @@ rule filter_phix:
         config["core_tool_configs"]["kraken2"]["threads"]
     resources:    
         mem_mb = config["core_tool_configs"]["kraken2"]["ram_phix_mb"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_filter_phix.kraken2.log'
     shell:                                                                                              
@@ -349,8 +349,8 @@ rule filter_host:
         config["core_tool_configs"]["kraken2"]["threads"]
     resources:    
         mem_mb = config["core_tool_configs"]["kraken2"]["ram_host_mb"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_filter_host.kraken2.log'
     shell:                                                                                              
@@ -379,8 +379,8 @@ rule illumina_assembly:
         config["core_tool_configs"]["shovill"]["cpus"]
     output:
         config['output_directory']+'{sample_id_pattern}_contigs/contigs.fa'                                #removed after renaming 
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_illumina_assembly.shovill.log'
     shell:
@@ -434,8 +434,8 @@ rule classify_reads:
         filtering_data = temp(config['output_directory']+'{sample_id_pattern}_kraken2_read_data.txt')
     
     threads: config["core_tool_configs"]["kraken2"]["threads"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_classify_reads.kraken2.log'
     shell:                                                                                                          
@@ -475,8 +475,8 @@ rule classify_contigs:
         report_name    = config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt',
         filtering_data = temp(config['output_directory']+'{sample_id_pattern}_kraken2_contig_data.txt')
     threads: config["core_tool_configs"]["kraken2"]["threads"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_classify_contigs.kraken2.log'
     shell:
@@ -502,8 +502,8 @@ rule hybracter:
     output:
         hybracter_assembly = config['output_directory']+'{sample_id_pattern}_hybracter.fasta'
     threads: config["core_tool_configs"]["hybracter"]["threads"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_assembly.hybracter.log'
     shell:

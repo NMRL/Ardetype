@@ -58,8 +58,8 @@ rule ont_qc:
         config['output_directory']+'{sample_id_pattern}_snikt.html'
     params:
         s=config["core_tool_configs"]["snikt"]["sample_size"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_ont_qc.snikt.log'
     shell:
@@ -76,8 +76,8 @@ rule ont_filtering:
         config['output_directory']+'{sample_id_pattern}_filtered.fastq.gz'
     params:
         keep_percent=config["core_tool_configs"]["filtlong"]["keep_percent"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_ont_filtering.filtlong.log'
     shell:
@@ -94,8 +94,8 @@ rule ont_assembly:
         config['output_directory']+'{sample_id_pattern}.flyed.fasta'
     params:
         threads=config["core_tool_configs"]["flye"]["threads"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_ont_assembly.flye.log'
     shell:
@@ -118,8 +118,8 @@ if not config["core_tool_configs"]["circlator"]["skip"]:
             fastq = config['output_directory']+'{sample_id_pattern}_filtered.fastq.gz'
         output:
             config['output_directory']+'{sample_id_pattern}.circularized.fasta',
-        envmodules:
-            'singularity'
+        # envmodules:
+        #     'singularity'
         log:
             config['output_directory']+'logs/'+'{sample_id_pattern}_circlator.circlator.log'
         shell:
@@ -139,8 +139,8 @@ else:
             fastq = config['output_directory']+'{sample_id_pattern}_filtered.fastq.gz'
         output:
             config['output_directory']+'{sample_id_pattern}.circularized.fasta',
-        envmodules:
-            'singularity'
+        # envmodules:
+        #     'singularity'
         log:
             config['output_directory']+'logs/'+'{sample_id_pattern}_circlator.circlator.log'
         shell:
@@ -171,8 +171,8 @@ rule classify_contigs:
         report_name    = config['output_directory']+'{sample_id_pattern}_kraken2_contigs_report.txt',
         filtering_data = temp(config['output_directory']+'{sample_id_pattern}_kraken2_contig_data.txt')
     threads: config["core_tool_configs"]["kraken2"]["threads"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_classify_contigs.kraken2.log'
     shell:
@@ -197,8 +197,8 @@ rule hybracter:
     output:
         hybracter_assembly = config['output_directory']+'{sample_id_pattern}_hybracter.fasta'
     threads: config["core_tool_configs"]["hybracter"]["threads"]
-    envmodules:
-        'singularity'
+    # envmodules:
+    #     'singularity'
     log:
         config['output_directory']+'logs/'+'{sample_id_pattern}_assembly.hybracter.log'
     shell:
