@@ -1,7 +1,7 @@
 localrules: all, publmst_ngonorrhoe
 
 #imports
-import sys, pandas as pd, os, json
+import sys, pandas as pd, os, json, hashlib
 from glob import glob
 from pathlib import Path
 from datetime import datetime
@@ -628,32 +628,58 @@ rule chewbbaca_cgmlst:
     log:
         config['output_directory'] + 'logs/' + '{sample_id_pattern}_chewbbaca_cgmlst.chewbbaca.log'
     run:
-        scratch_path = f'{config["scratch"]}chewbbaca_{wildcards.sample_id_pattern}'
+        sample_id    = wildcards.sample_id_pattern
+        scratch_path = f'{config["scratch"]}chewbbaca_{sample_id}'
+        output_dir   = f'{config["output_directory"]}{sample_id}_chewbbaca/'
+
+        # chewBBACA rejects input files whose prefix (filename before the first ".")
+        # is longer than 30 characters. Long sample ids get a short surrogate id for
+        # the actual chewBBACA input file; results are renamed back to sample_id below.
+        chewbbaca_id = sample_id
+        if len(f'{sample_id}_contigs') > 30:
+            chewbbaca_id = 'id' + hashlib.md5(sample_id.encode()).hexdigest()[:16]
+
         os.system(f'''
         if [ -d "{scratch_path}" ]; then rm -Rf {scratch_path} 2>> {log[0]}; fi
 
         cd {config["databases"]}{config["tip_tool_configs"]["chewbbaca"]["chewbbaca_dtb"]} 2>> {log[0]}
         mkdir -p {scratch_path} 2>> {log[0]}
-        mkdir -p {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca_input/ 2>> {log[0]}
-        cp {input.contigs} {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca_input/ 2>> {log[0]}
+        mkdir -p {scratch_path}/{sample_id}_chewbbaca_input/ 2>> {log[0]}
+        cp {input.contigs} {scratch_path}/{sample_id}_chewbbaca_input/{chewbbaca_id}_contigs.fasta 2>> {log[0]}
 
-        singularity --silent exec --bind {scratch_path},{config["output_directory"]},{config["output_directory"]},{config["databases"]}{config["tip_tool_configs"]["chewbbaca"]["chewbbaca_dtb"]}:{scratch_path},{config["output_directory"]},{config["output_directory"]},{config["databases"]}{config["tip_tool_configs"]["chewbbaca"]["chewbbaca_dtb"]} {input.image_file} chewBBACA.py AlleleCall --no-inferred --cpu {config["tip_tool_configs"]["chewbbaca"]["chewbbaca_cores"]} -i {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca_input/ -g {chewbbaca_species_map[wildcards.sample_id_pattern]['db']} -o {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca/ 2>> {log[0]}
-        mv {scratch_path}/{wildcards.sample_id_pattern}_chewbbaca/* {config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/ 2>> {log[0]}
+        singularity --silent exec --bind {scratch_path},{config["output_directory"]},{config["output_directory"]},{config["databases"]}{config["tip_tool_configs"]["chewbbaca"]["chewbbaca_dtb"]}:{scratch_path},{config["output_directory"]},{config["output_directory"]},{config["databases"]}{config["tip_tool_configs"]["chewbbaca"]["chewbbaca_dtb"]} {input.image_file} chewBBACA.py AlleleCall --no-inferred --cpu {config["tip_tool_configs"]["chewbbaca"]["chewbbaca_cores"]} -i {scratch_path}/{sample_id}_chewbbaca_input/ -g {chewbbaca_species_map[sample_id]['db']} -o {scratch_path}/{sample_id}_chewbbaca/ 2>> {log[0]}
+        mv {scratch_path}/{sample_id}_chewbbaca/* {output_dir} 2>> {log[0]}
 
         rm -r {scratch_path} 2>> {log[0]}
         ''')
+
+        if chewbbaca_id != sample_id:
+            with open(log[0], "a") as logfile:
+                logfile.write(f"\n[{datetime.now().isoformat()}] Restoring sample id '{sample_id}' in chewBBACA output files (temporary id used for the run: '{chewbbaca_id}').\n")
+            for fname in os.listdir(output_dir):
+                fpath = os.path.join(output_dir, fname)
+                if not os.path.isfile(fpath):
+                    continue
+                try:
+                    with open(fpath, 'r') as f:
+                        content = f.read()
+                except UnicodeDecodeError:
+                    continue
+                if chewbbaca_id in content:
+                    with open(fpath, 'w') as f:
+                        f.write(content.replace(chewbbaca_id, sample_id))
 
 
         with open(log[0], "a") as logfile:
             logfile.write(f"\n[{datetime.now().isoformat()}] Starting QC DataFrame post-processing.\n")
             try:
-                qc_data_path = f'{config["output_directory"]}{wildcards.sample_id_pattern}_chewbbaca/results_statistics.tsv'
+                qc_data_path = f'{output_dir}results_statistics.tsv'
                 logfile.write(f"[{datetime.now().isoformat()}] Reading QC file: {qc_data_path}\n")
                 df = pd.read_csv(qc_data_path, sep='\t')
 
-                df['scheme_version'] = [chewbbaca_species_map[wildcards.sample_id_pattern]['version']] * len(df)
-                df['scheme_origin']  = [chewbbaca_species_map[wildcards.sample_id_pattern]['origin']] * len(df)
-                df['locus_count']    = [chewbbaca_species_map[wildcards.sample_id_pattern]['locus_count']] * len(df)
+                df['scheme_version'] = [chewbbaca_species_map[sample_id]['version']] * len(df)
+                df['scheme_origin']  = [chewbbaca_species_map[sample_id]['origin']] * len(df)
+                df['locus_count']    = [chewbbaca_species_map[sample_id]['locus_count']] * len(df)
 
                 df.to_csv(qc_data_path, sep='\t', header=True, index=False)
                 logfile.write(f"[{datetime.now().isoformat()}] Successfully updated and saved QC file.\n")
