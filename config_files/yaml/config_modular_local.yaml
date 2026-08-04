@@ -214,6 +214,7 @@ shell_tool_configs:
     - Vibrio_cholerae
     - Vibrio_parahaemolyticus
     - Vibrio_vulnificus
+    - Haemophilus_influenzae
   resfinder:
     length: 0.6
     coverage: 0.9
