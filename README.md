@@ -2,7 +2,7 @@
 
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/release/NMRL/Ardetype?color=Green)
 
-> **ARDETYPE** is a modular, scalable pipeline for bacterial whole-genome sequencing (WGS) analysis. It supports **Illumina (paired-end)** and **Oxford Nanopore** data in `fastq.gz` format, as well as **PacBio** reads and pre-assembled genomes in FASTA format.<br>Designed for clinical microbiology and public health applications, it enables streamlined and reproducible analysis of bacterial isolates through both species-agnostic and species-specific workflows.
+> **ARDETYPE** is a modular, scalable pipeline for bacterial whole-genome sequencing (WGS) analysis. It analyses **Illumina (paired-end)** reads in `fastq.gz` format and **pre-assembled genomes** in FASTA format (e.g. PacBio assemblies).<br>Designed for clinical microbiology and public health applications, it enables streamlined and reproducible analysis of bacterial isolates through both species-agnostic and species-specific workflows.
 
 
 ---
@@ -32,54 +32,51 @@ ARDETYPE consists of four main modules:
 
 | Tool                                                                 | Module     |
 |----------------------------------------------------------------------|------------|
-| [agrvate](https://github.com/VishnuRaghuram94/AgrVATE)               | bact_tip   |
-| [amrfinder+](https://github.com/ncbi/amr)                            | bact_shell |
-| [capybara](https://github.com/Zhou-lab-SUDA/CAPYBARA)                | bact_tip   |
-| [chewbbaca](https://github.com/B-UMMI/chewBBACA)                     | bact_tip   |
-| [circlator](https://github.com/sanger-pathogens/circlator)           | bact_core  |
-| [ectyper](https://github.com/phac-nml/ecoli_serotyping)              | bact_tip   |
-| [emmtyper](https://github.com/MDU-PHL/emmtyper)                      | bact_tip   |
-| [fastp](https://github.com/OpenGene/fastp)                           | bact_core  |
-| [filtlong](https://github.com/rrwick/Filtlong)                       | bact_core  |
-| [flye](https://github.com/fenderglass/Flye)                          | bact_core  |
-| [hicap](https://github.com/scwatts/hicap)                            | bact_tip   |
-| [kleborate](https://github.com/katholt/Kleborate)                    | bact_tip   |
-| [kraken2](https://github.com/DerrickWood/kraken2)                    | bact_core  |
-| [legsta](https://github.com/tseemann/legsta)                         | bact_tip   |
-| [lissero](https://github.com/MDU-PHL/LisSero)                        | bact_tip   |
-| [lrefinder](https://bitbucket.org/genomicepidemiology/lre-finder)    | bact_tip   |
-| [medaka](https://github.com/nanoporetech/medaka)                     | bact_core  |
-| [meningotype](https://github.com/MDU-PHL/meningotype)                | bact_tip   |
-| [mlst](https://github.com/tseemann/mlst)                             | bact_shell |
-| [mob-suite](https://github.com/phac-nml/mob-suite)                   | bact_shell |
-| [plasmidfinder](https://bitbucket.org/genomicepidemiology/plasmidfinder/src/master/) | bact_shell |
-| [polca](https://github.com/alekseyzimin/masurca)                     | bact_core  |
-| [polypolish](https://github.com/rrwick/Polypolish)                   | bact_core  |
-| [quast](https://github.com/ablab/quast)                              | bact_shell |
-| [resfinder](https://bitbucket.org/genomicepidemiology/resfinder/src/master/) | bact_shell |
-| [rgi](https://github.com/arpcard/rgi)                                | bact_shell |
-| [seqsero2](https://github.com/denglab/SeqSero2)                      | bact_tip   |
-| [seroba](https://github.com/sanger-pathogens/seroba)                 | bact_tip   |
-| [shigatyper](https://github.com/CFSAN-Biostatistics/shigatyper)      | bact_tip   |
-| [shovill](https://github.com/tseemann/shovill)                       | bact_core  |
-| [sistr](https://github.com/phac-nml/sistr_cmd)                       | bact_tip   |
-| [snikt](https://github.com/piyuranjan/SNIKT)                         | bact_core  |
-| [spatyper](https://github.com/HCGB-IGTP/spaTyper)                    | bact_tip   |
-| [staphopia-sccmec](https://github.com/staphopia/staphopia-sccmec)    | bact_tip   |
-| [stecfinder](https://github.com/LanLab/STECFinder)                   | bact_tip   |
-| [virulencefinder](https://bitbucket.org/genomicepidemiology/virulencefinder/src/master/) | bact_shell |
-| [hybracter](https://github.com/gbouras13/hybracter) | bact_core |
-| [cgmlst-dists](https://github.com/tseemann/cgmlst-dists) | bact_shape |
-| [AcinetobacterPlasmidTyping](https://github.com/MehradHamidian/AcinetobacterPlasmidTyping) | bact_tip |
-| [Hybracter](https://github.com/gbouras13/hybracter) | bact_core |
-| [rmlst API](https://pubmlst.org/species-id/species-identification-via-api) | bact_shell |
-| [PLSDB API](https://github.com/CCB-SB/plsdbapi) | bact_shell |
+| [AcinetobacterPlasmidTyping](https://github.com/MehradHamidian/AcinetobacterPlasmidTyping) | bact_tip   |
+| [agrvate](https://github.com/VishnuRaghuram94/AgrVATE)                                     | bact_tip   |
+| [amrfinder+](https://github.com/ncbi/amr)                                                  | bact_shell |
+| [blast+](https://blast.ncbi.nlm.nih.gov/doc/blast-help/downloadblastdata.html)             | bact_tip   |
+| [capybara](https://github.com/Zhou-lab-SUDA/CAPYBARA)                                      | bact_tip   |
+| [cgmlst-dists](https://github.com/tseemann/cgmlst-dists)                                   | bact_shape |
+| [chewbbaca](https://github.com/B-UMMI/chewBBACA)                                           | bact_tip   |
+| [ectyper](https://github.com/phac-nml/ecoli_serotyping)                                    | bact_tip   |
+| [el_gato](https://github.com/CDCgov/el_gato)                                               | bact_tip   |
+| [emmtyper](https://github.com/MDU-PHL/emmtyper)                                            | bact_tip   |
+| [fastp](https://github.com/OpenGene/fastp)                                                 | bact_core  |
+| [hamronization](https://github.com/pha4ge/hAMRonization)                                   | bact_shell |
+| [hicap](https://github.com/scwatts/hicap)                                                  | bact_tip   |
+| [kleborate](https://github.com/katholt/Kleborate)                                          | bact_tip   |
+| [krakentools](https://github.com/jenniferlu717/KrakenTools)                                | bact_core  |
+| [kraken2](https://github.com/DerrickWood/kraken2)                                          | bact_core  |
+| [krona](https://github.com/marbl/Krona)                                                    | bact_core  |
+| [lissero](https://github.com/MDU-PHL/LisSero)                                              | bact_tip   |
+| [lrefinder](https://bitbucket.org/genomicepidemiology/lre-finder)                          | bact_tip   |
+| [meningotype](https://github.com/MDU-PHL/meningotype)                                      | bact_tip   |
+| [mlst](https://github.com/tseemann/mlst)                                                   | bact_shell |
+| [mob-suite](https://github.com/phac-nml/mob-suite)                                         | bact_shell |
+| [ngmaster](https://github.com/MDU-PHL/ngmaster)                                            | bact_tip   |
+| [pigz](https://zlib.net/pigz/)                                                             | bact_core  |
+| [plasmidfinder](https://bitbucket.org/genomicepidemiology/plasmidfinder/src/master/)       | bact_shell |
+| [quast](https://github.com/ablab/quast)                                                    | bact_shell |
+| [resfinder](https://bitbucket.org/genomicepidemiology/resfinder/src/master/)               | bact_shell |
+| [rgi](https://github.com/arpcard/rgi)                                                      | bact_shell |
+| [seqsero2](https://github.com/denglab/SeqSero2)                                            | bact_tip   |
+| [seroba](https://github.com/sanger-pathogens/seroba)                                       | bact_tip   |
+| [shigatyper](https://github.com/CFSAN-Biostatistics/shigatyper)                            | bact_tip   |
+| [shovill](https://github.com/tseemann/shovill)                                             | bact_core  |
+| [sistr](https://github.com/phac-nml/sistr_cmd)                                             | bact_tip   |
+| [spatyper](https://github.com/HCGB-IGTP/spaTyper)                                          | bact_tip   |
+| [staphopia-sccmec](https://github.com/staphopia/staphopia-sccmec)                          | bact_tip   |
+| [stecfinder](https://github.com/LanLab/STECFinder)                                         | bact_tip   |
+| [virulencefinder](https://bitbucket.org/genomicepidemiology/virulencefinder/src/master/)   | bact_shell |
+| [rmlst API](https://pubmlst.org/species-id/species-identification-via-api)                 | bact_shell |
+| [PLSDB API](https://github.com/CCB-SB/plsdbapi)                                            | bact_shell |
 ---
 
 ## Installation
 
 ```bash
-git clone -b standalone_rework https://github.com/NMRL/Ardetype
+git clone -b master https://github.com/NMRL/Ardetype
 cd Ardetype
 conda env create -f ardetype.yaml
 ```
@@ -87,12 +84,40 @@ conda env create -f ardetype.yaml
 - Note: Currently PLSDB API module requires [some adjustments](https://github.com/CCB-SB/plsdbapi/issues/4) to the source code in order to make it work.
 - [Finding python module files in conda environment](https://stackoverflow.com/questions/31003994/where-is-site-packages-located-in-a-conda-environment).
 
-**Download pre-packaged resources (databases & singularity images):**
+### Container images and databases
+
+The Singularity images and databases are published on Zenodo as two archives:
+
+| Archive | Zenodo record | Contents | Size |
+|---|---|---|---|
+| `ardetype_images_2026-11-12.tar.gz` | `<IMAGES_RECORD_URL>` | 35 Singularity images: 29 rebuilt from conda-forge/bioconda lock files and 6 original builds (PlasmidFinder, MOB-suite, AgrVATE, staphopia-sccmec, ngmaster, BLAST+), plus the recipe to rebuild the 29 | ≈18 GB |
+| `ardetype_databases_2026-11-12.tar.gz` | `<DATABASES_RECORD_URL>` | Kraken2 (PhiX, human T2T, MiniKraken), ResFinder, VirulenceFinder + VFDB, SeroBA, LRE-Finder, PlasmidFinder, *A. baumannii* plasmid typing, AQUAMIS QC thresholds, 21 cgMLST schemes | ≈12 GB (≈42 GB extracted) |
+
+All paths in the archives start at the repository root, so each archive is extracted there in one step. Besides the images or databases, each archive contains `resources/release_docs/<images|databases>_2026-11-12/` with a `README.md`, `references.txt` (Harvard-style citations of every tool and database; please cite them), `MANIFEST.tsv` and `checksums/<item>.sha256` (SHA-256 of every file, one checksum file per image or database).
+
+**1. Download** both archives from their Zenodo records and compare each with the MD5 checksum Zenodo lists for it:
 ```bash
-rm -rf resources
-wget <archive_url>
-tar -xvzf resources.tar.gz
+md5sum ardetype_images_2026-11-12.tar.gz ardetype_databases_2026-11-12.tar.gz
 ```
+
+**2. Extract** in the repository root:
+```bash
+tar -xzf <download folder>/ardetype_images_2026-11-12.tar.gz    -C .
+tar -xzf <download folder>/ardetype_databases_2026-11-12.tar.gz -C .
+```
+Use plain `tar -xzf`: the archives keep file modification times, which the pipeline uses to report database dates.
+
+**3. Verify the extracted files** (in the repository root):
+```bash
+sha256sum --quiet -c resources/release_docs/images_2026-11-12/checksums/*.sha256    && echo "images OK"
+sha256sum --quiet -c resources/release_docs/databases_2026-11-12/checksums/*.sha256 && echo "databases OK"
+```
+
+**Scope of the archives:** everything needed to run all four modules (`bact_core`, `bact_shell`, `bact_tip`, `bact_shape`) on Illumina paired-end reads and on assemblies (`-fa`). The *Mycobacterium* cgMLST scheme is not included and its entry in `config_files/yaml/config_modular_local.yaml` is disabled.
+
+The databases built into images (AMRFinderPlus database, CARD, PubMLST MLST schemes, MOB-suite plasmid databases) come with the images archive. rMLST and PLSDB are online services (see Configuration).
+
+To rebuild the 29 conda-forge/bioconda images instead of downloading them, see `resources/release_docs/images_2026-11-12/build_recipe/README.md`.
 
 ---
 
@@ -126,33 +151,23 @@ The `config_files/yaml/config_modular_local.yaml` file can be customized—for e
 
 - `isolate` stands for sample ID.
 - Having `_` as part of sample ID may cause unexpected behavior.
-- `isolate` in total `must shorter than 27 characters`, otherwise chewbbaca (cgMLST) will fail.
 ```bash
 illumina/
 ├── isolate_R1_001.fastq.gz
 └── isolate_R2_001.fastq.gz
 
-ont/
-└── isolate_ONT.fastq.gz
-
-pre-assembled/
-└── isolate_contigs.fasta
-
-pacbio/
+pre-assembled/          # any assembly, e.g. from PacBio reads
 └── isolate_contigs.fasta
 ```
 **Typical Usage Examples:**
 ```bash
-# Illumina/Illumina+Nanopore data for each isolate
+# Illumina paired-end data
 python ardetype.py -i <batch_path> -m all
 
-# Nanopore data
-python ardetype.py -i <batch_path> -m all -ont
-
-# Pre-assembled/PacBio (_contigs.fasta) data
+# Pre-assembled (_contigs.fasta) data
 python ardetype.py -i <batch_path> -m all -fa
 
-# Merge batches (Illimina + Illumina; Nanopore + Nanopore; Hybrid + Hybrid; Fasta + Fasta) - add -fa or -ont flag for fasta/Nanopore data
+# Merge batches (Illumina + Illumina; Fasta + Fasta) - add the -fa flag for fasta data
 python ardetype.py -m merge --merge_from <batch_path1> <batch_path2> <batch_path3> -o <target_batch_path>
 
 # Rerun all rules
@@ -165,10 +180,10 @@ python ardetype.py -m all -i <batch_path> -fr resfinder plasmidfinder
 
 Notes:
 - It is recommended to use the `screen` utility to run the pipeline in the background, especially for long-running jobs or remote sessions.
-- In merge mode, the folder specified by <batch_path> must contain a marker file indicating the sequencing technology used — either ILL_mark, ONT_mark, or HYB_mark.<br>This file is automatically generated by the pipeline during initial processing.
+- In merge mode, the folder specified by <batch_path> must contain a marker file indicating the sequencing technology used — either ILL_mark (Illumina) or FA_mark (assemblies).<br>This file is automatically generated by the pipeline during initial processing.
 - The `-fr` option does not validate whether the specified rules exist in the pipeline.<br>Please double-check rule names (`snakefiles/`) and review the output to ensure that the expected steps are reprocessed correctly.
 - Refer to `config_files/json/specific_tool_map.json` for details on each tool and the species it is applicable to.
-- By default, live pipeline logs are saved in the `Ardetype/.snakemake/logs/` directory.
+- By default, live pipeline logs are saved in the `Ardetype/.snakemake/log/` directory.
 - The pipeline will iteratively exclude samples that fail any Snakemake rule in any module more than --retry_times (default: 3).
     - All input and output files associated with excluded samples will be moved to the <batch_path>_failed directory.
     - If all samples are excluded, the pipeline will terminate.
@@ -181,7 +196,9 @@ Notes:
   -i, --input
       Path to directory that contains files to be analysed.
       Files are NOT parsed from subfolders.
-      Check `config_files/json/module_data/patterns/inputs` for expected input file extensions for the `bact_core` module.
+      Expected file name endings: Illumina `_R1_001.fastq.gz` / `_R2_001.fastq.gz`,
+      assemblies `_contigs.fasta`
+      (defined in `config_files/json/module_data.json`, section "core" -> "patterns" -> "inputs").
 
   -c, --config
       Path to a custom pipeline configuration file in YAML format.
@@ -208,12 +225,14 @@ Notes:
       Enable HPC execution mode.
       With appropriate configuration, this allows submitting each pipeline module
       (via `subscripts/ardetype_jobscript.sh`, `--hpc`, and `-sm` flags)
-      or per-sample jobs (via `config_files/yaml/cluster.yaml` and `--hpc`) to a cluster scheduler (PBS by default).
+      or per-sample jobs (via `config_files/yaml/cluster_slurm.yaml` and `--hpc`) to a cluster scheduler.
+      The scheduler is set by the `cluster:` key of that file (`slurm` or `pbs`).
       By default, the pipeline runs locally on the machine where the script is invoked.
 
   -sm, --submit_modules
       Run each pipeline module as a separate HPC job.
       Snakemake sub-jobs are not submitted to the cluster in this mode.
+      Works on PBS only (modules are submitted with `qsub`).
       Requires manual adjustment of `subscripts/ardetype_jobscript.sh` to control behavior.
       Effective only with `--hpc`.
 
@@ -226,13 +245,15 @@ Notes:
       By default, output files are organized into per-sample folders.
       Use this flag to keep a flat output directory structure.
 
-  -ont, --nanopore_only
-      Run the pipeline on a folder containing exclusively Nanopore reads (with `_ONT.fastq.gz` extension).
-      By default, the pipeline expects either Illumina data (`_001.fastq.gz`) or combined Illumina and Nanopore data.
+  -fa, --fasta
+      Run the pipeline on a folder containing exclusively assemblies, one per isolate,
+      named `<isolate>_contigs.fasta` (e.g. pre-assembled genomes or PacBio assemblies).
+      Read-based steps (QC, read filtering, assembly) are skipped.
+      By default, the pipeline expects Illumina paired-end data (`_R1_001.fastq.gz` / `_R2_001.fastq.gz`).
 
   -mf MERGE_FROM [MERGE_FROM ...], --merge_from MERGE_FROM [MERGE_FROM ...]
       One or more paths to folders containing ARDETYPE output to be merged.
-      Allowed combinations: Hybrid + Hybrid, Illumina + Illumina, Nanopore + Nanopore, Fasta + Fasta.
+      Allowed combinations: Illumina + Illumina, Fasta + Fasta.
 
   -fr FORCE_RULES [FORCE_RULES ...], --force_rules FORCE_RULES [FORCE_RULES ...]
       Specify one or more Snakemake rule names (check `snakefiles/`) to force rerun within the pipeline.
@@ -253,21 +274,26 @@ required arguments:
 
 | File | Description |
 |------|-------------|
-| aquamis_qc_report.csv | comparing QC values against threshold defined in [AQUAMIS](https://gitlab.com/bfr_bioinformatics/AQUAMIS/-/blob/master/resources/AQUAMIS_thresholds.json?ref_type=heads) pipeline |
-| ardetype_report.csv | QC and truncated species-specific typing information |
+| YYYY-MM-DD_aquamis_qc_report.csv | comparing QC values against threshold defined in [AQUAMIS](https://gitlab.com/bfr_bioinformatics/AQUAMIS/-/blob/master/resources/AQUAMIS_thresholds.json?ref_type=heads) pipeline |
+| YYYY-MM-DD_ardetype_report.csv | QC and truncated species-specific typing information (prefixed with the date of the run) |
 | agrvate_report.csv | [agr typing](https://github.com/VishnuRaghuram94/AgrVATE) for S.aureus |
-| amrfp_mutation_report.csv | [Detecting AMR markers](https://github.com/ncbi/amr) in bacterial NGS data. |
-| chewbbaca_qc_report.csv | cgmlst profile quality using [chewbbaca](https://github.com/B-UMMI/chewBBACA) & Ridom schema |
+| amrfp_mutation_report.csv | status of every resistance-associated point mutation position screened by [AMRFinderPlus](https://github.com/ncbi/amr) (`--mutation_all`), for supported organisms |
+| amrfp_report.csv | AMR, stress response and virulence genes and point mutations found by [AMRFinderPlus](https://github.com/ncbi/amr) |
+| capybara_report.csv | [ESL lineage and clade](https://github.com/Zhou-lab-SUDA/CAPYBARA) detection for A. baumannii (the `Coverage` column holds the variant quality score) |
+| chewbbaca_qc_report.csv | cgMLST profile quality using [chewbbaca](https://github.com/B-UMMI/chewBBACA) with schemes from [cgMLST.org](https://www.cgmlst.org/ncs) (Ridom), [EnteroBase](https://enterobase.warwick.ac.uk/), [PubMLST](https://pubmlst.org/) and [Zenodo](https://zenodo.org/records/17871974) (LIT *L. pneumophila* cg/wgMLST) |
+| cgmlst_aggregated/ | cgMLST allele profiles from [chewbbaca](https://github.com/B-UMMI/chewBBACA), one `agg_results_alleles_<species>.tsv` per species |
 | ectyper_report.csv | [serotyping](https://github.com/phac-nml/ecoli_serotyping) for E.coli |
 | emmtyper_report.csv | [emm-type and emm-cluster](https://github.com/MDU-PHL/emmtyper) prediction for S.pyogenes |
 | harmonized_resistance_profile.tsv | combined [resfinder](https://bitbucket.org/genomicepidemiology/resfinder/src/master/) and [RGI/CARD](https://github.com/arpcard/rgi) predictions |
 | hicap_report.csv | [serotyping](https://github.com/scwatts/hicap) for H. Influenzae |
 | kleborate_report.csv | [serotyping, resistance and virulence](https://github.com/katholt/Kleborate) profiles for K.pneumoniae |
 | kraken2contigs_report.csv | all hits with [kraken2](https://github.com/DerrickWood/kraken2)/[minikraken](https://benlangmead.github.io/aws-indexes/k2#:~:text=Older%20%E2%80%9CMinikraken%E2%80%9D%20indexes) applied to contigs |
-| kraken2reads_report.csv | all hits with [kraken2](https://github.com/DerrickWood/kraken2)/[minikraken](https://benlangmead.github.io/aws-indexes/k2#:~:text=Older%20%E2%80%9CMinikraken%E2%80%9D%20indexes) applied to contigs |
-| legsta_report.csv | [sequence-based typing (SBT)](https://github.com/tseemann/legsta) for L. Pneumophila |
+| kraken2reads_report.csv | all hits with [kraken2](https://github.com/DerrickWood/kraken2)/[minikraken](https://benlangmead.github.io/aws-indexes/k2#:~:text=Older%20%E2%80%9CMinikraken%E2%80%9D%20indexes) applied to reads |
+| elgato_report.csv | [sequence-based typing (SBT)](https://github.com/CDCgov/el_gato) for L. Pneumophila |
 | lissero_report.csv | [serotyping](https://github.com/MDU-PHL/LisSero) for L.monocytogenes |
 | lrefinder_report.csv | [predicting linezolid resistance](https://bitbucket.org/genomicepidemiology/lre-finder) in Enterococci faecalis and E. faecium |
+| mlst_long_report.csv | [MLST](https://github.com/tseemann/mlst) alleles, one row per locus |
+| mlst_raw_report.csv | [MLST](https://github.com/tseemann/mlst) scheme, sequence type (ST) and allelic profile, one row per sample |
 | meningotype_report.csv | [serotyping](https://github.com/MDU-PHL/meningotype) for N.meningitidis |
 | mobtyper_contig_summary.csv | [Detection and reconstruction](https://github.com/phac-nml/mob-suite) of mobile genetic elements from bacterial NGS data |
 | mobtyper_summary.csv | [Detection](https://github.com/phac-nml/mob-suite) and reconstruction of mobile genetic elements from bacterial NGS data |
@@ -275,6 +301,8 @@ required arguments:
 | pointfinder_report.csv | [Detecting AMR-associated mutations](https://bitbucket.org/genomicepidemiology/resfinder/src/master/) in bacterial NGS data (contigs) |
 | quast_report.csv | [Quality control of genomes](https://github.com/ablab/quast) assembled from short-read NGS data |
 | resfinder_mobtyper_mapping.csv | AMR-MGE link prediction from MOBSuite and Resfinder based on contig overlap |
+| resfinder_reads_report.csv | acquired AMR genes found by [resfinder](https://bitbucket.org/genomicepidemiology/resfinder/src/master/) in the reads |
+| rmlst_loci_report.csv | species, support and ribosomal ST from the [rMLST](https://pubmlst.org/species-id) API, with rMLST alleles |
 | resfinder_pheno_table_gathered.csv | phenotypic resistance predictions by [resfinder](https://bitbucket.org/genomicepidemiology/resfinder/src/master/) |
 | seqsero2_report.csv | [serotyping](https://github.com/denglab/SeqSero2) for S.enterica |
 | seroba_report.csv | [serotyping](https://github.com/sanger-pathogens/seroba) for S.pneumoniae |
@@ -285,5 +313,4 @@ required arguments:
 | stecfinder_report.csv | [Shigatoxin typing](https://github.com/LanLab/STECFinder) for E.coli |
 | virulencefinder_summary.csv | [Detecting virulence genetic elements](https://bitbucket.org/genomicepidemiology/virulencefinder/src/master/) in bacterial NGS data (including full [VFDB](https://www.mgc.ac.cn/VFs/download.htm) database) |
 | pf_abaumannii_report.csv | [Acinetobacter baumannii MGA search results](https://github.com/MehradHamidian/AcinetobacterPlasmidTyping) |
-| plassembler_report.csv | [Hybracter plasmid assembly results - requires ONT data](https://github.com/gbouras13/plassembler) |
 | plsdb_report.csv | [PLSDB similarity search results for MOB-Suite constructed plasmid sequences](https://github.com/CCB-SB/plsdbapi) |

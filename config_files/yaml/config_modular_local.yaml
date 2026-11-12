@@ -39,6 +39,8 @@ filtlong_sif:
   resources/image_files/filtlong_0.2.1.sif
 snikt_sif:
   resources/image_files/snikt_0.5.0.sif
+fastplong_sif:
+  resources/image_files/fastplong_0.7.1.sif
 medaka_sif:
   resources/image_files/medaka_latest.sif
 hybracter_sif:
@@ -65,9 +67,7 @@ rgi_sif:
 resfinder_version: resfinder_v4.6
 resfinder_dtb_version: 2.6.0
 rgi_version: 6.0.3 
-rgi_dtb_version: 6.0.3 
 amrfinderplus_version: 4.0.19
-amrfinderplus_dtb_version: 2024-05-02.2
 
 
 ##############
@@ -81,8 +81,6 @@ hicap_hinfluenzae_sif:
   resources/image_files/hicap_1.0.4.sif
 kleborate_kpneumoniae_sif:
   resources/image_files/kleborate_3.1.2.sif
-# legsta_lpneumophila_sif:
-#   resources/image_files/legsta_0.5.1.sif
 elgato_legionella_sif:
   resources/image_files/el_gato_1.22.0.sif
 lissero_lmonocytogenes_sif:
@@ -104,7 +102,7 @@ seroba_spneumoniae_sif:
 seroba_spneumoniae_database:
   resources/databases/db-seroba
 pigz_sif:
-  resources/image_files/pigz_2.4.sif
+  resources/image_files/pigz_2.8.sif #pigz_2.4.sif (Anaconda defaults; replaced by conda-forge pigz 2.8 on 2026-11-11)
 stecfinder_ecoli_sif:
   resources/image_files/stecfinder_1.1.0.sif
 lrefinder_efaecium_efaecalis_sif:
@@ -167,9 +165,73 @@ core_tool_configs:
     threads: 12
   snikt:
     sample_size: 10000
+  # fastplong 0.7.1 (https://github.com/OpenGene/fastplong) - ONT read QC report (JSON/HTML); filtered reads are not written.
+  # Keys are the fastplong long option names (without "--"); all values below are the tool defaults (fastplong --help).
+  # Boolean keys are passed as flags when true; null/empty values are not passed (tool default applies).
+  fastplong:
+    threads: 3                              # -w/--thread
+    report_title: "fastplong report"        # -R/--report_title
+    verbose: false                          # -V/--verbose: log progress every 1M reads
+    reads_to_process: 0                     # 0 = process all reads
+    # adapter trimming (enabled by default)
+    disable_adapter_trimming: false
+    start_adapter: auto                     # 5' adapter sequence, auto = detect
+    end_adapter: auto                       # 3' adapter sequence, auto = detect
+    adapter_fasta: ""                       # FASTA with adapter sequences to trim from both ends
+    distance_threshold: 0.25                # sequence-adapter distance / adapter length (0.0-1.0)
+    trimming_extension: 10                  # extra bases trimmed when an adapter is found
+    # chimeric reads (split on internal adapters by default)
+    disable_chimera_splitting: false
+    discard_chimeric_reads: false
+    chimera_min_segment_length: 20
+    # fixed-length trimming
+    trim_front: 0
+    trim_tail: 0
+    # polyX trimming at 3' end
+    trim_poly_x: false
+    poly_x_min_len: 10
+    # sliding-window quality cutting
+    cut_front: false
+    cut_tail: false
+    cut_window_size: 4                      # 1-1000, shared by cut_front/cut_tail
+    cut_mean_quality: 20                    # 1-36, shared by cut_front/cut_tail
+    cut_front_window_size: null             # null = cut_window_size
+    cut_front_mean_quality: null            # null = cut_mean_quality
+    cut_tail_window_size: null              # null = cut_window_size
+    cut_tail_mean_quality: null             # null = cut_mean_quality
+    # low-quality region masking (N) / breaking / best segment
+    mask: false
+    mask_window_size: 50
+    mask_mean_quality: 10
+    break: false
+    break_window_size: 100
+    break_mean_quality: 10
+    best_read_segment: false
+    best_read_segment_window_size: 100
+    best_read_segment_mean_quality: 10
+    # quality filtering (enabled by default)
+    disable_quality_filtering: false
+    qualified_quality_phred: 15             # base is qualified if phred >= this
+    unqualified_percent_limit: 40           # max % unqualified bases per read
+    n_base_limit: 1000000                   # max N bases per read (1000000 = no limit)
+    n_percent_limit: 10                     # max % N bases per read
+    mean_qual: 0                            # min mean read quality (0 = no requirement)
+    # length filtering (enabled by default)
+    disable_length_filtering: false
+    length_required: 20                     # min read length
+    length_limit: 0                         # max read length (0 = no limit)
+    # low complexity / GC filters
+    low_complexity_filter: false
+    complexity_threshold: 30
+    min_gc: 0
+    max_gc: 100
+  # Batch aggregation of fastplong reports (reports/fastplong_report.csv, reports/fastplong_adapters.fasta) - not fastplong options
+  fastplong_report:
+    max_adapter_length: 100                 # detected adapters longer than this are not written to fastplong_adapters.fasta
   medaka:
     threads: 12
     ram_mb: 6144
+  ont_assembly: 'hybracter'
   circlator:
     skip: True
   hybracter:
@@ -260,7 +322,6 @@ tip_tool_configs:
   hicap_hinfluenzae:
   kaptive_kpneumoniae:
   kleborate_kpneumoniae:
-  legsta_lpneumophila:
   lissero_lmonocytogenes:
   lpgenomics_lpneumophila:
   meningotype_nmeningitidis:
@@ -282,18 +343,19 @@ tip_tool_configs:
     chewbbaca_sif: resources/image_files/chewbbaca_3.3.10.sif
     chewbbaca_cores: 48
     chewbbaca_orgs:
-      mycobacterium:
-        db: Mycobacterium_species_complex_alleles
-        version: 2.1
-        origin: https://www.cgmlst.org/ncs/schema/Mtuberculosis2101/
-        locus_count: 2891
-        db_update: "2025-04-01"
-        reference: "Kohl TA, Diel R, Harmsen D, Rothgänger J, Walter KM, Merker M, Weniger T, and Niemann S. Whole-genome-based Mycobacterium tuberculosis surveillance: a standardized, portable, and expandable approach. J. Clin. Microbiol. 2014, 52: 2479-86: 2479-86"
+      # not bundled with the release (scheme not validated); uncomment to enable
+#      mycobacterium:
+#        db: Mycobacterium_species_complex_alleles
+#        version: 2.1
+#        origin: https://www.cgmlst.org/ncs/schema/Mtuberculosis2101/
+#        locus_count: 2891
+#        db_update: "2025-04-01"
+#        reference: "Kohl TA, Diel R, Harmsen D, Rothgänger J, Walter KM, Merker M, Weniger T, and Niemann S. Whole-genome-based Mycobacterium tuberculosis surveillance: a standardized, portable, and expandable approach. J. Clin. Microbiol. 2014, 52: 2479-86: 2479-86"
       salmonella:
         db: Salmonella_enterica
         version: 2.0
         origin: https://www.cgmlst.org/ncs/schema/4792159/
-        locus_count: 3001
+        locus_count: 2999 # 3001 in the cgMLST.org listing; 2999 loci in the scheme folder
         db_update: "2023-05-15"
         reference: "Alikhan NF, Zhou Z, Sergeant MJ, and Achtman M. A genomic overview of the population structure of Salmonella. PLoS Genet. 2018, 14: e1007261 [PubMed 29621240]"
       escherichia:
@@ -353,12 +415,12 @@ tip_tool_configs:
         db_update: "2023-05-05"
         reference: "Weber RE, Pietsch M, Frühauf A, Pfeifer Y, Martin M, Luft D, Gatermann S, Pfennigwerth N, Kaase M, Werner G, and Fuchs S. IS26-Mediated Transfer of blaNDM-1 as the Main Route of Resistance Transmission During a Polyclonal, Multispecies Outbreak in a German Hospital. Front Microbiol. 2019, 10: 2817 [PubMed 31921015]"
       legionella:
-        db: Legionella_pneumophila
-        version: 1.1
-        origin: https://www.cgmlst.org/ncs/schema/1025099/
-        locus_count: 1521
-        db_update: "2023-05-29"
-        reference: "Moran-Gilad J, Prior K, Yakunin E, Harrison TG, Underwood A, Lazarovitch T, Valinsky L, Luck C, Krux F, Agmon V, Grotto I, and Harmsen D. Design and application of a core genome multilocus sequence typing scheme for investigation of Legionnaires' disease incidents. Euro Surveill. 2015, 20: [PubMed 26212142]"
+        db: L_pneumophila_wgMLST_schema
+        version: v1 #1.1
+        origin: https://zenodo.org/records/17871974 # https://www.cgmlst.org/ncs/schema/1025099/
+        locus_count: 4707 # all wgMLST loci are used in AlleleCall (cgMLST subset: 2983, not applied) #1521
+        db_update: "2026-11-06" #"2023-05-29"
+        reference: "Mixão, V. et al. (2026) “Advancing Legionella pneumophila genomic surveillance with a high-resolution cg/wgMLST schema for outbreak detection and investigation,” medRxiv, p. 2026.02.18.26346554. Available at: https://doi.org/10.64898/2026.02.18.26346554." #"Moran-Gilad J, Prior K, Yakunin E, Harrison TG, Underwood A, Lazarovitch T, Valinsky L, Luck C, Krux F, Agmon V, Grotto I, and Harmsen D. Design and application of a core genome multilocus sequence typing scheme for investigation of Legionnaires' disease incidents. Euro Surveill. 2015, 20: [PubMed 26212142]"
       listeria:
         db: Listeria_monocytogenes
         version: 2.1
@@ -377,7 +439,7 @@ tip_tool_configs:
         db: Pseudomonas_aeruginosa_cgMLST
         version: 1.0
         origin: https://www.cgmlst.org/ncs/schema/16115339/
-        locus_count: 3867
+        locus_count: 3866 # 3867 in the cgMLST.org listing; 3866 loci in the scheme folder
         db_update: "2023-08-31"
         reference: "Tönnies H, Prior K, Harmsen D, and Mellmann A. Establishment and evaluation of a core genome multilocus sequence typing scheme for whole-genome sequence-based typing of Pseudomonas aeruginosa. J Clin Microbiol. 2020 [PubMed 33328175]"
       enterococcus faecalis:
@@ -436,7 +498,20 @@ tip_tool_configs:
         locus_count: 2704
         db_update: "2026-01-04"
         reference: "Janowicz A, De Massis F, Ancora M, Cammà C, Patavino C, Battisti A, Prior K, Harmsen D, Scholz H, Zilli K, Sacchini L, Di Giannatale E, and Garofolo G. Core Genome Multilocus Sequence Typing and Single Nucleotide Polymorphism Analysis in the Epidemiology of Brucella melitensis Infections. J. Clin. Microbiol. 2018, 56 [PubMed 29925641]"
-      
+      proteus mirabilis:
+        db: Proteus_mirabilis_ridom
+        version: 1.0
+        origin: https://www.cgmlst.org/ncs/schema/Pmirabilis/
+        locus_count: 2574
+        db_update: "2026-09-03"
+        reference: "Prior K, Becker K, Brandt C, Cabal Rosel A, Dabernig-Heinz J, Kohler C, Lohde M, Ruppitsch W, Schuler F, Wagner GE, and Mellmann A. Accurate and reproducible whole-genome genotyping for bacterial genomic surveillance with Nanopore sequencing data. J Clin Microbiol. 2025, 63: e0036925 [PubMed 40511924]"
+      neisseria:
+        db: Human_Neisseria_pubmlst_core_20261021
+        version: 1.0
+        origin: https://rest.pubmlst.org/db/pubmlst_neisseria_seqdef/schemes/72/
+        locus_count: 1376
+        db_update: "2026-10-21"
+        reference: "[Unpublished] https://pubmlst.org/bigsdb?db=pubmlst_neisseria_seqdef&page=schemeInfo&scheme_id=72"
   lrefinder_efaecium_efaecalis:
     id: 80
   shigatyper_shigella:

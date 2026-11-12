@@ -451,6 +451,81 @@ class Ardetype_housekeeper(hk):
 
 
     @staticmethod
+    def fastplong_results(fpl_json_path: str, batch: str) -> pd.DataFrame:
+        '''Extracts input-read (before filtering) QC metrics from a fastplong JSON report into a one-row dataframe.
+        Read N50 and median read quality are derived from the binned histograms (long_read_qc) and are approximate.'''
+        sample_id = re.sub(r'_fastplong\.json$', '', os.path.basename(fpl_json_path))
+        with open(fpl_json_path) as f:
+            report = json.load(f)
+        before = report['summary']['before_filtering']
+        qc = report['read_before_filtering']['long_read_qc']
+
+        def weighted_median(values, weights):
+            '''Value at which the cumulative weight reaches half of the total (values sorted ascending).'''
+            total, cumulative = sum(weights), 0
+            for value, weight in sorted(zip(values, weights)):
+                cumulative += weight
+                if total and cumulative >= total / 2:
+                    return value
+            return None
+
+        def read_n50(length_distribution):
+            '''Length bin (centre) at which reads sorted from longest to shortest reach half of all bases.'''
+            total, cumulative = sum(length_distribution['base_count']), 0
+            for length, bases in sorted(zip(length_distribution['center'], length_distribution['base_count']), reverse=True):
+                cumulative += bases
+                if total and cumulative >= total / 2:
+                    return length
+            return None
+
+        quality_histogram = qc['read_mean_quality_histogram']
+        row = {
+            'sample_id': sample_id,
+            'analysis_batch_id': os.path.basename(os.path.dirname(batch)),
+            'total_reads': before['total_reads'],
+            'total_bases': before['total_bases'],
+            'read_mean_length': before['read_mean_length'],
+            'read_n50_approx': read_n50(qc['read_length_distribution']),
+            'read_max_length': report['read_before_filtering']['total_cycles'],
+            'median_read_quality': weighted_median(quality_histogram['mean_quality'], quality_histogram['read_count']),
+            'q20_rate': before['q20_rate'],
+            'q30_rate': before['q30_rate'],
+            'gc_content': before['gc_content'],
+            'adapter_trimmed_reads': report['adapter_cutting']['adapter_trimmed_reads'],
+            'adapter_trimmed_bases': report['adapter_cutting']['adapter_trimmed_bases'],
+            'chimeric_reads': report['filtering_result']['chimeric_reads'],
+            'chimeric_reads_rate': round(report['filtering_result']['chimeric_reads'] / before['total_reads'], 6) if before['total_reads'] else None,
+            'fastplong_version': report['summary']['fastplong_version'],
+        }
+        return pd.DataFrame([row])
+
+    @staticmethod
+    def fastplong_adapters_fasta(fpl_json_paths: list, fasta_path: str, max_length: int = 100) -> int:
+        '''Writes every distinct adapter detected by fastplong (read_start_adapter / read_end_adapter) across samples
+        into one multi-FASTA. Headers list the samples and read end(s) where each adapter was detected.
+        Adapters longer than max_length and undetected ones ("unspecified") are skipped. Returns the number of records.'''
+        adapters = {}  # sequence -> {'start': [sample ids], 'end': [sample ids]}
+        for path in sorted(fpl_json_paths):
+            sample_id = re.sub(r'_fastplong\.json$', '', os.path.basename(path))
+            with open(path) as f:
+                adapter_cutting = json.load(f).get('adapter_cutting', {})
+            for read_end in ('start', 'end'):
+                sequence = str(adapter_cutting.get(f'read_{read_end}_adapter', '')).strip().upper()
+                if not sequence or not re.fullmatch(r'[ACGTN]+', sequence) or len(sequence) > max_length:
+                    continue
+                adapters.setdefault(sequence, {'start': [], 'end': []})[read_end].append(sample_id)
+        # most frequent adapters first, then by sequence for a stable order
+        ordered = sorted(adapters.items(), key=lambda item: (-len(set(item[1]['start'] + item[1]['end'])), item[0]))
+        with open(fasta_path, 'w') as fasta:
+            for index, (sequence, found_in) in enumerate(ordered, start=1):
+                samples = sorted(set(found_in['start'] + found_in['end']))
+                ends = '/'.join(e for e in ('start', 'end') if found_in[e])
+                fasta.write(f'>adapter_{index:03d} length={len(sequence)} read_end={ends} n_samples={len(samples)} '
+                            f'start_samples={",".join(found_in["start"]) or "-"} end_samples={",".join(found_in["end"]) or "-"}\n'
+                            f'{sequence}\n')
+        return len(ordered)
+
+    @staticmethod
     def kraken2contigs_results(k2c_report_path: str, batch: str) -> pd.DataFrame:
         '''To combine kraken2 contig reports and map them to sample_id-batch pair.'''
         sample_id = re.sub(
@@ -788,7 +863,7 @@ class Ardetype_housekeeper(hk):
 
     @staticmethod
     def elgato_results(elgt_result_path: str, batch: str) -> pd.DataFrame:
-        '''To combine legsta reports and map them to sample_id-batch pair.'''
+        '''To combine el_gato reports and map them to sample_id-batch pair.'''
         df = pd.read_csv(elgt_result_path, header=None, sep='\t')
         df.columns = ['sample_id','ST','flaA','pilE','asd','mip','mompS','proA','neuA_neuAH']
         df.sample_id = df.sample_id.str.replace(
@@ -797,19 +872,6 @@ class Ardetype_housekeeper(hk):
             os.path.dirname(batch)) for _ in df.index])
         return df
 
-
-    @staticmethod
-    def legsta_results(lgs_result_path: str, batch: str) -> pd.DataFrame:
-        '''To combine legsta reports and map them to sample_id-batch pair.'''
-        df = pd.read_csv(lgs_result_path)
-        df.rename(columns={'FILE': 'sample_id'}, inplace=True)
-        df['sample_id'] = df['sample_id'].apply(
-            lambda x: os.path.basename(x)).astype(str)
-        df.sample_id = df.sample_id.str.replace(
-            r'(_S[0-9]*)?_contigs.fasta', '', regex=True)
-        df.insert(1, 'analysis_batch_id', [os.path.basename(
-            os.path.dirname(batch)) for _ in df.index])
-        return df
 
     @staticmethod
     def meningotype_results(mnt_result_path: str, batch: str) -> pd.DataFrame:
@@ -1093,17 +1155,26 @@ class Ardetype_housekeeper(hk):
         hr = pd.read_csv(hamr_report_path, sep='\t')
         cr = pd.read_csv(mbt_contig_report_path)
         hr = hr[hr.reference_database_name == 'resfinder']
-        hr.input_sequence_id = hr.input_sequence_id.str.replace(" ", "_")
-        hr.input_sequence_id = hr.input_sequence_id.astype(str)
+        # Match on the first word of the contig header: hybracter headers carry space-separated
+        # annotations (len=, circular=), and both tools may keep the full header
+        hr.input_sequence_id = hr.input_sequence_id.astype(str).str.split().str[0]
         hr.input_file_name = hr.input_file_name.astype(str)
         cr.sample_id = cr.sample_id.astype(str)
         cr.sample_id = cr.sample_id.str.replace(r"_S[0-9]*", '', regex=True)
-        cr.contig_id = cr.contig_id.astype(str)
+        cr.contig_id = cr.contig_id.astype(str).str.split().str[0]
+        # ResFinder can report the same gene at the same locus against several reference accessions:
+        # keep one row per sample/contig/gene/position (best identity, then coverage) and list all accessions
+        locus = ['input_file_name', 'input_sequence_id', 'gene_name', 'input_gene_start', 'input_gene_stop']
+        hr = hr.sort_values(['sequence_identity', 'coverage_percentage'], ascending=False)
+        hr['reference_accession'] = hr.groupby(locus, dropna=False)['reference_accession'] \
+            .transform(lambda acc: ';'.join(dict.fromkeys(acc.astype(str))))
+        hr = hr.drop_duplicates(subset=locus, keep='first')
         hamr_pls_merge = hr.merge(cr, 
                                   how='right', 
                                   left_on=['input_file_name', 'input_sequence_id'], 
                                   right_on=['sample_id', 'contig_id'])
         hamr_pls_merge.dropna(subset=['input_file_name'], inplace=True)
+        hamr_pls_merge[['input_gene_start', 'input_gene_stop']] = hamr_pls_merge[['input_gene_start', 'input_gene_stop']].astype('Int64')
         hamr_pls_merge = hamr_pls_merge[[
             'sample_id', 
             'analysis_batch_id_x', 

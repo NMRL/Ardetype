@@ -50,7 +50,7 @@ class Housekeeper:
         """
         # Regex patterns for different error types
         error_jobid_pattern = re.compile(r"Error in rule .*?:\s+jobid: (\d+)")
-        missing_output_pattern = re.compile(r"Job (\d+) completed successfully, but some output files are missing")
+        missing_output_pattern = re.compile(r"Job (\d+)\s+completed successfully, but some output files are missing")
         launch_block_pattern = re.compile(
             r"^.*rule .*?:.*?jobid: (\d+).*?wildcards: sample_id_pattern=(\S+)", re.DOTALL
         )

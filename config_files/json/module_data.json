@@ -34,6 +34,8 @@
         "virulencefinder_summary.csv",
         "kleborate_report.csv",
         "kraken2contigs_report.csv",
+        "fastplong_report.csv",
+        "fastplong_adapters.fasta",
         "kraken2reads_report.csv",
         "quast_report.csv",
         "ectyper_report.csv",
@@ -83,11 +85,10 @@
                 "_hybracter.fasta"
             ],
             "ONT": [
-                ".circularized.fasta",
                 "_snikt.html",
+                "_fastplong.json",
                 "_kraken2_contigs_report.txt",
-                "_contigs.fasta",
-                "_hybracter.fasta"
+                "_contigs.fasta"
             ],
             "FA": [
                 "_kraken2_contigs_report.txt",
@@ -156,7 +157,8 @@
         "targets": {
             "Neisseria meningitidis": [
                 "_meningotype.tsv",
-                "_ngmaster.tsv"
+                "_ngmaster.tsv",
+                "_chewbbaca/results_alleles.tsv"
             ],
             "Legionella pneumophila": [
                 "_elgato.tsv",
@@ -196,7 +198,8 @@
             ],
             "Neisseria gonorrhoeae": [
                 "_ngmast.json",
-                "_ngmaster.tsv"
+                "_ngmaster.tsv",
+                "_chewbbaca/results_alleles.tsv"
             ],
             "Listeria monocytogenes": [
                 "_lissero.tsv",
@@ -272,6 +275,9 @@
             ],
             "Brucella abortus": [
                 "_chewbbaca/results_alleles.tsv"
+            ],
+            "Proteus mirabilis": [
+                "_chewbbaca/results_alleles.tsv"
             ]
         },
         "patterns": {
@@ -329,7 +335,8 @@
                 "Mycobacterium canettii",
                 "Brucella melitensis",
                 "Brucella suis",
-                "Brucella abortus"
+                "Brucella abortus",
+                "Proteus mirabilis"
             ]
         }
     },
@@ -399,7 +406,8 @@
             "Mycobacterium canettii": [],
             "Brucella melitensis": [],
             "Brucella suis": [],
-            "Brucella abortus": []
+            "Brucella abortus": [],
+            "Proteus mirabilis": []
         },
         "patterns": {
             "inputs": {

@@ -304,33 +304,6 @@ rule extract_meningotype:
             df.to_csv(output[0],header=True, index=False)
 
 
-rule extract_legsta:
-    input: 
-        config['output_directory']+'{sample_id_pattern}_legsta.csv'
-    output:
-        config['output_directory']+'{sample_id_pattern}_legsta_std.csv'
-    run:
-        try:
-            key = "_legsta.csv"
-            report = pd.read_csv(input[0])
-            report = report[["SBT"]]
-            report.columns = ["type"]
-            report["sample_id"] = wildcards.sample_id_pattern
-            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
-            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
-            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
-            report.to_csv(output[0], header=True, index=False)
-        except pd.errors.EmptyDataError:
-            key = "_legsta.csv"
-            df = pd.DataFrame.from_dict({
-                'sample_id':[wildcards.sample_id_pattern], 
-                f"method|{specific_tool_map[key]['tool']}":[None],
-                f"tool_reference|{specific_tool_map[key]['tool']}":[None],
-                f'type|{specific_tool_map[key]["tool"]}':[None]
-                })
-            df.to_csv(output[0],header=True, index=False)
-
-
 rule extract_hicap:
     input: 
         config['output_directory']+'{sample_id_pattern}_hi_hicap.tsv'

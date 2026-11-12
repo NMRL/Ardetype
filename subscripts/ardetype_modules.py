@@ -66,38 +66,45 @@ class Wrapper():
                 "classify_contigs": self._get_datestamp(f'{db_path}db-kraken2/', os.path.basename(os.path.dirname(self._config_dict['core_tool_configs']['kraken2']['bact_db']))),
             },
             "chewbbaca": {
-                k: self._get_datestamp(f'{db_path}{self._config_dict["tip_tool_configs"]["chewbbaca"]["chewbbaca_dtb"]}', v)
-                for k, v in {
-                    "Salmonella enterica" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['salmonella']['db'],
-                    "Escherichia coli" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['escherichia']['db'],
-                    "Enterobacter"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['escherichia']['db'],
-                    "Shigella"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['escherichia']['db'],
-                    "Streptococcus pyogenes" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['streptococcus pyogenes']['db'],
-                    "Streptococcus pneumoniae" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['streptococcus pneumoniae']['db'],
-                    "Acinetobacter baumannii" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['baumannii']['db'],
-                    "Campylobacter"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['campylobacter']['db'],
-                    "Klebsiella"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['klebsiella']['db'],
-                    "Legionella pneumophila" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['legionella']['db'],
-                    "Listeria monocytogenes" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['listeria']['db'],
-                    "Staphylococcus aureus" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['staphylococcus aureus']['db'],
-                    "Enterococcus faecalis" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['enterococcus faecalis']['db'],
-                    "Enterococcus faecium" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['enterococcus faecium']['db'],
-                    "Pseudomonas aeruginosa" : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['pseudomona']['db'],
-                    "Yersinia"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['yersinia']['db'], 
-                    "Clostridioides"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['clostridioides']['db'],
-                    "Clostridium"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['clostridium']['db'],
-                    "Mycobacterium"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['mycobacterium']['db'],
-                    "Corynebacterium"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['corynebacterium']['db'],
-                    "Brucella"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['brucella']['db'],
-                    "Brucella melitensis"  : self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']['brucella melitensis']['db'],
-                    
+                # label in the version log -> chewbbaca_orgs key; organisms missing from the config are skipped
+                k: self._get_datestamp(f'{db_path}{self._config_dict["tip_tool_configs"]["chewbbaca"]["chewbbaca_dtb"]}',
+                                       self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs'][org]['db'])
+                for k, org in {
+                    "Salmonella enterica"      : 'salmonella',
+                    "Escherichia coli"         : 'escherichia',
+                    "Enterobacter"             : 'escherichia',
+                    "Shigella"                 : 'escherichia',
+                    "Streptococcus pyogenes"   : 'streptococcus pyogenes',
+                    "Streptococcus pneumoniae" : 'streptococcus pneumoniae',
+                    "Acinetobacter baumannii"  : 'baumannii',
+                    "Campylobacter"            : 'campylobacter',
+                    "Klebsiella"               : 'klebsiella',
+                    "Legionella pneumophila"   : 'legionella',
+                    "Listeria monocytogenes"   : 'listeria',
+                    "Staphylococcus aureus"    : 'staphylococcus aureus',
+                    "Enterococcus faecalis"    : 'enterococcus faecalis',
+                    "Enterococcus faecium"     : 'enterococcus faecium',
+                    "Pseudomonas aeruginosa"   : 'pseudomona',
+                    "Yersinia"                 : 'yersinia',
+                    "Clostridioides"           : 'clostridioides',
+                    "Clostridium"              : 'clostridium',
+                    "Mycobacterium"            : 'mycobacterium',
+                    "Corynebacterium"          : 'corynebacterium',
+                    "Brucella"                 : 'brucella',
+                    "Brucella melitensis"      : 'brucella melitensis',
                 }.items()
+                if org in self._config_dict['tip_tool_configs']['chewbbaca']['chewbbaca_orgs']
             },
             "resfinder": self._read_cge_verstion(os.path.join(self._config_dict['shell_tool_configs']['resfinder']['resfinder_db'],'resfinder_db/VERSION')), #self._get_datestamp(self._config_dict['shell_tool_configs']['resfinder']['resfinder_db'], 'resfinder_db'),
             "plasmidfinder": self._get_datestamp(f'{db_path}', 'plasmidfinder_db_new'),
             "virulencefinder": self._get_datestamp(f'{db_path}', 'virulencefinder_db_new'),
             "plasmidtype_abaumannii": self._get_datestamp(f'{db_path}', 'acinetobacterplasmidtyper.fasta')
         }
+
+        # Databases bundled inside images (AMRFinderPlus DB, CARD for RGI); written by subscripts/update_tool_versions.py
+        image_db_path = os.path.join(ardetype_path, 'config_files/json/image_db_versions.json')
+        if os.path.isfile(image_db_path):
+            self._db_vers_map.update(hk.read_json_dict(image_db_path))
 
     def set_tool_vers_map(self):
         '''Setter for tool_vers_map'''
@@ -140,9 +147,6 @@ class Wrapper():
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "meningotype":
                 sp.run(f'singularity --silent run {self._config_dict["meningotype_nmeningitidis_sif"]} meningotype --version 2> /dev/null',
-                stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
-            "legsta":
-                sp.run(f'singularity --silent run {self._config_dict["legsta_lpneumophila_sif"]} legsta --version 2> /dev/null',
                 stdout=sp.PIPE, shell=True).stdout.decode('utf-8').strip().split(' ')[-1],
             "hicap":
                 sp.run(f'singularity --silent run {self._config_dict["hicap_hinfluenzae_sif"]} hicap --version 2> /dev/null',

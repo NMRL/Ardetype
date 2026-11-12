@@ -521,7 +521,7 @@ class Module:
                     self.write_module_config()
 
                 shell_command = f'''
-                snakemake --scheduler greedy --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel {self.job_cancel} --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 300 {self.force_all} {self.force_specific} --cluster {job_submission_command}'''
+                snakemake --scheduler greedy --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --jobs {job_count} --cluster-config {self.cluster_config_path} --cluster-status {self.status_script} --cluster-cancel {self.job_cancel} --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --use-envmodules --use-conda --conda-frontend conda --rerun-incomplete --latency-wait 600 {self.force_all} {self.force_specific} --cluster {job_submission_command}'''
 
                 # Use subprocess.run to capture both stdout and stderr
                 result = subprocess.run(

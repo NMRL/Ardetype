@@ -23,7 +23,7 @@ illumina_qc:
   nodes: 1
   npn: 12
   mempc: "1500mb"
-  time: "00:05:00"
+  time: "01:30:00"
   account: "rakus"
   error: "ardetype.quality_control-%j.out"
   output: "ardetype.quality_control-%j.err"
@@ -38,6 +38,16 @@ hybracter:
   error: "ardetype.ont_qc-%j.out"
   output: "ardetype.ont_qc-%j.err"
 
+
+ont_fastplong:
+  jobname: "ardetype.ont_fastplong"
+  nodes: 1
+  npn: 3
+  mempc: "1500mb"
+  time: "00:30:00"
+  account: "rakus"
+  error: "ardetype.ont_fastplong-%j.out"
+  output: "ardetype.ont_fastplong-%j.err"
 
 ont_qc:
   jobname: "ardetype.ont_qc"
@@ -316,16 +326,6 @@ meningotype_nmeningitidis:
   error: "ardetype.meningotype-%j.out"
   output: "ardetype.meningotype-%j.err"
 
-
-legsta_lpneumophila:
-  jobname: "ardetype.legsta"
-  nodes: 1
-  npn: 8
-  mempc: "1000mb"
-  time: "00:10:00"
-  account: "rakus"
-  error: "ardetype.legsta-%j.out"
-  output: "ardetype.legsta-%j.err"
 
 elgato_legionella:
   jobname: "ardetype.elgato"

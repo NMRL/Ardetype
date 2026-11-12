@@ -23,7 +23,16 @@ illumina_qc:
   jobname: "ardetype.illumina_qc"
   procs: 12
   pmem: "1500mb"
-  walltime: "01:30:00"
+  walltime: "10:30:00"
+  account: "rakus"
+  queue: "batch"
+  jobout: "oe"
+
+ont_fastplong:
+  jobname: "ardetype.ont_fastplong"
+  procs: 3
+  pmem: "1500mb"
+  walltime: "00:30:00"
   account: "rakus"
   queue: "batch"
   jobout: "oe"
@@ -324,8 +333,8 @@ meningotype_nmeningitidis:
   jobout: "oe"
 
 
-legsta_lpneumophila:
-  jobname: "ardetype.legsta"
+elgato_legionella:
+  jobname: "ardetype.elgato"
   procs: 8
   pmem: "1000mb"
   walltime: "00:10:00"

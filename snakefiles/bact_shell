@@ -6,6 +6,10 @@ from pathlib import Path
 sys.path.insert(0, os.path.abspath('./'))
 from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 
+#Versions of databases bundled in images (written by subscripts/update_tool_versions.py)
+_image_db_path     = os.path.join(os.path.abspath('./'), 'config_files/json/image_db_versions.json')
+image_db_versions  = hk.read_json_dict(_image_db_path) if os.path.isfile(_image_db_path) else {}
+
 
 #define sample_id_pattern wildcard and accessing sample_sheet
 sip_wild                = config['output_directory']+'{sample_id_pattern}_contigs.fasta'
@@ -142,7 +146,7 @@ echo bact_shell finished
                 mbt_contig_report_path=f"{config['output_directory']}mobtyper_contig_summary.csv")
             hamr_pls.to_csv(f"{config['output_directory']}resfinder_mobtyper_mapping.csv", header=True, index=False)
         else:
-            Path(f"{config['output_directory']}mobtyper_contig_summary.csv").touch()
+            Path(f"{config['output_directory']}resfinder_mobtyper_mapping.csv").touch()
 
         #Aggregate rmlst species information
         rmlst = hk.aggregator(outfolder_path = config['output_directory'], proc_num = 6, extractor = hk.rmlst_results, pathlist = input.rmlst)
@@ -570,6 +574,8 @@ rule res_gen_id:
     threads: 4
     # envmodules:
     #     "singularity"
+    params:
+        card_version = image_db_versions.get('rgi', 'not_determined')
     log:
         config['output_directory']+"logs/{sample_id_pattern}_res_gen_id.rgi_card.log"
     shell:
@@ -579,7 +585,7 @@ rule res_gen_id:
         
         singularity --silent run --bind {config[output_directory]}:{config[output_directory]} {input.hamr_sif} hamronize\
         rgi {config[output_directory]}{wildcards.sample_id_pattern}.rgi.txt --input_file_name {wildcards.sample_id_pattern} --analysis_software_version {config[rgi_version]} \
-        --reference_database_version {config[rgi_dtb_version]} > {config[output_directory]}{wildcards.sample_id_pattern}.rgi.hamr.tab 2>> {log}
+        --reference_database_version {params.card_version} > {config[output_directory]}{wildcards.sample_id_pattern}.rgi.hamr.tab 2>> {log}
         """
 
 

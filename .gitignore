@@ -10,6 +10,7 @@ clst_bct_cl.o*
 workflow/*
 resources/databases/* 
 resources/image_files/*
+resources/release_docs/
 
 # Various system folders
 /.snakemake
@@ -31,3 +32,9 @@ __pycache__
 /latest_integrated_output
 
 /23*
+
+# Singularity tmp/cache (set in ardetype.py)
+/tmp
+
+# Logs of sync_bact_output.py
+/sync_logs

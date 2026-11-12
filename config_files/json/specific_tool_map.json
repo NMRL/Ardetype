@@ -98,6 +98,13 @@
             "link": "https://github.com/piyuranjan/SNIKT",
             "reference": "Ranjan P, Brown CA, Erb-Downward JR, Dickson RP. SNIKT: sequence-independent adapter identification and removal in long-read shotgun sequencing data. Bioinformatics. 2022 Aug 2;38(15):3830-3832. doi: 10.1093/bioinformatics/btac389. PMID: 35695743; PMCID: PMC9991892."
         },
+        "fastplong": {
+            "rule": "ont_fastplong",
+            "method": "Quality control report (read length, quality, adapters, chimeras) of long-read NGS data.",
+            "tool": "fastplong",
+            "link": "https://github.com/OpenGene/fastplong",
+            "reference": "OpenGene fastplong Github https://github.com/OpenGene/fastplong"
+        },
         "filtlong": {
             "rule": "ont_filtering",
             "method": "Quality control of long-read NGS data.",
@@ -140,6 +147,34 @@
             "link": "https://github.com/gbouras13/hybracter",
             "reference": "https://doi.org/10.1099/mgen.0.001244"
         },
+        "krona": {
+            "rule": "classify_contigs",
+            "method": "Interactive visualization of taxonomic classification results.",
+            "tool": "krona",
+            "link": "https://github.com/marbl/Krona",
+            "reference": "Ondov BD, Bergman NH, Phillippy AM. Interactive metagenomic visualization in a Web browser. BMC Bioinformatics. 2011;12:385. doi: 10.1186/1471-2105-12-385."
+        },
+        "hamronization": {
+            "rule": ["res_gen_id", "resfinder"],
+            "method": "Harmonization of AMR detection tool outputs into a common format.",
+            "tool": "hamronization",
+            "link": "https://github.com/pha4ge/hAMRonization",
+            "reference": "PHA4GE hAMRonization Github https://github.com/pha4ge/hAMRonization"
+        },
+        "cgmlst-dists": {
+            "rule": "all",
+            "method": "Pairwise cgMLST allele distance matrices from chewBBACA allele calls.",
+            "tool": "cgmlst-dists",
+            "link": "https://github.com/tseemann/cgmlst-dists",
+            "reference": "Seemann T, cgmlst-dists Github https://github.com/tseemann/cgmlst-dists"
+        },
+        "blast": {
+            "rule": "plasmidtype_abaumannii",
+            "method": "Sequence search used for Acinetobacter baumannii plasmid rep typing.",
+            "tool": "blast",
+            "link": "https://blast.ncbi.nlm.nih.gov/doc/blast-help/downloadblastdata.html",
+            "reference": "Camacho C, Coulouris G, Avagyan V, Ma N, Papadopoulos J, Bealer K, Madden TL. BLAST+: architecture and applications. BMC Bioinformatics. 2009;10:421. doi: 10.1186/1471-2105-10-421."
+        },
         "rmlst_API": {
             "rule": "rmlst",
             "method": "Bacterial species identification",
@@ -162,12 +197,12 @@
         "link": "https://github.com/MDU-PHL/meningotype",
         "reference": "Kwong JC, Gonçalves da Silva A, Stinear TP, Howden BP, Seemann T. 2018."
     },
-    "_legsta.csv": {
-        "rule": "legsta_lpneumophila",
+    "_elgato.tsv": {
+        "rule": "elgato_legionella",
         "method": "sequence-based typing (SBT) for L. Pneumophila",
-        "tool": "legsta",
-        "link": "https://github.com/tseemann/legsta",
-        "reference": "Seemann T, Legsta Github https://github.com/tseemann/legsta"
+        "tool": "el_gato",
+        "link": "https://github.com/CDCgov/el_gato",
+        "reference": "CDC el_gato Github https://github.com/CDCgov/el_gato"
     },
     "-predictResults.txt": {
         "rule": "lpgenomics_lpneumophila",
