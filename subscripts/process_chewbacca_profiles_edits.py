@@ -56,7 +56,7 @@ def parse_args():
     '''Parse arguments'''
     # define arguments and paths for running functions
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--path", required=True, help="Path to folder", type=str)
+    parser.add_argument("-p", "--path", required=True, help="Path to a folder containing individual chewbbaca allelic profile files (matched via --wildcard), OR path to a single pre-compiled matrix tsv file containing profiles for multiple samples (e.g. an aggregated results_alleles.tsv).", type=str)
     parser.add_argument("-l", "--linkage", required=False, help="Linkage method: single, complete, average, ward", type=str, default='single')
     parser.add_argument("-ro", "--rem_outlier", required=False, help="Option to filter outliers from distance matrix; provide numeric distance threshold; all isolates that are further than threshold from nearest isolate will be excluded from clustering", type=int, default=None)
     parser.add_argument("-wc", "--wildcard", required=False, help="Option to specify wildcard to be used to identify allelic profiles in the <path> folder.", type=str, default="*_profile.tsv")
@@ -182,11 +182,31 @@ def filter_distance_outliers(dist_matr_df, outlier_threshold=500, keep_outgroup=
 
 def gather_chewbacca_data(path:str, wildcard:str = "*_profile.tsv", min_sample_count:int = 1) -> defaultdict: #"folded*/*_chewbbaca/results_alleles.tsv"
     '''
-    path - path to folder containing allelic profiles produced by chewbbaca
-    wildcard - pattern used to locate chewbbaca allelic profiles in the <path>
+    path - path to folder containing allelic profiles produced by chewbbaca,
+        OR path to a single pre-compiled matrix tsv file containing profiles for multiple samples
+        (e.g. an aggregated results_alleles.tsv with one row per sample)
+    wildcard - pattern used to locate chewbbaca allelic profiles in the <path> (ignored if <path> is a file)
     '''
     # create a dictionary of dataframes, one for each bin
     df_dict = defaultdict(lambda: pd.DataFrame())
+
+    if os.path.isfile(path):
+        # <path> already is a compiled profile matrix - read it as-is (no per-row/2-row restriction,
+        # and sample ids in the FILE/Genome column are kept as-is instead of being derived from the filename)
+        try:
+            df_temp = pd.read_csv(path, sep="\t")
+        except Exception as e:
+            logging.error(f"Error processing file {path}: {e}")
+            sys.exit(f"Error processing file {path}: {e}")
+        if df_temp.shape[0] < min_sample_count:
+            sys.exit(f'Less than {min_sample_count} samples in {path} - Terminating.')
+        if 'FILE' not in df_temp.columns and 'Genome' not in df_temp.columns:
+            sys.exit(f'Could not find sample id column ("FILE" or "Genome") in {path} - Terminating.')
+        bin_number = df_temp.shape[1] - 1
+        df_dict[bin_number] = df_temp
+        logging.info(f"Processed pre-compiled matrix {path}: {df_temp.shape[0]} samples")
+        return df_dict
+
     path_list = list(glob(os.path.join(path,wildcard)))
     if len(path_list) < min_sample_count:
         sys.exit(f'Less than {min_sample_count} files in {path} - Terminating.')
@@ -378,26 +398,28 @@ def cluster_analysis(
 
 def main():
     args = parse_args()
-    initialize_logging(args.path, current_datetime, use_timestamp = not args.skip_timestamp)
+    # if <path> is a pre-compiled matrix file, outputs go next to it instead of into a non-existent "folder"
+    output_path = args.path if os.path.isdir(args.path) else (os.path.dirname(args.path) or ".")
+    initialize_logging(output_path, current_datetime, use_timestamp = not args.skip_timestamp)
     chew_dict = gather_chewbacca_data(args.path, wildcard=args.wildcard, min_sample_count=args.min_sample_count)
     if args.singularity:
         cluster_analysis(
-            path = args.path, 
-            thresholds = args.thresholds, 
-            df_dict=chew_dict, 
-            singularity=True, 
-            linkage_method=args.linkage, 
-            log_scale=args.log_scale, 
+            path = output_path,
+            thresholds = args.thresholds,
+            df_dict=chew_dict,
+            singularity=True,
+            linkage_method=args.linkage,
+            log_scale=args.log_scale,
             outlier_filter=args.rem_outlier,
             use_timestamp=not args.skip_timestamp,
             skip_dendrogram=args.skip_dendrogram)
     else:
         cluster_analysis(
-            path = args.path, 
-            thresholds = args.thresholds, 
-            df_dict=chew_dict, 
-            linkage_method=args.linkage, 
-            log_scale=args.log_scale, 
+            path = output_path,
+            thresholds = args.thresholds,
+            df_dict=chew_dict,
+            linkage_method=args.linkage,
+            log_scale=args.log_scale,
             outlier_filter=args.rem_outlier,
             use_timestamp=not args.skip_timestamp,
             skip_dendrogram=args.skip_dendrogram)
