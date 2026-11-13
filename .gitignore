@@ -38,3 +38,4 @@ __pycache__
 
 # Logs of sync_bact_output.py
 /sync_logs
+CREATE_IMAGES.sh

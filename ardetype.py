@@ -1,4 +1,5 @@
-import sys, os
+import sys, os, shutil
+import yaml
 from pathlib import Path
 sys.path.insert(0, f'{os.path.dirname(str(Path(__file__).absolute()))}/subscripts/')
 from subscripts.ardetype_modules import run_all, run_merge
@@ -19,13 +20,32 @@ if __name__ == "__main__":
         os.environ.setdefault(var, f'{pipeline_tmp}/{sub}')
         os.makedirs(os.environ[var], exist_ok=True)
 
-    # Put the singularity selector (subscripts/bin/singularity) first on PATH: it prefers a system-wide
-    # singularity and falls back to the conda one; inherited by snakemake and the cluster jobs it submits.
-    singularity_selector_dir = f'{os.path.dirname(str(Path(__file__).absolute()))}/subscripts/bin'
-    if os.environ.get('PATH', '').split(':')[0] != singularity_selector_dir:
-        os.environ['PATH'] = f"{singularity_selector_dir}:{os.environ.get('PATH', '')}"
-
     args = hk.parse_arguments(hk.read_json_dict('./config_files/json/argument_data.json'))
+
+    # Singularity executable: taken from `singularity_bin` in the config file (see README, Configuration).
+    # A link named `singularity` to it is put first on PATH, so snakemake and the cluster jobs it submits
+    # (which inherit PATH) all use it. If `singularity_bin` is empty, the first `singularity` on PATH is used.
+    with open(args.config) as fh:
+        singularity_bin = (yaml.safe_load(fh) or {}).get('singularity_bin') or ''
+    if singularity_bin:
+        singularity_bin = os.path.abspath(os.path.expanduser(str(singularity_bin)))
+        if not (os.path.isfile(singularity_bin) and os.access(singularity_bin, os.X_OK)):
+            sys.exit(f"singularity_bin in {args.config} is not an executable file: {singularity_bin}")
+        link_dir = f'{pipeline_tmp}/singularity_bin'
+        os.makedirs(link_dir, exist_ok=True)
+        tmp_link = f'{link_dir}/singularity.{os.getpid()}'
+        os.symlink(singularity_bin, tmp_link)
+        os.replace(tmp_link, f'{link_dir}/singularity')
+        os.environ['PATH'] = f"{link_dir}:{os.environ.get('PATH', '')}"
+    resolved = shutil.which('singularity')
+    if resolved is None:
+        sys.exit("No singularity executable found: set singularity_bin in the config file (see README, Configuration).")
+    conda_prefix = os.environ.get('CONDA_PREFIX')
+    if not singularity_bin and conda_prefix and os.path.realpath(resolved).startswith(os.path.realpath(conda_prefix) + os.sep):
+        print(f"WARNING: using the conda-provided singularity ({resolved}). It unpacks every image into "
+              f"SINGULARITY_TMPDIR and is much slower than a system installation; set singularity_bin "
+              f"in {args.config} if one is available (see README, Configuration).", file=sys.stderr)
+    print(f"Using singularity: {os.path.realpath(resolved)}", file=sys.stderr)
     num_jobs = args.num_jobs
 
     if args.run_mode == "all":

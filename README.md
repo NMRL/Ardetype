@@ -123,6 +123,23 @@ To rebuild the 29 conda-forge/bioconda images instead of downloading them, see `
 
 ## Configuration
 
+### Singularity
+
+All tools run in Singularity images. Set the Singularity executable explicitly in `config_files/yaml/config_modular_local.yaml`:
+
+```yaml
+singularity_bin:
+  "/usr/bin/singularity"
+```
+
+- Find the path with `command -v singularity` (or `command -v apptainer`) on a node where Singularity is available, **outside** the activated `ardetype` conda environment. If your system provides it through environment modules, run `module load <singularity module>` first.
+- The path must be the same on every node that runs pipeline jobs (login node and compute nodes in HPC mode).
+- The pipeline links this executable as `singularity` at the front of `PATH`, so Snakemake and every job it submits use it. It prints `Using singularity: <path>` at start.
+- If `singularity_bin` is empty, the first `singularity` on `PATH` is used. In the activated conda environment this is the `singularityce` package from `ardetype.yaml`. It works, but it cannot use the setuid starter and unpacks every image into `SINGULARITY_TMPDIR` before each run, which is much slower and needs a lot of temporary space. The pipeline prints a warning in that case.
+- Image unpacking and cache directories default to `tmp/` in the repository (`SINGULARITY_TMPDIR`, `SINGULARITY_CACHEDIR` and their `APPTAINER_*` equivalents); set these variables before starting the pipeline to use another location.
+
+### rMLST
+
 To enable **[rMLST](https://pubmlst.org/species-id)** support, configure API access to the PubMLST REST service by creating a file at `config_files/.env` with your credentials:
 
 ```env
@@ -137,6 +154,8 @@ ACCESS_TOKEN_PATH="<path_for_access_token>"
 - See [official documentation](https://bigsdb.readthedocs.io/en/latest/rest.html#authentication) for details.
 - If rMLST `is not configured`, species will be inferred using Kraken2 with the MiniKraken database.
 - If rMLST `is configured`, species will be determined by a voting system that gives precedence to rMLST over Kraken2.
+
+### Other settings
 
 The `config_files/yaml/config_modular_local.yaml` file can be customized—for example, to define a custom location for the scratch directory used for intensive I/O operations.
 
@@ -232,7 +251,8 @@ Notes:
   -sm, --submit_modules
       Run each pipeline module as a separate HPC job.
       Snakemake sub-jobs are not submitted to the cluster in this mode.
-      Works on PBS only (modules are submitted with `qsub`).
+      Works on PBS/Torque only (modules are submitted with `qsub -F` and polled with `qstat`).
+      Not usable on Slurm: there, use `--hpc` without `-sm` (per-rule jobs via `cluster_slurm.yaml`).
       Requires manual adjustment of `subscripts/ardetype_jobscript.sh` to control behavior.
       Effective only with `--hpc`.
 
@@ -277,9 +297,9 @@ required arguments:
 | YYYY-MM-DD_aquamis_qc_report.csv | comparing QC values against threshold defined in [AQUAMIS](https://gitlab.com/bfr_bioinformatics/AQUAMIS/-/blob/master/resources/AQUAMIS_thresholds.json?ref_type=heads) pipeline |
 | YYYY-MM-DD_ardetype_report.csv | QC and truncated species-specific typing information (prefixed with the date of the run) |
 | agrvate_report.csv | [agr typing](https://github.com/VishnuRaghuram94/AgrVATE) for S.aureus |
-| amrfp_mutation_report.csv | status of every resistance-associated point mutation position screened by [AMRFinderPlus](https://github.com/ncbi/amr) (`--mutation_all`), for supported organisms |
+| amrfp_mutation_report.csv | status of every resistance-associated point mutation position screened by [AMRFinderPlus](https://github.com/ncbi/amr) (`--mutation_all`) in the assembled contigs, for supported organisms. **Warning:** AMRFinderPlus accepts only assemblies, so each position reports the consensus base of the assembly; minority variants (e.g. heteroresistance, mixed populations or variants in some copies of multi-copy genes such as 23S rRNA) are not detected |
 | amrfp_report.csv | AMR, stress response and virulence genes and point mutations found by [AMRFinderPlus](https://github.com/ncbi/amr) |
-| capybara_report.csv | [ESL lineage and clade](https://github.com/Zhou-lab-SUDA/CAPYBARA) detection for A. baumannii (the `Coverage` column holds the variant quality score) |
+| capybara_report.csv | [ESL lineage and clade](https://github.com/Zhou-lab-SUDA/CAPYBARA) detection for A. baumannii |
 | chewbbaca_qc_report.csv | cgMLST profile quality using [chewbbaca](https://github.com/B-UMMI/chewBBACA) with schemes from [cgMLST.org](https://www.cgmlst.org/ncs) (Ridom), [EnteroBase](https://enterobase.warwick.ac.uk/), [PubMLST](https://pubmlst.org/) and [Zenodo](https://zenodo.org/records/17871974) (LIT *L. pneumophila* cg/wgMLST) |
 | cgmlst_aggregated/ | cgMLST allele profiles from [chewbbaca](https://github.com/B-UMMI/chewBBACA), one `agg_results_alleles_<species>.tsv` per species |
 | ectyper_report.csv | [serotyping](https://github.com/phac-nml/ecoli_serotyping) for E.coli |

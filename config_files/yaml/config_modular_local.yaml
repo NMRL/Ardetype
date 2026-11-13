@@ -9,6 +9,12 @@ scratch:
   scratch/
 status_script_path:
   subscripts/pbs-status.py
+# Absolute path of the singularity (or apptainer) executable to use, e.g. the output of
+# `command -v singularity` (after `module load ...` if your system uses modules). It must exist at the
+# same path on every node that runs jobs. Leave empty to use the first `singularity` on PATH, which in
+# the activated conda environment is the conda build (works, but much slower). See README, Configuration.
+singularity_bin:
+  ""
 ardetype_version:
   v1.0.0
 aquamis_qc_reference: 
