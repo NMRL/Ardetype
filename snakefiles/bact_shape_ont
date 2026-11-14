@@ -261,14 +261,24 @@ rule extract_hicap:
     run:
         try:
             key = "_hicap.tsv"
-            report = pd.read_csv(input[0], sep="\t")
-            report = report[["predicted_serotype"]]
-            report.columns = ["type"]
-            report["sample_id"] = wildcards.sample_id_pattern
-            report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
-            report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
-            report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
-            report.to_csv(output[0], header=True, index=False)
+            with open(input[0]) as fh:
+                hicap_failed = fh.readline().startswith('hicap_failed')  # marker written by the hicap rule on failure
+            if hicap_failed:
+                pd.DataFrame.from_dict({
+                    'sample_id':[wildcards.sample_id_pattern],
+                    f"method|{specific_tool_map[key]['tool']}":["hicap"],
+                    f"tool_reference|{specific_tool_map[key]['tool']}":[specific_tool_map[key]['reference']],
+                    f'type|{specific_tool_map[key]["tool"]}':["hicap_failed"]
+                    }).to_csv(output[0], header=True, index=False)
+            else:
+                report = pd.read_csv(input[0], sep="\t")
+                report = report[["predicted_serotype"]]
+                report.columns = ["type"]
+                report["sample_id"] = wildcards.sample_id_pattern
+                report[f"method|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['method']
+                report[f"tool_reference|{specific_tool_map[key]['tool']}"] = specific_tool_map[key]['reference']
+                report.rename(columns={'type':f'type|{specific_tool_map[key]["tool"]}'}, inplace=True)
+                report.to_csv(output[0], header=True, index=False)
         except pd.errors.EmptyDataError:
             key = "_hicap.tsv"
             df = pd.DataFrame.from_dict({

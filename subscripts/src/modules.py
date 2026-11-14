@@ -398,6 +398,7 @@ class Module:
                     self.add_output_dir()
                     self.write_module_config()
                 cmd = f'''
+                set -o pipefail  # report snakemake's exit status, not tee's (otherwise failures are ignored)
                 source "$(conda info --base)/etc/profile.d/conda.sh"
                 conda activate $(dirname $(dirname $(which conda)))/envs/ardetype
                 snakemake --cores {self.snakemake_cpus} --reason --nolock --restart-times {self.retry_times} --resources API_calls=1 --configfile {self.config_file_path} --snakefile {self.snakefile_path} --keep-going --rerun-incomplete --latency-wait 30 {self.force_all} {self.force_specific} | tee /tmp/snakemake_run_$(date +%s).log
@@ -407,7 +408,8 @@ class Module:
                 break
 
             except subprocess.CalledProcessError as e:
-                failed_samples = hk.get_failed_sample_counts(e.stderr)
+                # Same parser as in HPC mode: catches "Error in rule" and "output files are missing" failures
+                failed_samples = hk.get_failed_sample_counts_extended((e.stdout or "") + (e.stderr or ""))
                 failed_dir.mkdir(exist_ok=True)
 
                 if not failed_samples:

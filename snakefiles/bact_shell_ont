@@ -90,7 +90,6 @@ rule all:
             _log('STEP: hamronization')
             if input.hamr_resfinder or input.hamr_rgi:
                 command = f'''
-module load singularity
 singularity --silent run --bind {config["output_directory"]}:{config["output_directory"]} {input.hamr_sif} hamronize summarize -o "{hamr_out}" -t tsv {" ".join(input.hamr_resfinder)} {" ".join(input.hamr_rgi)}
 echo bact_shell finished
                 '''

@@ -693,6 +693,22 @@ class Ardetype_housekeeper(hk):
 
     @staticmethod
     def hicap_results(hi_result_path:str, batch:str):
+        # Written by the hicap rule when hicap failed (an empty file means no cap locus found = NTHi)
+        with open(hi_result_path) as fh:
+            first_line = fh.readline()
+        if first_line.startswith('hicap_failed'):
+            return pd.DataFrame.from_dict({
+                'sample_id':[os.path.basename(hi_result_path).replace('_hi_hicap.tsv', '').split('_')[0]],
+                'analysis_batch_id':[os.path.basename(os.path.dirname(batch))],
+                'predicted_serotype':['hicap_failed'],
+                'attributes':[first_line.strip()],
+                'genes_identified':[None],
+                'locus_location':[None],
+                'region_I_genes':[None],
+                'region_II_genes':[None],
+                'region_III_genes':[None],
+                'IS1016_hits':[None],
+                })
         try:
             report = pd.read_csv(hi_result_path, sep="\t")
             report.columns = ['sample_id', 'predicted_serotype', 'attributes', 'genes_identified',
