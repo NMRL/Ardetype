@@ -7,8 +7,8 @@ from subscripts.ardetype_utilities import Ardetype_housekeeper as hk
 
 """
 This is a wrapper script of ARDETYPE pipeline.
-Date: 2025-02-24
-Version: 1.0.0
+Date: 2026-11-16
+Version: 1.0.1
 """
 
 if __name__ == "__main__":

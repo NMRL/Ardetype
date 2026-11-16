@@ -16,7 +16,7 @@ status_script_path:
 singularity_bin:
   ""
 ardetype_version:
-  v1.0.0
+  v1.0.1
 aquamis_qc_reference: 
   resources/databases/AQUAMIS_thresholds.json
 

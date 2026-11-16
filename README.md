@@ -86,16 +86,16 @@ conda env create -f ardetype.yaml
 
 ### Container images and databases
 
-The Singularity images and databases are published on Zenodo as two archives:
+The Singularity images and databases are published as two archives in one Zenodo record: **Ardetype: Singularity images and reference databases**, https://doi.org/10.5281/zenodo.24167460
 
-| Archive | Zenodo record | Contents | Size |
-|---|---|---|---|
-| `ardetype_images_2026-11-12.tar.gz` | `<IMAGES_RECORD_URL>` | 35 Singularity images: 29 rebuilt from conda-forge/bioconda lock files and 6 original builds (PlasmidFinder, MOB-suite, AgrVATE, staphopia-sccmec, ngmaster, BLAST+), plus the recipe to rebuild the 29 | ≈18 GB |
-| `ardetype_databases_2026-11-12.tar.gz` | `<DATABASES_RECORD_URL>` | Kraken2 (PhiX, human T2T, MiniKraken), ResFinder, VirulenceFinder + VFDB, SeroBA, LRE-Finder, PlasmidFinder, *A. baumannii* plasmid typing, AQUAMIS QC thresholds, 21 cgMLST schemes | ≈12 GB (≈42 GB extracted) |
+| Archive | Contents | Size |
+|---|---|---|
+| `ardetype_images_2026-11-12.tar.gz` | 35 Singularity images: 29 rebuilt from conda-forge/bioconda lock files and 6 original builds (PlasmidFinder, MOB-suite, AgrVATE, staphopia-sccmec, ngmaster, BLAST+), plus the recipe to rebuild the 29 | ≈18 GB |
+| `ardetype_databases_2026-11-12.tar.gz` | Kraken2 (PhiX, human T2T, MiniKraken), ResFinder, VirulenceFinder + VFDB, SeroBA, LRE-Finder, PlasmidFinder, *A. baumannii* plasmid typing, AQUAMIS QC thresholds, 21 cgMLST schemes | ≈12 GB (≈42 GB extracted) |
 
 All paths in the archives start at the repository root, so each archive is extracted there in one step. Besides the images or databases, each archive contains `resources/release_docs/<images|databases>_2026-11-12/` with a `README.md`, `references.txt` (Harvard-style citations of every tool and database; please cite them), `MANIFEST.tsv` and `checksums/<item>.sha256` (SHA-256 of every file, one checksum file per image or database).
 
-**1. Download** both archives from their Zenodo records and compare each with the MD5 checksum Zenodo lists for it:
+**1. Download** both archives from the [Zenodo record](https://doi.org/10.5281/zenodo.24167460) and compare each with the MD5 checksum Zenodo lists for it:
 ```bash
 md5sum ardetype_images_2026-11-12.tar.gz ardetype_databases_2026-11-12.tar.gz
 ```
