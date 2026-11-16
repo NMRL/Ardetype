@@ -24,7 +24,9 @@ rule all:
         
         #Combining agnostic typing results
         for path in config['shape_target_files']: 
-            df = pd.read_csv(path)#read each file
+            cols = pd.read_csv(path, nrows=0).columns
+            # typing results and STs as text: numeric-looking types (e.g. SeroBA "3") must not become floats ("3.0")
+            df = pd.read_csv(path, dtype={c: str for c in cols if c.startswith('type|') or c in ('MLST7_ST', 'rMLST')})#read each file
             if df['sample_id'][0] in aggr_dict: #if sample included before
                 aggr_dict[df['sample_id'][0]] = aggr_dict[df['sample_id'][0]].join(df.loc[ : ,df.columns != "sample_id"]) #add all columns except for sample_id
             else:
